@@ -14,7 +14,7 @@ export function useFollowers(userId?: string) {
       if (!user || !userId) return false;
       
       const { data } = await supabase
-        .from('user_blocks')
+        .from('dkai_user_blocks')
         .select('id')
         .or(`and(blocker_id.eq.${user.id},blocked_id.eq.${userId}),and(blocker_id.eq.${userId},blocked_id.eq.${user.id})`);
 

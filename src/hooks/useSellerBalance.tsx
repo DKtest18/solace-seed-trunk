@@ -11,7 +11,7 @@ export function useSellerBalance() {
       if (!user) return null;
 
       const { data, error } = await supabase
-        .from('seller_balances')
+        .from('dkai_seller_balances')
         .select('*')
         .eq('seller_id', user.id)
         .single();

@@ -34,7 +34,7 @@ export function useSellerOnboardingProgress() {
 
       // Fetch seller application if exists
       const { data: sellerApp } = await supabase
-        .from('seller_applications')
+        .from('dkai_seller_applications')
         .select('*')
         .eq('user_id', user.id)
         .single();

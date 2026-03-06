@@ -39,7 +39,7 @@ export function useUserBlocks() {
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
-        .from('user_blocks')
+        .from('dkai_user_blocks')
         .select('blocker_id')
         .eq('blocked_id', user.id);
       

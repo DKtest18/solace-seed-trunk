@@ -18,7 +18,7 @@ export function useBlockEnforcement(targetUserId?: string) {
 
       // Check both directions: if I blocked them OR they blocked me
       const { data: blocks, error } = await supabase
-        .from('user_blocks')
+        .from('dkai_user_blocks')
         .select('id')
         .or(`and(blocker_id.eq.${user.id},blocked_id.eq.${targetUserId}),and(blocker_id.eq.${targetUserId},blocked_id.eq.${user.id})`);
 

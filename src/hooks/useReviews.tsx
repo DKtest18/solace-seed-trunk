@@ -11,7 +11,7 @@ export function useProductReviews(productId: string) {
         .from('dkai_reviews')
         .select(`
           *,
-          profiles:user_id (
+          dkai_profiles:user_id (
             full_name,
             avatar_url
           )

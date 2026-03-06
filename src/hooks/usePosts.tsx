@@ -9,10 +9,10 @@ export function usePosts(timeFilter: TimeFilter = 'all') {
     queryKey: ['posts', timeFilter],
     queryFn: async () => {
       let query = supabase
-        .from('posts')
+        .from('dkai_posts')
         .select(`
           *,
-          profiles!inner(full_name, username, avatar_url)
+          dkai_profiles!inner(full_name, username, avatar_url)
         `)
         .eq('is_published', true)
         .eq('moderation_status', 'approved')

@@ -25,7 +25,7 @@ export function useProductAnalytics(productId: string | undefined) {
 
       // Get clicks
       const { count: clickCount } = await supabase
-        .from('product_analytics')
+        .from('dkai_product_analytics')
         .select('*', { count: 'exact', head: true })
         .eq('product_id', productId)
         .eq('event_type', 'click');

@@ -17,7 +17,7 @@ export function useBlockedCheck(targetUserId?: string) {
 
       // Check if I blocked them
       const { data: myBlocks } = await supabase
-        .from('user_blocks')
+        .from('dkai_user_blocks')
         .select('id')
         .eq('blocker_id', user.id)
         .eq('blocked_id', targetUserId);

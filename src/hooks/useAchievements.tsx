@@ -11,7 +11,7 @@ export function useAchievements() {
       if (!user) return [];
       
       const { data, error } = await supabase
-        .from('achievements')
+        .from('dkai_achievements')
         .select('*')
         .eq('user_id', user.id)
         .order('earned_at', { ascending: false });

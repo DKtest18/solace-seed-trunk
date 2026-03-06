@@ -28,7 +28,7 @@ export function useSellerOnboardingProgress() {
 
       // Fetch user roles
       const { data: roles } = await supabase
-        .from('user_roles')
+        .from('dkai_user_roles')
         .select('role')
         .eq('user_id', user.id);
 

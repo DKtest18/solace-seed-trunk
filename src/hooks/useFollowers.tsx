@@ -48,7 +48,7 @@ export function useFollowers(userId?: string) {
       if (!userId) return 0;
       
       const { count } = await supabase
-        .from('user_followers')
+        .from('dkai_user_followers')
         .select('*', { count: 'exact', head: true })
         .eq('following_id', userId);
 

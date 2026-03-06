@@ -55,7 +55,7 @@ export function useUserBlocks() {
       
       // Check if block already exists to prevent duplicate key error
       const { data: existing } = await supabase
-        .from('user_blocks')
+        .from('dkai_user_blocks')
         .select('id')
         .eq('blocker_id', user.id)
         .eq('blocked_id', blockedId)

@@ -81,7 +81,7 @@ export function useCreatePost() {
       }
 
       const { data, error } = await supabase
-        .from('posts')
+        .from('dkai_posts')
         .insert({
           user_id: user.id,
           content,

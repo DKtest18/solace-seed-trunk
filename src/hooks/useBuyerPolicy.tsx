@@ -13,7 +13,7 @@ export function useBuyerPolicy() {
       
       // Use raw query since types may not be updated yet
       const { data, error } = await (supabase
-        .from('buyer_policy_acceptances' as any)
+        .from('dkai_buyer_policy_acceptances' as any)
         .select('id')
         .eq('user_id', user.id)
         .eq('policy_version', 1)

@@ -1,81 +1,83 @@
-import { useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, Sphere, Box, Torus } from '@react-three/drei';
-import * as THREE from 'three';
-
-function FloatingShape({ 
-  position, 
-  shape, 
-  mousePosition 
-}: { 
-  position: [number, number, number]; 
-  shape: 'sphere' | 'box' | 'torus';
-  mousePosition: { x: number; y: number };
-}) {
-  const meshRef = useRef<THREE.Mesh>(null);
-
-  useFrame((state) => {
-    if (meshRef.current) {
-      // Auto rotation
-      meshRef.current.rotation.x += 0.001;
-      meshRef.current.rotation.y += 0.002;
-      
-      // Parallax effect based on mouse position
-      const parallaxX = mousePosition.x * 0.5;
-      const parallaxY = -mousePosition.y * 0.5;
-      
-      meshRef.current.position.x = position[0] + parallaxX;
-      meshRef.current.position.y = position[1] + parallaxY;
-    }
-  });
-
-  return (
-    <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
-      <mesh ref={meshRef} position={position}>
-        {shape === 'sphere' && <Sphere args={[0.5, 32, 32]} />}
-        {shape === 'box' && <Box args={[0.8, 0.8, 0.8]} />}
-        {shape === 'torus' && <Torus args={[0.5, 0.2, 16, 100]} />}
-        <meshStandardMaterial
-          color="#0ea5e9"
-          wireframe
-          transparent
-          opacity={0.3}
-        />
-      </mesh>
-    </Float>
-  );
-}
+import { useEffect, useRef } from 'react';
 
 export function HeroBackground() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    const { clientX, clientY } = event;
-    const { innerWidth, innerHeight } = window;
-    
-    // Normalize mouse position to -1 to 1 range
-    const x = (clientX / innerWidth) * 2 - 1;
-    const y = (clientY / innerHeight) * 2 - 1;
-    
-    setMousePosition({ x, y });
-  };
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationId: number;
+    let mouseX = 0;
+    let mouseY = 0;
+
+    const shapes: { x: number; y: number; size: number; speed: number; angle: number; type: number }[] = [];
+    for (let i = 0; i < 20; i++) {
+      shapes.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        size: Math.random() * 30 + 10,
+        speed: Math.random() * 0.5 + 0.1,
+        angle: Math.random() * Math.PI * 2,
+        type: Math.floor(Math.random() * 3),
+      });
+    }
+
+    const resize = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const handleMouse = (e: MouseEvent) => {
+      mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+      mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+    };
+    window.addEventListener('mousemove', handleMouse);
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      shapes.forEach((s) => {
+        s.angle += s.speed * 0.01;
+        const px = s.x + mouseX * 30 + Math.sin(s.angle) * 20;
+        const py = s.y + mouseY * 30 + Math.cos(s.angle) * 20;
+
+        ctx.strokeStyle = 'rgba(14, 165, 233, 0.25)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        if (s.type === 0) {
+          ctx.arc(px, py, s.size, 0, Math.PI * 2);
+        } else if (s.type === 1) {
+          ctx.rect(px - s.size / 2, py - s.size / 2, s.size, s.size);
+        } else {
+          for (let i = 0; i < 6; i++) {
+            const a = (Math.PI / 3) * i + s.angle;
+            const hx = px + Math.cos(a) * s.size;
+            const hy = py + Math.sin(a) * s.size;
+            i === 0 ? ctx.moveTo(hx, hy) : ctx.lineTo(hx, hy);
+          }
+          ctx.closePath();
+        }
+        ctx.stroke();
+      });
+      animationId = requestAnimationFrame(draw);
+    };
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', handleMouse);
+    };
+  }, []);
 
   return (
-    <div 
-      className="absolute inset-0 -z-10"
-      onMouseMove={handleMouseMove}
-    >
-      <Canvas camera={{ position: [0, 0, 8], fov: 50 }}>
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[5, 5, 5]} intensity={1} />
-        
-        <FloatingShape position={[-4, 2, -2]} shape="sphere" mousePosition={mousePosition} />
-        <FloatingShape position={[4, -2, -3]} shape="box" mousePosition={mousePosition} />
-        <FloatingShape position={[-3, -3, -1]} shape="torus" mousePosition={mousePosition} />
-        <FloatingShape position={[3, 3, -2]} shape="sphere" mousePosition={mousePosition} />
-        <FloatingShape position={[0, -1, -4]} shape="box" mousePosition={mousePosition} />
-        <FloatingShape position={[-2, 1, -3]} shape="torus" mousePosition={mousePosition} />
-      </Canvas>
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 -z-10 w-full h-full"
+    />
   );
 }

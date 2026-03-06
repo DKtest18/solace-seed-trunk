@@ -79,7 +79,7 @@ export function useAllProductsAnalytics(sellerId: string | undefined) {
           .eq('event_type', 'view');
 
         const { count: clickCount } = await supabase
-          .from('product_analytics')
+          .from('dkai_product_analytics')
           .select('*', { count: 'exact', head: true })
           .eq('product_id', product.id)
           .eq('event_type', 'click');

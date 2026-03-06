@@ -12,10 +12,10 @@ export function useSpamMessages() {
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
-        .from('spam_messages')
+        .from('dkai_spam_messages')
         .select(`
           *,
-          sender:profiles!spam_messages_sender_id_fkey (
+          sender:dkai_profiles!dkai_spam_messages_sender_id_fkey (
             id,
             full_name,
             username,

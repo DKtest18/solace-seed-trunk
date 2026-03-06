@@ -13,7 +13,7 @@ export function useWishlist(productId?: string) {
       if (!user || !productId) return false;
       
       const { data, error } = await supabase
-        .from('wishlists')
+        .from('dkai_wishlists')
         .select('id')
         .eq('user_id', user.id)
         .eq('product_id', productId)

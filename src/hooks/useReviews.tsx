@@ -30,7 +30,7 @@ export function useProductRating(productId: string) {
     queryKey: ['product-rating', productId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('reviews')
+        .from('dkai_reviews')
         .select('rating')
         .eq('product_id', productId);
 

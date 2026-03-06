@@ -85,7 +85,7 @@ export function useFollowers(userId?: string) {
 
       if (isFollowing) {
         const { error } = await supabase
-          .from('user_followers')
+          .from('dkai_user_followers')
           .delete()
           .eq('follower_id', user.id)
           .eq('following_id', targetUserId);

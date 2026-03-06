@@ -84,7 +84,7 @@ export function useRulesAcceptance() {
 
       // Insert or update acceptance
       const { error } = await supabase
-        .from('user_rules_acceptance')
+        .from('dkai_user_rules_acceptance')
         .upsert({
           user_id: user.id,
           rule_type: ruleType,

@@ -13,7 +13,7 @@ export function useUserRole() {
       if (!user) return [];
       
       const { data, error } = await supabase
-        .from('user_roles')
+        .from('dkai_user_roles')
         .select('role')
         .eq('user_id', user.id);
 

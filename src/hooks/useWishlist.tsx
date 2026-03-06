@@ -40,7 +40,7 @@ export function useWishlist(productId?: string) {
         return false;
       } else {
         const { error } = await supabase
-          .from('wishlists')
+          .from('dkai_wishlists')
           .insert({
             user_id: user.id,
             product_id: productId,

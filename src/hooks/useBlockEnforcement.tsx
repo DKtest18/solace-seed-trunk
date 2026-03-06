@@ -50,7 +50,7 @@ export function useBlockedUserIds() {
 
       // Get all block relationships involving current user
       const { data: blocks, error } = await supabase
-        .from('user_blocks')
+        .from('dkai_user_blocks')
         .select('blocker_id, blocked_id')
         .or(`blocker_id.eq.${user.id},blocked_id.eq.${user.id}`);
 

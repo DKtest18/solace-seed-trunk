@@ -94,7 +94,7 @@ export function useFollowers(userId?: string) {
         return false;
       } else {
         const { error } = await supabase
-          .from('user_followers')
+          .from('dkai_user_followers')
           .insert({
             follower_id: user.id,
             following_id: targetUserId,

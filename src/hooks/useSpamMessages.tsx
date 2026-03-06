@@ -61,7 +61,7 @@ export function useSpamMessages() {
       
       // Delete from spam
       const { error: deleteError } = await supabase
-        .from('spam_messages')
+        .from('dkai_spam_messages')
         .delete()
         .eq('id', spamMessage.id);
       

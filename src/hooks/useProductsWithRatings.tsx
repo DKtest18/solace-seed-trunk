@@ -6,7 +6,7 @@ export function useProductsWithRatings() {
     queryKey: ['products-with-ratings'],
     queryFn: async () => {
       const { data: products, error: productsError } = await supabase
-        .from('products')
+        .from('dkai_products')
         .select('*')
         .eq('is_published', true)
         .eq('approval_status', 'approved')
@@ -16,7 +16,7 @@ export function useProductsWithRatings() {
 
       // Fetch ratings for all products
       const { data: reviews, error: reviewsError } = await supabase
-        .from('reviews')
+        .from('dkai_reviews')
         .select('product_id, rating');
 
       if (reviewsError) throw reviewsError;

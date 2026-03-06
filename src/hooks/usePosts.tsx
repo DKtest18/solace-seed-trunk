@@ -105,7 +105,7 @@ export function useDeletePost() {
   return useMutation({
     mutationFn: async (postId: string) => {
       const { error } = await supabase
-        .from('posts')
+        .from('dkai_posts')
         .delete()
         .eq('id', postId);
 

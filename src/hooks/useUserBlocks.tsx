@@ -87,7 +87,7 @@ export function useUserBlocks() {
     mutationFn: async (blockedId: string) => {
       if (!user) throw new Error('Not authenticated');
       const { error } = await supabase
-        .from('user_blocks')
+        .from('dkai_user_blocks')
         .delete()
         .eq('blocker_id', user.id)
         .eq('blocked_id', blockedId);

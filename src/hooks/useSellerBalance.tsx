@@ -63,18 +63,18 @@ export function useSellerOrders() {
       if (!user) return [];
 
       const { data, error } = await supabase
-        .from('orders')
+        .from('dkai_orders')
         .select(`
           *,
-          products!inner(
+          dkai_products!inner(
             seller_id,
             title,
             price
           ),
-          payments(
+          dkai_payments(
             *
           ),
-          profiles!orders_buyer_id_fkey(
+          dkai_profiles!dkai_orders_buyer_id_fkey(
             full_name,
             email
           )

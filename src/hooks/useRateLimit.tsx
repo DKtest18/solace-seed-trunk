@@ -20,7 +20,7 @@ export function useRateLimit() {
 
       setChecking(true);
       try {
-        const { data, error } = await supabase.rpc("check_rate_limit", {
+        const { data, error } = await supabase.rpc("dkai_check_rate_limit", {
           p_user_id: user.id,
           p_action: action,
           p_max: maxAttempts,

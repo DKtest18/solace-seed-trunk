@@ -34,7 +34,7 @@ export function useBuyerPolicy() {
       if (!user?.id) throw new Error('Not authenticated');
 
       const { error } = await (supabase
-        .from('buyer_policy_acceptances' as any)
+        .from('dkai_buyer_policy_acceptances' as any)
         .insert({
           user_id: user.id,
           policy_version: 1,

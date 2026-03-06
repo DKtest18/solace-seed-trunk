@@ -104,7 +104,7 @@ export function useHasPurchased(productId: string) {
       if (!user) return false;
 
       const { data, error } = await supabase
-        .from('purchases')
+        .from('dkai_purchases')
         .select('id')
         .eq('product_id', productId)
         .eq('buyer_id', user.id)

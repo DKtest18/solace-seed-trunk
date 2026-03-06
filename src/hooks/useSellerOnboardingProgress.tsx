@@ -41,7 +41,7 @@ export function useSellerOnboardingProgress() {
 
       // Fetch payout methods
       const { data: payoutMethods } = await supabase
-        .from('payout_methods')
+        .from('dkai_payout_methods')
         .select('*')
         .eq('seller_id', user.id);
 

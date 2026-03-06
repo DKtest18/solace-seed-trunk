@@ -30,7 +30,7 @@ export function useUserAchievementsCount(userId?: string) {
       if (!userId) return 0;
       
       const { count } = await supabase
-        .from('achievements')
+        .from('dkai_achievements')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId);
 

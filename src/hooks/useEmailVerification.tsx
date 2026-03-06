@@ -19,7 +19,7 @@ export function useEmailVerification() {
     const checkVerification = async () => {
       try {
         const { data, error } = await supabase
-          .from("profiles")
+          .from("dkai_profiles")
           .select("email_verified")
           .eq("id", user.id)
           .single();

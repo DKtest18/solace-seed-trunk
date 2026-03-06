@@ -85,7 +85,7 @@ export function useAllProductsAnalytics(sellerId: string | undefined) {
           .eq('event_type', 'click');
 
         const { count: purchaseCount } = await supabase
-          .from('orders')
+          .from('dkai_orders')
           .select('*', { count: 'exact', head: true })
           .eq('product_id', product.id)
           .in('status', ['completed', 'delivered', 'payment_confirmed']);

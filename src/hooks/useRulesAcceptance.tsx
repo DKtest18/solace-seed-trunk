@@ -23,7 +23,7 @@ export function useRulesAcceptance() {
       
       // Check if version is still active
       const { data: rules } = await supabase
-        .from('platform_rules')
+        .from('dkai_platform_rules')
         .select('version')
         .eq('rule_type', 'user')
         .eq('is_active', true)

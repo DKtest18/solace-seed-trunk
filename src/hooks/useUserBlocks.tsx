@@ -66,7 +66,7 @@ export function useUserBlocks() {
       }
       
       const { error } = await supabase
-        .from('user_blocks')
+        .from('dkai_user_blocks')
         .insert({ blocker_id: user.id, blocked_id: blockedId });
       if (error) throw error;
       return { status: 'blocked' };

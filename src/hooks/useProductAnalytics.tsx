@@ -73,7 +73,7 @@ export function useAllProductsAnalytics(sellerId: string | undefined) {
       // Get analytics for each product
       const analyticsPromises = products.map(async (product) => {
         const { count: viewCount } = await supabase
-          .from('product_analytics')
+        .from('dkai_product_analytics')
           .select('*', { count: 'exact', head: true })
           .eq('product_id', product.id)
           .eq('event_type', 'view');

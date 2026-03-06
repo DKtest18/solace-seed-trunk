@@ -64,7 +64,7 @@ export function useAllProductsAnalytics(sellerId: string | undefined) {
 
       // Get all seller's products
       const { data: products } = await supabase
-        .from('products')
+        .from('dkai_products')
         .select('id, title')
         .eq('seller_id', sellerId);
 

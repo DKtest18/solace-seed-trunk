@@ -32,7 +32,7 @@ export function useProductAnalytics(productId: string | undefined) {
 
       // Get purchases from orders table
       const { count: purchaseCount } = await supabase
-        .from('orders')
+        .from('dkai_orders')
         .select('*', { count: 'exact', head: true })
         .eq('product_id', productId)
         .in('status', ['completed', 'delivered', 'payment_confirmed']);

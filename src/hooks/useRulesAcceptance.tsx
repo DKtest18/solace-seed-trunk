@@ -43,7 +43,7 @@ export function useRulesAcceptance() {
       
       // Get user's acceptance
       const { data: acceptance, error } = await supabase
-        .from('user_rules_acceptance')
+        .from('dkai_user_rules_acceptance')
         .select('rules_version')
         .eq('user_id', user.id)
         .eq('rule_type', 'seller')

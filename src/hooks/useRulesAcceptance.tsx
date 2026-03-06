@@ -72,7 +72,7 @@ export function useRulesAcceptance() {
 
       // Get current rules version
       const { data: rules, error: rulesError } = await supabase
-        .from('platform_rules')
+        .from('dkai_platform_rules')
         .select('version')
         .eq('rule_type', ruleType)
         .eq('is_active', true)

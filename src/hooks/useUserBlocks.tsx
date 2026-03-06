@@ -13,12 +13,12 @@ export function useUserBlocks() {
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
-        .from('user_blocks')
+        .from('dkai_user_blocks')
         .select(`
           id,
           blocked_id,
           created_at,
-          blocked:profiles!user_blocks_blocked_id_fkey (
+          blocked:dkai_profiles!dkai_user_blocks_blocked_id_fkey (
             id,
             full_name,
             username,

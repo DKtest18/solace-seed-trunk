@@ -34,7 +34,7 @@ export function useSpamMessages() {
   const deleteSpamMessage = useMutation({
     mutationFn: async (messageId: string) => {
       const { error } = await supabase
-        .from('spam_messages')
+        .from('dkai_spam_messages')
         .delete()
         .eq('id', messageId);
       if (error) throw error;

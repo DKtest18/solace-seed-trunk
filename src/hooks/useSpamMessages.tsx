@@ -49,7 +49,7 @@ export function useSpamMessages() {
     mutationFn: async (spamMessage: any) => {
       // Create a real message from spam
       const { error: insertError } = await supabase
-        .from('messages')
+        .from('dkai_messages')
         .insert({
           sender_id: spamMessage.sender_id,
           recipient_id: spamMessage.recipient_id,

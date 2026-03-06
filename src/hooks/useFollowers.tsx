@@ -30,7 +30,7 @@ export function useFollowers(userId?: string) {
       if (!user || !userId) return false;
       
       const { data } = await supabase
-        .from('user_followers')
+        .from('dkai_user_followers')
         .select('id')
         .eq('follower_id', user.id)
         .eq('following_id', userId)

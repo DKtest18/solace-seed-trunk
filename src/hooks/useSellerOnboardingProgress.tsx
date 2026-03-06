@@ -21,7 +21,7 @@ export function useSellerOnboardingProgress() {
 
       // Fetch profile data
       const { data: profile } = await supabase
-        .from('profiles')
+        .from('dkai_profiles')
         .select('*')
         .eq('id', user.id)
         .single();

@@ -8,7 +8,7 @@ export function useProductReviews(productId: string) {
     queryKey: ['reviews', productId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('reviews')
+        .from('dkai_reviews')
         .select(`
           *,
           profiles:user_id (

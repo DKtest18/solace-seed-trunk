@@ -31,7 +31,7 @@ export function useWishlist(productId?: string) {
 
       if (isInWishlist) {
         const { error } = await supabase
-          .from('wishlists')
+          .from('dkai_wishlists')
           .delete()
           .eq('user_id', user.id)
           .eq('product_id', productId);

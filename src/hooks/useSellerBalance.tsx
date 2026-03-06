@@ -41,7 +41,7 @@ export function useSellerLedger() {
       if (!user) return [];
 
       const { data, error } = await supabase
-        .from('platform_ledger_entries')
+        .from('dkai_platform_ledger_entries')
         .select('*')
         .eq('user_id', user.id)
         .order('timestamp', { ascending: false })

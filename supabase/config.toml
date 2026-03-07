@@ -1,0 +1,92 @@
+[project]
+id = "dwqpkdatzdqhplgyhigg"
+
+[functions.ai-assistant]
+verify_jwt = false
+
+[functions.admin-escrow-action]
+verify_jwt = false
+
+[functions.create-message-thread]
+verify_jwt = false
+
+[functions.send-thread-message]
+verify_jwt = false
+
+[functions.verify-reauth]
+verify_jwt = false
+
+[functions.extend-meeting]
+verify_jwt = false
+
+[functions.seller-respond-dispute]
+verify_jwt = false
+
+[functions.resolve-dispute]
+verify_jwt = false
+
+[functions.create-product-checkout]
+verify_jwt = false
+
+[functions.admin-sanctions]
+verify_jwt = false
+
+[functions.manage-subscription]
+verify_jwt = false
+
+[functions.create-review]
+verify_jwt = false
+
+[functions.stripe-connect-status]
+verify_jwt = false
+
+[functions.stripe-connect-onboard]
+verify_jwt = false
+
+[functions.stripe-connect-dashboard]
+verify_jwt = false
+
+[functions.stripe-connect-disconnect]
+verify_jwt = false
+
+[functions.recalculate-trending]
+verify_jwt = false
+
+[functions.get-meeting-asset-url]
+verify_jwt = false
+
+[functions.export-meeting-data]
+verify_jwt = false
+
+[functions.create-community-post]
+verify_jwt = false
+
+[functions.send-verification-code]
+verify_jwt = false
+
+[functions.verify-code]
+verify_jwt = false
+
+[functions.enable-2fa]
+verify_jwt = false
+
+[functions.generate-backup-codes]
+verify_jwt = false
+
+[functions.accept-platform-rules]
+verify_jwt = false
+
+[functions.buyer-confirm-receipt]
+verify_jwt = false
+
+[functions.request-refund]
+verify_jwt = false
+
+[functions.generate-signed-url]
+verify_jwt = false
+
+[functions.create-meeting-payment]
+verify_jwt = false
+
+[functions.create-report]
+verify_jwt = false

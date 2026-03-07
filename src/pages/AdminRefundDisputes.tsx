@@ -105,8 +105,8 @@ export default function AdminRefundDisputes() {
       if (orderUpdateError) throw orderUpdateError;
 
       // Create refund transaction
-      const { error: refundError } = await supabase
-        .from('escrow_transactions')
+      const { error: refundError } = await db
+        .from('dkai_escrow_transactions')
         .insert({
           order_id: orderId,
           amount: order.held_amount,

@@ -176,8 +176,8 @@ export default function AdminDisputes() {
         });
 
       // Hide all products from banned user
-      const { error: productsError } = await supabase
-        .from("products")
+      const { error: productsError } = await db
+        .from("dkai_products")
         .update({ is_published: false, available: false })
         .eq("seller_id", userId);
 

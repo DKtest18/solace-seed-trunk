@@ -40,8 +40,8 @@ export default function ProductDetail() {
   } = useQuery({
     queryKey: ['product', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
+      const { data, error } = await db
+        .from('dkai_products')
         .select('*')
         .eq('id', id!)
         .single();

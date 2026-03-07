@@ -88,7 +88,7 @@ export function ModerationDashboard() {
   const handleBanUser = async (userId: string) => {
     try {
       // Create moderation audit log for ban action
-      await supabase.from('moderation_audit_logs').insert({
+      await db.from('dkai_moderation_audit_logs').insert({
         target_type: 'user',
         target_id: userId,
         action: 'ban',

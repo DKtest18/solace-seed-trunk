@@ -67,12 +67,12 @@ export default function EscrowManagement() {
   const { data: orders, isLoading } = useQuery({
     queryKey: ['escrow-orders', statusFilter],
     queryFn: async () => {
-      let query = supabase
-        .from('orders')
+      let query = db
+        .from('dkai_orders')
         .select(`
           *,
-          products(title, seller_id),
-          buyer:profiles!orders_buyer_id_fkey(username, email)
+          products:dkai_products(title, seller_id),
+          buyer:dkai_profiles!orders_buyer_id_fkey(username, email)
         `)
         .order('created_at', { ascending: false });
 

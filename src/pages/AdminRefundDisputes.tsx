@@ -152,9 +152,9 @@ export default function AdminRefundDisputes() {
       if (disputeError) throw disputeError;
 
       // Get order to notify buyer
-      const { data: order } = await supabase
-        .from('orders')
-        .select('buyer_id, products(seller_id)')
+      const { data: order } = await db
+        .from('dkai_orders')
+        .select('buyer_id, dkai_products(seller_id)')
         .eq('id', orderId)
         .single();
 

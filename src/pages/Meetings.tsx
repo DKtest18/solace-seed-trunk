@@ -74,8 +74,8 @@ export default function Meetings() {
 
       // Get profiles for these sellers
       const sellerIds = configs.map(c => c.seller_id);
-      const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
+      const { data: profiles, error: profileError } = await db
+        .from('dkai_profiles')
         .select('id, username, full_name, avatar_url, bio, creator_name')
         .in('id', sellerIds);
 

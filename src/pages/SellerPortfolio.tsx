@@ -687,7 +687,7 @@ export default function SellerPortfolio() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('portfolio_products').delete().eq('id', id);
+      const { error } = await db.from('dkai_portfolio_products').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => { toast.success('Deleted!'); queryClient.invalidateQueries({ queryKey: ['seller-portfolio'] }); },

@@ -1,32 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function useSellerBalance() {
   const { user } = useAuth();
-
   return useQuery({
     queryKey: ['seller-balance', user?.id],
     queryFn: async () => {
       if (!user) return null;
-
-      const { data, error } = await supabase
-        .from('seller_balances')
-        .select('*')
-        .eq('seller_id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
-
-      return data || {
-        seller_id: user.id,
-        available_balance: 0,
-        held_balance: 0,
-        pending_balance: 0,
-        currency: 'usd',
-      };
+      const { data, error } = await db.from('dkai_seller_balances').select('*').eq('seller_id', user.id).single();
+      if (error && error.code !== 'PGRST116') throw error;
+      return data || { seller_id: user.id, available_balance: 0, held_balance: 0, pending_balance: 0, currency: 'usd' };
     },
     enabled: !!user,
   });
@@ -34,19 +18,11 @@ export function useSellerBalance() {
 
 export function useSellerLedger() {
   const { user } = useAuth();
-
   return useQuery({
     queryKey: ['seller-ledger', user?.id],
     queryFn: async () => {
       if (!user) return [];
-
-      const { data, error } = await supabase
-        .from('platform_ledger_entries')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('timestamp', { ascending: false })
-        .limit(50);
-
+      const { data, error } = await db.from('dkai_platform_ledger_entries').select('*').eq('user_id', user.id).order('timestamp', { ascending: false }).limit(50);
       if (error) throw error;
       return data;
     },
@@ -56,32 +32,20 @@ export function useSellerLedger() {
 
 export function useSellerOrders() {
   const { user } = useAuth();
-
   return useQuery({
     queryKey: ['seller-orders', user?.id],
     queryFn: async () => {
       if (!user) return [];
-
-      const { data, error } = await supabase
-        .from('orders')
+      const { data, error } = await db
+        .from('dkai_orders')
         .select(`
           *,
-          products!inner(
-            seller_id,
-            title,
-            price
-          ),
-          payments(
-            *
-          ),
-          profiles!orders_buyer_id_fkey(
-            full_name,
-            email
-          )
+          dkai_products!inner(seller_id, title, price),
+          dkai_payments(*),
+          dkai_profiles!dkai_orders_buyer_id_fkey(full_name, email)
         `)
-        .eq('products.seller_id', user.id)
+        .eq('dkai_products.seller_id', user.id)
         .order('created_at', { ascending: false });
-
       if (error) throw error;
       return data;
     },

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStrictModeration } from '@/hooks/useStrictModeration';
@@ -7,11 +8,11 @@ export function useProductReviews(productId: string) {
   return useQuery({
     queryKey: ['reviews', productId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('reviews')
+      const { data, error } = await db
+        .from('dkai_reviews')
         .select(`
           *,
-          profiles:user_id (
+          dkai_profiles:user_id (
             full_name,
             avatar_url
           )
@@ -29,8 +30,8 @@ export function useProductRating(productId: string) {
   return useQuery({
     queryKey: ['product-rating', productId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('reviews')
+      const { data, error } = await db
+        .from('dkai_reviews')
         .select('rating')
         .eq('product_id', productId);
 
@@ -40,7 +41,7 @@ export function useProductRating(productId: string) {
         return { average: 0, count: 0 };
       }
 
-      const sum = data.reduce((acc, review) => acc + review.rating, 0);
+      const sum = data.reduce((acc: number, review: any) => acc + review.rating, 0);
       const average = sum / data.length;
 
       return {
@@ -103,8 +104,8 @@ export function useHasPurchased(productId: string) {
     queryFn: async () => {
       if (!user) return false;
 
-      const { data, error } = await supabase
-        .from('purchases')
+      const { data, error } = await db
+        .from('dkai_purchases')
         .select('id')
         .eq('product_id', productId)
         .eq('buyer_id', user.id)

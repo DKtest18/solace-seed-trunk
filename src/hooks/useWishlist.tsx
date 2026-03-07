@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -12,8 +12,8 @@ export function useWishlist(productId?: string) {
     queryFn: async () => {
       if (!user || !productId) return false;
       
-      const { data, error } = await supabase
-        .from('wishlists')
+      const { data, error } = await db
+        .from('dkai_wishlists')
         .select('id')
         .eq('user_id', user.id)
         .eq('product_id', productId)
@@ -30,8 +30,8 @@ export function useWishlist(productId?: string) {
       if (!user) throw new Error('Please log in to add to wishlist');
 
       if (isInWishlist) {
-        const { error } = await supabase
-          .from('wishlists')
+        const { error } = await db
+          .from('dkai_wishlists')
           .delete()
           .eq('user_id', user.id)
           .eq('product_id', productId);
@@ -39,8 +39,8 @@ export function useWishlist(productId?: string) {
         if (error) throw error;
         return false;
       } else {
-        const { error } = await supabase
-          .from('wishlists')
+        const { error } = await db
+          .from('dkai_wishlists')
           .insert({
             user_id: user.id,
             product_id: productId,

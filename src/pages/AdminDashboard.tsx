@@ -137,8 +137,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
   const { data: sellerApplications } = useQuery({
     queryKey: ['admin-seller-applications'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('seller_applications')
+      const { data, error } = await db
+        .from('dkai_seller_applications')
         .select('*')
         .eq('status', 'pending')
         .order('applied_at', { ascending: false });

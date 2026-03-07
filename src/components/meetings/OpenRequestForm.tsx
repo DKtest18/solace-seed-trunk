@@ -238,7 +238,7 @@ export function OpenRequestForm({ open, onOpenChange, seller }: OpenRequestFormP
 
       // Send notification to seller
       try {
-        await supabase.from('in_app_notifications').insert({
+        await db.from('dkai_in_app_notifications').insert({
           user_id: seller.seller_id,
           type: 'meeting_request',
           title: 'New Meeting Request',

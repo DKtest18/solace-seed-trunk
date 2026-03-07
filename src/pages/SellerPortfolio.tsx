@@ -696,7 +696,7 @@ export default function SellerPortfolio() {
 
   const toggleVisibilityMutation = useMutation({
     mutationFn: async ({ id, is_public }: { id: string; is_public: boolean }) => {
-      const { error } = await supabase.from('portfolio_products').update({ is_public }).eq('id', id);
+      const { error } = await db.from('dkai_portfolio_products').update({ is_public }).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['seller-portfolio'] })

@@ -409,8 +409,8 @@ export default function ProfileSettings() {
                       <Select 
                         value={profile?.timezone || 'Europe/Zurich'} 
                         onValueChange={async (value) => {
-                          const { error } = await supabase
-                            .from('profiles')
+                          const { error } = await db
+                            .from('dkai_profiles')
                             .update({ timezone: value })
                             .eq('id', user.id);
                           if (error) {

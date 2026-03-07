@@ -122,8 +122,8 @@ export default function Meetings() {
       });
 
       // Get top achievements for sellers
-      const { data: achievementsData } = await supabase
-        .from('achievements')
+      const { data: achievementsData } = await db
+        .from('dkai_achievements')
         .select('user_id, title, icon_url')
         .in('user_id', sellerIds)
         .order('earned_at', { ascending: false });

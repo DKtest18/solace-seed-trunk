@@ -91,8 +91,8 @@ export default function EscrowManagement() {
   const { data: stats } = useQuery({
     queryKey: ['escrow-stats'],
     queryFn: async () => {
-      const { data: orders } = await supabase
-        .from('orders')
+      const { data: orders } = await db
+        .from('dkai_orders')
         .select('escrow_status, held_amount, price')
         .in('escrow_status', ['held', 'delivered', 'pending']);
 

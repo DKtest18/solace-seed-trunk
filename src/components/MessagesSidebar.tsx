@@ -179,7 +179,7 @@ export function MessagesSidebar() {
 
   const handleDeleteMessage = async (messageId: string) => {
     try {
-      const { error } = await supabase.from('messages').delete().eq('id', messageId).eq('sender_id', user?.id);
+      const { error } = await db.from('dkai_messages').delete().eq('id', messageId).eq('sender_id', user?.id);
       if (error) throw error;
       setMessages(prev => prev.filter(m => m.id !== messageId));
       toast({ title: 'Message deleted' });

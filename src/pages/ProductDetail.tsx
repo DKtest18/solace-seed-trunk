@@ -17,7 +17,7 @@ const trackProductEvent = async (productId: string, eventType: 'view' | 'click',
     const sessionId = sessionStorage.getItem('session_id') || crypto.randomUUID();
     sessionStorage.setItem('session_id', sessionId);
 
-    await supabase.from('product_analytics').insert({
+    await db.from('dkai_product_analytics').insert({
       product_id: productId,
       event_type: eventType,
       user_id: userId || null,

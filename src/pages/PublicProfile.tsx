@@ -61,8 +61,8 @@ export default function PublicProfile() {
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(username || '');
       
       const { data: profileData, error } = isUUID
-        ? await supabase.from('profiles').select('*').eq('id', username).single()
-        : await supabase.from('profiles').select('*').eq('username', username).single();
+        ? await db.from('dkai_profiles').select('*').eq('id', username).single()
+        : await db.from('dkai_profiles').select('*').eq('username', username).single();
 
       if (error) throw error;
       setProfile(profileData);

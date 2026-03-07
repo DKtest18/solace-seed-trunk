@@ -152,8 +152,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
   // Approve/reject product mutation
   const moderateProduct = useMutation({
     mutationFn: async ({ productId, status, notes }: { productId: string; status: 'approved' | 'rejected'; notes: string }) => {
-      const { data: product, error: fetchError } = await supabase
-        .from('products')
+      const { data: product, error: fetchError } = await db
+        .from('dkai_products')
         .select('seller_id, title')
         .eq('id', productId)
         .single();

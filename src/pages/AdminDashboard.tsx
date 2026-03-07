@@ -81,8 +81,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
     queryKey: ['admin-pending-products'],
     queryFn: async () => {
       console.log('Fetching pending products...');
-      const { data, error } = await supabase
-        .from('products')
+      const { data, error } = await db
+        .from('dkai_products')
         .select(`
           *,
           seller:profiles!products_seller_id_fkey (

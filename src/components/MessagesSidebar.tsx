@@ -90,8 +90,8 @@ export function MessagesSidebar() {
 
       if (userIds.size === 0) { setConversations([]); setLoading(false); return; }
 
-      const { data: profiles } = await supabase
-        .from('profiles')
+      const { data: profiles } = await db
+        .from('dkai_profiles')
         .select('id, full_name, avatar_url')
         .in('id', Array.from(userIds));
 

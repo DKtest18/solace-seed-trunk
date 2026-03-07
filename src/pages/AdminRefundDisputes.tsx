@@ -94,8 +94,8 @@ export default function AdminRefundDisputes() {
       if (buyerBalanceError) throw buyerBalanceError;
 
       // Update order status
-      const { error: orderUpdateError } = await supabase
-        .from('orders')
+      const { error: orderUpdateError } = await db
+        .from('dkai_orders')
         .update({
           status: 'refunded',
           escrow_status: 'refunded'

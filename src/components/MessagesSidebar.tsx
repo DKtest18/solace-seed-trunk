@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -61,8 +62,8 @@ export function MessagesSidebar() {
   const loadConversations = async () => {
     if (!user) return;
     try {
-      const { data: blocks } = await supabase
-        .from('user_blocks')
+      const { data: blocks } = await db
+        .from('dkai_user_blocks')
         .select('blocker_id, blocked_id')
         .or(`blocker_id.eq.${user.id},blocked_id.eq.${user.id}`);
 
@@ -72,8 +73,8 @@ export function MessagesSidebar() {
         else blockedIds.add(block.blocker_id);
       });
 
-      const { data: messages, error } = await supabase
-        .from('messages')
+      const { data: messages, error } = await db
+        .from('dkai_messages')
         .select('*')
         .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
         .order('created_at', { ascending: false })
@@ -89,8 +90,8 @@ export function MessagesSidebar() {
 
       if (userIds.size === 0) { setConversations([]); setLoading(false); return; }
 
-      const { data: profiles } = await supabase
-        .from('profiles')
+      const { data: profiles } = await db
+        .from('dkai_profiles')
         .select('id, full_name, avatar_url')
         .in('id', Array.from(userIds));
 
@@ -126,15 +127,15 @@ export function MessagesSidebar() {
   const loadMessages = async (otherUserId: string) => {
     if (!user) return;
     try {
-      const { data, error } = await supabase
-        .from('messages')
+      const { data, error } = await db
+        .from('dkai_messages')
         .select('*')
         .or(`and(sender_id.eq.${user.id},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${user.id})`)
         .order('created_at', { ascending: true })
         .limit(50);
       if (error) throw error;
       setMessages(data || []);
-      await supabase.from('messages').update({ is_read: true }).eq('recipient_id', user.id).eq('sender_id', otherUserId);
+      await db.from('dkai_messages').update({ is_read: true }).eq('recipient_id', user.id).eq('sender_id', otherUserId);
     } catch (error: any) {
       console.error('Failed to load messages:', error);
     }
@@ -144,7 +145,7 @@ export function MessagesSidebar() {
     if (!user || !selectedUserId || !newMessage.trim()) return;
     setSending(true);
     try {
-      const { error } = await supabase.from('messages').insert({
+      const { error } = await db.from('dkai_messages').insert({
         sender_id: user.id,
         recipient_id: selectedUserId,
         content: newMessage.trim(),
@@ -162,8 +163,8 @@ export function MessagesSidebar() {
   const handleEditMessage = async (messageId: string) => {
     if (!editContent.trim()) return;
     try {
-      const { error } = await supabase
-        .from('messages')
+      const { error } = await db
+        .from('dkai_messages')
         .update({ content: editContent.trim(), edited_at: new Date().toISOString() })
         .eq('id', messageId)
         .eq('sender_id', user?.id);
@@ -178,7 +179,7 @@ export function MessagesSidebar() {
 
   const handleDeleteMessage = async (messageId: string) => {
     try {
-      const { error } = await supabase.from('messages').delete().eq('id', messageId).eq('sender_id', user?.id);
+      const { error } = await db.from('dkai_messages').delete().eq('id', messageId).eq('sender_id', user?.id);
       if (error) throw error;
       setMessages(prev => prev.filter(m => m.id !== messageId));
       toast({ title: 'Message deleted' });

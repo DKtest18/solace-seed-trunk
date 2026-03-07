@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Navigate } from 'react-router-dom';
@@ -24,21 +24,21 @@ export default function AdminRefundDisputes() {
   const { data: disputes, isLoading } = useQuery({
     queryKey: ['admin-refund-disputes'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('disputes')
+      const { data, error } = await db
+        .from('dkai_disputes')
         .select(`
           *,
-          products (
+          dkai_products (
             id,
             title
           ),
-          buyer:profiles!disputes_buyer_id_fkey (
+          buyer:dkai_profiles!disputes_buyer_id_fkey (
             id,
             full_name,
             creator_name,
             username
           ),
-          seller:profiles!disputes_seller_id_fkey (
+          seller:dkai_profiles!disputes_seller_id_fkey (
             id,
             full_name,
             creator_name,
@@ -58,8 +58,8 @@ export default function AdminRefundDisputes() {
   const approveRefund = useMutation({
     mutationFn: async ({ disputeId, orderId }: { disputeId: string; orderId: string }) => {
       // Update dispute status
-      const { error: disputeError } = await supabase
-        .from('disputes')
+      const { error: disputeError } = await db
+        .from('dkai_disputes')
         .update({
           status: 'resolved',
           resolved_by: user?.id,
@@ -71,9 +71,9 @@ export default function AdminRefundDisputes() {
       if (disputeError) throw disputeError;
 
       // Get order details for refund
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .select('held_amount, buyer_id, products(seller_id)')
+      const { data: order, error: orderError } = await db
+        .from('dkai_orders')
+        .select('held_amount, buyer_id, dkai_products(seller_id)')
         .eq('id', orderId)
         .single();
 
@@ -81,7 +81,7 @@ export default function AdminRefundDisputes() {
 
       // Process refund using RPC or direct balance updates
       // Refund to buyer's balance
-      const { error: buyerBalanceError } = await supabase.rpc('update_user_balance', {
+      const { error: buyerBalanceError } = await db.rpc('update_user_balance', {
         _user_id: order.buyer_id,
         _amount: order.held_amount,
         _balance_type: 'available',
@@ -94,8 +94,8 @@ export default function AdminRefundDisputes() {
       if (buyerBalanceError) throw buyerBalanceError;
 
       // Update order status
-      const { error: orderUpdateError } = await supabase
-        .from('orders')
+      const { error: orderUpdateError } = await db
+        .from('dkai_orders')
         .update({
           status: 'refunded',
           escrow_status: 'refunded'
@@ -105,8 +105,8 @@ export default function AdminRefundDisputes() {
       if (orderUpdateError) throw orderUpdateError;
 
       // Create refund transaction
-      const { error: refundError } = await supabase
-        .from('escrow_transactions')
+      const { error: refundError } = await db
+        .from('dkai_escrow_transactions')
         .insert({
           order_id: orderId,
           amount: order.held_amount,
@@ -118,7 +118,7 @@ export default function AdminRefundDisputes() {
       if (refundError) throw refundError;
 
       // Notify buyer
-      await supabase.from('in_app_notifications').insert({
+      await db.from('dkai_in_app_notifications').insert({
         user_id: order.buyer_id,
         title: 'Refund Approved',
         message: `Your refund request has been approved. $${order.held_amount} has been credited to your balance.`,
@@ -139,8 +139,8 @@ export default function AdminRefundDisputes() {
   const denyRefund = useMutation({
     mutationFn: async ({ disputeId, orderId, reason }: { disputeId: string; orderId: string; reason: string }) => {
       // Update dispute status
-      const { error: disputeError } = await supabase
-        .from('disputes')
+      const { error: disputeError } = await db
+        .from('dkai_disputes')
         .update({
           status: 'closed',
           resolved_by: user?.id,
@@ -152,15 +152,15 @@ export default function AdminRefundDisputes() {
       if (disputeError) throw disputeError;
 
       // Get order to notify buyer
-      const { data: order } = await supabase
-        .from('orders')
-        .select('buyer_id, products(seller_id)')
+      const { data: order } = await db
+        .from('dkai_orders')
+        .select('buyer_id, dkai_products(seller_id)')
         .eq('id', orderId)
         .single();
 
       if (order) {
         // Notify buyer
-        await supabase.from('in_app_notifications').insert({
+        await db.from('dkai_in_app_notifications').insert({
           user_id: order.buyer_id,
           title: 'Refund Request Denied',
           message: `Your refund request was reviewed and denied. Reason: ${reason}`,

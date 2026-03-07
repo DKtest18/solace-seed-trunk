@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -73,8 +74,8 @@ export default function Meetings() {
 
       // Get profiles for these sellers
       const sellerIds = configs.map(c => c.seller_id);
-      const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
+      const { data: profiles, error: profileError } = await db
+        .from('dkai_profiles')
         .select('id, username, full_name, avatar_url, bio, creator_name')
         .in('id', sellerIds);
 
@@ -95,8 +96,8 @@ export default function Meetings() {
       }
 
       // Get product counts for sellers
-      const { data: productCounts } = await supabase
-        .from('products')
+      const { data: productCounts } = await db
+        .from('dkai_products')
         .select('seller_id')
         .in('seller_id', sellerIds)
         .eq('is_published', true);
@@ -107,9 +108,9 @@ export default function Meetings() {
       });
 
       // Get sales counts (completed orders) for sellers
-      const { data: salesData } = await supabase
-        .from('orders')
-        .select('product_id, products!inner(seller_id)')
+      const { data: salesData } = await db
+        .from('dkai_orders')
+        .select('product_id, dkai_products!inner(seller_id)')
         .in('status', ['completed', 'payment_confirmed', 'delivered']);
 
       const salesCountMap = new Map<string, number>();
@@ -121,8 +122,8 @@ export default function Meetings() {
       });
 
       // Get top achievements for sellers
-      const { data: achievementsData } = await supabase
-        .from('achievements')
+      const { data: achievementsData } = await db
+        .from('dkai_achievements')
         .select('user_id, title, icon_url')
         .in('user_id', sellerIds)
         .order('earned_at', { ascending: false });

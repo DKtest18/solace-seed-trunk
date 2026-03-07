@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -12,8 +13,8 @@ export function useRealtimeNotifications() {
 
     // Load initial unread count
     const loadUnreadCount = async () => {
-      const { count } = await supabase
-        .from('in_app_notifications')
+      const { count } = await db
+        .from('dkai_in_app_notifications')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .eq('is_read', false);
@@ -31,18 +32,16 @@ export function useRealtimeNotifications() {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'in_app_notifications',
+          table: 'dkai_in_app_notifications',
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
           const notification = payload.new as any;
           
-          // Show toast notification
           toast.info(notification.title, {
             description: notification.message,
           });
 
-          // Update unread count
           setUnreadCount((prev) => prev + 1);
         }
       )
@@ -54,8 +53,8 @@ export function useRealtimeNotifications() {
   }, [user]);
 
   const markAsRead = async (notificationId: string) => {
-    const { error } = await supabase
-      .from('in_app_notifications')
+    const { error } = await db
+      .from('dkai_in_app_notifications')
       .update({ is_read: true })
       .eq('id', notificationId);
 
@@ -67,8 +66,8 @@ export function useRealtimeNotifications() {
   const markAllAsRead = async () => {
     if (!user) return;
 
-    const { error } = await supabase
-      .from('in_app_notifications')
+    const { error } = await db
+      .from('dkai_in_app_notifications')
       .update({ is_read: true })
       .eq('user_id', user.id)
       .eq('is_read', false);

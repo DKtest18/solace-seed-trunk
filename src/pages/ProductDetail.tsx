@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, ArrowLeft, MessageCircle, HelpCircle, Star } from 'lucide-react';
@@ -17,7 +17,7 @@ const trackProductEvent = async (productId: string, eventType: 'view' | 'click',
     const sessionId = sessionStorage.getItem('session_id') || crypto.randomUUID();
     sessionStorage.setItem('session_id', sessionId);
 
-    await supabase.from('product_analytics').insert({
+    await db.from('dkai_product_analytics').insert({
       product_id: productId,
       event_type: eventType,
       user_id: userId || null,
@@ -40,8 +40,8 @@ export default function ProductDetail() {
   } = useQuery({
     queryKey: ['product', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
+      const { data, error } = await db
+        .from('dkai_products')
         .select('*')
         .eq('id', id!)
         .single();
@@ -64,8 +64,8 @@ export default function ProductDetail() {
     queryFn: async () => {
       if (!product?.seller_id) return null;
       
-      const { data, error } = await supabase
-        .from('profiles')
+      const { data, error } = await db
+        .from('dkai_profiles')
         .select('id, full_name, avatar_url, username')
         .eq('id', product.seller_id)
         .single();
@@ -80,8 +80,8 @@ export default function ProductDetail() {
   const { data: productRating } = useQuery({
     queryKey: ['product-rating', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('reviews')
+      const { data, error } = await db
+        .from('dkai_reviews')
         .select('rating')
         .eq('product_id', id!);
 

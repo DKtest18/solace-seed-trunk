@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card } from "./ui/card";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/dkaiDb";
 import { useAuth } from "@/contexts/AuthContext";
 import { Wallet, TrendingUp } from "lucide-react";
 
@@ -17,8 +17,8 @@ export function UserBalanceCard() {
 
   const fetchBalance = async () => {
     try {
-      const { data, error } = await supabase
-        .from("user_balances")
+      const { data, error } = await db
+        .from("dkai_user_balances")
         .select("available_balance")
         .eq("user_id", user?.id)
         .single();

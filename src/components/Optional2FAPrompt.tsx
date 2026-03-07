@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +25,6 @@ export function Optional2FAPrompt() {
   const [recoveryKey, setRecoveryKey] = useState('');
   const [currentEmail, setCurrentEmail] = useState('');
 
-  // Always fetch the real session email
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user?.email) {
@@ -35,13 +35,12 @@ export function Optional2FAPrompt() {
 
   useEffect(() => {
     if (!user) return;
-    // Only show once per session
     const dismissed = sessionStorage.getItem('2fa_prompt_dismissed');
     if (dismissed) return;
 
     const check = async () => {
-      const { data } = await supabase
-        .from('profiles')
+      const { data } = await db
+        .from('dkai_profiles')
         .select('is_2fa_enabled')
         .eq('id', user.id)
         .single();

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { SellerSidebar } from '@/components/SellerSidebar';
@@ -686,7 +687,7 @@ export default function SellerPortfolio() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('portfolio_products').delete().eq('id', id);
+      const { error } = await db.from('dkai_portfolio_products').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => { toast.success('Deleted!'); queryClient.invalidateQueries({ queryKey: ['seller-portfolio'] }); },
@@ -695,7 +696,7 @@ export default function SellerPortfolio() {
 
   const toggleVisibilityMutation = useMutation({
     mutationFn: async ({ id, is_public }: { id: string; is_public: boolean }) => {
-      const { error } = await supabase.from('portfolio_products').update({ is_public }).eq('id', id);
+      const { error } = await db.from('dkai_portfolio_products').update({ is_public }).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['seller-portfolio'] })

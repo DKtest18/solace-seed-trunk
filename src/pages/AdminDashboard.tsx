@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
 import { AdminRouteGuard } from '@/components/AdminRouteGuard';
@@ -56,11 +56,11 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
     queryKey: ['admin-analytics'],
     queryFn: async () => {
       const [productsRes, usersRes, purchasesRes, reviewsRes, disputesRes] = await Promise.all([
-        supabase.from('products').select('*', { count: 'exact', head: true }),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('purchases').select('amount').eq('status', 'completed'),
-        supabase.from('reviews').select('*', { count: 'exact', head: true }),
-        supabase.from('disputes').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+        db.from('dkai_products').select('*', { count: 'exact', head: true }),
+        db.from('dkai_profiles').select('*', { count: 'exact', head: true }),
+        db.from('dkai_purchases').select('amount').eq('status', 'completed'),
+        db.from('dkai_reviews').select('*', { count: 'exact', head: true }),
+        db.from('dkai_disputes').select('*', { count: 'exact', head: true }).eq('status', 'open'),
       ]);
 
       const totalRevenue = purchasesRes.data?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
@@ -81,8 +81,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
     queryKey: ['admin-pending-products'],
     queryFn: async () => {
       console.log('Fetching pending products...');
-      const { data, error } = await supabase
-        .from('products')
+      const { data, error } = await db
+        .from('dkai_products')
         .select(`
           *,
           seller:profiles!products_seller_id_fkey (
@@ -108,18 +108,18 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
   const { data: disputes } = useQuery({
     queryKey: ['admin-disputes'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('disputes')
+      const { data, error } = await db
+        .from('dkai_disputes')
         .select(`
           *,
-          products (
+          dkai_products (
             title
           ),
-          buyer:profiles!disputes_buyer_id_fkey (
+          buyer:dkai_profiles!disputes_buyer_id_fkey (
             full_name,
             creator_name
           ),
-          seller:profiles!disputes_seller_id_fkey (
+          seller:dkai_profiles!disputes_seller_id_fkey (
             full_name,
             creator_name
           )
@@ -137,8 +137,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
   const { data: sellerApplications } = useQuery({
     queryKey: ['admin-seller-applications'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('seller_applications')
+      const { data, error } = await db
+        .from('dkai_seller_applications')
         .select('*')
         .eq('status', 'pending')
         .order('applied_at', { ascending: false });
@@ -152,8 +152,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
   // Approve/reject product mutation
   const moderateProduct = useMutation({
     mutationFn: async ({ productId, status, notes }: { productId: string; status: 'approved' | 'rejected'; notes: string }) => {
-      const { data: product, error: fetchError } = await supabase
-        .from('products')
+      const { data: product, error: fetchError } = await db
+        .from('dkai_products')
         .select('seller_id, title')
         .eq('id', productId)
         .single();
@@ -180,15 +180,15 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
         updateData.approved_by = null;
       }
 
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .update(updateData)
         .eq('id', productId);
 
       if (error) throw error;
 
       // Send notification to seller
-      await supabase.from('in_app_notifications').insert({
+      await db.from('dkai_in_app_notifications').insert({
         user_id: product.seller_id,
         title: status === 'approved' ? 'Product Approved 🎉' : 'Product Rejected ❌',
         message: status === 'approved' 
@@ -215,8 +215,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
   const moderateSellerApplication = useMutation({
     mutationFn: async ({ applicationId, userId, status, reason }: { applicationId: string; userId: string; status: 'approved' | 'rejected'; reason?: string }) => {
       // Update application
-      const { error: appError } = await supabase
-        .from('seller_applications')
+      const { error: appError } = await db
+        .from('dkai_seller_applications')
         .update({
           status,
           rejection_reason: reason,
@@ -229,15 +229,15 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
 
       if (status === 'approved') {
         // Add seller role
-        const { error: roleError } = await supabase
-          .from('user_roles')
+        const { error: roleError } = await db
+          .from('dkai_user_roles')
           .insert({ user_id: userId, role: 'seller' });
 
         if (roleError && !roleError.message.includes('duplicate')) throw roleError;
 
         // Update profile
-        const { error: profileError } = await supabase
-          .from('profiles')
+        const { error: profileError } = await db
+          .from('dkai_profiles')
           .update({
             seller_verification_status: 'approved',
             seller_application_status: 'approved',
@@ -247,8 +247,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
         if (profileError) throw profileError;
 
         // Add seller trophy/achievement
-        await supabase
-          .from('seller_achievements')
+        await db
+          .from('dkai_seller_achievements')
           .upsert({
             seller_id: userId,
             achievement_name: 'Seller Account Created',
@@ -258,7 +258,7 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
           }, { onConflict: 'seller_id,achievement_name' });
 
         // Send notification to seller
-        await supabase.from('in_app_notifications').insert({
+        await db.from('dkai_in_app_notifications').insert({
           user_id: userId,
           title: 'Achievement Unlocked 🏆',
           message: 'Congratulations! You created your seller account. You can now publish products and start selling!',
@@ -267,7 +267,7 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
         });
 
         // Send approval notification
-        await supabase.from('in_app_notifications').insert({
+        await db.from('dkai_in_app_notifications').insert({
           user_id: userId,
           title: 'Seller Application Approved 🎉',
           message: 'Your seller application has been approved! You can now create and sell products on our marketplace.',
@@ -276,8 +276,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
         });
       } else {
         // Update profile for rejection
-        const { error: profileError } = await supabase
-          .from('profiles')
+        const { error: profileError } = await db
+          .from('dkai_profiles')
           .update({
             seller_verification_status: 'rejected',
             seller_application_status: 'rejected',
@@ -288,7 +288,7 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
         if (profileError) throw profileError;
 
         // Send rejection notification
-        await supabase.from('in_app_notifications').insert({
+        await db.from('dkai_in_app_notifications').insert({
           user_id: userId,
           title: 'Seller Application Update',
           message: `Your seller application was not approved. Reason: ${reason || 'Please contact support for more information.'}`,
@@ -311,8 +311,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
   // Resolve dispute mutation
   const resolveDispute = useMutation({
     mutationFn: async ({ disputeId, status, notes }: { disputeId: string; status: 'resolved' | 'closed'; notes: string }) => {
-      const { error } = await supabase
-        .from('disputes')
+      const { error } = await db
+        .from('dkai_disputes')
         .update({
           status,
           resolution_notes: notes,

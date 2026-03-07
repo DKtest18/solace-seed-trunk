@@ -1,7 +1,7 @@
 import { AdminBadge } from "./AdminBadge";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/dkaiDb";
 
 interface UserDisplayNameProps {
   userId: string;
@@ -19,8 +19,8 @@ export function UserDisplayName({
   const { data: profile } = useQuery({
     queryKey: ["profile-verification", userId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
+      const { data, error } = await db
+        .from("dkai_profiles")
         .select("email_verified, username")
         .eq("id", userId)
         .single();

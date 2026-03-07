@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Progress } from './ui/progress';
 import { Badge } from './ui/badge';
 import { CheckCircle2, Circle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface CompletionStatus {
@@ -28,24 +28,22 @@ export function ProfileCompletionIndicator() {
       if (!user) return;
 
       try {
-        // Fetch profile data
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
+        const { data: profileData, error: profileError } = await db
+          .from('dkai_profiles')
           .select('is_age_verified, is_2fa_enabled, terms_accepted')
           .eq('id', user.id)
           .single();
 
         if (profileError) throw profileError;
 
-        // Check if seller has Stripe account configured
-        const { data: sellerConfig } = await supabase
-          .from('seller_payment_configs')
+        const { data: sellerConfig } = await db
+          .from('dkai_seller_payment_configs')
           .select('stripe_account_id, stripe_onboarding_status')
           .eq('seller_id', user.id)
           .single();
 
         const hasStripeConnected = sellerConfig?.stripe_account_id && 
-                                  sellerConfig?.stripe_onboarding_status === 'connected';
+                                    sellerConfig?.stripe_onboarding_status === 'connected';
 
         setStatus({
           ageVerified: profileData.is_age_verified || false,

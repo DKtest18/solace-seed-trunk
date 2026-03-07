@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { externalSupabase } from '@/lib/externalSupabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMeetingInfoModal } from '@/contexts/MeetingInfoModalContext';
@@ -237,7 +238,7 @@ export function OpenRequestForm({ open, onOpenChange, seller }: OpenRequestFormP
 
       // Send notification to seller
       try {
-        await supabase.from('in_app_notifications').insert({
+        await db.from('dkai_in_app_notifications').insert({
           user_id: seller.seller_id,
           type: 'meeting_request',
           title: 'New Meeting Request',

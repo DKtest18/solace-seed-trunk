@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Navigate } from 'react-router-dom';
@@ -32,9 +32,9 @@ export default function AdminDisputeManagement() {
   const { data: disputes, isLoading } = useQuery({
     queryKey: ['admin-disputes', statusFilter],
     queryFn: async () => {
-      let query = supabase
-        .from('disputes')
-        .select(`*, products (id, title)`)
+      let query = db
+        .from('dkai_disputes')
+        .select(`*, dkai_products (id, title)`)
         .order('created_at', { ascending: false });
 
       if (statusFilter !== 'all') {
@@ -47,8 +47,8 @@ export default function AdminDisputeManagement() {
       // Fetch profiles for each dispute
       const enriched = await Promise.all((data || []).map(async (d) => {
         const [buyerRes, sellerRes] = await Promise.all([
-          supabase.from('profiles').select('id, full_name, creator_name, username').eq('id', d.buyer_id).single(),
-          supabase.from('profiles').select('id, full_name, creator_name, username').eq('id', d.seller_id).single()
+          db.from('dkai_profiles').select('id, full_name, creator_name, username').eq('id', d.buyer_id).single(),
+          db.from('dkai_profiles').select('id, full_name, creator_name, username').eq('id', d.seller_id).single()
         ]);
         return { ...d, buyer: buyerRes.data, seller: sellerRes.data };
       }));
@@ -63,8 +63,8 @@ export default function AdminDisputeManagement() {
   const { data: settings } = useQuery({
     queryKey: ['dispute-settings'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('dispute_settings')
+      const { data, error } = await db
+        .from('dkai_dispute_settings')
         .select('*');
       if (error) throw error;
       return data?.reduce((acc, s) => {
@@ -82,8 +82,8 @@ export default function AdminDisputeManagement() {
   // Start mediation mutation
   const startMediation = useMutation({
     mutationFn: async (disputeId: string) => {
-      const { error } = await supabase
-        .from('disputes')
+      const { error } = await db
+        .from('dkai_disputes')
         .update({
           status: 'in_progress',
           admin_mediation_started_at: new Date().toISOString()
@@ -104,8 +104,8 @@ export default function AdminDisputeManagement() {
   // Update settings mutation
   const updateSettings = useMutation({
     mutationFn: async ({ key, value }: { key: string; value: number }) => {
-      const { error } = await supabase
-        .from('dispute_settings')
+      const { error } = await db
+        .from('dkai_dispute_settings')
         .update({ 
           setting_value: { value },
           updated_at: new Date().toISOString(),

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/dkaiDb";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -65,7 +65,7 @@ export function ReportDialog({ open, onOpenChange, targetType, targetId, targetN
       if (targetType === "product") reportData.reported_product_id = targetId;
       if (targetType === "comment") reportData.reported_comment_id = targetId;
 
-      const { error } = await supabase.from("reports").insert(reportData);
+      const { error } = await db.from("dkai_reports").insert(reportData);
       if (error) throw error;
 
       toast.success("Report submitted successfully");

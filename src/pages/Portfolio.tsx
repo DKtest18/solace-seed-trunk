@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,12 +65,12 @@ export default function Portfolio() {
   const { data: portfolioItems, isLoading } = useQuery({
     queryKey: ['public-portfolio'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('portfolio_products')
+      const { data, error } = await db
+        .from('dkai_portfolio_products')
         .select(`
           *,
-          seller:profiles!portfolio_products_seller_id_fkey (id, username, full_name, avatar_url),
-          product:products!portfolio_products_product_id_fkey (id, title, average_rating, total_sales, is_published, price)
+          seller:dkai_profiles!portfolio_products_seller_id_fkey (id, username, full_name, avatar_url),
+          product:dkai_products!portfolio_products_product_id_fkey (id, title, average_rating, total_sales, is_published, price)
         `)
         .eq('is_public', true)
         .order('completed_date', { ascending: false });
@@ -85,7 +85,7 @@ export default function Portfolio() {
     queryKey: ['portfolio-review-counts', productIds],
     queryFn: async () => {
       if (productIds.length === 0) return {};
-      const { data, error } = await supabase.from('reviews').select('product_id').in('product_id', productIds);
+      const { data, error } = await db.from('dkai_reviews').select('product_id').in('product_id', productIds);
       if (error) throw error;
       const counts: Record<string, number> = {};
       data?.forEach(r => { counts[r.product_id] = (counts[r.product_id] || 0) + 1; });
@@ -99,8 +99,8 @@ export default function Portfolio() {
     queryKey: ['portfolio-item-reviews', selectedItem?.product_id],
     queryFn: async () => {
       if (!selectedItem?.product_id) return [];
-      const { data, error } = await supabase
-        .from('reviews')
+      const { data, error } = await db
+        .from('dkai_reviews')
         .select('id, rating, comment, created_at, profiles:user_id (full_name, username, avatar_url)')
         .eq('product_id', selectedItem.product_id)
         .order('created_at', { ascending: false })

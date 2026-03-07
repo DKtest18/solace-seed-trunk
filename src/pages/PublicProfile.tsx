@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -61,15 +61,15 @@ export default function PublicProfile() {
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(username || '');
       
       const { data: profileData, error } = isUUID
-        ? await supabase.from('profiles').select('*').eq('id', username).single()
-        : await supabase.from('profiles').select('*').eq('username', username).single();
+        ? await db.from('dkai_profiles').select('*').eq('id', username).single()
+        : await db.from('dkai_profiles').select('*').eq('username', username).single();
 
       if (error) throw error;
       setProfile(profileData);
 
       // Fetch user's products
-      const { data: productsData } = await supabase
-        .from('products')
+      const { data: productsData } = await db
+        .from('dkai_products')
         .select('id, title, price, image_url, is_published, moderation_status')
         .eq('seller_id', profileData.id)
         .eq('is_published', true)

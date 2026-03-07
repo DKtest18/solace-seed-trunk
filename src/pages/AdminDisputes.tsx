@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/dkaiDb";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHasRole } from "@/hooks/useUserRole";
 import { Navigate, Link } from "react-router-dom";
@@ -56,8 +56,8 @@ export default function AdminDisputes() {
   const { data: reports, isLoading: reportsLoading } = useQuery<ReportWithProfiles[]>({
     queryKey: ["admin-reports", statusFilter],
     queryFn: async (): Promise<ReportWithProfiles[]> => {
-      let query = supabase
-        .from("reports")
+      let query = db
+        .from("dkai_reports")
         .select("*")
         .order("created_at", { ascending: false });
       
@@ -75,8 +75,8 @@ export default function AdminDisputes() {
           ...data.map(r => r.target_user_id)
         ])];
         
-        const { data: profiles } = await supabase
-          .from("profiles")
+        const { data: profiles } = await db
+          .from("dkai_profiles")
           .select("id, full_name, username, avatar_url")
           .in("id", userIds);
         
@@ -98,8 +98,8 @@ export default function AdminDisputes() {
   const { data: conversations, isLoading: conversationsLoading } = useQuery({
     queryKey: ["admin-conversations"],
     queryFn: async () => {
-      const { data: threads, error } = await supabase
-        .from("threads")
+      const { data: threads, error } = await db
+        .from("dkai_threads")
         .select("*")
         .order("updated_at", { ascending: false })
         .limit(50);
@@ -109,16 +109,16 @@ export default function AdminDisputes() {
       if (!threads || threads.length === 0) return [];
       
       // Get participants for each thread
-      const { data: participants } = await supabase
-        .from("chat_participants")
+      const { data: participants } = await db
+        .from("dkai_chat_participants")
         .select("thread_id, user_id")
         .in("thread_id", threads.map(t => t.id));
       
       // Get unique user IDs
       const userIds = [...new Set(participants?.map(p => p.user_id) || [])];
       
-      const { data: profiles } = await supabase
-        .from("profiles")
+      const { data: profiles } = await db
+        .from("dkai_profiles")
         .select("id, full_name, username, avatar_url")
         .in("id", userIds);
       
@@ -137,8 +137,8 @@ export default function AdminDisputes() {
 
   // Load thread messages
   const loadThreadMessages = async (threadId: string) => {
-    const { data, error } = await supabase
-      .from("messages")
+    const { data, error } = await db
+      .from("dkai_messages")
       .select("*")
       .eq("thread_id", threadId)
       .order("created_at", { ascending: true });
@@ -150,8 +150,8 @@ export default function AdminDisputes() {
     
     // Get sender profiles
     const senderIds = [...new Set(data?.map(m => m.sender_id) || [])];
-    const { data: profiles } = await supabase
-      .from("profiles")
+    const { data: profiles } = await db
+      .from("dkai_profiles")
       .select("id, full_name, username, avatar_url")
       .in("id", senderIds);
     
@@ -168,29 +168,29 @@ export default function AdminDisputes() {
   const banUser = useMutation({
     mutationFn: async ({ userId, reportId }: { userId: string; reportId: string }) => {
       // Update user roles to mark as banned
-      const { error: roleError } = await supabase
-        .from("user_roles")
+      const { error: roleError } = await db
+        .from("dkai_user_roles")
         .upsert({
           user_id: userId,
           role: "banned" as any,
         });
 
       // Hide all products from banned user
-      const { error: productsError } = await supabase
-        .from("products")
+      const { error: productsError } = await db
+        .from("dkai_products")
         .update({ is_published: false, available: false })
         .eq("seller_id", userId);
 
       // Update report status
-      const { error: reportError } = await supabase
-        .from("reports")
+      const { error: reportError } = await db
+        .from("dkai_reports")
         .update({
           status: "reviewed",
         })
         .eq("id", reportId);
 
       // Create audit log
-      await supabase.from("payment_audit_logs").insert({
+      await db.from("dkai_payment_audit_logs").insert({
         actor_id: user?.id,
         actor_role: "admin",
         action: "ban_user",
@@ -200,7 +200,7 @@ export default function AdminDisputes() {
       });
 
       // Notify the banned user
-      await supabase.from("in_app_notifications").insert({
+      await db.from("dkai_in_app_notifications").insert({
         user_id: userId,
         title: "Account Suspended",
         message: `Your account has been suspended due to policy violation. Reason: ${banReason || "Terms of Service violation"}`,
@@ -224,8 +224,8 @@ export default function AdminDisputes() {
   // Dismiss report mutation
   const dismissReport = useMutation({
     mutationFn: async (reportId: string) => {
-      const { error } = await supabase
-        .from("reports")
+      const { error } = await db
+        .from("dkai_reports")
         .update({ status: "dismissed" })
         .eq("id", reportId);
       

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { Shield, Copy, Download, Store, CheckCircle, Palette, LayoutGrid, Mail, Ban, Globe } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import QRCode from 'react-qr-code';
@@ -44,8 +45,8 @@ export default function ProfileSettings() {
   const fetchProfile = async () => {
     if (!user) return;
     
-    const { data, error } = await supabase
-      .from('profiles')
+    const { data, error } = await db
+      .from('dkai_profiles')
       .select('*')
       .eq('id', user.id)
       .single();
@@ -147,8 +148,8 @@ export default function ProfileSettings() {
   const disable2FA = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
+      const { error } = await db
+        .from('dkai_profiles')
         .update({
           is_2fa_enabled: false,
           two_fa_secret: null,
@@ -408,8 +409,8 @@ export default function ProfileSettings() {
                       <Select 
                         value={profile?.timezone || 'Europe/Zurich'} 
                         onValueChange={async (value) => {
-                          const { error } = await supabase
-                            .from('profiles')
+                          const { error } = await db
+                            .from('dkai_profiles')
                             .update({ timezone: value })
                             .eq('id', user.id);
                           if (error) {

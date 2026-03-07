@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -230,7 +231,7 @@ export function MeetingBookingDialog({ open, onOpenChange, seller }: MeetingBook
       ]);
 
       // Create audit log for meeting_requested
-      await supabase.from('audit_logs').insert({
+      await db.from('dkai_audit_logs').insert({
         user_id: user.id,
         action: 'MEETING_REQUESTED',
         table_name: 'meetings',
@@ -278,7 +279,7 @@ export function MeetingBookingDialog({ open, onOpenChange, seller }: MeetingBook
         console.log('MEETING CREATED:', data.meeting.id, data.meeting.meeting_code);
         
         // Create audit log for confirmation shown
-        supabase.from('audit_logs').insert({
+        db.from('dkai_audit_logs').insert({
           action: 'BUYER_CONFIRMATION_SHOWN',
           table_name: 'meetings',
           record_id: data.meeting.id,

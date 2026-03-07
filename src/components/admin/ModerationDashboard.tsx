@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,8 +44,8 @@ export function ModerationDashboard() {
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('moderation_audit_logs')
+      const { data, error } = await db
+        .from('dkai_moderation_audit_logs')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
@@ -87,7 +88,7 @@ export function ModerationDashboard() {
   const handleBanUser = async (userId: string) => {
     try {
       // Create moderation audit log for ban action
-      await supabase.from('moderation_audit_logs').insert({
+      await db.from('dkai_moderation_audit_logs').insert({
         target_type: 'user',
         target_id: userId,
         action: 'ban',

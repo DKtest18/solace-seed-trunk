@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,11 +52,11 @@ export default function DisputeDetail() {
   const { data: dispute, isLoading } = useQuery({
     queryKey: ['dispute', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('disputes')
+      const { data, error } = await db
+        .from('dkai_disputes')
         .select(`
           *,
-          products (id, title, price)
+          products:dkai_products (id, title, price)
         `)
         .eq('id', id)
         .single();
@@ -64,8 +65,8 @@ export default function DisputeDetail() {
       
       // Fetch buyer and seller profiles separately
       const [buyerRes, sellerRes] = await Promise.all([
-        supabase.from('profiles').select('id, full_name, creator_name, avatar_url, username').eq('id', data.buyer_id).single(),
-        supabase.from('profiles').select('id, full_name, creator_name, avatar_url, username').eq('id', data.seller_id).single()
+        db.from('dkai_profiles').select('id, full_name, creator_name, avatar_url, username').eq('id', data.buyer_id).single(),
+        db.from('dkai_profiles').select('id, full_name, creator_name, avatar_url, username').eq('id', data.seller_id).single()
       ]);
       
       return { ...data, buyer: buyerRes.data, seller: sellerRes.data };

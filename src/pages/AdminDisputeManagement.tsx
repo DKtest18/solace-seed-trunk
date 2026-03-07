@@ -82,8 +82,8 @@ export default function AdminDisputeManagement() {
   // Start mediation mutation
   const startMediation = useMutation({
     mutationFn: async (disputeId: string) => {
-      const { error } = await supabase
-        .from('disputes')
+      const { error } = await db
+        .from('dkai_disputes')
         .update({
           status: 'in_progress',
           admin_mediation_started_at: new Date().toISOString()

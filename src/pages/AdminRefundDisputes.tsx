@@ -81,7 +81,7 @@ export default function AdminRefundDisputes() {
 
       // Process refund using RPC or direct balance updates
       // Refund to buyer's balance
-      const { error: buyerBalanceError } = await supabase.rpc('update_user_balance', {
+      const { error: buyerBalanceError } = await db.rpc('update_user_balance', {
         _user_id: order.buyer_id,
         _amount: order.held_amount,
         _balance_type: 'available',

@@ -127,8 +127,8 @@ export function MessagesSidebar() {
   const loadMessages = async (otherUserId: string) => {
     if (!user) return;
     try {
-      const { data, error } = await supabase
-        .from('messages')
+      const { data, error } = await db
+        .from('dkai_messages')
         .select('*')
         .or(`and(sender_id.eq.${user.id},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${user.id})`)
         .order('created_at', { ascending: true })

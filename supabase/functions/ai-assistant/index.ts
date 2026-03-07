@@ -1,5 +1,5 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
-import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
+import { getAuthenticatedUser } from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -10,39 +10,50 @@ Deno.serve(async (req) => {
 
   try {
     const { type, context } = await req.json();
-    const openaiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openaiKey) return errorResponse('OpenAI API key not configured', 500);
+    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!anthropicKey) return errorResponse('Anthropic API key not configured', 500);
 
     let prompt = '';
+    let systemPrompt = 'Du bist ein hilfreicher Assistent für den DK AI Marketplace – eine digitale Handelsplattform. Antworte auf Deutsch, es sei denn der Nutzer schreibt auf Englisch.';
+
     if (type === 'product_description') {
-      prompt = `Generate a compelling product description for a digital product titled "${context.title}" of type "${context.type}". ${context.purpose ? `Purpose: ${context.purpose}.` : ''} Keep it concise, professional, and engaging. Max 200 words.`;
+      prompt = `Erstelle eine ansprechende Produktbeschreibung für ein digitales Produkt mit dem Titel "${context.title}" vom Typ "${context.type}". ${context.purpose ? `Zweck: ${context.purpose}.` : ''} Halte es prägnant, professionell und ansprechend. Maximal 200 Wörter.`;
     } else if (type === 'chatbot') {
-      prompt = context.message || 'Hello';
+      systemPrompt = 'Du bist der DK AI Marketplace Assistent. Du hilfst Nutzern bei Fragen zu Kauf und Verkauf, Produkterstellung, Marktplatzregeln, Profileinstellungen, Meetings, Nachrichten und Community. Antworte freundlich und hilfsbereit. Antworte auf Deutsch, es sei denn der Nutzer schreibt auf Englisch.';
+      prompt = context.message || 'Hallo';
     } else {
       return errorResponse('Unknown AI assistant type');
     }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiKey}`,
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        system: systemPrompt,
         messages: [
-          { role: 'system', content: 'You are a helpful assistant for a digital marketplace platform called DK AI Marketplace.' },
           { role: 'user', content: prompt },
         ],
-        max_tokens: 500,
       }),
     });
 
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('Anthropic API error:', response.status, errText);
+      return errorResponse('AI service error', 500);
+    }
+
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
+    const content = data.content?.[0]?.text || '';
 
     return jsonResponse({ content });
   } catch (err) {
+    console.error('AI assistant error:', err);
     return errorResponse(err.message, 500);
   }
 });

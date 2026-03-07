@@ -224,8 +224,8 @@ export default function AdminDisputes() {
   // Dismiss report mutation
   const dismissReport = useMutation({
     mutationFn: async (reportId: string) => {
-      const { error } = await supabase
-        .from("reports")
+      const { error } = await db
+        .from("dkai_reports")
         .update({ status: "dismissed" })
         .eq("id", reportId);
       

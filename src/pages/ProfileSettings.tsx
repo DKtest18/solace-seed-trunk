@@ -148,8 +148,8 @@ export default function ProfileSettings() {
   const disable2FA = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
+      const { error } = await db
+        .from('dkai_profiles')
         .update({
           is_2fa_enabled: false,
           two_fa_secret: null,

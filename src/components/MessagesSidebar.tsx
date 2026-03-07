@@ -145,7 +145,7 @@ export function MessagesSidebar() {
     if (!user || !selectedUserId || !newMessage.trim()) return;
     setSending(true);
     try {
-      const { error } = await supabase.from('messages').insert({
+      const { error } = await db.from('dkai_messages').insert({
         sender_id: user.id,
         recipient_id: selectedUserId,
         content: newMessage.trim(),

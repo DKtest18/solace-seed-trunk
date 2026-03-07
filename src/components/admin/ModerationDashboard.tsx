@@ -44,8 +44,8 @@ export function ModerationDashboard() {
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('moderation_audit_logs')
+      const { data, error } = await db
+        .from('dkai_moderation_audit_logs')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(100);

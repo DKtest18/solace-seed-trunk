@@ -236,8 +236,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
         if (roleError && !roleError.message.includes('duplicate')) throw roleError;
 
         // Update profile
-        const { error: profileError } = await supabase
-          .from('profiles')
+        const { error: profileError } = await db
+          .from('dkai_profiles')
           .update({
             seller_verification_status: 'approved',
             seller_application_status: 'approved',

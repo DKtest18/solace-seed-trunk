@@ -231,7 +231,7 @@ export function MeetingBookingDialog({ open, onOpenChange, seller }: MeetingBook
       ]);
 
       // Create audit log for meeting_requested
-      await supabase.from('dkai_audit_logs').insert({
+      await db.from('dkai_audit_logs').insert({
         user_id: user.id,
         action: 'MEETING_REQUESTED',
         table_name: 'meetings',

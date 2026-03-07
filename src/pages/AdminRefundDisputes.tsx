@@ -24,21 +24,21 @@ export default function AdminRefundDisputes() {
   const { data: disputes, isLoading } = useQuery({
     queryKey: ['admin-refund-disputes'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('disputes')
+      const { data, error } = await db
+        .from('dkai_disputes')
         .select(`
           *,
-          products (
+          dkai_products (
             id,
             title
           ),
-          buyer:profiles!disputes_buyer_id_fkey (
+          buyer:dkai_profiles!disputes_buyer_id_fkey (
             id,
             full_name,
             creator_name,
             username
           ),
-          seller:profiles!disputes_seller_id_fkey (
+          seller:dkai_profiles!disputes_seller_id_fkey (
             id,
             full_name,
             creator_name,

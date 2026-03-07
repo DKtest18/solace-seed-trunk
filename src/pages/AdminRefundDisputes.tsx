@@ -58,8 +58,8 @@ export default function AdminRefundDisputes() {
   const approveRefund = useMutation({
     mutationFn: async ({ disputeId, orderId }: { disputeId: string; orderId: string }) => {
       // Update dispute status
-      const { error: disputeError } = await supabase
-        .from('disputes')
+      const { error: disputeError } = await db
+        .from('dkai_disputes')
         .update({
           status: 'resolved',
           resolved_by: user?.id,

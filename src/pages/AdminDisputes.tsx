@@ -75,8 +75,8 @@ export default function AdminDisputes() {
           ...data.map(r => r.target_user_id)
         ])];
         
-        const { data: profiles } = await supabase
-          .from("profiles")
+        const { data: profiles } = await db
+          .from("dkai_profiles")
           .select("id, full_name, username, avatar_url")
           .in("id", userIds);
         

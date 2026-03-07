@@ -73,8 +73,8 @@ export function MessagesSidebar() {
         else blockedIds.add(block.blocker_id);
       });
 
-      const { data: messages, error } = await supabase
-        .from('messages')
+      const { data: messages, error } = await db
+        .from('dkai_messages')
         .select('*')
         .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
         .order('created_at', { ascending: false })

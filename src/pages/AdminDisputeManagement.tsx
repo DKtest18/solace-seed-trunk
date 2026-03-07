@@ -32,9 +32,9 @@ export default function AdminDisputeManagement() {
   const { data: disputes, isLoading } = useQuery({
     queryKey: ['admin-disputes', statusFilter],
     queryFn: async () => {
-      let query = supabase
-        .from('disputes')
-        .select(`*, products (id, title)`)
+      let query = db
+        .from('dkai_disputes')
+        .select(`*, dkai_products (id, title)`)
         .order('created_at', { ascending: false });
 
       if (statusFilter !== 'all') {

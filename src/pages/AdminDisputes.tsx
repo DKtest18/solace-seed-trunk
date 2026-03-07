@@ -182,8 +182,8 @@ export default function AdminDisputes() {
         .eq("seller_id", userId);
 
       // Update report status
-      const { error: reportError } = await supabase
-        .from("reports")
+      const { error: reportError } = await db
+        .from("dkai_reports")
         .update({
           status: "reviewed",
         })

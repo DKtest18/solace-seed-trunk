@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 
 export interface ProductAnalytics {
   product_id: string;
@@ -16,22 +16,19 @@ export function useProductAnalytics(productId: string | undefined) {
     queryFn: async () => {
       if (!productId) return null;
 
-      // Get views
-      const { count: viewCount } = await supabase
+      const { count: viewCount } = await db
         .from('dkai_product_analytics')
         .select('*', { count: 'exact', head: true })
         .eq('product_id', productId)
         .eq('event_type', 'view');
 
-      // Get clicks
-      const { count: clickCount } = await supabase
+      const { count: clickCount } = await db
         .from('dkai_product_analytics')
         .select('*', { count: 'exact', head: true })
         .eq('product_id', productId)
         .eq('event_type', 'click');
 
-      // Get purchases from orders table
-      const { count: purchaseCount } = await supabase
+      const { count: purchaseCount } = await db
         .from('dkai_orders')
         .select('*', { count: 'exact', head: true })
         .eq('product_id', productId)
@@ -62,29 +59,27 @@ export function useAllProductsAnalytics(sellerId: string | undefined) {
     queryFn: async () => {
       if (!sellerId) return [];
 
-      // Get all seller's products
-      const { data: products } = await supabase
+      const { data: products } = await db
         .from('dkai_products')
         .select('id, title')
         .eq('seller_id', sellerId);
 
       if (!products) return [];
 
-      // Get analytics for each product
-      const analyticsPromises = products.map(async (product) => {
-        const { count: viewCount } = await supabase
-        .from('dkai_product_analytics')
+      const analyticsPromises = products.map(async (product: any) => {
+        const { count: viewCount } = await db
+          .from('dkai_product_analytics')
           .select('*', { count: 'exact', head: true })
           .eq('product_id', product.id)
           .eq('event_type', 'view');
 
-        const { count: clickCount } = await supabase
+        const { count: clickCount } = await db
           .from('dkai_product_analytics')
           .select('*', { count: 'exact', head: true })
           .eq('product_id', product.id)
           .eq('event_type', 'click');
 
-        const { count: purchaseCount } = await supabase
+        const { count: purchaseCount } = await db
           .from('dkai_orders')
           .select('*', { count: 'exact', head: true })
           .eq('product_id', product.id)

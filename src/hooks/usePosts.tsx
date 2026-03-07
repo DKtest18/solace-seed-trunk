@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -8,7 +9,7 @@ export function usePosts(timeFilter: TimeFilter = 'all') {
   return useQuery({
     queryKey: ['posts', timeFilter],
     queryFn: async () => {
-      let query = supabase
+      let query = db
         .from('dkai_posts')
         .select(`
           *,
@@ -22,21 +23,11 @@ export function usePosts(timeFilter: TimeFilter = 'all') {
       let startDate: Date;
 
       switch (timeFilter) {
-        case 'today':
-          startDate = new Date(now.setHours(0, 0, 0, 0));
-          break;
-        case 'yesterday':
-          startDate = new Date(now.setDate(now.getDate() - 1));
-          startDate.setHours(0, 0, 0, 0);
-          break;
-        case 'week':
-          startDate = new Date(now.setDate(now.getDate() - 7));
-          break;
-        case 'month':
-          startDate = new Date(now.setMonth(now.getMonth() - 1));
-          break;
-        default:
-          startDate = new Date(0);
+        case 'today': startDate = new Date(now.setHours(0, 0, 0, 0)); break;
+        case 'yesterday': startDate = new Date(now.setDate(now.getDate() - 1)); startDate.setHours(0, 0, 0, 0); break;
+        case 'week': startDate = new Date(now.setDate(now.getDate() - 7)); break;
+        case 'month': startDate = new Date(now.setMonth(now.getMonth() - 1)); break;
+        default: startDate = new Date(0);
       }
 
       if (timeFilter !== 'all') {
@@ -57,62 +48,36 @@ export function useCreatePost() {
   return useMutation({
     mutationFn: async ({ content, imageFile }: { content: string; imageFile?: File }) => {
       if (!user) throw new Error('Must be logged in to create posts');
-
       let imageUrl = null;
 
       if (imageFile) {
         const fileExt = imageFile.name.split('.').pop();
         const filePath = `${user.id}/${crypto.randomUUID()}.${fileExt}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('post-images')
-          .upload(filePath, imageFile, {
-            cacheControl: '3600',
-            upsert: false,
-          });
-
+        const { error: uploadError } = await supabase.storage.from('post-images').upload(filePath, imageFile, { cacheControl: '3600', upsert: false });
         if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('post-images')
-          .getPublicUrl(filePath);
-
+        const { data: { publicUrl } } = supabase.storage.from('post-images').getPublicUrl(filePath);
         imageUrl = publicUrl;
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('dkai_posts')
-        .insert({
-          user_id: user.id,
-          content,
-          image_url: imageUrl,
-        })
+        .insert({ user_id: user.id, content, image_url: imageUrl })
         .select()
         .single();
-
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['posts'] }); },
   });
 }
 
 export function useDeletePost() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (postId: string) => {
-      const { error } = await supabase
-        .from('dkai_posts')
-        .delete()
-        .eq('id', postId);
-
+      const { error } = await db.from('dkai_posts').delete().eq('id', postId);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['posts'] }); },
   });
 }

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/dkaiDb";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
@@ -17,31 +17,23 @@ export function useRateLimit() {
   const checkRateLimit = useCallback(
     async ({ action, maxAttempts, windowMinutes }: RateLimitOptions): Promise<boolean> => {
       if (!user) return false;
-
       setChecking(true);
       try {
-        const { data, error } = await supabase.rpc("dkai_check_rate_limit", {
+        const { data, error } = await db.rpc("dkai_check_rate_limit", {
           p_user_id: user.id,
           p_action: action,
           p_max: maxAttempts,
           p_minutes: windowMinutes,
         });
-
         if (error) throw error;
-
         if (!data) {
-          toast({
-            title: "Rate limit exceeded",
-            description: `You can only perform this action ${maxAttempts} times per ${windowMinutes} minutes. Please try again later.`,
-            variant: "destructive",
-          });
+          toast({ title: "Rate limit exceeded", description: `You can only perform this action ${maxAttempts} times per ${windowMinutes} minutes. Please try again later.`, variant: "destructive" });
           return false;
         }
-
         return true;
       } catch (error) {
         console.error("Rate limit check error:", error);
-        return true; // Allow on error to prevent blocking users
+        return true;
       } finally {
         setChecking(false);
       }

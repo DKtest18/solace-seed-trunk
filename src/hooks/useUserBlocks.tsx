@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -7,12 +7,11 @@ export function useUserBlocks() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch users I have blocked
   const { data: blockedUsers = [], isLoading } = useQuery({
     queryKey: ['blocked-users', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('dkai_user_blocks')
         .select(`
           id,
@@ -26,25 +25,22 @@ export function useUserBlocks() {
           )
         `)
         .eq('blocker_id', user.id);
-      
       if (error) throw error;
       return data || [];
     },
     enabled: !!user,
   });
 
-  // Fetch users who have blocked me
   const { data: blockedByUsers = [] } = useQuery({
     queryKey: ['blocked-by-users', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('dkai_user_blocks')
         .select('blocker_id')
         .eq('blocked_id', user.id);
-      
       if (error) throw error;
-      return data?.map(d => d.blocker_id) || [];
+      return data?.map((d: any) => d.blocker_id) || [];
     },
     enabled: !!user,
   });
@@ -52,20 +48,14 @@ export function useUserBlocks() {
   const blockUser = useMutation({
     mutationFn: async (blockedId: string) => {
       if (!user) throw new Error('Not authenticated');
-      
-      // Check if block already exists to prevent duplicate key error
-      const { data: existing } = await supabase
+      const { data: existing } = await db
         .from('dkai_user_blocks')
         .select('id')
         .eq('blocker_id', user.id)
         .eq('blocked_id', blockedId)
         .maybeSingle();
-      
-      if (existing) {
-        return { status: 'already_blocked' };
-      }
-      
-      const { error } = await supabase
+      if (existing) return { status: 'already_blocked' };
+      const { error } = await db
         .from('dkai_user_blocks')
         .insert({ blocker_id: user.id, blocked_id: blockedId });
       if (error) throw error;
@@ -86,7 +76,7 @@ export function useUserBlocks() {
   const unblockUser = useMutation({
     mutationFn: async (blockedId: string) => {
       if (!user) throw new Error('Not authenticated');
-      const { error } = await supabase
+      const { error } = await db
         .from('dkai_user_blocks')
         .delete()
         .eq('blocker_id', user.id)
@@ -105,20 +95,9 @@ export function useUserBlocks() {
     },
   });
 
-  // Check if I have blocked a specific user
-  const isBlocked = (userId: string) => {
-    return blockedUsers.some((b: any) => b.blocked_id === userId);
-  };
-
-  // Check if a specific user has blocked me
-  const isBlockedByUser = (userId: string) => {
-    return blockedByUsers.includes(userId);
-  };
-
-  // Check if there's any block relationship (either direction)
-  const hasBlockRelationship = (userId: string) => {
-    return isBlocked(userId) || isBlockedByUser(userId);
-  };
+  const isBlocked = (userId: string) => blockedUsers.some((b: any) => b.blocked_id === userId);
+  const isBlockedByUser = (userId: string) => blockedByUsers.includes(userId);
+  const hasBlockRelationship = (userId: string) => isBlocked(userId) || isBlockedByUser(userId);
 
   return {
     blockedUsers,

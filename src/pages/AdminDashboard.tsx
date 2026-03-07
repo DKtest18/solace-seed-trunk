@@ -56,11 +56,11 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
     queryKey: ['admin-analytics'],
     queryFn: async () => {
       const [productsRes, usersRes, purchasesRes, reviewsRes, disputesRes] = await Promise.all([
-        supabase.from('products').select('*', { count: 'exact', head: true }),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('purchases').select('amount').eq('status', 'completed'),
-        supabase.from('reviews').select('*', { count: 'exact', head: true }),
-        supabase.from('disputes').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+        db.from('dkai_products').select('*', { count: 'exact', head: true }),
+        db.from('dkai_profiles').select('*', { count: 'exact', head: true }),
+        db.from('dkai_purchases').select('amount').eq('status', 'completed'),
+        db.from('dkai_reviews').select('*', { count: 'exact', head: true }),
+        db.from('dkai_disputes').select('*', { count: 'exact', head: true }).eq('status', 'open'),
       ]);
 
       const totalRevenue = purchasesRes.data?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;

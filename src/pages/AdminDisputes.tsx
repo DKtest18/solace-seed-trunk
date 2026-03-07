@@ -190,7 +190,7 @@ export default function AdminDisputes() {
         .eq("id", reportId);
 
       // Create audit log
-      await supabase.from("payment_audit_logs").insert({
+      await db.from("dkai_payment_audit_logs").insert({
         actor_id: user?.id,
         actor_role: "admin",
         action: "ban_user",

@@ -150,8 +150,8 @@ export default function AdminDisputes() {
     
     // Get sender profiles
     const senderIds = [...new Set(data?.map(m => m.sender_id) || [])];
-    const { data: profiles } = await supabase
-      .from("profiles")
+    const { data: profiles } = await db
+      .from("dkai_profiles")
       .select("id, full_name, username, avatar_url")
       .in("id", senderIds);
     

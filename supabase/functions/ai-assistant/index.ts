@@ -14,13 +14,13 @@ Deno.serve(async (req) => {
     if (!anthropicKey) return errorResponse('Anthropic API key not configured', 500);
 
     let prompt = '';
-    let systemPrompt = 'Du bist ein hilfreicher Assistent für den DK AI Marketplace – eine digitale Handelsplattform. Antworte auf Deutsch, es sei denn der Nutzer schreibt auf Englisch.';
+    let systemPrompt = 'You are a helpful assistant for the DK AI Marketplace – a digital trading platform. Always respond in English by default.';
 
     if (type === 'product_description') {
-      prompt = `Erstelle eine ansprechende Produktbeschreibung für ein digitales Produkt mit dem Titel "${context.title}" vom Typ "${context.type}". ${context.purpose ? `Zweck: ${context.purpose}.` : ''} Halte es prägnant, professionell und ansprechend. Maximal 200 Wörter.`;
+      prompt = `Generate a compelling product description for a digital product titled "${context.title}" of type "${context.type}". ${context.purpose ? `Purpose: ${context.purpose}.` : ''} Keep it concise, professional, and engaging. Max 200 words.`;
     } else if (type === 'chatbot') {
-      systemPrompt = 'Du bist der DK AI Marketplace Assistent. Du hilfst Nutzern bei Fragen zu Kauf und Verkauf, Produkterstellung, Marktplatzregeln, Profileinstellungen, Meetings, Nachrichten und Community. Antworte freundlich und hilfsbereit. Antworte auf Deutsch, es sei denn der Nutzer schreibt auf Englisch.';
-      prompt = context.message || 'Hallo';
+      systemPrompt = 'You are the DK AI Marketplace Assistant. You help users with buying and selling, product creation, marketplace rules, profile settings, meetings, messaging, and community. Be friendly and helpful. Always respond in English by default.';
+      prompt = context.message || 'Hello';
     } else {
       return errorResponse('Unknown AI assistant type');
     }

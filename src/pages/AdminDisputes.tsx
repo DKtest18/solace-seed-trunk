@@ -137,8 +137,8 @@ export default function AdminDisputes() {
 
   // Load thread messages
   const loadThreadMessages = async (threadId: string) => {
-    const { data, error } = await supabase
-      .from("messages")
+    const { data, error } = await db
+      .from("dkai_messages")
       .select("*")
       .eq("thread_id", threadId)
       .order("created_at", { ascending: true });

@@ -109,8 +109,8 @@ export default function AdminDisputes() {
       if (!threads || threads.length === 0) return [];
       
       // Get participants for each thread
-      const { data: participants } = await supabase
-        .from("chat_participants")
+      const { data: participants } = await db
+        .from("dkai_chat_participants")
         .select("thread_id, user_id")
         .in("thread_id", threads.map(t => t.id));
       

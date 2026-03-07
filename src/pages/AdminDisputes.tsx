@@ -168,8 +168,8 @@ export default function AdminDisputes() {
   const banUser = useMutation({
     mutationFn: async ({ userId, reportId }: { userId: string; reportId: string }) => {
       // Update user roles to mark as banned
-      const { error: roleError } = await supabase
-        .from("user_roles")
+      const { error: roleError } = await db
+        .from("dkai_user_roles")
         .upsert({
           user_id: userId,
           role: "banned" as any,

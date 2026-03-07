@@ -104,8 +104,8 @@ export default function AdminDisputeManagement() {
   // Update settings mutation
   const updateSettings = useMutation({
     mutationFn: async ({ key, value }: { key: string; value: number }) => {
-      const { error } = await supabase
-        .from('dispute_settings')
+      const { error } = await db
+        .from('dkai_dispute_settings')
         .update({ 
           setting_value: { value },
           updated_at: new Date().toISOString(),

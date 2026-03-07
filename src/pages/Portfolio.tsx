@@ -99,8 +99,8 @@ export default function Portfolio() {
     queryKey: ['portfolio-item-reviews', selectedItem?.product_id],
     queryFn: async () => {
       if (!selectedItem?.product_id) return [];
-      const { data, error } = await supabase
-        .from('reviews')
+      const { data, error } = await db
+        .from('dkai_reviews')
         .select('id, rating, comment, created_at, profiles:user_id (full_name, username, avatar_url)')
         .eq('product_id', selectedItem.product_id)
         .order('created_at', { ascending: false })

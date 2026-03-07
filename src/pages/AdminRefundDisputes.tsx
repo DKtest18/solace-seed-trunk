@@ -160,7 +160,7 @@ export default function AdminRefundDisputes() {
 
       if (order) {
         // Notify buyer
-        await supabase.from('in_app_notifications').insert({
+        await db.from('dkai_in_app_notifications').insert({
           user_id: order.buyer_id,
           title: 'Refund Request Denied',
           message: `Your refund request was reviewed and denied. Reason: ${reason}`,

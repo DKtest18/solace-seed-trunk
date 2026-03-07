@@ -96,8 +96,8 @@ export default function Meetings() {
       }
 
       // Get product counts for sellers
-      const { data: productCounts } = await supabase
-        .from('products')
+      const { data: productCounts } = await db
+        .from('dkai_products')
         .select('seller_id')
         .in('seller_id', sellerIds)
         .eq('is_published', true);

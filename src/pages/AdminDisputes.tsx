@@ -98,8 +98,8 @@ export default function AdminDisputes() {
   const { data: conversations, isLoading: conversationsLoading } = useQuery({
     queryKey: ["admin-conversations"],
     queryFn: async () => {
-      const { data: threads, error } = await supabase
-        .from("threads")
+      const { data: threads, error } = await db
+        .from("dkai_threads")
         .select("*")
         .order("updated_at", { ascending: false })
         .limit(50);

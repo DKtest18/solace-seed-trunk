@@ -56,8 +56,8 @@ export default function AdminDisputes() {
   const { data: reports, isLoading: reportsLoading } = useQuery<ReportWithProfiles[]>({
     queryKey: ["admin-reports", statusFilter],
     queryFn: async (): Promise<ReportWithProfiles[]> => {
-      let query = supabase
-        .from("reports")
+      let query = db
+        .from("dkai_reports")
         .select("*")
         .order("created_at", { ascending: false });
       

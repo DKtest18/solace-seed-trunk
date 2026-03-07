@@ -47,8 +47,8 @@ export default function AdminDisputeManagement() {
       // Fetch profiles for each dispute
       const enriched = await Promise.all((data || []).map(async (d) => {
         const [buyerRes, sellerRes] = await Promise.all([
-          supabase.from('profiles').select('id, full_name, creator_name, username').eq('id', d.buyer_id).single(),
-          supabase.from('profiles').select('id, full_name, creator_name, username').eq('id', d.seller_id).single()
+          db.from('dkai_profiles').select('id, full_name, creator_name, username').eq('id', d.buyer_id).single(),
+          db.from('dkai_profiles').select('id, full_name, creator_name, username').eq('id', d.seller_id).single()
         ]);
         return { ...d, buyer: buyerRes.data, seller: sellerRes.data };
       }));

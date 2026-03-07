@@ -279,7 +279,7 @@ export function MeetingBookingDialog({ open, onOpenChange, seller }: MeetingBook
         console.log('MEETING CREATED:', data.meeting.id, data.meeting.meeting_code);
         
         // Create audit log for confirmation shown
-        supabase.from('dkai_audit_logs').insert({
+        db.from('dkai_audit_logs').insert({
           action: 'BUYER_CONFIRMATION_SHOWN',
           table_name: 'meetings',
           record_id: data.meeting.id,

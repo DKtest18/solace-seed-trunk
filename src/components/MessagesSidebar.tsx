@@ -135,7 +135,7 @@ export function MessagesSidebar() {
         .limit(50);
       if (error) throw error;
       setMessages(data || []);
-      await supabase.from('messages').update({ is_read: true }).eq('recipient_id', user.id).eq('sender_id', otherUserId);
+      await db.from('dkai_messages').update({ is_read: true }).eq('recipient_id', user.id).eq('sender_id', otherUserId);
     } catch (error: any) {
       console.error('Failed to load messages:', error);
     }

@@ -200,7 +200,7 @@ export default function AdminDisputes() {
       });
 
       // Notify the banned user
-      await supabase.from("in_app_notifications").insert({
+      await db.from("dkai_in_app_notifications").insert({
         user_id: userId,
         title: "Account Suspended",
         message: `Your account has been suspended due to policy violation. Reason: ${banReason || "Terms of Service violation"}`,

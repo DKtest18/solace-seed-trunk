@@ -258,7 +258,7 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
           }, { onConflict: 'seller_id,achievement_name' });
 
         // Send notification to seller
-        await supabase.from('in_app_notifications').insert({
+        await db.from('dkai_in_app_notifications').insert({
           user_id: userId,
           title: 'Achievement Unlocked 🏆',
           message: 'Congratulations! You created your seller account. You can now publish products and start selling!',

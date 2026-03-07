@@ -215,8 +215,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
   const moderateSellerApplication = useMutation({
     mutationFn: async ({ applicationId, userId, status, reason }: { applicationId: string; userId: string; status: 'approved' | 'rejected'; reason?: string }) => {
       // Update application
-      const { error: appError } = await supabase
-        .from('seller_applications')
+      const { error: appError } = await db
+        .from('dkai_seller_applications')
         .update({
           status,
           rejection_reason: reason,

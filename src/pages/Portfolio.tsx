@@ -85,7 +85,7 @@ export default function Portfolio() {
     queryKey: ['portfolio-review-counts', productIds],
     queryFn: async () => {
       if (productIds.length === 0) return {};
-      const { data, error } = await supabase.from('reviews').select('product_id').in('product_id', productIds);
+      const { data, error } = await db.from('dkai_reviews').select('product_id').in('product_id', productIds);
       if (error) throw error;
       const counts: Record<string, number> = {};
       data?.forEach(r => { counts[r.product_id] = (counts[r.product_id] || 0) + 1; });

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { externalSupabase } from '@/lib/externalSupabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMeetingInfoModal } from '@/contexts/MeetingInfoModalContext';

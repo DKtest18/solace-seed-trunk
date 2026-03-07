@@ -63,8 +63,8 @@ export default function AdminDisputeManagement() {
   const { data: settings } = useQuery({
     queryKey: ['dispute-settings'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('dispute_settings')
+      const { data, error } = await db
+        .from('dkai_dispute_settings')
         .select('*');
       if (error) throw error;
       return data?.reduce((acc, s) => {

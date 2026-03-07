@@ -180,8 +180,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
         updateData.approved_by = null;
       }
 
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .update(updateData)
         .eq('id', productId);
 

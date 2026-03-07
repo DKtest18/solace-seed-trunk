@@ -64,8 +64,8 @@ export default function ProductDetail() {
     queryFn: async () => {
       if (!product?.seller_id) return null;
       
-      const { data, error } = await supabase
-        .from('profiles')
+      const { data, error } = await db
+        .from('dkai_profiles')
         .select('id, full_name, avatar_url, username')
         .eq('id', product.seller_id)
         .single();

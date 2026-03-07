@@ -118,7 +118,7 @@ export default function AdminRefundDisputes() {
       if (refundError) throw refundError;
 
       // Notify buyer
-      await supabase.from('in_app_notifications').insert({
+      await db.from('dkai_in_app_notifications').insert({
         user_id: order.buyer_id,
         title: 'Refund Approved',
         message: `Your refund request has been approved. $${order.held_amount} has been credited to your balance.`,

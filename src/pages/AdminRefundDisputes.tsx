@@ -71,9 +71,9 @@ export default function AdminRefundDisputes() {
       if (disputeError) throw disputeError;
 
       // Get order details for refund
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .select('held_amount, buyer_id, products(seller_id)')
+      const { data: order, error: orderError } = await db
+        .from('dkai_orders')
+        .select('held_amount, buyer_id, dkai_products(seller_id)')
         .eq('id', orderId)
         .single();
 

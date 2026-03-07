@@ -108,11 +108,11 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
   const { data: disputes } = useQuery({
     queryKey: ['admin-disputes'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('disputes')
+      const { data, error } = await db
+        .from('dkai_disputes')
         .select(`
           *,
-          products (
+          dkai_products (
             title
           ),
           buyer:profiles!disputes_buyer_id_fkey (

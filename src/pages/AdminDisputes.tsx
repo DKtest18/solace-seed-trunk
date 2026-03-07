@@ -117,8 +117,8 @@ export default function AdminDisputes() {
       // Get unique user IDs
       const userIds = [...new Set(participants?.map(p => p.user_id) || [])];
       
-      const { data: profiles } = await supabase
-        .from("profiles")
+      const { data: profiles } = await db
+        .from("dkai_profiles")
         .select("id, full_name, username, avatar_url")
         .in("id", userIds);
       

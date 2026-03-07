@@ -108,9 +108,9 @@ export default function Meetings() {
       });
 
       // Get sales counts (completed orders) for sellers
-      const { data: salesData } = await supabase
-        .from('orders')
-        .select('product_id, products!inner(seller_id)')
+      const { data: salesData } = await db
+        .from('dkai_orders')
+        .select('product_id, dkai_products!inner(seller_id)')
         .in('status', ['completed', 'payment_confirmed', 'delivered']);
 
       const salesCountMap = new Map<string, number>();

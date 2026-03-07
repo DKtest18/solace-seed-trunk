@@ -188,7 +188,7 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
       if (error) throw error;
 
       // Send notification to seller
-      await supabase.from('in_app_notifications').insert({
+      await db.from('dkai_in_app_notifications').insert({
         user_id: product.seller_id,
         title: status === 'approved' ? 'Product Approved 🎉' : 'Product Rejected ❌',
         message: status === 'approved' 

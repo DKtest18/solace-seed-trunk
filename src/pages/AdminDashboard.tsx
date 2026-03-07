@@ -276,8 +276,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
         });
       } else {
         // Update profile for rejection
-        const { error: profileError } = await supabase
-          .from('profiles')
+        const { error: profileError } = await db
+          .from('dkai_profiles')
           .update({
             seller_verification_status: 'rejected',
             seller_application_status: 'rejected',

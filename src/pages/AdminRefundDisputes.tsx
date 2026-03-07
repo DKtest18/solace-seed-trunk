@@ -139,8 +139,8 @@ export default function AdminRefundDisputes() {
   const denyRefund = useMutation({
     mutationFn: async ({ disputeId, orderId, reason }: { disputeId: string; orderId: string; reason: string }) => {
       // Update dispute status
-      const { error: disputeError } = await supabase
-        .from('disputes')
+      const { error: disputeError } = await db
+        .from('dkai_disputes')
         .update({
           status: 'closed',
           resolved_by: user?.id,

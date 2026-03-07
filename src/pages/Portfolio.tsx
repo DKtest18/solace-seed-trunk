@@ -65,12 +65,12 @@ export default function Portfolio() {
   const { data: portfolioItems, isLoading } = useQuery({
     queryKey: ['public-portfolio'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('portfolio_products')
+      const { data, error } = await db
+        .from('dkai_portfolio_products')
         .select(`
           *,
-          seller:profiles!portfolio_products_seller_id_fkey (id, username, full_name, avatar_url),
-          product:products!portfolio_products_product_id_fkey (id, title, average_rating, total_sales, is_published, price)
+          seller:dkai_profiles!portfolio_products_seller_id_fkey (id, username, full_name, avatar_url),
+          product:dkai_products!portfolio_products_product_id_fkey (id, title, average_rating, total_sales, is_published, price)
         `)
         .eq('is_public', true)
         .order('completed_date', { ascending: false });

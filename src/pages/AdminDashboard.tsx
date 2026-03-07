@@ -311,8 +311,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
   // Resolve dispute mutation
   const resolveDispute = useMutation({
     mutationFn: async ({ disputeId, status, notes }: { disputeId: string; status: 'resolved' | 'closed'; notes: string }) => {
-      const { error } = await supabase
-        .from('disputes')
+      const { error } = await db
+        .from('dkai_disputes')
         .update({
           status,
           resolution_notes: notes,

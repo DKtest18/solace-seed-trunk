@@ -80,8 +80,8 @@ export default function ProductDetail() {
   const { data: productRating } = useQuery({
     queryKey: ['product-rating', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('reviews')
+      const { data, error } = await db
+        .from('dkai_reviews')
         .select('rating')
         .eq('product_id', id!);
 

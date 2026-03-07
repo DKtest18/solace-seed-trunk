@@ -68,8 +68,8 @@ export default function PublicProfile() {
       setProfile(profileData);
 
       // Fetch user's products
-      const { data: productsData } = await supabase
-        .from('products')
+      const { data: productsData } = await db
+        .from('dkai_products')
         .select('id, title, price, image_url, is_published, moderation_status')
         .eq('seller_id', profileData.id)
         .eq('is_published', true)

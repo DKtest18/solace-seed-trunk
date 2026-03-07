@@ -247,8 +247,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
         if (profileError) throw profileError;
 
         // Add seller trophy/achievement
-        await supabase
-          .from('seller_achievements')
+        await db
+          .from('dkai_seller_achievements')
           .upsert({
             seller_id: userId,
             achievement_name: 'Seller Account Created',

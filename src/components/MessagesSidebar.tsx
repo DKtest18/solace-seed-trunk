@@ -62,8 +62,8 @@ export function MessagesSidebar() {
   const loadConversations = async () => {
     if (!user) return;
     try {
-      const { data: blocks } = await supabase
-        .from('user_blocks')
+      const { data: blocks } = await db
+        .from('dkai_user_blocks')
         .select('blocker_id, blocked_id')
         .or(`blocker_id.eq.${user.id},blocked_id.eq.${user.id}`);
 

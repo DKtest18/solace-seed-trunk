@@ -229,8 +229,8 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
 
       if (status === 'approved') {
         // Add seller role
-        const { error: roleError } = await supabase
-          .from('user_roles')
+        const { error: roleError } = await db
+          .from('dkai_user_roles')
           .insert({ user_id: userId, role: 'seller' });
 
         if (roleError && !roleError.message.includes('duplicate')) throw roleError;

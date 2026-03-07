@@ -163,8 +163,8 @@ export function MessagesSidebar() {
   const handleEditMessage = async (messageId: string) => {
     if (!editContent.trim()) return;
     try {
-      const { error } = await supabase
-        .from('messages')
+      const { error } = await db
+        .from('dkai_messages')
         .update({ content: editContent.trim(), edited_at: new Date().toISOString() })
         .eq('id', messageId)
         .eq('sender_id', user?.id);

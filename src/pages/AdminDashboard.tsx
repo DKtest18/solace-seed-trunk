@@ -115,11 +115,11 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
           dkai_products (
             title
           ),
-          buyer:profiles!disputes_buyer_id_fkey (
+          buyer:dkai_profiles!disputes_buyer_id_fkey (
             full_name,
             creator_name
           ),
-          seller:profiles!disputes_seller_id_fkey (
+          seller:dkai_profiles!disputes_seller_id_fkey (
             full_name,
             creator_name
           )

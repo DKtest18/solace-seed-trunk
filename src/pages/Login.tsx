@@ -120,9 +120,14 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const isValid = await verifyTOTP(twoFASecret, twoFACode);
-      
-      if (isValid) {
+      // Verify 2FA code SERVER-SIDE — secret never leaves the server
+      const { data, error } = await supabase.functions.invoke('verify-2fa-code', {
+        body: { code: twoFACode }
+      });
+
+      if (error) throw error;
+
+      if (data?.valid) {
         toast({
           title: 'Welcome back!',
           description: 'You have successfully signed in.',

@@ -291,7 +291,7 @@ These terms are governed by the laws of the Federal Republic of Germany, excludi
 ON CONFLICT (page_type) DO UPDATE SET 
   title = EXCLUDED.title, 
   content = EXCLUDED.content,
-  updated_at = now();
+  last_updated = now();
 
 -- 4. COOKIE POLICY
 INSERT INTO legal_pages (page_type, title, content)

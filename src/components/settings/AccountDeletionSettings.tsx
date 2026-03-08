@@ -47,8 +47,6 @@ export function AccountDeletionSettings() {
         profile: profileRes.data || null,
         orders: ordersRes.data || [],
         disputes: disputesRes.data || [],
-        communityPosts: postsRes.data || [],
-        reviews: reviewsRes.data || [],
       };
 
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });

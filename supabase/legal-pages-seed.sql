@@ -47,7 +47,7 @@ The content and works on these pages created by the site operators are subject t
 ON CONFLICT (page_type) DO UPDATE SET 
   title = EXCLUDED.title, 
   content = EXCLUDED.content,
-  updated_at = now();
+  last_updated = now();
 
 -- 2. DATENSCHUTZERKLÄRUNG (Privacy Policy) - Pflicht nach Art. 13/14 DSGVO
 INSERT INTO legal_pages (page_type, title, content)
@@ -168,7 +168,7 @@ We reserve the right to update this privacy policy. Users will be notified of si
 ON CONFLICT (page_type) DO UPDATE SET 
   title = EXCLUDED.title, 
   content = EXCLUDED.content,
-  updated_at = now();
+  last_updated = now();
 
 -- 3. AGB (Terms of Service)
 INSERT INTO legal_pages (page_type, title, content)
@@ -291,7 +291,7 @@ These terms are governed by the laws of the Federal Republic of Germany, excludi
 ON CONFLICT (page_type) DO UPDATE SET 
   title = EXCLUDED.title, 
   content = EXCLUDED.content,
-  updated_at = now();
+  last_updated = now();
 
 -- 4. COOKIE POLICY
 INSERT INTO legal_pages (page_type, title, content)
@@ -341,7 +341,7 @@ For questions about our cookie practices: support@dkaimarketplace.com')
 ON CONFLICT (page_type) DO UPDATE SET 
   title = EXCLUDED.title, 
   content = EXCLUDED.content,
-  updated_at = now();
+  last_updated = now();
 
 -- 5. REFUND POLICY (Widerrufsbelehrung & Rückgaberecht)
 INSERT INTO legal_pages (page_type, title, content)
@@ -418,4 +418,4 @@ This refund policy is governed by EU Directive 2011/83/EU, the German Civil Code
 ON CONFLICT (page_type) DO UPDATE SET 
   title = EXCLUDED.title, 
   content = EXCLUDED.content,
-  updated_at = now();
+  last_updated = now();

@@ -70,6 +70,12 @@ verify_jwt = false
 [functions.enable-2fa]
 verify_jwt = false
 
+[functions.verify-2fa-code]
+verify_jwt = false
+
+[functions.disable-2fa]
+verify_jwt = false
+
 [functions.generate-backup-codes]
 verify_jwt = false
 

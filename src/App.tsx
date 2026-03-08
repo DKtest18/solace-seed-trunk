@@ -155,6 +155,7 @@ const App = () => (
             <Route path="/community/:id" element={<CommunityPost />} />
             <Route path="/profile/:username" element={<PublicProfile />} />
             <Route path="/purchase-history" element={<PurchaseHistory />} />
+            <Route path="/legal" element={<LegalOverview />} />
             <Route path="/legal/:type" element={<Legal />} />
             <Route path="/admin/reports" element={<AdminReports />} />
             <Route path="/admin/email-logs" element={<AdminEmailLogs />} />

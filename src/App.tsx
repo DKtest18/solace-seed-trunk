@@ -61,6 +61,7 @@ import Community from "./pages/Community";
 import CommunityPost from "./pages/CommunityPost";
 import NotFound from "./pages/NotFound";
 import Legal from "./pages/Legal";
+import LegalOverview from "./pages/LegalOverview";
 import AdminReports from "./pages/AdminReports";
 import AdminEmailLogs from "./pages/AdminEmailLogs";
 import Invites from "./pages/Invites";
@@ -154,6 +155,7 @@ const App = () => (
             <Route path="/community/:id" element={<CommunityPost />} />
             <Route path="/profile/:username" element={<PublicProfile />} />
             <Route path="/purchase-history" element={<PurchaseHistory />} />
+            <Route path="/legal" element={<LegalOverview />} />
             <Route path="/legal/:type" element={<Legal />} />
             <Route path="/admin/reports" element={<AdminReports />} />
             <Route path="/admin/email-logs" element={<AdminEmailLogs />} />

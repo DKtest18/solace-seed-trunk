@@ -47,7 +47,7 @@ The content and works on these pages created by the site operators are subject t
 ON CONFLICT (page_type) DO UPDATE SET 
   title = EXCLUDED.title, 
   content = EXCLUDED.content,
-  updated_at = now();
+  last_updated = now();
 
 -- 2. DATENSCHUTZERKLÄRUNG (Privacy Policy) - Pflicht nach Art. 13/14 DSGVO
 INSERT INTO legal_pages (page_type, title, content)

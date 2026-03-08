@@ -101,6 +101,7 @@ export function AppLayout({ children, showMessagesSidebar = true }: AppLayoutPro
           <main className="flex-1 overflow-auto min-w-0">
             {children}
           </main>
+          <LegalFooter />
         </div>
       </SidebarProvider>
     );

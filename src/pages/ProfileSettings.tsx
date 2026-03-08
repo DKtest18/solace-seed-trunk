@@ -519,6 +519,10 @@ export default function ProfileSettings() {
           <TabsContent value="blocked">
             <BlockedUsersSettings />
           </TabsContent>
+
+          <TabsContent value="data">
+            <AccountDeletionSettings />
+          </TabsContent>
         </Tabs>
       </div>
     </div>

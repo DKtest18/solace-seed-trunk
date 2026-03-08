@@ -18,6 +18,7 @@ import { AppearanceSettings } from '@/components/settings/AppearanceSettings';
 import { SidebarLayoutSettings } from '@/components/settings/SidebarLayoutSettings';
 import { MessagePrivacySettings } from '@/components/settings/MessagePrivacySettings';
 import { BlockedUsersSettings } from '@/components/settings/BlockedUsersSettings';
+import { AccountDeletionSettings } from '@/components/settings/AccountDeletionSettings';
 
 export default function ProfileSettings() {
   const { user } = useAuth();
@@ -214,12 +215,13 @@ export default function ProfileSettings() {
         </div>
 
         <Tabs defaultValue="security" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
             <TabsTrigger value="privacy">Privacy</TabsTrigger>
             <TabsTrigger value="blocked">Blocked</TabsTrigger>
+            <TabsTrigger value="data">Data & Account</TabsTrigger>
           </TabsList>
 
           <TabsContent value="security">
@@ -515,6 +517,10 @@ export default function ProfileSettings() {
 
           <TabsContent value="blocked">
             <BlockedUsersSettings />
+          </TabsContent>
+
+          <TabsContent value="data">
+            <AccountDeletionSettings />
           </TabsContent>
         </Tabs>
       </div>

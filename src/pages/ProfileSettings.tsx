@@ -149,15 +149,13 @@ export default function ProfileSettings() {
   const disable2FA = async () => {
     setLoading(true);
     try {
-      const { error } = await db
-        .from('dkai_profiles')
-        .update({
-          is_2fa_enabled: false,
-          two_fa_secret: null,
-        })
-        .eq('id', user?.id);
+      // Disable 2FA via server-side edge function (requires current 2FA code)
+      const { data, error } = await supabase.functions.invoke('disable-2fa', {
+        body: { code: verificationCode }
+      });
 
       if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Failed to disable 2FA');
 
       toast({
         title: 'Success!',

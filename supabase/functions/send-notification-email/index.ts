@@ -509,6 +509,135 @@ function buildNotificationEmail(
       };
     }
 
+    // ── ACCOUNT BAN (permanent) ──
+    case 'account_ban': {
+      const reason = data.reason || 'Serious violation of platform terms of service.';
+
+      return {
+        subject: 'Account Permanently Banned – DK AI Marketplace',
+        html: wrapEmail([
+          h('Account Permanently Banned'),
+          p(`Your account on ${link('DK AI Marketplace')} has been permanently banned due to a serious violation of our platform policies.`),
+          br(),
+          infoBox([
+            infoRow('Action', '<strong style="color:#dc2626;">Permanent Ban</strong>'),
+            infoRow('Reason', reason),
+          ].join('')),
+          br(),
+          p('This action is permanent. You will no longer be able to access your account, list products, or participate in the marketplace.'),
+          br(),
+          p('If you believe this action was taken in error, please contact our support team at <strong>support@dkaimarketplace.com</strong> with your account details and any relevant information.'),
+          br(),
+          ft('This is an automated notification from the DK AI Marketplace moderation team.'),
+        ].join('')),
+      };
+    }
+
+    // ── ACCOUNT WARNING (strike) ──
+    case 'account_warning': {
+      const warningNumber = data.warningNumber || '1';
+      const reason = data.reason || 'Violation of community guidelines.';
+      const consequences = data.consequences || 'Repeated violations may result in temporary suspension or permanent ban.';
+
+      return {
+        subject: `Account Warning (Strike ${warningNumber}) – DK AI Marketplace`,
+        html: wrapEmail([
+          h('Account Warning'),
+          p(`Your account on ${link('DK AI Marketplace')} has received a formal warning from our moderation team.`),
+          br(),
+          infoBox([
+            infoRow('Warning', `<strong style="color:#d97706;">Strike ${warningNumber}</strong>`),
+            infoRow('Reason', reason),
+          ].join('')),
+          br(),
+          `<div style="background:#fef3c7;border-left:4px solid #d97706;border-radius:4px;padding:16px 20px;margin:8px 0;">
+            <p style="margin:0;padding:0;font-size:13px;color:#92400e;font-weight:600;margin-bottom:8px;">What happens next:</p>
+            <p style="margin:0;padding:0;font-size:14px;color:#92400e;line-height:1.6;">${consequences}</p>
+          </div>`,
+          br(),
+          p('Please review our <strong>Terms of Service</strong> and <strong>Community Guidelines</strong> to avoid further action.'),
+          br(),
+          p('If you believe this warning was issued in error, please contact <strong>support@dkaimarketplace.com</strong>.'),
+          br(),
+          ft('This is an automated notification from the DK AI Marketplace moderation team.'),
+        ].join('')),
+      };
+    }
+
+    // ── ACCOUNT DEACTIVATION ──
+    case 'account_deactivation': {
+      const deactivationDate = data.deactivationDate || new Date().toLocaleDateString('en-US');
+
+      return {
+        subject: 'Account Deactivated – DK AI Marketplace',
+        html: wrapEmail([
+          h('Account Deactivated'),
+          p(`Your account on ${link('DK AI Marketplace')} has been deactivated as of <strong>${deactivationDate}</strong>.`),
+          br(),
+          infoBox(`<p style="margin:0;font-size:14px;color:#374151;line-height:1.6;">Your profile, products, and listings are no longer visible to other users. Any pending orders will continue to be processed normally. Your data will be retained for 30 days before permanent deletion.</p>`),
+          br(),
+          p('If you would like to reactivate your account within the 30-day window, simply log in again.'),
+          br(),
+          btn('https://dkaimarketplace.lovable.app/login', 'Reactivate Account'),
+          br(),
+          ft('If you did not request this deactivation, please contact support@dkaimarketplace.com immediately.'),
+        ].join('')),
+      };
+    }
+
+    // ── ACCOUNT DELETION ──
+    case 'account_deletion': {
+      const deletionDate = data.deletionDate || new Date().toLocaleDateString('en-US');
+
+      return {
+        subject: 'Account Deleted – DK AI Marketplace',
+        html: wrapEmail([
+          h('Account Deleted'),
+          p(`Your account on ${link('DK AI Marketplace')} has been permanently deleted as of <strong>${deletionDate}</strong>.`),
+          br(),
+          infoBox(`<p style="margin:0;font-size:14px;color:#374151;font-weight:600;margin-bottom:8px;">What has been removed:</p>
+            <p style="margin:0;font-size:14px;color:#374151;line-height:1.8;">
+              - Your profile and personal information<br />
+              - All product listings<br />
+              - Review and rating history<br />
+              - Meeting history and scheduled meetings<br />
+              - Community posts and comments
+            </p>`),
+          br(),
+          p('Any outstanding payments or pending payouts have been processed according to our terms of service. This action cannot be undone.'),
+          br(),
+          p('We are sorry to see you go. If you ever wish to return, you are welcome to create a new account at any time.'),
+          br(),
+          ft('If you did not request this deletion, please contact support@dkaimarketplace.com immediately.'),
+        ].join('')),
+      };
+    }
+
+    // ── SANCTION LIFTED (account reinstated) ──
+    case 'sanction_lifted': {
+      const originalSanction = data.originalSanction || 'Temporary Suspension';
+      const liftedDate = data.liftedDate || new Date().toLocaleDateString('en-US');
+
+      return {
+        subject: 'Account Reinstated – DK AI Marketplace',
+        html: wrapEmail([
+          h('Account Reinstated'),
+          p(`Your account on ${link('DK AI Marketplace')} has been reinstated as of <strong>${liftedDate}</strong>.`),
+          br(),
+          infoBox([
+            infoRow('Previous Sanction', originalSanction),
+            infoRow('Status', '<strong style="color:#16a34a;">Active</strong>'),
+          ].join('')),
+          br(),
+          p('You now have full access to all marketplace features again, including listing products, making purchases, and participating in meetings. Please make sure to follow our platform guidelines going forward.'),
+          br(),
+          btn('https://dkaimarketplace.lovable.app/', 'Go to Marketplace'),
+          br(),
+          ft('Welcome back to DK AI Marketplace. Thank you for your understanding.'),
+        ].join('')),
+      };
+    }
+
     // ── REFUND REQUESTED (seller notification) ──
     case 'refund_requested': {
       const productTitle = data.productTitle || 'Unknown Product';

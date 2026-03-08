@@ -168,7 +168,7 @@ We reserve the right to update this privacy policy. Users will be notified of si
 ON CONFLICT (page_type) DO UPDATE SET 
   title = EXCLUDED.title, 
   content = EXCLUDED.content,
-  updated_at = now();
+  last_updated = now();
 
 -- 3. AGB (Terms of Service)
 INSERT INTO legal_pages (page_type, title, content)

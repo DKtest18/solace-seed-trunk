@@ -1,4 +1,5 @@
 import { ReactNode, useState } from 'react';
+import { LegalFooter } from '@/components/LegalFooter';
 import { MessagesSidebar } from '@/components/MessagesSidebar';
 import { SearchSidebar } from '@/components/SearchSidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';

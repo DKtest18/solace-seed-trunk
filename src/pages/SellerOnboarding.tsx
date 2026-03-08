@@ -197,41 +197,29 @@ export default function SellerOnboarding() {
       return;
     }
 
-    // Verify the code matches using proper TOTP
-    const isValid = await verifyTOTP(twoFASecret, twoFACode);
-
-    if (!isValid) {
-      toast({
-        title: "Invalid Code",
-        description: "The code you entered doesn't match. Please try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          is_2fa_enabled: true,
-          two_fa_secret: twoFASecret,
-        })
-        .eq('id', user?.id);
+      // Enable 2FA via edge function — secret stored server-side only
+      const { data, error } = await supabase.functions.invoke('enable-2fa', {
+        body: { secret: twoFASecret, code: twoFACode }
+      });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast({
         title: "2FA Enabled",
         description: "Two-factor authentication has been set up successfully",
       });
       
+      // Clear secret from client memory
+      setTwoFASecret('');
       setStep('profile-setup');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error setting up 2FA:', error);
       toast({
         title: "Error",
-        description: "Failed to set up 2FA",
+        description: error.message || "Failed to set up 2FA",
         variant: "destructive",
       });
     } finally {

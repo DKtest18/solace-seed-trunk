@@ -40,6 +40,9 @@ Deno.serve(async (req) => {
         moderator_id: user.id,
       });
 
+      // Send suspension/ban email notification (fire-and-forget)
+      sendSuspensionEmail(admin, targetUserId, sanctionType, reason, duration);
+
       return jsonResponse({ success: true });
     } else if (action === 'remove') {
       await admin.from('dkai_sanctions').update({
@@ -56,3 +59,45 @@ Deno.serve(async (req) => {
     return errorResponse(err.message, 500);
   }
 });
+
+async function sendSuspensionEmail(
+  admin: any,
+  targetUserId: string,
+  sanctionType: string,
+  reason: string,
+  duration: string | null,
+) {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseUrl || !serviceKey) return;
+
+    // Get target user email
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('email')
+      .eq('id', targetUserId)
+      .single();
+
+    if (!profile?.email) return;
+
+    await fetch(`${supabaseUrl}/functions/v1/send-notification-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({
+        type: 'account_suspension',
+        recipientEmail: profile.email,
+        data: {
+          sanctionType,
+          reason: reason || 'Violation of platform terms of service.',
+          duration: duration || '',
+        },
+      }),
+    });
+  } catch (e) {
+    console.error('Failed to send suspension email:', e);
+  }
+}

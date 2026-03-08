@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
     // Get product details
     const { data: product, error: productError } = await admin
       .from('dkai_products')
-      .select('*')
+      .select('*, profiles:seller_id(email, display_name, username)')
       .eq('id', productId)
       .single();
 
@@ -23,6 +23,18 @@ Deno.serve(async (req) => {
 
     const platformFee = product.price * 0.1;
     const sellerEarnings = product.price - platformFee;
+
+    // Get buyer profile for notification
+    const { data: buyerProfile } = await admin
+      .from('profiles')
+      .select('email, display_name, username')
+      .eq('id', user.id)
+      .single();
+
+    const buyerName = buyerProfile?.display_name || buyerProfile?.username || 'A buyer';
+    const buyerEmail = buyerProfile?.email || user.email;
+    const sellerName = product.profiles?.display_name || product.profiles?.username || 'the seller';
+    const sellerEmail = product.profiles?.email;
 
     if (paymentMethod === 'stripe') {
       const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
@@ -52,7 +64,7 @@ Deno.serve(async (req) => {
       if (session.error) throw new Error(session.error.message);
 
       // Create order
-      await admin.from('dkai_orders').insert({
+      const { data: order } = await admin.from('dkai_orders').insert({
         buyer_id: user.id,
         product_id: productId,
         price: product.price,
@@ -62,6 +74,18 @@ Deno.serve(async (req) => {
         stripe_session_id: session.id,
         escrow_status: 'pending',
         status: 'pending_payment',
+      }).select('id').single();
+
+      // Send emails (fire-and-forget)
+      sendNotificationEmails(req, admin, {
+        productTitle: product.title,
+        price: product.price,
+        buyerName,
+        buyerEmail,
+        sellerName,
+        sellerEmail,
+        orderId: order?.id || session.id,
+        paymentMethod: 'Stripe (Card)',
       });
 
       return jsonResponse({ url: session.url });
@@ -82,8 +106,85 @@ Deno.serve(async (req) => {
 
     if (orderError) throw orderError;
 
+    // Send emails (fire-and-forget)
+    sendNotificationEmails(req, admin, {
+      productTitle: product.title,
+      price: product.price,
+      buyerName,
+      buyerEmail,
+      sellerName,
+      sellerEmail,
+      orderId: order.id,
+      paymentMethod: paymentMethod === 'manual' ? 'Manual Payment' : paymentMethod || 'Manual Payment',
+    });
+
     return jsonResponse({ success: true, order_id: order.id });
   } catch (err) {
     return errorResponse(err.message, 500);
   }
 });
+
+// Fire-and-forget notification emails for both buyer and seller
+async function sendNotificationEmails(
+  req: Request,
+  admin: any,
+  data: {
+    productTitle: string;
+    price: number;
+    buyerName: string;
+    buyerEmail: string;
+    sellerName: string;
+    sellerEmail: string | null;
+    orderId: string;
+    paymentMethod: string;
+  }
+) {
+  const origin = req.headers.get('origin') || 'https://dkaimarketplace.lovable.app';
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!supabaseUrl || !serviceKey) return;
+
+  const sendEmail = async (body: any) => {
+    try {
+      await fetch(`${supabaseUrl}/functions/v1/send-notification-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${serviceKey}`,
+        },
+        body: JSON.stringify(body),
+      });
+    } catch (e) {
+      console.error('Failed to send notification email:', e);
+    }
+  };
+
+  // Buyer: purchase confirmation
+  if (data.buyerEmail) {
+    sendEmail({
+      type: 'purchase_confirmation',
+      recipientEmail: data.buyerEmail,
+      data: {
+        productTitle: data.productTitle,
+        price: data.price,
+        sellerName: data.sellerName,
+        paymentMethod: data.paymentMethod,
+        orderId: data.orderId,
+      },
+    });
+  }
+
+  // Seller: new sale notification
+  if (data.sellerEmail) {
+    sendEmail({
+      type: 'new_sale',
+      recipientEmail: data.sellerEmail,
+      data: {
+        productTitle: data.productTitle,
+        price: data.price,
+        buyerName: data.buyerName,
+        orderId: data.orderId,
+      },
+    });
+  }
+}

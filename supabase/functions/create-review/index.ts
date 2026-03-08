@@ -63,8 +63,63 @@ Deno.serve(async (req) => {
       }).eq('id', product_id);
     }
 
+    // Send review notification email to seller (fire-and-forget)
+    sendReviewNotification(admin, user.id, product_id, rating, comment);
+
     return jsonResponse({ success: true, review });
   } catch (err) {
     return errorResponse(err.message, 500);
   }
 });
+
+async function sendReviewNotification(
+  admin: any,
+  reviewerId: string,
+  productId: string,
+  rating: number,
+  comment: string | null,
+) {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseUrl || !serviceKey) return;
+
+    // Get product + seller info
+    const { data: product } = await admin
+      .from('dkai_products')
+      .select('title, seller_id, profiles:seller_id(email)')
+      .eq('id', productId)
+      .single();
+
+    if (!product?.profiles?.email) return;
+
+    // Get reviewer name
+    const { data: reviewer } = await admin
+      .from('profiles')
+      .select('display_name, username')
+      .eq('id', reviewerId)
+      .single();
+
+    const reviewerName = reviewer?.display_name || reviewer?.username || 'A buyer';
+
+    await fetch(`${supabaseUrl}/functions/v1/send-notification-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({
+        type: 'review_received',
+        recipientEmail: product.profiles.email,
+        data: {
+          productTitle: product.title,
+          rating,
+          reviewerName,
+          reviewText: comment || '',
+        },
+      }),
+    });
+  } catch (e) {
+    console.error('Failed to send review notification:', e);
+  }
+}

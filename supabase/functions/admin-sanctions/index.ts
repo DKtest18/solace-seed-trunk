@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
   if (error || !user) return errorResponse('Unauthorized', 401);
 
   try {
-    const { action, targetUserId, sanctionType, reason, duration } = await req.json();
+    const { action, targetUserId, sanctionType, reason, duration, warningNumber, consequences } = await req.json();
     const admin = getServiceClient();
 
     // Verify admin
@@ -40,16 +40,36 @@ Deno.serve(async (req) => {
         moderator_id: user.id,
       });
 
-      // Send suspension/ban email notification (fire-and-forget)
-      sendSuspensionEmail(admin, targetUserId, sanctionType, reason, duration);
+      // Send the correct email based on sanction type
+      sendSanctionEmail(admin, targetUserId, sanctionType, reason, duration, warningNumber, consequences);
 
       return jsonResponse({ success: true });
     } else if (action === 'remove') {
+      // Get the active sanction before removing it (for the email)
+      const { data: activeSanction } = await admin
+        .from('dkai_sanctions')
+        .select('sanction_type')
+        .eq('user_id', targetUserId)
+        .eq('is_active', true)
+        .single();
+
       await admin.from('dkai_sanctions').update({
         is_active: false,
         removed_at: new Date().toISOString(),
         removed_by: user.id,
       }).eq('user_id', targetUserId).eq('is_active', true);
+
+      // Log moderation action
+      await admin.from('dkai_moderation_audit_logs').insert({
+        target_type: 'user',
+        target_id: targetUserId,
+        action: 'sanction_lifted',
+        reason: `Sanction removed: ${activeSanction?.sanction_type || 'unknown'}`,
+        moderator_id: user.id,
+      });
+
+      // Send sanction lifted email
+      sendSanctionLiftedEmail(admin, targetUserId, activeSanction?.sanction_type || 'Temporary Suspension');
 
       return jsonResponse({ success: true });
     }
@@ -60,12 +80,14 @@ Deno.serve(async (req) => {
   }
 });
 
-async function sendSuspensionEmail(
+async function sendSanctionEmail(
   admin: any,
   targetUserId: string,
   sanctionType: string,
   reason: string,
   duration: string | null,
+  warningNumber?: string | null,
+  consequences?: string | null,
 ) {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -81,6 +103,38 @@ async function sendSuspensionEmail(
 
     if (!profile?.email) return;
 
+    // Map sanction type to notification email type
+    let emailType: string;
+    let emailData: Record<string, any> = {
+      reason: reason || 'Violation of platform terms of service.',
+    };
+
+    switch (sanctionType) {
+      case 'warning':
+        emailType = 'account_warning';
+        emailData.warningNumber = warningNumber || '1';
+        emailData.consequences = consequences || 'Repeated violations may result in temporary suspension or permanent ban.';
+        break;
+      case 'ban':
+      case 'permanent_ban':
+        emailType = 'account_ban';
+        break;
+      case 'deactivation':
+        emailType = 'account_deactivation';
+        emailData.deactivationDate = new Date().toLocaleDateString('en-US');
+        break;
+      case 'deletion':
+        emailType = 'account_deletion';
+        emailData.deletionDate = new Date().toLocaleDateString('en-US');
+        break;
+      default:
+        // suspension or any other type
+        emailType = 'account_suspension';
+        emailData.sanctionType = sanctionType;
+        emailData.duration = duration || '';
+        break;
+    }
+
     await fetch(`${supabaseUrl}/functions/v1/send-notification-email`, {
       method: 'POST',
       headers: {
@@ -88,16 +142,58 @@ async function sendSuspensionEmail(
         'Authorization': `Bearer ${serviceKey}`,
       },
       body: JSON.stringify({
-        type: 'account_suspension',
+        type: emailType,
+        recipientEmail: profile.email,
+        data: emailData,
+      }),
+    });
+  } catch (e) {
+    console.error('Failed to send sanction email:', e);
+  }
+}
+
+async function sendSanctionLiftedEmail(
+  admin: any,
+  targetUserId: string,
+  originalSanctionType: string,
+) {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseUrl || !serviceKey) return;
+
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('email')
+      .eq('id', targetUserId)
+      .single();
+
+    if (!profile?.email) return;
+
+    const sanctionLabels: Record<string, string> = {
+      suspension: 'Temporary Suspension',
+      ban: 'Permanent Ban',
+      permanent_ban: 'Permanent Ban',
+      warning: 'Warning',
+      deactivation: 'Deactivation',
+    };
+
+    await fetch(`${supabaseUrl}/functions/v1/send-notification-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({
+        type: 'sanction_lifted',
         recipientEmail: profile.email,
         data: {
-          sanctionType,
-          reason: reason || 'Violation of platform terms of service.',
-          duration: duration || '',
+          originalSanction: sanctionLabels[originalSanctionType] || originalSanctionType,
+          liftedDate: new Date().toLocaleDateString('en-US'),
         },
       }),
     });
   } catch (e) {
-    console.error('Failed to send suspension email:', e);
+    console.error('Failed to send sanction lifted email:', e);
   }
 }

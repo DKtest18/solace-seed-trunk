@@ -1,35 +1,37 @@
 -- ============================================================
--- DSGVO-konforme Legal Pages für DK AI Marketplace
+-- DSGVO/nDSG-konforme Legal Pages für DK AI Marketplace
 -- Ausführen im Supabase SQL Editor (Dashboard > SQL Editor)
+-- Stand: 2026-03-08
 -- ============================================================
 
--- 1. IMPRESSUM (Legal Notice / Imprint) - Pflicht nach § 5 TMG / DDG
+-- 1. IMPRESSUM (Legal Notice / Imprint)
 INSERT INTO legal_pages (page_type, title, content)
 VALUES ('imprint', 'Legal Notice / Impressum', 
-'Legal Notice (Impressum) pursuant to § 5 TMG / § 5 DDG
+'Legal Notice (Impressum)
 
 Company Information:
 DK AI Marketplace
-[Vollständiger Firmenname eintragen]
-[Straße und Hausnummer]
-[PLZ und Stadt]
-[Land]
+Dari Kastrati (Einzelunternehmen)
+Udligenswilerstrasse 15
+6043 Adligenswil
+Switzerland
 
-Represented by:
-[Vor- und Nachname des Geschäftsführers / Inhabers]
+Owner / Responsible Person:
+Dari Kastrati
 
 Contact:
 Email: support@dkaimarketplace.com
-Phone: [Telefonnummer eintragen]
 
-VAT Identification Number (Umsatzsteuer-ID):
-[USt-IdNr. gemäß § 27a UStG eintragen, z.B. DE123456789]
+VAT Identification Number:
+Not yet registered (in application)
 
-Trade Register / Commercial Register:
-[Handelsregister, Registergericht und Registernummer eintragen, falls vorhanden]
+Trade Register:
+Not registered (Einzelunternehmen / sole proprietorship)
 
-Responsible for content pursuant to § 18 Abs. 2 MStV:
-[Name und Adresse des Verantwortlichen]
+Responsible for content:
+Dari Kastrati
+Udligenswilerstrasse 15
+6043 Adligenswil, Switzerland
 
 EU Online Dispute Resolution:
 The European Commission provides a platform for online dispute resolution (ODR):
@@ -37,42 +39,45 @@ https://ec.europa.eu/consumers/odr/
 We are not obligated and not willing to participate in dispute resolution proceedings before a consumer arbitration board.
 
 Liability for Content:
-As a service provider, we are responsible for our own content on these pages in accordance with § 7 Abs. 1 TMG. However, according to §§ 8 to 10 TMG, we are not obligated to monitor transmitted or stored third-party information or to investigate circumstances that indicate illegal activity. Obligations to remove or block the use of information under general law remain unaffected.
+As a service provider, we are responsible for our own content on these pages. However, we are not obligated to monitor transmitted or stored third-party information or to investigate circumstances that indicate illegal activity. Obligations to remove or block the use of information under general law remain unaffected.
 
 Liability for Links:
 Our offer contains links to external third-party websites, the content of which we have no influence over. Therefore, we cannot assume any liability for this external content. The respective provider or operator is always responsible for the content of the linked pages.
 
 Copyright:
-The content and works on these pages created by the site operators are subject to German copyright law. Reproduction, editing, distribution, and any kind of use beyond the limits of copyright require the written consent of the respective author or creator.')
+The content and works on these pages created by the site operator are subject to Swiss and international copyright law. Reproduction, editing, distribution, and any kind of use beyond the limits of copyright require the written consent of the respective author or creator.')
 ON CONFLICT (page_type) DO UPDATE SET 
   title = EXCLUDED.title, 
   content = EXCLUDED.content,
   last_updated = now();
 
--- 2. DATENSCHUTZERKLÄRUNG (Privacy Policy) - Pflicht nach Art. 13/14 DSGVO
+-- 2. DATENSCHUTZERKLÄRUNG (Privacy Policy) - Art. 13/14 DSGVO & nDSG
 INSERT INTO legal_pages (page_type, title, content)
 VALUES ('privacy', 'Privacy Policy / Datenschutzerklärung',
 'Privacy Policy (Datenschutzerklärung)
 Last updated: ' || to_char(now(), 'YYYY-MM-DD') || '
 
+This privacy policy applies in accordance with the EU General Data Protection Regulation (GDPR), the Swiss Federal Act on Data Protection (nDSG/FADP), and other applicable data protection laws.
+
 1. Data Controller (Verantwortlicher)
 DK AI Marketplace
-[Vollständige Adresse eintragen]
+Dari Kastrati
+Udligenswilerstrasse 15
+6043 Adligenswil, Switzerland
 Email: support@dkaimarketplace.com
-Phone: [Telefonnummer]
 
-2. Data Protection Officer (Datenschutzbeauftragter)
-[Name und Kontaktdaten eintragen, falls bestellt]
+2. Data Protection Contact
+For data protection inquiries:
 Email: privacy@dkaimarketplace.com
 
 3. Overview of Data Processing
 We process personal data only to the extent necessary for the provision of a functional website and our content and services. The processing of personal data takes place only with your consent or where processing is permitted by law.
 
-4. Legal Basis for Processing (Art. 6 DSGVO)
-- Art. 6(1)(a) DSGVO: Consent (e.g., newsletter, cookies)
-- Art. 6(1)(b) DSGVO: Contract performance (e.g., purchase processing, account management)
-- Art. 6(1)(c) DSGVO: Legal obligation (e.g., tax records, fraud prevention)
-- Art. 6(1)(f) DSGVO: Legitimate interests (e.g., platform security, analytics)
+4. Legal Basis for Processing (Art. 6 GDPR)
+- Art. 6(1)(a) GDPR: Consent (e.g., newsletter, cookies)
+- Art. 6(1)(b) GDPR: Contract performance (e.g., purchase processing, account management)
+- Art. 6(1)(c) GDPR: Legal obligation (e.g., tax records, fraud prevention)
+- Art. 6(1)(f) GDPR: Legitimate interests (e.g., platform security, analytics)
 
 5. Data We Collect
 a) Account Data: Email address, username, display name, profile picture, password (hashed)
@@ -121,31 +126,33 @@ You can manage cookie preferences through the cookie consent banner or your brow
 
 8. Data Retention
 - Account data: Retained until account deletion
-- Transaction records: 10 years (§ 147 AO, German tax law)
+- Transaction records: 10 years (Swiss OR Art. 958f / EU tax law obligations)
 - Server logs: 30 days
 - Messages: Until account deletion or manual deletion by user
 - Anonymized analytics: Indefinitely
 
 9. Your Rights (Betroffenenrechte)
-Under GDPR, you have the following rights:
-a) Right of Access (Art. 15 DSGVO): You can request information about your stored personal data
-b) Right to Rectification (Art. 16 DSGVO): You can request correction of inaccurate data
-c) Right to Erasure (Art. 17 DSGVO): You can request deletion of your data ("right to be forgotten"). Use Settings > Data & Account > Delete Account
-d) Right to Restriction (Art. 18 DSGVO): You can request restriction of processing
-e) Right to Data Portability (Art. 20 DSGVO): You can export your data in machine-readable format (JSON). Use Settings > Data & Account > Export Data
-f) Right to Object (Art. 21 DSGVO): You can object to processing based on legitimate interests
-g) Right to Withdraw Consent (Art. 7(3) DSGVO): You can withdraw consent at any time
+Under GDPR and nDSG, you have the following rights:
+a) Right of Access (Art. 15 GDPR / Art. 25 nDSG): You can request information about your stored personal data
+b) Right to Rectification (Art. 16 GDPR / Art. 32 nDSG): You can request correction of inaccurate data
+c) Right to Erasure (Art. 17 GDPR): You can request deletion of your data ("right to be forgotten"). Use Settings > Data & Account > Delete Account
+d) Right to Restriction (Art. 18 GDPR): You can request restriction of processing
+e) Right to Data Portability (Art. 20 GDPR / Art. 28 nDSG): You can export your data in machine-readable format (JSON). Use Settings > Data & Account > Export Data
+f) Right to Object (Art. 21 GDPR): You can object to processing based on legitimate interests
+g) Right to Withdraw Consent (Art. 7(3) GDPR): You can withdraw consent at any time
 
 To exercise these rights, contact: support@dkaimarketplace.com
 
 10. Right to Lodge a Complaint
-You have the right to lodge a complaint with a supervisory authority (Art. 77 DSGVO).
-Competent authority: [Zuständige Datenschutzbehörde eintragen, z.B. Landesbeauftragte/r für Datenschutz]
+You have the right to lodge a complaint with a supervisory authority:
+- Switzerland: Eidgenössischer Datenschutz- und Öffentlichkeitsbeauftragter (EDÖB), Feldeggweg 1, 3003 Bern, https://www.edoeb.admin.ch
+- EU: The supervisory authority in your country of habitual residence
 
 11. Data Transfer to Third Countries
 Some of our service providers are based in the USA. Data transfers are secured by:
 - EU-US Data Privacy Framework (where applicable)
-- Standard Contractual Clauses (Art. 46(2)(c) DSGVO)
+- Standard Contractual Clauses (Art. 46(2)(c) GDPR)
+- Swiss-US Data Privacy Framework
 - Additional technical and organizational safeguards (encryption in transit and at rest)
 
 12. Automated Decision-Making
@@ -178,8 +185,9 @@ Last updated: ' || to_char(now(), 'YYYY-MM-DD') || '
 
 1. Scope and Provider
 These Terms of Service govern the use of DK AI Marketplace ("Platform"), operated by:
-[Vollständiger Firmenname]
-[Adresse]
+Dari Kastrati (Einzelunternehmen)
+Udligenswilerstrasse 15
+6043 Adligenswil, Switzerland
 Email: support@dkaimarketplace.com
 
 The Platform is a marketplace for digital products, AI agents, and digital services.
@@ -204,7 +212,7 @@ The Platform is a marketplace for digital products, AI agents, and digital servi
 
 3.3 EU Right of Withdrawal (Widerrufsrecht)
 - Under EU Directive 2011/83/EU, consumers have a 14-day right of withdrawal for distance contracts
-- For digital content: This right may be waived at checkout if you expressly consent to immediate delivery and acknowledge the loss of your withdrawal right (Art. 16(m) EU Directive 2011/83/EU, § 356 Abs. 5 BGB)
+- For digital content: This right may be waived at checkout if you expressly consent to immediate delivery and acknowledge the loss of your withdrawal right (Art. 16(m) EU Directive 2011/83/EU)
 - The waiver checkbox is mandatory at checkout for digital goods
 - If you do not waive the withdrawal right, delivery will begin after the 14-day period
 
@@ -271,11 +279,11 @@ The Platform is a marketplace for digital products, AI agents, and digital servi
 8.1 Users should first attempt to resolve disputes directly
 8.2 The Platform provides a dispute resolution system for transaction-related issues
 8.3 Platform administrators make final decisions on disputes
-8.4 For unresolved issues, the competent courts at the Platform operator''s registered office shall have jurisdiction, unless mandatory consumer protection law dictates otherwise
+8.4 For unresolved issues, the competent courts in Luzern, Switzerland shall have jurisdiction, unless mandatory consumer protection law dictates otherwise
 8.5 EU Online Dispute Resolution: https://ec.europa.eu/consumers/odr/
 
 9. Data Protection
-Personal data is processed in accordance with our Privacy Policy and applicable data protection laws (GDPR/DSGVO). See our Privacy Policy for details.
+Personal data is processed in accordance with our Privacy Policy and applicable data protection laws (GDPR/nDSG). See our Privacy Policy for details.
 
 10. Amendments
 10.1 We reserve the right to modify these terms
@@ -287,7 +295,7 @@ Personal data is processed in accordance with our Privacy Policy and applicable 
 If any provision of these terms is found to be invalid or unenforceable, the remaining provisions shall remain in full force and effect. The invalid provision shall be replaced by a valid provision that most closely reflects the economic intent.
 
 12. Applicable Law
-These terms are governed by the laws of the Federal Republic of Germany, excluding the UN Convention on Contracts for the International Sale of Goods (CISG). Mandatory consumer protection provisions of the country of the consumer''s habitual residence remain unaffected (Art. 6(2) Rome I Regulation).')
+These terms are governed by the laws of Switzerland, excluding the UN Convention on Contracts for the International Sale of Goods (CISG). For EU consumers, mandatory consumer protection provisions of the country of the consumer''s habitual residence remain unaffected (Art. 6(2) Rome I Regulation).')
 ON CONFLICT (page_type) DO UPDATE SET 
   title = EXCLUDED.title, 
   content = EXCLUDED.content,
@@ -352,34 +360,41 @@ Last updated: ' || to_char(now(), 'YYYY-MM-DD') || '
 1. EU Right of Withdrawal (Widerrufsrecht)
 
 1.1 Withdrawal Right for Consumers
-If you are a consumer (Verbraucher) within the EU, you have the right to withdraw from a distance contract within 14 days without giving any reason, pursuant to EU Directive 2011/83/EU and § 355 BGB.
+If you are a consumer (Verbraucher) within the EU, you have the right to withdraw from a distance contract within 14 days without giving any reason, pursuant to EU Directive 2011/83/EU.
 
 1.2 Withdrawal Period
 The withdrawal period expires 14 days after the day of the conclusion of the contract.
 
 1.3 Exercising the Withdrawal Right
 To exercise your right of withdrawal, you must inform us of your decision by a clear statement:
+
+DK AI Marketplace
+Dari Kastrati
+Udligenswilerstrasse 15
+6043 Adligenswil, Switzerland
 Email: support@dkaimarketplace.com
 
 You may use the following model withdrawal form (but it is not obligatory):
 
 --- Model Withdrawal Form ---
-To: DK AI Marketplace, support@dkaimarketplace.com
+To: DK AI Marketplace, Dari Kastrati, Udligenswilerstrasse 15, 6043 Adligenswil, Switzerland
+Email: support@dkaimarketplace.com
+
 I hereby give notice that I withdraw from my contract of sale of the following digital product:
-- Product name: [...]
-- Order number: [...]
-- Ordered on: [...]
-- Consumer name: [...]
-- Consumer email: [...]
-- Date: [...]
-- Signature (only if sent by post): [...]
+- Product name: ___
+- Order number: ___
+- Ordered on: ___
+- Consumer name: ___
+- Consumer email: ___
+- Date: ___
+- Signature (only if sent by post): ___
 --- End of Form ---
 
 1.4 Waiver for Digital Content
 For digital content (software, AI agents, digital downloads, etc.), the right of withdrawal may be lost prematurely if:
 - You expressly consented to the beginning of delivery before the withdrawal period expired, AND
 - You acknowledged that you thereby lose your right of withdrawal
-This waiver is presented as a mandatory checkbox at checkout (Art. 16(m) EU Directive 2011/83/EU, § 356 Abs. 5 BGB).
+This waiver is presented as a mandatory checkbox at checkout (Art. 16(m) EU Directive 2011/83/EU).
 
 1.5 Effects of Withdrawal
 If you withdraw, we shall reimburse all payments received from you without undue delay and no later than 14 days from the day we are informed of your decision. The reimbursement will be made using the same means of payment as the original transaction.
@@ -411,10 +426,14 @@ If you withdraw, we shall reimburse all payments received from you without undue
 
 6. Contact
 For refund requests or questions:
+DK AI Marketplace
+Dari Kastrati
+Udligenswilerstrasse 15
+6043 Adligenswil, Switzerland
 Email: support@dkaimarketplace.com
 
 7. Applicable Law
-This refund policy is governed by EU Directive 2011/83/EU, the German Civil Code (BGB), and the laws of the Federal Republic of Germany. Mandatory consumer protection provisions of the consumer''s country of habitual residence remain unaffected.')
+This refund policy is governed by EU Directive 2011/83/EU and the laws of Switzerland. Mandatory consumer protection provisions of the consumer''s country of habitual residence remain unaffected.')
 ON CONFLICT (page_type) DO UPDATE SET 
   title = EXCLUDED.title, 
   content = EXCLUDED.content,

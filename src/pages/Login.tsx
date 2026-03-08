@@ -64,7 +64,7 @@ export default function Login() {
       
       const { data: profile } = await supabase
         .from('profiles')
-        .select('two_fa_secret, is_2fa_enabled, is_banned, ban_expires_at, is_deleted')
+        .select('is_2fa_enabled, is_banned, ban_expires_at, is_deleted')
         .eq('id', user.id)
         .single();
 

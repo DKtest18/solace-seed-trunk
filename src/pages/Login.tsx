@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { verifyTOTP } from '@/utils/totp';
 import { Shield } from 'lucide-react';
 import { lovable } from '@/integrations/lovable/index';
 import { Separator } from '@/components/ui/separator';
@@ -20,7 +19,7 @@ export default function Login() {
   const [step, setStep] = useState<'credentials' | '2fa' | 'backup'>('credentials');
   const [twoFACode, setTwoFACode] = useState('');
   const [backupCode, setBackupCode] = useState('');
-  const [twoFASecret, setTwoFASecret] = useState('');
+  // twoFASecret removed — verification is now server-side only
   const [tempUserId, setTempUserId] = useState('');
   const [tempEmail, setTempEmail] = useState('');
   const [failedAttempts, setFailedAttempts] = useState(0);
@@ -64,7 +63,7 @@ export default function Login() {
       
       const { data: profile } = await supabase
         .from('profiles')
-        .select('two_fa_secret, is_2fa_enabled, is_banned, ban_expires_at, is_deleted')
+        .select('is_2fa_enabled, is_banned, ban_expires_at, is_deleted')
         .eq('id', user.id)
         .single();
 
@@ -85,8 +84,7 @@ export default function Login() {
         }
       }
       
-      if (profile?.two_fa_secret && profile?.is_2fa_enabled) {
-        setTwoFASecret(profile.two_fa_secret);
+      if (profile?.is_2fa_enabled) {
         setTempUserId(user.id);
         setTempEmail(email);
         setStep('2fa');
@@ -121,9 +119,14 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const isValid = await verifyTOTP(twoFASecret, twoFACode);
-      
-      if (isValid) {
+      // Verify 2FA code SERVER-SIDE — secret never leaves the server
+      const { data, error } = await supabase.functions.invoke('verify-2fa-code', {
+        body: { code: twoFACode }
+      });
+
+      if (error) throw error;
+
+      if (data?.valid) {
         toast({
           title: 'Welcome back!',
           description: 'You have successfully signed in.',
@@ -368,7 +371,6 @@ export default function Login() {
                 onClick={() => {
                   setStep('credentials');
                   setTwoFACode('');
-                  setTwoFASecret('');
                 }}
                 className="w-full"
               >

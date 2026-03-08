@@ -18,6 +18,7 @@ function base32Decode(secret: string): Uint8Array {
   return bytes;
 }
 
+// Generate TOTP code for a given time counter
 async function generateTOTPCode(secret: string, timeCounter: number): Promise<string> {
   const secretBytes = base32Decode(secret);
   const timeBytes = new Uint8Array(8);
@@ -41,6 +42,7 @@ async function generateTOTPCode(secret: string, timeCounter: number): Promise<st
   return code.toString().padStart(6, '0');
 }
 
+// Verify TOTP with ±1 window
 async function verifyTOTP(secret: string, token: string): Promise<boolean> {
   if (!secret || !token || token.length !== 6) return false;
   const currentTime = Math.floor(Date.now() / 1000 / 30);
@@ -59,42 +61,39 @@ Deno.serve(async (req) => {
   if (error || !user) return errorResponse('Unauthorized', 401);
 
   try {
-    const { secret, code, recoveryKey } = await req.json();
-
-    if (!secret || !code) {
-      return jsonResponse({ success: false, error: 'Secret and code required' });
-    }
-
-    // Verify TOTP code SERVER-SIDE before storing the secret
-    const isValid = await verifyTOTP(secret, code);
-    if (!isValid) {
-      return jsonResponse({ success: false, error: 'Invalid verification code' });
+    const { code } = await req.json();
+    if (!code || code.length !== 6) {
+      return jsonResponse({ valid: false, error: 'Invalid code format' });
     }
 
     const admin = getServiceClient();
 
-    // Store in dkai_user_2fa table
-    await admin.from('dkai_user_2fa').upsert({
-      user_id: user.id,
-      totp_secret: secret,
-      is_enabled: true,
-      recovery_key: recoveryKey || null,
-      enabled_at: new Date().toISOString(),
-    }, { onConflict: 'user_id' });
+    // Fetch secret SERVER-SIDE only — never sent to client
+    const { data: twoFAData } = await admin
+      .from('dkai_user_2fa')
+      .select('totp_secret, is_enabled')
+      .eq('user_id', user.id)
+      .eq('is_enabled', true)
+      .single();
 
-    // Also update profiles for legacy compatibility
-    await admin.from('profiles').update({
-      is_2fa_enabled: true,
-      two_fa_secret: secret,
-    }).eq('id', user.id);
+    if (!twoFAData?.totp_secret) {
+      // Fallback: check profiles table (legacy)
+      const { data: profile } = await admin
+        .from('profiles')
+        .select('two_fa_secret, is_2fa_enabled')
+        .eq('id', user.id)
+        .single();
 
-    // Also update dkai_profiles
-    await admin.from('dkai_profiles').update({
-      is_2fa_enabled: true,
-      two_fa_secret: secret,
-    }).eq('id', user.id);
+      if (!profile?.two_fa_secret || !profile?.is_2fa_enabled) {
+        return jsonResponse({ valid: false, error: '2FA not enabled' });
+      }
 
-    return jsonResponse({ success: true });
+      const isValid = await verifyTOTP(profile.two_fa_secret, code);
+      return jsonResponse({ valid: isValid });
+    }
+
+    const isValid = await verifyTOTP(twoFAData.totp_secret, code);
+    return jsonResponse({ valid: isValid });
   } catch (err) {
     return errorResponse(err.message, 500);
   }

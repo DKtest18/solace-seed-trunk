@@ -13,7 +13,7 @@ import { Loader2, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { RulesAcceptanceStep } from '@/components/RulesAcceptanceStep';
 
 import QRCode from 'react-qr-code';
-import { generateTOTPSecret, generateOTPAuthURI, verifyTOTP } from '@/utils/totp';
+import { generateTOTPSecret, generateOTPAuthURI } from '@/utils/totp';
 
 type OnboardingStep = 
   | 'age-verification' 
@@ -90,15 +90,15 @@ export default function SellerOnboarding() {
     const check2FAStatus = async () => {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('is_2fa_enabled, two_fa_secret')
+        .select('is_2fa_enabled')
         .eq('id', user.id)
         .single();
       
-      if (profile?.is_2fa_enabled && profile?.two_fa_secret) {
+      if (profile?.is_2fa_enabled) {
         // Skip 2FA setup if already enabled
         console.log('2FA already enabled, skipping setup step');
       } else {
-        // Generate 2FA secret
+        // Generate 2FA secret for QR code display only
         const secret = generateTOTPSecret();
         setTwoFASecret(secret);
       }
@@ -197,41 +197,29 @@ export default function SellerOnboarding() {
       return;
     }
 
-    // Verify the code matches using proper TOTP
-    const isValid = await verifyTOTP(twoFASecret, twoFACode);
-
-    if (!isValid) {
-      toast({
-        title: "Invalid Code",
-        description: "The code you entered doesn't match. Please try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          is_2fa_enabled: true,
-          two_fa_secret: twoFASecret,
-        })
-        .eq('id', user?.id);
+      // Enable 2FA via edge function — secret stored server-side only
+      const { data, error } = await supabase.functions.invoke('enable-2fa', {
+        body: { secret: twoFASecret, code: twoFACode }
+      });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast({
         title: "2FA Enabled",
         description: "Two-factor authentication has been set up successfully",
       });
       
+      // Clear secret from client memory
+      setTwoFASecret('');
       setStep('profile-setup');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error setting up 2FA:', error);
       toast({
         title: "Error",
-        description: "Failed to set up 2FA",
+        description: error.message || "Failed to set up 2FA",
         variant: "destructive",
       });
     } finally {

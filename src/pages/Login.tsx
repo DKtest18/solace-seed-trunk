@@ -20,7 +20,7 @@ export default function Login() {
   const [step, setStep] = useState<'credentials' | '2fa' | 'backup'>('credentials');
   const [twoFACode, setTwoFACode] = useState('');
   const [backupCode, setBackupCode] = useState('');
-  const [twoFASecret, setTwoFASecret] = useState('');
+  // twoFASecret removed — verification is now server-side only
   const [tempUserId, setTempUserId] = useState('');
   const [tempEmail, setTempEmail] = useState('');
   const [failedAttempts, setFailedAttempts] = useState(0);

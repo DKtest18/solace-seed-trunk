@@ -40,24 +40,54 @@ Deno.serve(async (req) => {
           status: 'refunded',
         }).eq('id', dispute.order_id);
 
-        // Send refund_accepted email to buyer
         if (orderData) {
           const { data: buyerProfile } = await admin.from('dkai_profiles').select('email').eq('id', orderData.buyer_id).single();
           const { data: product } = await admin.from('dkai_products').select('title').eq('id', dispute.product_id).single();
           const supabaseUrl = Deno.env.get('SUPABASE_URL');
           const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+          const paymentMethod = orderData.payment_method === 'stripe' ? 'Stripe (Card)' : orderData.payment_method || 'Original payment method';
 
           if (buyerProfile?.email && supabaseUrl && serviceKey) {
-            const paymentMethod = orderData.payment_method === 'stripe' ? 'Stripe (Card)' : orderData.payment_method || 'Original payment method';
-            fetch(`${supabaseUrl}/functions/v1/send-notification-email`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${serviceKey}` },
-              body: JSON.stringify({
-                type: 'refund_accepted',
-                recipientEmail: buyerProfile.email,
-                data: { productTitle: product?.title, price: orderData.price, paymentMethod, orderId: dispute.order_id },
-              }),
-            }).catch(e => console.error('Failed to send refund_accepted email:', e));
+            const sendEmail = (type: string, data: Record<string, any>) =>
+              fetch(`${supabaseUrl}/functions/v1/send-notification-email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${serviceKey}` },
+                body: JSON.stringify({ type, recipientEmail: buyerProfile.email, data }),
+              }).catch(e => console.error(`Failed to send ${type} email:`, e));
+
+            // 1) Send refund_accepted email immediately
+            await sendEmail('refund_accepted', {
+              productTitle: product?.title,
+              price: orderData.price,
+              paymentMethod,
+              orderId: dispute.order_id,
+            });
+
+            // 2) Credit buyer balance (refund the money)
+            const { data: buyerBalance } = await admin
+              .from('dkai_user_balances')
+              .select('*')
+              .eq('user_id', orderData.buyer_id)
+              .single();
+
+            if (buyerBalance) {
+              await admin.from('dkai_user_balances').update({
+                balance: (buyerBalance.balance || 0) + orderData.price,
+              }).eq('user_id', orderData.buyer_id);
+            } else {
+              await admin.from('dkai_user_balances').insert({
+                user_id: orderData.buyer_id,
+                balance: orderData.price,
+              });
+            }
+
+            // 3) Send refund_completed confirmation after balance credit
+            sendEmail('refund_completed', {
+              productTitle: product?.title,
+              price: orderData.price,
+              paymentMethod,
+              orderId: dispute.order_id,
+            });
           }
         }
       }

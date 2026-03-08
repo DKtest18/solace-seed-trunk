@@ -31,12 +31,10 @@ export function AccountDeletionSettings() {
     setIsExporting(true);
     try {
       // Fetch all user data
-      const [profileRes, ordersRes, disputesRes, postsRes, reviewsRes] = await Promise.all([
+      const [profileRes, ordersRes, disputesRes] = await Promise.all([
         db.from('dkai_profiles').select('*').eq('id', user.id).single(),
         db.from('dkai_orders').select('*').eq('buyer_id', user.id),
         db.from('dkai_disputes').select('*').eq('buyer_id', user.id),
-        supabase.from('community_posts').select('*').eq('user_id', user.id),
-        supabase.from('reviews').select('*').eq('reviewer_id', user.id),
       ]);
 
       const exportData = {

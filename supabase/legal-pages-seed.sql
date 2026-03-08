@@ -418,4 +418,4 @@ This refund policy is governed by EU Directive 2011/83/EU, the German Civil Code
 ON CONFLICT (page_type) DO UPDATE SET 
   title = EXCLUDED.title, 
   content = EXCLUDED.content,
-  updated_at = now();
+  last_updated = now();

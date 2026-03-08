@@ -18,6 +18,8 @@ import { AppearanceSettings } from '@/components/settings/AppearanceSettings';
 import { SidebarLayoutSettings } from '@/components/settings/SidebarLayoutSettings';
 import { MessagePrivacySettings } from '@/components/settings/MessagePrivacySettings';
 import { BlockedUsersSettings } from '@/components/settings/BlockedUsersSettings';
+import { AccountDeletionSettings } from '@/components/settings/AccountDeletionSettings';
+import { BlockedUsersSettings } from '@/components/settings/BlockedUsersSettings';
 
 export default function ProfileSettings() {
   const { user } = useAuth();

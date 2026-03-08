@@ -53,6 +53,9 @@ async function verifyTOTP(secret: string, token: string): Promise<boolean> {
   return false;
 }
 
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MINUTES = 15;
+
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
@@ -68,6 +71,23 @@ Deno.serve(async (req) => {
 
     const admin = getServiceClient();
 
+    // --- Rate Limiting: check recent failed attempts ---
+    const windowStart = new Date(Date.now() - LOCKOUT_MINUTES * 60 * 1000).toISOString();
+    const { count: failCount } = await admin
+      .from('dkai_rate_limits')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('action', '2fa_verify')
+      .gte('created_at', windowStart);
+
+    if ((failCount ?? 0) >= MAX_ATTEMPTS) {
+      return jsonResponse({
+        valid: false,
+        error: `Too many attempts. Please wait ${LOCKOUT_MINUTES} minutes before trying again.`,
+        locked: true,
+      }, 429);
+    }
+
     // Fetch secret SERVER-SIDE only — never sent to client
     const { data: twoFAData } = await admin
       .from('dkai_user_2fa')
@@ -75,6 +95,8 @@ Deno.serve(async (req) => {
       .eq('user_id', user.id)
       .eq('is_enabled', true)
       .single();
+
+    let isValid = false;
 
     if (!twoFAData?.totp_secret) {
       // Fallback: check profiles table (legacy)
@@ -88,12 +110,36 @@ Deno.serve(async (req) => {
         return jsonResponse({ valid: false, error: '2FA not enabled' });
       }
 
-      const isValid = await verifyTOTP(profile.two_fa_secret, code);
-      return jsonResponse({ valid: isValid });
+      isValid = await verifyTOTP(profile.two_fa_secret, code);
+    } else {
+      isValid = await verifyTOTP(twoFAData.totp_secret, code);
     }
 
-    const isValid = await verifyTOTP(twoFAData.totp_secret, code);
-    return jsonResponse({ valid: isValid });
+    if (!isValid) {
+      // Record failed attempt
+      await admin.from('dkai_rate_limits').insert({
+        user_id: user.id,
+        action: '2fa_verify',
+      });
+
+      const remaining = MAX_ATTEMPTS - ((failCount ?? 0) + 1);
+      return jsonResponse({
+        valid: false,
+        error: remaining > 0
+          ? `Invalid code. ${remaining} attempt(s) remaining.`
+          : `Too many attempts. Please wait ${LOCKOUT_MINUTES} minutes.`,
+        remaining,
+      });
+    }
+
+    // Success — clear failed attempts for this user/action
+    await admin
+      .from('dkai_rate_limits')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('action', '2fa_verify');
+
+    return jsonResponse({ valid: true });
   } catch (err) {
     return errorResponse(err.message, 500);
   }

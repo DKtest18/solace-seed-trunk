@@ -28,7 +28,7 @@ export function AppLayout({ children, showMessagesSidebar = true }: AppLayoutPro
   const hideSidebars = hideOnPaths.includes(location.pathname);
 
   if (!user || hideSidebars) {
-    return <div className="min-h-screen">{children}</div>;
+    return <div className="min-h-screen flex flex-col"><div className="flex-1">{children}</div><LegalFooter /></div>;
   }
 
   const layout = settings.sidebar_layout || 'default';

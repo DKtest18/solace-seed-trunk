@@ -90,15 +90,15 @@ export default function SellerOnboarding() {
     const check2FAStatus = async () => {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('is_2fa_enabled, two_fa_secret')
+        .select('is_2fa_enabled')
         .eq('id', user.id)
         .single();
       
-      if (profile?.is_2fa_enabled && profile?.two_fa_secret) {
+      if (profile?.is_2fa_enabled) {
         // Skip 2FA setup if already enabled
         console.log('2FA already enabled, skipping setup step');
       } else {
-        // Generate 2FA secret
+        // Generate 2FA secret for QR code display only
         const secret = generateTOTPSecret();
         setTwoFASecret(secret);
       }

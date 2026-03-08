@@ -504,47 +504,121 @@ function buildNotificationEmail(
       };
     }
 
-    // ── ACCOUNT SUSPENSION / DEACTIVATION ──
-    case 'account_suspension': {
-      const sanctionType = data.sanctionType || 'suspended';
-      const reason = data.reason || 'Violation of platform terms of service.';
-      const duration = data.duration || '';
-      const isBan = sanctionType === 'ban' || sanctionType === 'permanent_ban';
-      const title = isBan ? 'Account Permanently Banned' : 'Account Suspended';
-      const subjectLine = isBan ? 'Account banned' : 'Account suspended';
-
-      const content = [
-        h(title),
-        p(`Your account on ${link('DK AI Marketplace')} has been ${isBan ? 'permanently banned' : 'temporarily suspended'} due to a violation of our platform policies.`),
-        br(),
-        infoBox([
-          infoRow('Action', `<strong>${isBan ? 'Permanent Ban' : 'Suspension'}</strong>`),
-          infoRow('Reason', reason),
-          ...(duration && !isBan ? [infoRow('Duration', duration)] : []),
-        ].join('')),
-        br(),
-      ];
-
-      if (isBan) {
-        content.push(
-          p('This action is permanent. You will no longer be able to access your account, list products, or participate in the marketplace.'),
-        );
-      } else {
-        content.push(
-          p('During the suspension period, you will not be able to list new products, make purchases, or participate in meetings. Your existing orders and balances are preserved.'),
-        );
-      }
-
-      content.push(
-        br(),
-        p('If you believe this action was taken in error, please contact our support team at <strong>support@dkaimarketplace.com</strong> with your account details and any relevant information.'),
-        br(),
-        ft('This is an automated notification from the DK AI Marketplace moderation team.'),
-      );
+    // ── REFUND REQUESTED (seller notification) ──
+    case 'refund_requested': {
+      const productTitle = data.productTitle || 'Unknown Product';
+      const buyerName = data.buyerName || 'A buyer';
+      const reason = data.reason || 'No reason provided';
+      const orderId = data.orderId || '';
+      const price = Number(data.price) || 0;
 
       return {
-        subject: `${subjectLine} – DK AI Marketplace`,
-        html: wrapEmail(content.join('')),
+        subject: `Refund requested: ${productTitle} – DK AI Marketplace`,
+        html: wrapEmail([
+          h('Refund Requested'),
+          p(`<strong>${buyerName}</strong> has requested a refund for an order on ${link('DK AI Marketplace')}.`),
+          br(),
+          infoBox([
+            infoRow('Product', productTitle),
+            infoRow('Buyer', buyerName),
+            infoRow('Amount', formatCurrency(price)),
+          ].join('')),
+          br(),
+          quoteBlock('Reason for refund:', reason),
+          br(),
+          p('Our team will review this request. You may be asked to provide additional information. You can view the dispute details in your seller dashboard.'),
+          br(),
+          btn(`${baseUrl}/seller-orders`, 'View Orders'),
+          br(),
+          ft(`Order ID: ${orderId}. If you have questions, contact support@dkaimarketplace.com.`),
+        ].join('')),
+      };
+    }
+
+    // ── REFUND ACCEPTED (buyer notification) ──
+    case 'refund_accepted': {
+      const productTitle = data.productTitle || 'Unknown Product';
+      const price = Number(data.price) || 0;
+      const paymentMethod = data.paymentMethod || 'your original payment method';
+      const orderId = data.orderId || '';
+
+      return {
+        subject: `Refund approved: ${productTitle} – DK AI Marketplace`,
+        html: wrapEmail([
+          h('Refund Approved'),
+          p(`Your refund request for an order on ${link('DK AI Marketplace')} has been reviewed and <strong>approved</strong>.`),
+          br(),
+          infoBox([
+            infoRow('Product', productTitle),
+            infoRow('Refund Amount', `<strong style="color:#16a34a;">${formatCurrency(price)}</strong>`),
+            infoRow('Payment Method', paymentMethod),
+          ].join('')),
+          br(),
+          p(`The refund of <strong>${formatCurrency(price)}</strong> will be returned to you via <strong>${paymentMethod}</strong>. Please allow 3-10 business days for the funds to appear in your account, depending on your payment provider.`),
+          br(),
+          p('You will receive a confirmation email once the refund has been fully processed.'),
+          br(),
+          btn(`${baseUrl}/purchase-history`, 'View Your Orders'),
+          br(),
+          ft(`Order ID: ${orderId}. If you have questions, contact support@dkaimarketplace.com.`),
+        ].join('')),
+      };
+    }
+
+    // ── REFUND DECLINED (buyer notification) ──
+    case 'refund_declined': {
+      const productTitle = data.productTitle || 'Unknown Product';
+      const reason = data.reason || 'No specific reason provided.';
+      const orderId = data.orderId || '';
+
+      return {
+        subject: `Refund request denied: ${productTitle} – DK AI Marketplace`,
+        html: wrapEmail([
+          h('Refund Request Denied'),
+          p(`Your refund request for an order on ${link('DK AI Marketplace')} has been reviewed and <strong>denied</strong>.`),
+          br(),
+          infoBox([
+            infoRow('Product', productTitle),
+            infoRow('Decision', '<strong style="color:#dc2626;">Denied</strong>'),
+          ].join('')),
+          br(),
+          quoteBlock('Reason:', reason),
+          br(),
+          p('If you believe this decision was made in error, you can open a dispute or contact our support team for further assistance.'),
+          br(),
+          btn(`${baseUrl}/disputes`, 'Open a Dispute'),
+          br(),
+          ft(`Order ID: ${orderId}. Contact support@dkaimarketplace.com for assistance.`),
+        ].join('')),
+      };
+    }
+
+    // ── REFUND COMPLETED (buyer confirmation – money arrived) ──
+    case 'refund_completed': {
+      const productTitle = data.productTitle || 'Unknown Product';
+      const price = Number(data.price) || 0;
+      const paymentMethod = data.paymentMethod || 'your original payment method';
+      const orderId = data.orderId || '';
+
+      return {
+        subject: `Refund completed: ${formatCurrency(price)} – DK AI Marketplace`,
+        html: wrapEmail([
+          h('Refund Completed'),
+          p(`Your refund from ${link('DK AI Marketplace')} has been successfully processed and the funds have been returned.`),
+          br(),
+          infoBox([
+            infoRow('Product', productTitle),
+            infoRow('Refunded Amount', `<strong style="color:#16a34a;">${formatCurrency(price)}</strong>`),
+            infoRow('Returned via', paymentMethod),
+            infoRow('Status', '<strong style="color:#16a34a;">Completed</strong>'),
+          ].join('')),
+          br(),
+          p(`<strong>${formatCurrency(price)}</strong> has been returned to your account via <strong>${paymentMethod}</strong>. If you do not see the funds within 5 business days, please contact your payment provider or our support team.`),
+          br(),
+          btn(`${baseUrl}/purchase-history`, 'View Your Orders'),
+          br(),
+          ft(`Order ID: ${orderId}. Thank you for using DK AI Marketplace.`),
+        ].join('')),
       };
     }
   }

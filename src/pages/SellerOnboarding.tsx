@@ -13,7 +13,7 @@ import { Loader2, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { RulesAcceptanceStep } from '@/components/RulesAcceptanceStep';
 
 import QRCode from 'react-qr-code';
-import { generateTOTPSecret, generateOTPAuthURI, verifyTOTP } from '@/utils/totp';
+import { generateTOTPSecret, generateOTPAuthURI } from '@/utils/totp';
 
 type OnboardingStep = 
   | 'age-verification' 

@@ -85,8 +85,7 @@ export default function Login() {
         }
       }
       
-      if (profile?.two_fa_secret && profile?.is_2fa_enabled) {
-        setTwoFASecret(profile.two_fa_secret);
+      if (profile?.is_2fa_enabled) {
         setTempUserId(user.id);
         setTempEmail(email);
         setStep('2fa');

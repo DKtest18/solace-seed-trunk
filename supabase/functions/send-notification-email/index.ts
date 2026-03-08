@@ -4,6 +4,7 @@ import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 const NOTIFICATION_TYPES = [
   'new_sale',
   'order_confirmation',
+  'purchase_confirmation',
   'order_status_update',
   'meeting_created',
   'meeting_invitation',
@@ -13,6 +14,7 @@ const NOTIFICATION_TYPES = [
   'payout_processed',
   'product_approved',
   'product_rejected',
+  'account_suspension',
 ] as const;
 
 type NotificationType = typeof NOTIFICATION_TYPES[number];
@@ -31,8 +33,6 @@ Deno.serve(async (req) => {
     const resendKey = Deno.env.get('RESEND_API_KEY');
     if (!resendKey) return errorResponse('Email service not configured', 500);
 
-    // This function can be called from other edge functions (service-to-service)
-    // or from authenticated users
     const body: NotificationEmailRequest = await req.json();
     const { type, recipientEmail, data } = body;
 
@@ -154,6 +154,13 @@ function infoBox(rows: string): string {
   return `<div style="background:#f3f4f6;border-radius:8px;padding:16px 20px;margin:8px 0;">${rows}</div>`;
 }
 
+function quoteBlock(label: string, text: string): string {
+  return `<div style="background:#f9fafb;border-left:4px solid #2563eb;border-radius:4px;padding:16px 20px;margin:8px 0;">
+    <p style="margin:0;padding:0;font-size:13px;color:#6b7280;font-weight:600;margin-bottom:8px;">${label}</p>
+    <p style="margin:0;padding:0;font-size:14px;color:#111827;line-height:1.6;">${text}</p>
+  </div>`;
+}
+
 function formatCurrency(amount: number): string {
   return `$${amount.toFixed(2)}`;
 }
@@ -183,8 +190,8 @@ function buildNotificationEmail(
           infoBox([
             infoRow('Product', productTitle),
             infoRow('Sale Price', formatCurrency(price)),
-            infoRow('Marketplace Fee (10%)', `- ${formatCurrency(platformFee)}`),
-            infoRow('Your Earnings', `<strong>${formatCurrency(earnings)}</strong>`),
+            infoRow('Marketplace Fee (10%)', `<span style="color:#dc2626;">- ${formatCurrency(platformFee)}</span>`),
+            infoRow('Your Earnings', `<span style="color:#16a34a;font-weight:700;">${formatCurrency(earnings)}</span>`),
           ].join('')),
           br(),
           p('The payment is held in escrow until the buyer confirms receipt. You can view the order details in your seller dashboard.'),
@@ -224,6 +231,36 @@ function buildNotificationEmail(
       };
     }
 
+    // ── PURCHASE CONFIRMATION (buyer – with payment method) ──
+    case 'purchase_confirmation': {
+      const productTitle = data.productTitle || 'Unknown Product';
+      const price = Number(data.price) || 0;
+      const sellerName = data.sellerName || 'the seller';
+      const paymentMethod = data.paymentMethod || 'Card';
+      const orderId = data.orderId || '';
+
+      return {
+        subject: `Purchase successful: ${productTitle} – DK AI Marketplace`,
+        html: wrapEmail([
+          h('Purchase Successful'),
+          p(`Thank you for your purchase on ${link('DK AI Marketplace')}. Here is a summary of your order:`),
+          br(),
+          infoBox([
+            infoRow('Product', productTitle),
+            infoRow('Seller', sellerName),
+            infoRow('Total Paid', `<strong>${formatCurrency(price)}</strong>`),
+            infoRow('Payment Method', paymentMethod),
+          ].join('')),
+          br(),
+          p('Your payment is held securely in escrow. Once you receive and confirm the delivery, the funds will be released to the seller. You will have a 24-hour refund window after confirming receipt.'),
+          br(),
+          btn(`${baseUrl}/purchase-history`, 'View Your Orders'),
+          br(),
+          ft(`Order ID: ${orderId}. If you have any issues with your purchase, please contact support@dkaimarketplace.com.`),
+        ].join('')),
+      };
+    }
+
     // ── ORDER STATUS UPDATE ──
     case 'order_status_update': {
       const productTitle = data.productTitle || 'Unknown Product';
@@ -248,13 +285,11 @@ function buildNotificationEmail(
       };
     }
 
-    // ── MEETING CREATED (creator notification) ──
+    // ── MEETING CREATED ──
     case 'meeting_created': {
       const meetingDate = data.meetingDate || 'Date TBD';
       const meetingTime = data.meetingTime || 'Time TBD';
       const duration = data.durationMinutes || 30;
-      const meetingId = data.meetingId || '';
-      const meetingCode = data.meetingCode || '';
       const participantName = data.participantName || 'A participant';
 
       return {
@@ -363,28 +398,39 @@ function buildNotificationEmail(
       };
     }
 
-    // ── REVIEW RECEIVED (seller notification) ──
+    // ── REVIEW RECEIVED (seller notification – with review text) ──
     case 'review_received': {
       const productTitle = data.productTitle || 'Unknown Product';
       const rating = data.rating || 0;
       const reviewerName = data.reviewerName || 'A buyer';
+      const reviewText = data.reviewText || '';
       const stars = '★'.repeat(Math.floor(rating)) + '☆'.repeat(5 - Math.floor(rating));
+
+      const content = [
+        h('New Review Received'),
+        p(`<strong>${reviewerName}</strong> has left a review on your product on ${link('DK AI Marketplace')}.`),
+        br(),
+        infoBox([
+          infoRow('Product', productTitle),
+          infoRow('Rating', `${stars} (${rating}/5)`),
+        ].join('')),
+      ];
+
+      if (reviewText) {
+        content.push(br());
+        content.push(quoteBlock('What they wrote:', reviewText));
+      }
+
+      content.push(
+        br(),
+        btn(`${baseUrl}/my-products`, 'View Your Products'),
+        br(),
+        ft('Reviews help build trust with buyers. Thank you for being part of DK AI Marketplace.'),
+      );
 
       return {
         subject: `New review on ${productTitle} – DK AI Marketplace`,
-        html: wrapEmail([
-          h('New Review Received'),
-          p(`<strong>${reviewerName}</strong> has left a review on your product on ${link('DK AI Marketplace')}.`),
-          br(),
-          infoBox([
-            infoRow('Product', productTitle),
-            infoRow('Rating', `${stars} (${rating}/5)`),
-          ].join('')),
-          br(),
-          btn(`${baseUrl}/my-products`, 'View Your Products'),
-          br(),
-          ft('Reviews help build trust with buyers. Thank you for being part of DK AI Marketplace.'),
-        ].join('')),
+        html: wrapEmail(content.join('')),
       };
     }
 
@@ -451,6 +497,50 @@ function buildNotificationEmail(
           br(),
           ft('If you believe this was a mistake, please contact our support team.'),
         ].join('')),
+      };
+    }
+
+    // ── ACCOUNT SUSPENSION / DEACTIVATION ──
+    case 'account_suspension': {
+      const sanctionType = data.sanctionType || 'suspended';
+      const reason = data.reason || 'Violation of platform terms of service.';
+      const duration = data.duration || '';
+      const isBan = sanctionType === 'ban' || sanctionType === 'permanent_ban';
+      const title = isBan ? 'Account Permanently Banned' : 'Account Suspended';
+      const subjectLine = isBan ? 'Account banned' : 'Account suspended';
+
+      const content = [
+        h(title),
+        p(`Your account on ${link('DK AI Marketplace')} has been ${isBan ? 'permanently banned' : 'temporarily suspended'} due to a violation of our platform policies.`),
+        br(),
+        infoBox([
+          infoRow('Action', `<strong>${isBan ? 'Permanent Ban' : 'Suspension'}</strong>`),
+          infoRow('Reason', reason),
+          ...(duration && !isBan ? [infoRow('Duration', duration)] : []),
+        ].join('')),
+        br(),
+      ];
+
+      if (isBan) {
+        content.push(
+          p('This action is permanent. You will no longer be able to access your account, list products, or participate in the marketplace.'),
+        );
+      } else {
+        content.push(
+          p('During the suspension period, you will not be able to list new products, make purchases, or participate in meetings. Your existing orders and balances are preserved.'),
+        );
+      }
+
+      content.push(
+        br(),
+        p('If you believe this action was taken in error, please contact our support team at <strong>support@dkaimarketplace.com</strong> with your account details and any relevant information.'),
+        br(),
+        ft('This is an automated notification from the DK AI Marketplace moderation team.'),
+      );
+
+      return {
+        subject: `${subjectLine} – DK AI Marketplace`,
+        html: wrapEmail(content.join('')),
       };
     }
   }

@@ -49,6 +49,28 @@ Deno.serve(async (req) => {
       status: 'refund_requested',
     }).eq('id', orderId);
 
+    // Notify seller via email
+    const { data: product } = await admin.from('dkai_products').select('title, price').eq('id', order.product_id).single();
+    const { data: buyerProfile } = await admin.from('dkai_profiles').select('full_name, creator_name, username').eq('id', user.id).single();
+    const { data: sellerProfile } = await admin.from('dkai_profiles').select('email').eq('id', order.seller_id).single();
+    const buyerName = buyerProfile?.creator_name || buyerProfile?.full_name || buyerProfile?.username || 'A buyer';
+
+    if (sellerProfile?.email) {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL');
+      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      if (supabaseUrl && serviceKey) {
+        fetch(`${supabaseUrl}/functions/v1/send-notification-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${serviceKey}` },
+          body: JSON.stringify({
+            type: 'refund_requested',
+            recipientEmail: sellerProfile.email,
+            data: { productTitle: product?.title, buyerName, reason, orderId, price: product?.price || 0 },
+          }),
+        }).catch(e => console.error('Failed to send refund_requested email:', e));
+      }
+    }
+
     return jsonResponse({ success: true, dispute_id: dispute.id });
   } catch (err) {
     return errorResponse(err.message, 500);

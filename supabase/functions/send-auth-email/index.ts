@@ -14,9 +14,9 @@ type EmailType = typeof EMAIL_TYPES[number];
 
 interface EmailRequest {
   type: EmailType;
-  email?: string;        // target email (for invitation / unauthenticated flows)
-  redirectUrl?: string;   // where to redirect after action
-  metadata?: Record<string, string>; // extra data for templates
+  email?: string;
+  redirectUrl?: string;
+  metadata?: Record<string, string>;
 }
 
 Deno.serve(async (req) => {
@@ -34,7 +34,6 @@ Deno.serve(async (req) => {
       return errorResponse(`Invalid email type. Must be one of: ${EMAIL_TYPES.join(', ')}`, 400);
     }
 
-    // Some types require auth, some don't (e.g. password_reset by email)
     const requiresAuth = !['password_reset', 'magic_link'].includes(type);
     let userId: string | null = null;
     let userEmail: string | null = targetEmail || null;
@@ -50,12 +49,10 @@ Deno.serve(async (req) => {
 
     const admin = getServiceClient();
 
-    // Generate secure token/code
     const code = generateSecureCode();
     const token = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 min
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
-    // Store token in database
     await admin.from('dkai_email_tokens').upsert({
       token,
       code,
@@ -66,10 +63,8 @@ Deno.serve(async (req) => {
       used: false,
     }, { onConflict: 'token' });
 
-    // Build email content
     const { subject, html } = buildEmailContent(type, { code, token, redirectUrl, metadata, email: userEmail });
 
-    // Send via Resend
     const resendRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -103,114 +98,181 @@ function generateSecureCode(): string {
   return (100000 + (array[0] % 900000)).toString();
 }
 
+// ── Branded email wrapper matching the Resend template design ──
+function wrapEmail(content: string): string {
+  return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html dir="ltr" lang="en">
+  <head>
+    <meta content="width=device-width" name="viewport" />
+    <link rel="preload" as="image" href="https://resend-attachments.s3.amazonaws.com/0d1471fa-d4e9-4798-9029-675292148f2a" />
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta content="IE=edge" http-equiv="X-UA-Compatible" />
+    <meta content="telephone=no,address=no,email=no,date=no,url=no" name="format-detection" />
+  </head>
+  <body style="margin:0;padding:0;">
+    <table border="0" width="100%" cellpadding="0" cellspacing="0" role="presentation" align="center">
+      <tbody><tr><td>
+        <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"
+          style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:1.0769230769230769em;min-height:100%;line-height:155%">
+          <tbody><tr><td>
+            <table align="left" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"
+              style="align:left;width:100%;padding-left:0px;padding-right:0px;line-height:155%;max-width:600px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif">
+              <tbody><tr><td>
+                <p style="margin:0;padding:0;font-size:1em;padding-top:0.5em;padding-bottom:0.5em"><br /></p>
+                <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+                  <tbody style="width:100%"><tr style="width:100%">
+                    <td align="left" data-id="__react-email-column">
+                      <img alt="DK AI Marketplace logo displayed in elegant serif typography on a dark background." height="187"
+                        src="https://resend-attachments.s3.amazonaws.com/0d1471fa-d4e9-4798-9029-675292148f2a"
+                        style="display:block;outline:none;border:none;text-decoration:none;max-width:100%;border-radius:8px" width="249" />
+                    </td>
+                  </tr></tbody>
+                </table>
+                <p style="margin:0;padding:0;font-size:1em;padding-top:0.5em;padding-bottom:0.5em"><br /></p>
+                ${content}
+                <p style="margin:0;padding:0;font-size:1em;padding-top:0.5em;padding-bottom:0.5em"><br /></p>
+              </td></tr></tbody>
+            </table>
+          </td></tr></tbody>
+        </table>
+      </td></tr></tbody>
+    </table>
+  </body>
+</html>`;
+}
+
+function heading(text: string): string {
+  return `<h1 style="margin:0;padding:0;font-size:2.25em;line-height:1.44em;padding-top:0.389em;font-weight:600"><span>${text}</span></h1>`;
+}
+
+function paragraph(text: string): string {
+  return `<p style="margin:0;padding:0;font-size:1em;padding-top:0.5em;padding-bottom:0.5em"><span>${text}</span></p>`;
+}
+
+function spacer(): string {
+  return `<p style="margin:0;padding:0;font-size:1em;padding-top:0.5em;padding-bottom:0.5em"><br /></p>`;
+}
+
+function codeBlock(code: string): string {
+  return `<table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+  <tbody><tr><td align="center">
+    <span style="display:inline-block;background:#f3f4f6;color:#111827;font-size:32px;font-weight:700;letter-spacing:8px;padding:16px 32px;border-radius:8px;font-family:monospace;">${code}</span>
+  </td></tr></tbody>
+</table>`;
+}
+
+function buttonBlock(url: string, label: string): string {
+  return `<table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+  <tbody><tr><td align="center">
+    <a href="${url}" style="display:inline-block;background-color:#2563eb;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:600;font-size:16px;text-align:center;" target="_blank">${label}</a>
+  </td></tr></tbody>
+</table>`;
+}
+
+function footer(text: string): string {
+  return `<p style="margin:0;padding:0;font-size:1em;padding-top:0.5em;padding-bottom:0.5em"><span style="color:rgb(153, 153, 153)"><span style="color:rgb(153, 153, 153);font-family:Inter, Arial, sans-serif;font-size:12px;font-style:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-indent:0px;text-transform:none;widows:2;word-spacing:0px;-webkit-text-stroke-width:0px;white-space:normal;background-color:rgb(255, 255, 255);text-decoration-thickness:initial;text-decoration-style:initial;text-decoration-color:initial;display:inline !important;float:none">${text}</span></span></p>`;
+}
+
+function brandLink(text: string): string {
+  return `<strong><a href="https://dkaimarketplace.lovable.app/" rel="noopener noreferrer nofollow" style="color:#0670DB;text-decoration-line:none;text-decoration:underline" target="_blank">${text}</a></strong>`;
+}
+
 function buildEmailContent(
   type: EmailType,
   ctx: { code: string; token: string; redirectUrl?: string; metadata?: Record<string, string>; email: string }
 ): { subject: string; html: string } {
-  const baseUrl = ctx.redirectUrl || 'https://dkaimarketplace.com';
-  const styles = {
-    container: 'font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #ffffff;',
-    heading: 'color: #111827; font-size: 24px; font-weight: 700; margin-bottom: 16px;',
-    text: 'color: #4b5563; font-size: 16px; line-height: 1.6; margin-bottom: 16px;',
-    code: 'display: inline-block; background: #f3f4f6; color: #111827; font-size: 32px; font-weight: 700; letter-spacing: 8px; padding: 16px 32px; border-radius: 8px; font-family: monospace;',
-    button: 'display: inline-block; background: #2563eb; color: #ffffff; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;',
-    footer: 'color: #9ca3af; font-size: 13px; margin-top: 32px; border-top: 1px solid #e5e7eb; padding-top: 16px;',
-  };
-
-  const wrap = (content: string) => `
-    <!DOCTYPE html>
-    <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-    <body style="margin:0;padding:0;background:#f9fafb;">
-      <div style="${styles.container}">
-        <div style="text-align:center;margin-bottom:32px;">
-          <h2 style="color:#2563eb;font-size:20px;font-weight:800;">DK AI Marketplace</h2>
-        </div>
-        ${content}
-        <div style="${styles.footer}">
-          <p>This email was sent by DK AI Marketplace. If you didn't request this, you can safely ignore it.</p>
-          <p>&copy; ${new Date().getFullYear()} DK AI Marketplace. All rights reserved.</p>
-        </div>
-      </div>
-    </body></html>`;
+  const baseUrl = ctx.redirectUrl || 'https://dkaimarketplace.lovable.app';
 
   switch (type) {
     case 'verification':
       return {
         subject: 'Verify your email – DK AI Marketplace',
-        html: wrap(`
-          <h1 style="${styles.heading}">Verify Your Email</h1>
-          <p style="${styles.text}">Welcome to DK AI Marketplace! Use the code below to verify your email address:</p>
-          <div style="text-align:center;margin:32px 0;">
-            <span style="${styles.code}">${ctx.code}</span>
-          </div>
-          <p style="${styles.text}">This code expires in 15 minutes.</p>
-        `),
+        html: wrapEmail([
+          heading('Welcome aboard'),
+          paragraph(`Thanks for signing up for ${brandLink('DK AI Marketplace')} — the ultimate marketplace for AI agents and software solutions.`),
+          paragraph('Please confirm your email address by clicking the button below:'),
+          spacer(),
+          buttonBlock(`${baseUrl}/auth/verify?token=${ctx.token}&type=verification`, 'Confirm Email'),
+          spacer(),
+          spacer(),
+          footer("If you didn't create an account, you can safely ignore this email."),
+        ].join('')),
       };
 
     case 'password_reset':
       return {
         subject: 'Reset your password – DK AI Marketplace',
-        html: wrap(`
-          <h1 style="${styles.heading}">Reset Your Password</h1>
-          <p style="${styles.text}">We received a request to reset your password. Use the code below:</p>
-          <div style="text-align:center;margin:32px 0;">
-            <span style="${styles.code}">${ctx.code}</span>
-          </div>
-          <p style="${styles.text}">This code expires in 15 minutes. If you didn't request this, ignore this email.</p>
-        `),
+        html: wrapEmail([
+          heading('Reset your password'),
+          paragraph(`We received a request to reset the password for your ${brandLink('DK AI Marketplace')} account. Click the button below to set a new password:`),
+          spacer(),
+          buttonBlock(`${baseUrl}/auth/reset-password?token=${ctx.token}&type=password_reset`, 'Reset Password'),
+          spacer(),
+          paragraph('This link will expire in <strong>15 minutes</strong>. If you didn\'t request a password reset, you can safely ignore this email — your password will remain unchanged.'),
+          spacer(),
+          footer("If you didn't request a password reset, you can safely ignore this email."),
+        ].join('')),
       };
 
     case 'magic_link':
       return {
         subject: 'Your sign-in link – DK AI Marketplace',
-        html: wrap(`
-          <h1 style="${styles.heading}">Sign In to DK AI Marketplace</h1>
-          <p style="${styles.text}">Click the button below to sign in:</p>
-          <div style="text-align:center;margin:32px 0;">
-            <a href="${baseUrl}/auth/verify?token=${ctx.token}&type=magic_link" style="${styles.button}">Sign In</a>
-          </div>
-          <p style="${styles.text}">Or use this code: <strong>${ctx.code}</strong></p>
-          <p style="${styles.text}">This link expires in 15 minutes.</p>
-        `),
+        html: wrapEmail([
+          heading('Sign in to your account'),
+          paragraph(`We received a sign-in request for your ${brandLink('DK AI Marketplace')} account. Click the button below to sign in instantly — no password needed.`),
+          spacer(),
+          buttonBlock(`${baseUrl}/auth/verify?token=${ctx.token}&type=magic_link`, 'Sign In'),
+          spacer(),
+          paragraph('This link will expire in <strong>15 minutes</strong>.'),
+          spacer(),
+          footer("If you didn't request this sign-in link, you can safely ignore this email."),
+        ].join('')),
       };
 
     case 'reauthentication':
       return {
         subject: 'Your security code – DK AI Marketplace',
-        html: wrap(`
-          <h1 style="${styles.heading}">Security Verification</h1>
-          <p style="${styles.text}">A sensitive action was requested on your account. Use this code to confirm:</p>
-          <div style="text-align:center;margin:32px 0;">
-            <span style="${styles.code}">${ctx.code}</span>
-          </div>
-          <p style="${styles.text}">This code expires in 15 minutes. If you didn't request this, please secure your account immediately.</p>
-        `),
+        html: wrapEmail([
+          heading('Security Verification'),
+          paragraph(`A sensitive action was requested on your ${brandLink('DK AI Marketplace')} account. Use the code below to confirm your identity:`),
+          spacer(),
+          codeBlock(ctx.code),
+          spacer(),
+          paragraph('This code will expire in <strong>15 minutes</strong>. If you didn\'t request this, please secure your account immediately.'),
+          spacer(),
+          footer("If you didn't initiate this action, please change your password and contact support."),
+        ].join('')),
       };
 
     case 'invitation':
       return {
-        subject: `You're invited to DK AI Marketplace`,
-        html: wrap(`
-          <h1 style="${styles.heading}">You've Been Invited!</h1>
-          <p style="${styles.text}">${ctx.metadata?.inviterName || 'Someone'} has invited you to join DK AI Marketplace.</p>
-          <div style="text-align:center;margin:32px 0;">
-            <a href="${baseUrl}/invite?token=${ctx.token}" style="${styles.button}">Accept Invitation</a>
-          </div>
-          <p style="${styles.text}">This invitation expires in 15 minutes.</p>
-        `),
+        subject: "You're invited to DK AI Marketplace",
+        html: wrapEmail([
+          heading('You have been invited'),
+          paragraph(`${ctx.metadata?.inviterName || 'Someone'} has invited you to join ${brandLink('DK AI Marketplace')} — the ultimate marketplace for AI agents and software solutions.`),
+          spacer(),
+          buttonBlock(`${baseUrl}/invite?token=${ctx.token}`, 'Accept Invitation'),
+          spacer(),
+          paragraph('This invitation will expire in <strong>15 minutes</strong>.'),
+          spacer(),
+          footer("If you weren't expecting this invitation, you can safely ignore this email."),
+        ].join('')),
       };
 
     case 'email_change':
       return {
         subject: 'Confirm your new email – DK AI Marketplace',
-        html: wrap(`
-          <h1 style="${styles.heading}">Confirm Email Change</h1>
-          <p style="${styles.text}">You requested to change your email address. Use this code to confirm:</p>
-          <div style="text-align:center;margin:32px 0;">
-            <span style="${styles.code}">${ctx.code}</span>
-          </div>
-          <p style="${styles.text}">This code expires in 15 minutes. If you didn't request this, please secure your account.</p>
-        `),
+        html: wrapEmail([
+          heading('Confirm your new email'),
+          paragraph(`You requested to change the email address on your ${brandLink('DK AI Marketplace')} account. Use the code below to confirm this change:`),
+          spacer(),
+          codeBlock(ctx.code),
+          spacer(),
+          paragraph('This code will expire in <strong>15 minutes</strong>. If you didn\'t request this change, please secure your account immediately.'),
+          spacer(),
+          footer("If you didn't request an email change, you can safely ignore this email."),
+        ].join('')),
       };
   }
 }

@@ -372,7 +372,6 @@ export default function Login() {
                 onClick={() => {
                   setStep('credentials');
                   setTwoFACode('');
-                  setTwoFASecret('');
                 }}
                 className="w-full"
               >

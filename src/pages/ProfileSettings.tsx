@@ -216,12 +216,13 @@ export default function ProfileSettings() {
         </div>
 
         <Tabs defaultValue="security" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
             <TabsTrigger value="privacy">Privacy</TabsTrigger>
             <TabsTrigger value="blocked">Blocked</TabsTrigger>
+            <TabsTrigger value="data">Data & Account</TabsTrigger>
           </TabsList>
 
           <TabsContent value="security">

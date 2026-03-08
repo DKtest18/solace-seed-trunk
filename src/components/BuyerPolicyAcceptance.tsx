@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Shield, AlertTriangle } from 'lucide-react';
+import { Shield, AlertTriangle, Info } from 'lucide-react';
 
 interface BuyerPolicyAcceptanceProps {
   onAccept: () => void;
@@ -26,6 +26,7 @@ const BUYER_POLICIES = [
 export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAcceptanceProps) {
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  const [withdrawalWaiver, setWithdrawalWaiver] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -99,6 +100,18 @@ export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAccept
             </div>
 
             <div className="mt-4 pt-4 border-t">
+              <h4 className="font-semibold mb-2 text-primary">EU Right of Withdrawal (Widerrufsrecht)</h4>
+              <p className="text-sm text-muted-foreground">
+                Under EU Directive 2011/83/EU, consumers have a 14-day right of withdrawal for 
+                distance contracts. However, for <strong>digital content</strong> (software, AI agents, 
+                digital downloads), this right can be waived if you expressly consent to immediate 
+                delivery and acknowledge the loss of your right of withdrawal. By checking the 
+                withdrawal waiver below, you agree that delivery of digital content begins immediately 
+                upon purchase.
+              </p>
+            </div>
+
+            <div className="mt-4 pt-4 border-t">
               <h4 className="font-semibold mb-2">Support</h4>
               <p className="text-sm text-muted-foreground">
                 For any questions or problems, contact{' '}
@@ -112,6 +125,26 @@ export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAccept
           </div>
         </ScrollArea>
 
+        {/* EU Withdrawal Waiver - Required for digital goods */}
+        <div className="flex items-start gap-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+          <Checkbox 
+            id="withdrawal-waiver" 
+            checked={withdrawalWaiver}
+            onCheckedChange={(checked) => setWithdrawalWaiver(checked === true)}
+            disabled={!hasScrolledToBottom}
+          />
+          <label 
+            htmlFor="withdrawal-waiver" 
+            className={`text-sm cursor-pointer ${!hasScrolledToBottom ? 'text-muted-foreground' : ''}`}
+          >
+            <span className="font-semibold">Waiver of Right of Withdrawal (EU):</span>{' '}
+            I expressly consent to the immediate delivery of digital content and acknowledge 
+            that I lose my 14-day right of withdrawal once the digital content has been delivered 
+            (Art. 16(m) EU Directive 2011/83/EU, § 356 Abs. 5 BGB).
+          </label>
+        </div>
+
+        {/* General Terms Acceptance */}
         <div className="flex items-start gap-3 p-3 bg-muted rounded-lg">
           <Checkbox 
             id="accept-buyer-policy" 
@@ -138,7 +171,7 @@ export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAccept
 
         <Button 
           onClick={onAccept} 
-          disabled={!accepted || isLoading}
+          disabled={!accepted || !withdrawalWaiver || isLoading}
           className="w-full"
           size="lg"
         >

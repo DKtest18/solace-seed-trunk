@@ -4,9 +4,29 @@
 -- Stand: 2026-03-08
 -- ============================================================
 
--- 1. IMPRESSUM (Legal Notice / Imprint)
+-- Tabelle erstellen (falls nicht vorhanden)
+CREATE TABLE IF NOT EXISTS legal_pages (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  page_type text NOT NULL UNIQUE,
+  title text NOT NULL,
+  content text NOT NULL,
+  last_updated timestamptz DEFAULT now(),
+  created_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE legal_pages ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'legal_pages' AND policyname = 'Anyone can read legal pages'
+  ) THEN
+    CREATE POLICY "Anyone can read legal pages" ON legal_pages FOR SELECT TO anon, authenticated USING (true);
+  END IF;
+END $$;
+
+-- 1. IMPRESSUM
 INSERT INTO legal_pages (page_type, title, content)
-VALUES ('imprint', 'Legal Notice / Impressum', 
+VALUES ('imprint', 'Legal Notice / Impressum',
 'Legal Notice (Impressum)
 
 Company Information:
@@ -51,11 +71,11 @@ ON CONFLICT (page_type) DO UPDATE SET
   content = EXCLUDED.content,
   last_updated = now();
 
--- 2. DATENSCHUTZERKLÄRUNG (Privacy Policy) - Art. 13/14 DSGVO & nDSG
+-- 2. DATENSCHUTZERKLAERUNG (Privacy Policy)
 INSERT INTO legal_pages (page_type, title, content)
-VALUES ('privacy', 'Privacy Policy / Datenschutzerklärung',
-'Privacy Policy (Datenschutzerklärung)
-Last updated: ' || to_char(now(), 'YYYY-MM-DD') || '
+VALUES ('privacy', 'Privacy Policy / Datenschutzerklaerung',
+'Privacy Policy (Datenschutzerklaerung)
+Last updated: 2026-03-08
 
 This privacy policy applies in accordance with the EU General Data Protection Regulation (GDPR), the Swiss Federal Act on Data Protection (nDSG/FADP), and other applicable data protection laws.
 
@@ -135,9 +155,9 @@ You can manage cookie preferences through the cookie consent banner or your brow
 Under GDPR and nDSG, you have the following rights:
 a) Right of Access (Art. 15 GDPR / Art. 25 nDSG): You can request information about your stored personal data
 b) Right to Rectification (Art. 16 GDPR / Art. 32 nDSG): You can request correction of inaccurate data
-c) Right to Erasure (Art. 17 GDPR): You can request deletion of your data ("right to be forgotten"). Use Settings > Data & Account > Delete Account
+c) Right to Erasure (Art. 17 GDPR): You can request deletion of your data (right to be forgotten). Use Settings > Data and Account > Delete Account
 d) Right to Restriction (Art. 18 GDPR): You can request restriction of processing
-e) Right to Data Portability (Art. 20 GDPR / Art. 28 nDSG): You can export your data in machine-readable format (JSON). Use Settings > Data & Account > Export Data
+e) Right to Data Portability (Art. 20 GDPR / Art. 28 nDSG): You can export your data in machine-readable format (JSON). Use Settings > Data and Account > Export Data
 f) Right to Object (Art. 21 GDPR): You can object to processing based on legitimate interests
 g) Right to Withdraw Consent (Art. 7(3) GDPR): You can withdraw consent at any time
 
@@ -145,7 +165,7 @@ To exercise these rights, contact: support@dkaimarketplace.com
 
 10. Right to Lodge a Complaint
 You have the right to lodge a complaint with a supervisory authority:
-- Switzerland: Eidgenössischer Datenschutz- und Öffentlichkeitsbeauftragter (EDÖB), Feldeggweg 1, 3003 Bern, https://www.edoeb.admin.ch
+- Switzerland: Eidgenoessischer Datenschutz- und Oeffentlichkeitsbeauftragter (EDOEB), Feldeggweg 1, 3003 Bern, https://www.edoeb.admin.ch
 - EU: The supervisory authority in your country of habitual residence
 
 11. Data Transfer to Third Countries
@@ -179,9 +199,9 @@ ON CONFLICT (page_type) DO UPDATE SET
 
 -- 3. AGB (Terms of Service)
 INSERT INTO legal_pages (page_type, title, content)
-VALUES ('terms', 'Terms of Service / Allgemeine Geschäftsbedingungen',
-'Terms of Service (Allgemeine Geschäftsbedingungen)
-Last updated: ' || to_char(now(), 'YYYY-MM-DD') || '
+VALUES ('terms', 'Terms of Service / Allgemeine Geschaeftsbedingungen',
+'Terms of Service (Allgemeine Geschaeftsbedingungen)
+Last updated: 2026-03-08
 
 1. Scope and Provider
 These Terms of Service govern the use of DK AI Marketplace ("Platform"), operated by:
@@ -199,7 +219,7 @@ The Platform is a marketplace for digital products, AI agents, and digital servi
 2.4 We reserve the right to suspend or terminate accounts that violate these terms.
 
 3. Buyer Terms
-3.1 Payment & Escrow
+3.1 Payment and Escrow
 - All payments are processed through Stripe
 - Payments are held in escrow until the return window expires
 - After the return window, 90% is released to the seller and 10% is retained as platform fee
@@ -238,7 +258,7 @@ The Platform is a marketplace for digital products, AI agents, and digital servi
 - Sellers must provide functional delivery files for purchased products
 - Products are subject to content moderation
 
-4.3 Payouts & Fees
+4.3 Payouts and Fees
 - Platform fee: 10% of each sale
 - Seller receives: 90% via Stripe Connect
 - Payouts are only processed after the return window has fully expired
@@ -305,7 +325,7 @@ ON CONFLICT (page_type) DO UPDATE SET
 INSERT INTO legal_pages (page_type, title, content)
 VALUES ('cookies', 'Cookie Policy',
 'Cookie Policy
-Last updated: ' || to_char(now(), 'YYYY-MM-DD') || '
+Last updated: 2026-03-08
 
 1. What Are Cookies?
 Cookies are small text files stored on your device when you visit a website. They help the website function properly and improve your experience.
@@ -342,7 +362,7 @@ You can manage cookies through:
 Disabling strictly necessary cookies will prevent you from using the Platform (login, purchasing, etc.).
 
 7. Changes
-We may update this Cookie Policy. Changes will be reflected in the "Last updated" date above.
+We may update this Cookie Policy. Changes will be reflected in the Last updated date above.
 
 8. Contact
 For questions about our cookie practices: support@dkaimarketplace.com')
@@ -351,11 +371,11 @@ ON CONFLICT (page_type) DO UPDATE SET
   content = EXCLUDED.content,
   last_updated = now();
 
--- 5. REFUND POLICY (Widerrufsbelehrung & Rückgaberecht)
+-- 5. REFUND POLICY (Widerrufsbelehrung)
 INSERT INTO legal_pages (page_type, title, content)
-VALUES ('refund', 'Refund & Return Policy / Widerrufsbelehrung',
-'Refund & Return Policy (Widerrufsbelehrung)
-Last updated: ' || to_char(now(), 'YYYY-MM-DD') || '
+VALUES ('refund', 'Refund and Return Policy / Widerrufsbelehrung',
+'Refund and Return Policy (Widerrufsbelehrung)
+Last updated: 2026-03-08
 
 1. EU Right of Withdrawal (Widerrufsrecht)
 

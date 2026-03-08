@@ -15,6 +15,10 @@ const NOTIFICATION_TYPES = [
   'product_approved',
   'product_rejected',
   'account_suspension',
+  'refund_requested',
+  'refund_accepted',
+  'refund_declined',
+  'refund_completed',
 ] as const;
 
 type NotificationType = typeof NOTIFICATION_TYPES[number];

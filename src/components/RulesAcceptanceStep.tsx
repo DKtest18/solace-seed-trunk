@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
 interface RulesAcceptanceStepProps {
-  ruleType: 'user' | 'seller';
+  ruleType: 'user' | 'seller' | 'meeting' | 'community';
   onAccept: () => void;
   onBack?: () => void;
   loading?: boolean;

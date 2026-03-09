@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FileText, Shield, Cookie, ReceiptText, Building } from "lucide-react";
+import { FileText, Shield, Cookie, ReceiptText, Building, Video, Users } from "lucide-react";
 
 const legalPages = [
   { type: "terms", title: "Terms of Service", description: "Allgemeine Geschäftsbedingungen — Nutzungsbedingungen der Plattform", icon: FileText },
@@ -9,6 +9,8 @@ const legalPages = [
   { type: "cookies", title: "Cookie Policy", description: "Informationen über die von uns verwendeten Cookies", icon: Cookie },
   { type: "refund", title: "Refund & Return Policy", description: "Widerrufsbelehrung & Rückgaberecht gemäss EU-Richtlinie 2011/83/EU", icon: ReceiptText },
   { type: "imprint", title: "Legal Notice / Impressum", description: "Angaben gemäss Impressumspflicht — Betreiberinformationen", icon: Building },
+  { type: "meetings", title: "Meeting Guidelines", description: "Meeting-Richtlinien — Regeln für Video-Meetings (18+, nur geschäftlich)", icon: Video },
+  { type: "community", title: "Community Guidelines", description: "Community-Richtlinien — Verhaltensregeln für die Community", icon: Users },
 ];
 
 export default function LegalOverview() {

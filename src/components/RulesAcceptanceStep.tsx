@@ -61,9 +61,10 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
           {title}
         </CardTitle>
         <CardDescription className="text-xs">
-          {ruleType === 'user' 
-            ? 'Read and accept all platform rules to continue.'
-            : 'Read and accept all seller obligations to publish products.'}
+          {ruleType === 'user' && 'Read and accept all platform rules to continue.'}
+          {ruleType === 'seller' && 'Read and accept all seller obligations to publish products.'}
+          {ruleType === 'meeting' && 'Lesen und akzeptieren Sie die Meeting-Richtlinien, um teilnehmen zu können.'}
+          {ruleType === 'community' && 'Lesen und akzeptieren Sie die Community-Richtlinien, um Beiträge zu verfassen.'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 pt-0">

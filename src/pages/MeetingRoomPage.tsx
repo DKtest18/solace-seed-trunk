@@ -1,5 +1,10 @@
 import { MeetingRoom } from '@/components/meetings/MeetingRoom';
+import { MeetingRulesGuard } from '@/components/meetings/MeetingRulesGuard';
 
 export default function MeetingRoomPage() {
-  return <MeetingRoom />;
+  return (
+    <MeetingRulesGuard>
+      <MeetingRoom />
+    </MeetingRulesGuard>
+  );
 }

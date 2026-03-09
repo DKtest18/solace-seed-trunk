@@ -20,8 +20,8 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
   const { data: rulesData, isLoading } = useQuery({
     queryKey: ['platform-rules', ruleType],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('platform_rules')
+      const { data, error } = await db
+        .from('dkai_platform_rules')
         .select('*')
         .eq('rule_type', ruleType)
         .eq('is_active', true)

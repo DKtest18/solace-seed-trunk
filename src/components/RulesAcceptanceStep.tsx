@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useQuery } from '@tanstack/react-query';
 
 interface RulesAcceptanceStepProps {
-  ruleType: 'user' | 'seller';
+  ruleType: 'user' | 'seller' | 'meeting' | 'community';
   onAccept: () => void;
   onBack?: () => void;
   loading?: boolean;
@@ -20,8 +20,8 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
   const { data: rulesData, isLoading } = useQuery({
     queryKey: ['platform-rules', ruleType],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('platform_rules')
+      const { data, error } = await db
+        .from('dkai_platform_rules')
         .select('*')
         .eq('rule_type', ruleType)
         .eq('is_active', true)
@@ -35,7 +35,13 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
   });
 
   const rules = rulesData?.rules as string[] || [];
-  const title = rulesData?.title || (ruleType === 'user' ? 'Platform Usage Rules' : 'Seller Obligations & Compliance');
+  const titleMap: Record<string, string> = {
+    user: 'Platform Usage Rules',
+    seller: 'Seller Obligations & Compliance',
+    meeting: 'Meeting-Richtlinien',
+    community: 'Community-Richtlinien',
+  };
+  const title = rulesData?.title || titleMap[ruleType] || 'Rules';
 
   if (isLoading) {
     return (
@@ -55,9 +61,10 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
           {title}
         </CardTitle>
         <CardDescription className="text-xs">
-          {ruleType === 'user' 
-            ? 'Read and accept all platform rules to continue.'
-            : 'Read and accept all seller obligations to publish products.'}
+          {ruleType === 'user' && 'Read and accept all platform rules to continue.'}
+          {ruleType === 'seller' && 'Read and accept all seller obligations to publish products.'}
+          {ruleType === 'meeting' && 'Lesen und akzeptieren Sie die Meeting-Richtlinien, um teilnehmen zu können.'}
+          {ruleType === 'community' && 'Lesen und akzeptieren Sie die Community-Richtlinien, um Beiträge zu verfassen.'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 pt-0">

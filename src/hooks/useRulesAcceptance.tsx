@@ -2,36 +2,35 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 
+type RuleType = 'user' | 'seller' | 'meeting' | 'community';
+
+function useRuleAcceptance(ruleType: RuleType) {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['rules-acceptance', user?.id, ruleType],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      const { data: acceptance, error } = await db.from('dkai_user_rules_acceptance').select('rules_version').eq('user_id', user.id).eq('rule_type', ruleType).maybeSingle();
+      if (error || !acceptance) return false;
+      const { data: rules } = await db.from('dkai_platform_rules').select('version').eq('rule_type', ruleType).eq('is_active', true).order('version', { ascending: false }).limit(1).maybeSingle();
+      return !!rules && acceptance.rules_version >= rules.version;
+    },
+    enabled: !!user?.id,
+  });
+}
+
 export function useRulesAcceptance() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: userRulesAccepted, isLoading: loadingUserRules } = useQuery({
-    queryKey: ['rules-acceptance', user?.id, 'user'],
-    queryFn: async () => {
-      if (!user?.id) return false;
-      const { data: acceptance, error } = await db.from('dkai_user_rules_acceptance').select('rules_version').eq('user_id', user.id).eq('rule_type', 'user').maybeSingle();
-      if (error || !acceptance) return false;
-      const { data: rules } = await db.from('dkai_platform_rules').select('version').eq('rule_type', 'user').eq('is_active', true).order('version', { ascending: false }).limit(1).maybeSingle();
-      return !!rules && acceptance.rules_version >= rules.version;
-    },
-    enabled: !!user?.id,
-  });
-
-  const { data: sellerRulesAccepted, isLoading: loadingSellerRules } = useQuery({
-    queryKey: ['rules-acceptance', user?.id, 'seller'],
-    queryFn: async () => {
-      if (!user?.id) return false;
-      const { data: acceptance, error } = await db.from('dkai_user_rules_acceptance').select('rules_version').eq('user_id', user.id).eq('rule_type', 'seller').maybeSingle();
-      if (error || !acceptance) return false;
-      const { data: rules } = await db.from('dkai_platform_rules').select('version').eq('rule_type', 'seller').eq('is_active', true).order('version', { ascending: false }).limit(1).maybeSingle();
-      return !!rules && acceptance.rules_version >= rules.version;
-    },
-    enabled: !!user?.id,
-  });
+  const { data: userRulesAccepted, isLoading: loadingUserRules } = useRuleAcceptance('user');
+  const { data: sellerRulesAccepted, isLoading: loadingSellerRules } = useRuleAcceptance('seller');
+  const { data: meetingRulesAccepted, isLoading: loadingMeetingRules } = useRuleAcceptance('meeting');
+  const { data: communityRulesAccepted, isLoading: loadingCommunityRules } = useRuleAcceptance('community');
 
   const acceptRulesMutation = useMutation({
-    mutationFn: async ({ ruleType }: { ruleType: 'user' | 'seller' }) => {
+    mutationFn: async ({ ruleType }: { ruleType: RuleType }) => {
       if (!user?.id) throw new Error('Not authenticated');
       const { data: rules, error: rulesError } = await db.from('dkai_platform_rules').select('version').eq('rule_type', ruleType).eq('is_active', true).order('version', { ascending: false }).limit(1).single();
       if (rulesError) throw rulesError;
@@ -47,7 +46,12 @@ export function useRulesAcceptance() {
   return {
     userRulesAccepted: !!userRulesAccepted,
     sellerRulesAccepted: !!sellerRulesAccepted,
-    loadingUserRules, loadingSellerRules,
+    meetingRulesAccepted: !!meetingRulesAccepted,
+    communityRulesAccepted: !!communityRulesAccepted,
+    loadingUserRules,
+    loadingSellerRules,
+    loadingMeetingRules,
+    loadingCommunityRules,
     acceptRules: acceptRulesMutation.mutateAsync,
     isAccepting: acceptRulesMutation.isPending,
   };

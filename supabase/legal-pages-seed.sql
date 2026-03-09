@@ -36,11 +36,24 @@ Udligenswilerstrasse 15
 6043 Adligenswil
 Switzerland
 
-Owner / Responsible Person:
-Dari Kastrati
-
 Contact:
-Email: support@dkaimarketplace.com
+Tel.: +41 78 236 12 40
+Email: kastrati.dari@hotmail.com
+
+Responsible Person pursuant to § 18 (2) MStV:
+Dari Kastrati
+Udligenswilerstrasse 15
+6043 Adligenswil, Switzerland
+
+Competent Supervisory Authority for Audiovisual Media Services:
+Bundesamt fuer Kommunikation (BAKOM)
+Zukunftstrasse 44
+2501 Biel, Switzerland
+
+Central Contact Point:
+The provider has established the following central contact point for official removal orders as well as for inquiries and complaints from authorities and users regarding offered hosting services:
+support@dkaimarketplace.com
+Communication via this contact point is possible in German and English.
 
 VAT Identification Number:
 Not yet registered (in application)
@@ -48,15 +61,10 @@ Not yet registered (in application)
 Trade Register:
 Not registered (Einzelunternehmen / sole proprietorship)
 
-Responsible for content:
-Dari Kastrati
-Udligenswilerstrasse 15
-6043 Adligenswil, Switzerland
-
 EU Online Dispute Resolution:
 The European Commission provides a platform for online dispute resolution (ODR):
 https://ec.europa.eu/consumers/odr/
-We are not obligated and not willing to participate in dispute resolution proceedings before a consumer arbitration board.
+We are neither obligated nor willing to participate in dispute resolution proceedings before a consumer arbitration board.
 
 Liability for Content:
 As a service provider, we are responsible for our own content on these pages. However, we are not obligated to monitor transmitted or stored third-party information or to investigate circumstances that indicate illegal activity. Obligations to remove or block the use of information under general law remain unaffected.
@@ -65,7 +73,9 @@ Liability for Links:
 Our offer contains links to external third-party websites, the content of which we have no influence over. Therefore, we cannot assume any liability for this external content. The respective provider or operator is always responsible for the content of the linked pages.
 
 Copyright:
-The content and works on these pages created by the site operator are subject to Swiss and international copyright law. Reproduction, editing, distribution, and any kind of use beyond the limits of copyright require the written consent of the respective author or creator.')
+The content and works on these pages created by the site operator are subject to Swiss and international copyright law. Reproduction, editing, distribution, and any kind of use beyond the limits of copyright require the written consent of the respective author or creator.
+
+Version: 09.03.2026')
 ON CONFLICT (page_type) DO UPDATE SET 
   title = EXCLUDED.title, 
   content = EXCLUDED.content,

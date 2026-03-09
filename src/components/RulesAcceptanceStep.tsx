@@ -35,7 +35,13 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
   });
 
   const rules = rulesData?.rules as string[] || [];
-  const title = rulesData?.title || (ruleType === 'user' ? 'Platform Usage Rules' : 'Seller Obligations & Compliance');
+  const titleMap: Record<string, string> = {
+    user: 'Platform Usage Rules',
+    seller: 'Seller Obligations & Compliance',
+    meeting: 'Meeting-Richtlinien',
+    community: 'Community-Richtlinien',
+  };
+  const title = rulesData?.title || titleMap[ruleType] || 'Rules';
 
   if (isLoading) {
     return (

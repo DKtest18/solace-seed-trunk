@@ -271,6 +271,7 @@ export default function Community() {
         onOpenChange={setCreateDialogOpen}
         onPostCreated={handlePostCreated}
       />
+      </CommunityRulesGuard>
     </AppLayout>
   );
 }

@@ -11,6 +11,8 @@ const PAGE_TYPES: Record<string, string> = {
   cookies: "Cookie Policy",
   refund: "Refund Policy",
   imprint: "Legal Notice / Imprint",
+  meetings: "Meeting Guidelines",
+  community: "Community Guidelines",
 };
 
 export default function Legal() {

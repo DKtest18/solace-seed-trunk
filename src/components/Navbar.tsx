@@ -39,7 +39,7 @@ export function Navbar() {
     if (!user) return;
 
     const loadUnreadCount = async () => {
-      const { count } = await supabase
+      const { count } = await db
         .from('dkai_messages')
         .select('*', { count: 'exact', head: true })
         .eq('recipient_id', user.id)

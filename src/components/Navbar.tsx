@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { User, Plus, Settings, LogOut, ShoppingBag, DollarSign, Heart, MessageSquare, LayoutDashboard, Bell, Menu } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { NotificationCenter } from '@/components/NotificationCenter';
 
 const navLinks = [

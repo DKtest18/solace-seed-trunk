@@ -50,7 +50,7 @@ export function Navbar() {
 
     loadUnreadCount();
 
-    const channel = supabase
+    const channel = db
       .channel('navbar-messages')
       .on(
         'postgres_changes',

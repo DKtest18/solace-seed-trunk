@@ -134,7 +134,7 @@ export function NotificationCenter() {
       });
 
       // Load recent orders (as buyer)
-      const { data: orders } = await supabase
+      const { data: orders } = await db
         .from('dkai_orders')
         .select('id, status, created_at, product_id')
         .eq('buyer_id', user.id)

@@ -46,7 +46,7 @@ export function SellerSidebar() {
     if (!user) return;
 
     const loadCounts = async () => {
-      const { count: msgCount } = await supabase
+      const { count: msgCount } = await db
         .from('dkai_messages')
         .select('*', { count: 'exact', head: true })
         .eq('recipient_id', user.id)

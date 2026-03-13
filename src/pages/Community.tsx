@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 
 import { AppLayout } from '@/components/AppLayout';
@@ -54,28 +55,104 @@ export default function Community() {
     setCreateDialogOpen(true);
   };
 
+  const PAGE_SIZE = 20;
+
   useEffect(() => {
     fetchPosts();
-  }, [page]);
+  }, [page, user?.id]);
+
+  const fetchPostsDirect = async () => {
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
+    const { data: rawPosts, error: postsError } = await db
+      .from('dkai_community_posts')
+      .select('id, title, body, created_at, pinned, views_count, comments_count, attachment_file_name, attachment_key, author_id, product_id, seller_id, is_public')
+      .eq('is_public', true)
+      .order('pinned', { ascending: false })
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (postsError) throw postsError;
+
+    const authorIds = Array.from(new Set((rawPosts ?? []).map((post: any) => post.author_id).filter(Boolean)));
+    const productIds = Array.from(new Set((rawPosts ?? []).map((post: any) => post.product_id).filter(Boolean)));
+
+    const [profilesRes, productsRes] = await Promise.all([
+      authorIds.length
+        ? db.from('dkai_profiles').select('id, username, full_name, avatar_url').in('id', authorIds)
+        : Promise.resolve({ data: [], error: null }),
+      productIds.length
+        ? db.from('dkai_products').select('id, title, price, image_url').in('id', productIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+    if (profilesRes.error) {
+      console.warn('Community profiles fallback query failed:', profilesRes.error);
+    }
+
+    if (productsRes.error) {
+      console.warn('Community products fallback query failed:', productsRes.error);
+    }
+
+    const profilesById = new Map((profilesRes.data ?? []).map((profile: any) => [profile.id, profile]));
+    const productsById = new Map((productsRes.data ?? []).map((product: any) => [product.id, product]));
+
+    const normalizedPosts: CommunityPost[] = (rawPosts ?? []).map((post: any) => {
+      const resolvedSellerId = post.seller_id ?? post.author_id ?? null;
+
+      return {
+        id: post.id,
+        title: post.title ?? null,
+        body: post.body,
+        created_at: post.created_at,
+        pinned: !!post.pinned,
+        views_count: post.views_count ?? 0,
+        comments_count: post.comments_count ?? 0,
+        has_attachment: !!(post.attachment_file_name || post.attachment_key),
+        attachment_file_name: post.attachment_file_name ?? null,
+        author: profilesById.get(post.author_id) ?? null,
+        product: post.product_id ? (productsById.get(post.product_id) ?? null) : null,
+        seller_id: resolvedSellerId,
+        can_message_seller: !!resolvedSellerId && resolvedSellerId !== user?.id,
+      };
+    });
+
+    return {
+      posts: normalizedPosts,
+      hasMore: (rawPosts?.length ?? 0) === PAGE_SIZE,
+    };
+  };
 
   const fetchPosts = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('get-community-posts', {
-        body: { page, limit: 20 }
+        body: { page, limit: PAGE_SIZE }
       });
 
       if (error) throw error;
+      if (!data || !Array.isArray(data.posts)) {
+        throw new Error('Invalid response from get-community-posts');
+      }
 
       setPosts(prev => page === 1 ? data.posts : [...prev, ...data.posts]);
-      setHasMore(data.has_more);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load community posts',
-        variant: 'destructive',
-      });
+      setHasMore(Boolean(data.has_more));
+    } catch (primaryError) {
+      console.warn('Edge function get-community-posts failed, using direct DB fallback:', primaryError);
+
+      try {
+        const fallbackData = await fetchPostsDirect();
+        setPosts(prev => page === 1 ? fallbackData.posts : [...prev, ...fallbackData.posts]);
+        setHasMore(fallbackData.hasMore);
+      } catch (fallbackError) {
+        console.error('Error fetching community posts:', fallbackError);
+        toast({
+          title: 'Error',
+          description: 'Failed to load community posts',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }

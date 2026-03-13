@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -39,8 +40,8 @@ export function Seller2FAGuard({ children }: Seller2FAGuardProps) {
   useEffect(() => {
     if (!user) return;
     const check = async () => {
-      const { data } = await supabase
-        .from('profiles')
+      const { data } = await db
+        .from('dkai_profiles')
         .select('is_2fa_enabled')
         .eq('id', user.id)
         .single();

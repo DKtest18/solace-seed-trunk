@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,8 +36,8 @@ export default function PayoutRequests() {
   useQuery({
     queryKey: ['profile-2fa', user?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('profiles')
+      const { data } = await db
+        .from('dkai_profiles')
         .select('is_2fa_enabled')
         .eq('id', user!.id)
         .single();

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { Shield } from 'lucide-react';
 import { lovable } from '@/integrations/lovable/index';
@@ -61,8 +62,8 @@ export default function Login() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
       
-      const { data: profile } = await supabase
-        .from('profiles')
+      const { data: profile } = await db
+        .from('dkai_profiles')
         .select('is_2fa_enabled, is_banned, ban_expires_at, is_deleted')
         .eq('id', user.id)
         .single();

@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { RulesAcceptanceStep } from '@/components/RulesAcceptanceStep';
@@ -88,8 +89,8 @@ export default function SellerOnboarding() {
     
     // Check if user already has 2FA enabled
     const check2FAStatus = async () => {
-      const { data: profile } = await supabase
-        .from('profiles')
+      const { data: profile } = await db
+        .from('dkai_profiles')
         .select('is_2fa_enabled')
         .eq('id', user.id)
         .single();
@@ -142,8 +143,8 @@ export default function SellerOnboarding() {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
+      const { error } = await db
+        .from('dkai_profiles')
         .update({
           full_name: `${firstName} ${lastName}`,
           is_age_verified: true,
@@ -159,8 +160,8 @@ export default function SellerOnboarding() {
       });
       
       // Check if 2FA is already enabled
-      const { data: profile } = await supabase
-        .from('profiles')
+      const { data: profile } = await db
+        .from('dkai_profiles')
         .select('is_2fa_enabled')
         .eq('id', user?.id)
         .single();
@@ -239,8 +240,8 @@ export default function SellerOnboarding() {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
+      const { error } = await db
+        .from('dkai_profiles')
         .update({
           creator_name: creatorName,
           bio: bio,
@@ -296,8 +297,8 @@ export default function SellerOnboarding() {
 
       if (applicationError) throw applicationError;
 
-      const { error: profileError } = await supabase
-        .from('profiles')
+      const { error: profileError } = await db
+        .from('dkai_profiles')
         .update({
           terms_accepted: true,
           terms_accepted_at: new Date().toISOString(),

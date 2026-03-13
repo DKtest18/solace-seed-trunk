@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -64,8 +65,8 @@ export default function AdminPaymentConfirmations() {
       if (confirmError) throw confirmError;
 
       // Update order status to paid
-      const { error: orderError } = await supabase
-        .from('orders')
+      const { error: orderError } = await db
+        .from('dkai_orders')
         .update({
           status: 'paid',
           payment_confirmed_by: user!.id,

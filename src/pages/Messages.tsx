@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/dkaiDb";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -67,8 +68,8 @@ export default function Messages() {
     if (!newContent.trim()) return;
     
     try {
-      const { error } = await supabase
-        .from('messages')
+      const { error } = await db
+        .from('dkai_messages')
         .update({ content: newContent.trim(), edited_at: new Date().toISOString() })
         .eq('id', messageId)
         .eq('sender_id', user?.id);
@@ -89,8 +90,8 @@ export default function Messages() {
 
   const handleDeleteMessage = async (messageId: string) => {
     try {
-      const { error } = await supabase
-        .from('messages')
+      const { error } = await db
+        .from('dkai_messages')
         .delete()
         .eq('id', messageId)
         .eq('sender_id', user?.id);
@@ -201,8 +202,8 @@ export default function Messages() {
       }
 
       // Mark messages as read
-      await supabase
-        .from('messages')
+      await db
+        .from('dkai_messages')
         .update({ is_read: true })
         .eq('thread_id', threadId)
         .eq('recipient_id', user.id);
@@ -311,8 +312,8 @@ export default function Messages() {
       const profileMap = new Map(profiles?.map(p => [p.id, p]));
 
       // Get last message for each thread
-      const { data: lastMessages } = await supabase
-        .from('messages')
+      const { data: lastMessages } = await db
+        .from('dkai_messages')
         .select('thread_id, content, created_at, is_read, recipient_id')
         .in('thread_id', threadIds)
         .order('created_at', { ascending: false });
@@ -382,8 +383,8 @@ export default function Messages() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('messages')
+      const { data, error } = await db
+        .from('dkai_messages')
         .select('*')
         .eq('thread_id', threadId)
         .order('created_at', { ascending: true });
@@ -393,8 +394,8 @@ export default function Messages() {
       setMessages(data || []);
 
       // Mark messages as read
-      await supabase
-        .from('messages')
+      await db
+        .from('dkai_messages')
         .update({ is_read: true })
         .eq('thread_id', threadId)
         .eq('recipient_id', user.id);

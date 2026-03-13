@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Navigate, useNavigate, Link } from 'react-router-dom';
@@ -31,8 +31,8 @@ export default function SellerOrders() {
     queryFn: async () => {
       if (!user) return [];
 
-      const { data, error } = await supabase
-        .from('orders')
+      const { data, error } = await db
+        .from('dkai_orders')
         .select(`
           *,
           products!inner(
@@ -49,7 +49,7 @@ export default function SellerOrders() {
       // Fetch buyer profiles separately
       if (data && data.length > 0) {
         const buyerIds = data.map(o => o.buyer_id);
-        const { data: profiles } = await supabase
+        const { data: profiles } = await db
           .from('profiles')
           .select('id, full_name, avatar_url, username')
           .in('id', buyerIds);
@@ -69,8 +69,8 @@ export default function SellerOrders() {
 
   const markDelivered = useMutation({
     mutationFn: async (orderId: string) => {
-      const { error } = await supabase
-        .from('orders')
+      const { error } = await db
+        .from('dkai_orders')
         .update({ 
           seller_marked_delivered_at: new Date().toISOString(),
           status: 'awaiting_buyer_confirmation'
@@ -90,7 +90,7 @@ export default function SellerOrders() {
 
   const nudgeBuyer = useMutation({
     mutationFn: async (orderId: string) => {
-      const { data, error } = await supabase.functions.invoke('nudge-buyer-confirmation', {
+      const { data, error } = await db.functions.invoke('nudge-buyer-confirmation', {
         body: { orderId },
       });
       if (error) throw error;
@@ -108,8 +108,8 @@ export default function SellerOrders() {
 
   const handleMarkInvoiceSent = async (orderId: string) => {
     try {
-      const { error } = await supabase
-        .from('orders')
+      const { error } = await db
+        .from('dkai_orders')
         .update({ status: 'invoice_sent' })
         .eq('id', orderId);
 

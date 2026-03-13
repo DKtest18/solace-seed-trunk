@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { User, Plus, Settings, LogOut, ShoppingBag, DollarSign, Heart, MessageSquare, LayoutDashboard, Bell, Menu } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { NotificationCenter } from '@/components/NotificationCenter';
 
 const navLinks = [
@@ -39,8 +39,8 @@ export function Navbar() {
     if (!user) return;
 
     const loadUnreadCount = async () => {
-      const { count } = await supabase
-        .from('messages')
+      const { count } = await db
+        .from('dkai_messages')
         .select('*', { count: 'exact', head: true })
         .eq('recipient_id', user.id)
         .eq('is_read', false);
@@ -50,21 +50,21 @@ export function Navbar() {
 
     loadUnreadCount();
 
-    const channel = supabase
+    const channel = db
       .channel('navbar-messages')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'messages',
+          table: 'dkai_messages',
         },
         () => loadUnreadCount()
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      db.removeChannel(channel);
     };
   }, [user]);
 

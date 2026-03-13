@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,8 +23,8 @@ export default function PurchaseHistory() {
     queryFn: async () => {
       if (!user) return [];
 
-      const { data, error } = await supabase
-        .from('orders')
+      const { data, error } = await db
+        .from('dkai_orders')
         .select(`
           *,
           products(
@@ -44,7 +44,7 @@ export default function PurchaseHistory() {
       // Fetch seller profiles separately
       if (data && data.length > 0) {
         const sellerIds = data.map(o => o.products?.seller_id).filter(Boolean);
-        const { data: profiles } = await supabase
+        const { data: profiles } = await db
           .from('profiles')
           .select('id, full_name, avatar_url, username')
           .in('id', sellerIds as string[]);
@@ -64,7 +64,7 @@ export default function PurchaseHistory() {
 
   const confirmReceipt = useMutation({
     mutationFn: async (orderId: string) => {
-      const { data, error } = await supabase.functions.invoke('buyer-confirm-receipt', {
+      const { data, error } = await db.functions.invoke('buyer-confirm-receipt', {
         body: { orderId }
       });
       if (error) throw error;
@@ -81,7 +81,7 @@ export default function PurchaseHistory() {
 
   const requestRefund = useMutation({
     mutationFn: async ({ orderId, reason }: { orderId: string; reason: string }) => {
-      const { data, error } = await supabase.functions.invoke('request-refund', {
+      const { data, error } = await db.functions.invoke('request-refund', {
         body: { orderId, reason }
       });
       if (error) throw error;
@@ -98,7 +98,7 @@ export default function PurchaseHistory() {
 
   const downloadProduct = async (productId: string, orderId: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('generate-signed-url', {
+      const { data, error } = await db.functions.invoke('generate-signed-url', {
         body: { productId, orderId }
       });
       if (error) throw error;

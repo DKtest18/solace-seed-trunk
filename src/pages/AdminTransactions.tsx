@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Navigate, Link } from 'react-router-dom';
@@ -26,8 +26,8 @@ export default function AdminTransactions() {
   const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ['admin-orders'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('orders')
+      const { data, error } = await db
+        .from('dkai_orders')
         .select(`
           *,
           products(id, title, price, seller_id),
@@ -41,7 +41,7 @@ export default function AdminTransactions() {
       // Fetch buyer profiles separately
       if (data && data.length > 0) {
         const buyerIds = data.map(o => o.buyer_id);
-        const { data: profiles } = await supabase
+        const { data: profiles } = await db
           .from('profiles')
           .select('id, full_name')
           .in('id', buyerIds);
@@ -63,7 +63,7 @@ export default function AdminTransactions() {
   const { data: platformBalance } = useQuery({
     queryKey: ['platform-balance'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('platform_balances')
         .select('*')
         .single();
@@ -78,7 +78,7 @@ export default function AdminTransactions() {
   const { data: disputes } = useQuery({
     queryKey: ['admin-disputes'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('disputes')
         .select(`
           *,
@@ -91,7 +91,7 @@ export default function AdminTransactions() {
       // Fetch buyer profiles separately
       if (data && data.length > 0) {
         const buyerIds = data.map(d => d.buyer_id);
-        const { data: profiles } = await supabase
+        const { data: profiles } = await db
           .from('profiles')
           .select('id, full_name')
           .in('id', buyerIds);

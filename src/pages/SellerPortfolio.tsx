@@ -552,8 +552,8 @@ export default function SellerPortfolio() {
     queryKey: ['seller-sold-products', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
-        .from('orders')
+      const { data, error } = await db
+        .from('dkai_orders')
         .select(`id, product_id, price, created_at, status, buyer_id, products (id, title, category_id, images, seller_id), profiles:buyer_id (username, full_name)`)
         .eq('status', 'completed')
         .order('created_at', { ascending: false });

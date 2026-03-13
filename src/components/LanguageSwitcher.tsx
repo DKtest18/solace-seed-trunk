@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Globe } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 
 const languages = [
@@ -28,8 +28,8 @@ export function LanguageSwitcher() {
     
     // Persist to user settings if logged in
     if (user) {
-      await supabase
-        .from('user_settings')
+      await db
+        .from('dkai_user_settings')
         .upsert({ user_id: user.id, language: langCode }, { onConflict: 'user_id' });
     }
   };

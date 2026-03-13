@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -71,8 +71,8 @@ export default function Statistics() {
         : now;
 
       // Fetch orders with time-series data
-      const { data: orders, error: ordersError } = await supabase
-        .from('orders')
+      const { data: orders, error: ordersError } = await db
+        .from('dkai_orders')
         .select('id, price, seller_earnings, platform_fee, created_at, status, product_id')
         .gte('created_at', queryStartDate.toISOString())
         .lte('created_at', queryEndDate.toISOString())
@@ -81,7 +81,7 @@ export default function Statistics() {
       if (ordersError) throw ordersError;
 
       // Fetch products with categories
-      const { data: products, error: productsError } = await supabase
+      const { data: products, error: productsError } = await db
         .from('products')
         .select('id, product_type, title, total_sales, trending_score, recent_7day_sales, average_rating, category_id, product_categories(name)')
         .eq('is_published', true)
@@ -90,7 +90,7 @@ export default function Statistics() {
       if (productsError) throw productsError;
 
       // Fetch sellers
-      const { data: sellers, error: sellersError } = await supabase
+      const { data: sellers, error: sellersError } = await db
         .from('seller_rankings')
         .select('id')
         .limit(1000);

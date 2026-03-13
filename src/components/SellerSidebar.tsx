@@ -13,7 +13,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
 
@@ -46,8 +46,8 @@ export function SellerSidebar() {
     if (!user) return;
 
     const loadCounts = async () => {
-      const { count: msgCount } = await supabase
-        .from('messages')
+      const { count: msgCount } = await db
+        .from('dkai_messages')
         .select('*', { count: 'exact', head: true })
         .eq('recipient_id', user.id)
         .eq('is_read', false);
@@ -60,13 +60,13 @@ export function SellerSidebar() {
 
     loadCounts();
 
-    const channel = supabase
+    const channel = db
       .channel('sidebar-updates')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => loadCounts())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'dkai_messages' }, () => loadCounts())
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      db.removeChannel(channel);
     };
   }, [user]);
 

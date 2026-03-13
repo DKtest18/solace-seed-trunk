@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
 
@@ -33,11 +33,11 @@ export function useUserSettings() {
     queryKey: ['user-settings', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data, error } = await supabase
-        .from('user_settings')
+      const { data, error } = await db
+        .from('dkai_user_settings')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
       if (error && error.code !== 'PGRST116') throw error;
       return data as UserSettings | null;
@@ -64,21 +64,21 @@ export function useUserSettings() {
         applyTheme(newSettings.theme_color);
       }
       
-      const { data: existing } = await supabase
-        .from('user_settings')
+      const { data: existing } = await db
+        .from('dkai_user_settings')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (existing) {
-        const { error } = await supabase
-          .from('user_settings')
+        const { error } = await db
+          .from('dkai_user_settings')
           .update({ ...newSettings, updated_at: new Date().toISOString() })
           .eq('user_id', user.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from('user_settings')
+        const { error } = await db
+          .from('dkai_user_settings')
           .insert({ user_id: user.id, ...newSettings });
         if (error) throw error;
       }

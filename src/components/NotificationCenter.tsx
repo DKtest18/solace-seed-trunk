@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -47,14 +47,14 @@ export function NotificationCenter() {
 
     loadNotifications();
 
-    const messagesChannel = supabase
+    const messagesChannel = db
       .channel('notification-messages')
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'messages',
+          table: 'dkai_messages',
           filter: `recipient_id=eq.${user.id}`,
         },
         (payload: any) => {
@@ -71,14 +71,14 @@ export function NotificationCenter() {
       )
       .subscribe();
 
-    const productsChannel = supabase
+    const productsChannel = db
       .channel('notification-products')
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'products',
+          table: 'dkai_products',
           filter: `seller_id=eq.${user.id}`,
         },
         (payload: any) => {
@@ -101,8 +101,8 @@ export function NotificationCenter() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(messagesChannel);
-      supabase.removeChannel(productsChannel);
+      db.removeChannel(messagesChannel);
+      db.removeChannel(productsChannel);
     };
   }, [user]);
 
@@ -113,8 +113,8 @@ export function NotificationCenter() {
       const notifs: Notification[] = [];
 
       // Load unread messages
-      const { data: messages } = await supabase
-        .from('messages')
+      const { data: messages } = await db
+        .from('dkai_messages')
         .select('id, content, created_at, sender_id')
         .eq('recipient_id', user.id)
         .eq('is_read', false)
@@ -134,8 +134,8 @@ export function NotificationCenter() {
       });
 
       // Load recent orders (as buyer)
-      const { data: orders } = await supabase
-        .from('orders')
+      const { data: orders } = await db
+        .from('dkai_orders')
         .select('id, status, created_at, product_id')
         .eq('buyer_id', user.id)
         .order('created_at', { ascending: false })

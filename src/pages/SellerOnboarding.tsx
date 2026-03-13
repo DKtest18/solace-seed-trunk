@@ -297,8 +297,8 @@ export default function SellerOnboarding() {
 
       if (applicationError) throw applicationError;
 
-      const { error: profileError } = await supabase
-        .from('profiles')
+      const { error: profileError } = await db
+        .from('dkai_profiles')
         .update({
           terms_accepted: true,
           terms_accepted_at: new Date().toISOString(),

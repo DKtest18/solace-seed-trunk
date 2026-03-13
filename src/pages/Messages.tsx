@@ -68,7 +68,7 @@ export default function Messages() {
     if (!newContent.trim()) return;
     
     try {
-      const { error } = await supabase
+      const { error } = await db
         .from('dkai_messages')
         .update({ content: newContent.trim(), edited_at: new Date().toISOString() })
         .eq('id', messageId)

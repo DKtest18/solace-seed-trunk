@@ -36,7 +36,7 @@ export default function PayoutRequests() {
   useQuery({
     queryKey: ['profile-2fa', user?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await db
         .from('dkai_profiles')
         .select('is_2fa_enabled')
         .eq('id', user!.id)

@@ -172,7 +172,7 @@ export default function SellerOnboardingPayment() {
 
   const fetchUserProfile = async () => {
     if (!user) return;
-    const { data } = await supabase
+    const { data } = await db
       .from('dkai_profiles')
       .select('is_2fa_enabled')
       .eq('id', user.id)

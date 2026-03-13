@@ -62,7 +62,7 @@ export default function Login() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
       
-      const { data: profile } = await supabase
+      const { data: profile } = await db
         .from('dkai_profiles')
         .select('is_2fa_enabled, is_banned, ban_expires_at, is_deleted')
         .eq('id', user.id)

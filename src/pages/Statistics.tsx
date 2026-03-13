@@ -71,8 +71,8 @@ export default function Statistics() {
         : now;
 
       // Fetch orders with time-series data
-      const { data: orders, error: ordersError } = await supabase
-        .from('orders')
+      const { data: orders, error: ordersError } = await db
+        .from('dkai_orders')
         .select('id, price, seller_earnings, platform_fee, created_at, status, product_id')
         .gte('created_at', queryStartDate.toISOString())
         .lte('created_at', queryEndDate.toISOString())

@@ -65,8 +65,8 @@ export default function AdminPaymentConfirmations() {
       if (confirmError) throw confirmError;
 
       // Update order status to paid
-      const { error: orderError } = await supabase
-        .from('orders')
+      const { error: orderError } = await db
+        .from('dkai_orders')
         .update({
           status: 'paid',
           payment_confirmed_by: user!.id,

@@ -108,8 +108,8 @@ export default function SellerOrders() {
 
   const handleMarkInvoiceSent = async (orderId: string) => {
     try {
-      const { error } = await supabase
-        .from('orders')
+      const { error } = await db
+        .from('dkai_orders')
         .update({ status: 'invoice_sent' })
         .eq('id', orderId);
 

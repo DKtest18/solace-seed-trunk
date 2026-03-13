@@ -23,17 +23,17 @@ export async function getAuthenticatedUser(req: Request) {
 
   const supabase = getSupabaseClient(authHeader);
   const token = authHeader.replace('Bearer ', '');
-  const { data, error } = await supabase.auth.getClaims(token);
+  const { data: { user }, error } = await supabase.auth.getUser(token);
 
-  if (error || !data?.claims) {
+  if (error || !user) {
     return { user: null, error: 'Invalid token' };
   }
 
   return {
     user: {
-      id: data.claims.sub as string,
-      email: data.claims.email as string,
-      role: data.claims.role as string,
+      id: user.id,
+      email: user.email ?? '',
+      role: user.role ?? 'authenticated',
     },
     error: null,
     supabase,

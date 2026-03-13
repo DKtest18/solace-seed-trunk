@@ -114,7 +114,7 @@ export function NotificationCenter() {
 
       // Load unread messages
       const { data: messages } = await supabase
-        .from('messages')
+        .from('dkai_messages')
         .select('id, content, created_at, sender_id')
         .eq('recipient_id', user.id)
         .eq('is_read', false)

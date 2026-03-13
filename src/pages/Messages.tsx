@@ -202,8 +202,8 @@ export default function Messages() {
       }
 
       // Mark messages as read
-      await supabase
-        .from('messages')
+      await db
+        .from('dkai_messages')
         .update({ is_read: true })
         .eq('thread_id', threadId)
         .eq('recipient_id', user.id);

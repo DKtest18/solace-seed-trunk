@@ -90,7 +90,7 @@ export default function SellerOrders() {
 
   const nudgeBuyer = useMutation({
     mutationFn: async (orderId: string) => {
-      const { data, error } = await supabase.functions.invoke('nudge-buyer-confirmation', {
+      const { data, error } = await db.functions.invoke('nudge-buyer-confirmation', {
         body: { orderId },
       });
       if (error) throw error;

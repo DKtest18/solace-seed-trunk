@@ -90,7 +90,7 @@ export default function Statistics() {
       if (productsError) throw productsError;
 
       // Fetch sellers
-      const { data: sellers, error: sellersError } = await supabase
+      const { data: sellers, error: sellersError } = await db
         .from('seller_rankings')
         .select('id')
         .limit(1000);

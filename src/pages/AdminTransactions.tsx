@@ -91,7 +91,7 @@ export default function AdminTransactions() {
       // Fetch buyer profiles separately
       if (data && data.length > 0) {
         const buyerIds = data.map(d => d.buyer_id);
-        const { data: profiles } = await supabase
+        const { data: profiles } = await db
           .from('profiles')
           .select('id, full_name')
           .in('id', buyerIds);

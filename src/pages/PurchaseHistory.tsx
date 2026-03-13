@@ -98,7 +98,7 @@ export default function PurchaseHistory() {
 
   const downloadProduct = async (productId: string, orderId: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('generate-signed-url', {
+      const { data, error } = await db.functions.invoke('generate-signed-url', {
         body: { productId, orderId }
       });
       if (error) throw error;

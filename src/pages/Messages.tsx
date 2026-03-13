@@ -90,7 +90,7 @@ export default function Messages() {
   const handleDeleteMessage = async (messageId: string) => {
     try {
       const { error } = await supabase
-        .from('messages')
+        .from('dkai_messages')
         .delete()
         .eq('id', messageId)
         .eq('sender_id', user?.id);

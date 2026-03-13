@@ -29,7 +29,7 @@ export function LanguageSwitcher() {
     // Persist to user settings if logged in
     if (user) {
       await supabase
-        .from('user_settings')
+        .from('dkai_user_settings')
         .upsert({ user_id: user.id, language: langCode }, { onConflict: 'user_id' });
     }
   };

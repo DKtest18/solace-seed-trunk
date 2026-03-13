@@ -78,7 +78,7 @@ export function useUserSettings() {
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from('user_settings')
+          .from('dkai_user_settings')
           .insert({ user_id: user.id, ...newSettings });
         if (error) throw error;
       }

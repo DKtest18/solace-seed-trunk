@@ -72,7 +72,7 @@ export function useUserSettings() {
 
       if (existing) {
         const { error } = await supabase
-          .from('user_settings')
+          .from('dkai_user_settings')
           .update({ ...newSettings, updated_at: new Date().toISOString() })
           .eq('user_id', user.id);
         if (error) throw error;

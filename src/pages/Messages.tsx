@@ -383,8 +383,8 @@ export default function Messages() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('messages')
+      const { data, error } = await db
+        .from('dkai_messages')
         .select('*')
         .eq('thread_id', threadId)
         .order('created_at', { ascending: true });

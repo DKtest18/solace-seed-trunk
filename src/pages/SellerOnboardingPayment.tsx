@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { Loader2, ArrowLeft, CreditCard, Shield, CheckCircle, ExternalLink, RefreshCw, AlertTriangle, XCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useReauthSession } from '@/hooks/useReauthSession';

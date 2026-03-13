@@ -240,8 +240,8 @@ export default function SellerOnboarding() {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
+      const { error } = await db
+        .from('dkai_profiles')
         .update({
           creator_name: creatorName,
           bio: bio,

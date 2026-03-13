@@ -105,7 +105,7 @@ export default function Community() {
         title: post.title ?? null,
         body: post.body,
         created_at: post.created_at,
-        pinned: !!post.pinned,
+        pinned: false,
         views_count: post.views_count ?? 0,
         comments_count: post.comments_count ?? 0,
         has_attachment: !!(post.attachment_file_name || post.attachment_key),

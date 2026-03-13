@@ -102,3 +102,6 @@ verify_jwt = false
 
 [functions.send-notification-email]
 verify_jwt = false
+
+[functions.get-community-posts]
+verify_jwt = false

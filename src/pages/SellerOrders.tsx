@@ -31,8 +31,8 @@ export default function SellerOrders() {
     queryFn: async () => {
       if (!user) return [];
 
-      const { data, error } = await supabase
-        .from('orders')
+      const { data, error } = await db
+        .from('dkai_orders')
         .select(`
           *,
           products!inner(

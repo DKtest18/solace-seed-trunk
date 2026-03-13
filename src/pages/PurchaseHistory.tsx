@@ -44,7 +44,7 @@ export default function PurchaseHistory() {
       // Fetch seller profiles separately
       if (data && data.length > 0) {
         const sellerIds = data.map(o => o.products?.seller_id).filter(Boolean);
-        const { data: profiles } = await supabase
+        const { data: profiles } = await db
           .from('profiles')
           .select('id, full_name, avatar_url, username')
           .in('id', sellerIds as string[]);

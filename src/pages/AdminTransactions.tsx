@@ -78,7 +78,7 @@ export default function AdminTransactions() {
   const { data: disputes } = useQuery({
     queryKey: ['admin-disputes'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('disputes')
         .select(`
           *,

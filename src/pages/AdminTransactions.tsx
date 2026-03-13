@@ -63,7 +63,7 @@ export default function AdminTransactions() {
   const { data: platformBalance } = useQuery({
     queryKey: ['platform-balance'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('platform_balances')
         .select('*')
         .single();

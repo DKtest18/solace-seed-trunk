@@ -69,8 +69,8 @@ export default function SellerOrders() {
 
   const markDelivered = useMutation({
     mutationFn: async (orderId: string) => {
-      const { error } = await supabase
-        .from('orders')
+      const { error } = await db
+        .from('dkai_orders')
         .update({ 
           seller_marked_delivered_at: new Date().toISOString(),
           status: 'awaiting_buyer_confirmation'

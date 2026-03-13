@@ -47,14 +47,14 @@ export function NotificationCenter() {
 
     loadNotifications();
 
-    const messagesChannel = supabase
+    const messagesChannel = db
       .channel('notification-messages')
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'messages',
+          table: 'dkai_messages',
           filter: `recipient_id=eq.${user.id}`,
         },
         (payload: any) => {

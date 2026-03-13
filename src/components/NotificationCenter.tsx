@@ -71,14 +71,14 @@ export function NotificationCenter() {
       )
       .subscribe();
 
-    const productsChannel = supabase
+    const productsChannel = db
       .channel('notification-products')
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'products',
+          table: 'dkai_products',
           filter: `seller_id=eq.${user.id}`,
         },
         (payload: any) => {

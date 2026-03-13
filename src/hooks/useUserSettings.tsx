@@ -33,7 +33,7 @@ export function useUserSettings() {
     queryKey: ['user-settings', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('dkai_user_settings')
         .select('*')
         .eq('user_id', user.id)

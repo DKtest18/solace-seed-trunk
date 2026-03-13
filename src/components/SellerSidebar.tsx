@@ -13,7 +13,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
 

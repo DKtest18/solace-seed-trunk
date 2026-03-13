@@ -30,9 +30,8 @@ Deno.serve(async (req) => {
 
     const { data: rawPosts, error: postsError } = await admin
       .from('dkai_community_posts')
-      .select('id, title, body, created_at, pinned, views_count, comments_count, attachment_file_name, attachment_key, author_id, product_id, seller_id, is_public')
+      .select('id, title, body, created_at, views_count, comments_count, attachment_file_name, attachment_key, author_id, product_id, seller_id, is_public')
       .eq('is_public', true)
-      .order('pinned', { ascending: false })
       .order('created_at', { ascending: false })
       .range(from, to);
 

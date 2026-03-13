@@ -60,9 +60,9 @@ export function SellerSidebar() {
 
     loadCounts();
 
-    const channel = supabase
+    const channel = db
       .channel('sidebar-updates')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => loadCounts())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'dkai_messages' }, () => loadCounts())
       .subscribe();
 
     return () => {

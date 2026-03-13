@@ -312,8 +312,8 @@ export default function Messages() {
       const profileMap = new Map(profiles?.map(p => [p.id, p]));
 
       // Get last message for each thread
-      const { data: lastMessages } = await supabase
-        .from('messages')
+      const { data: lastMessages } = await db
+        .from('dkai_messages')
         .select('thread_id, content, created_at, is_read, recipient_id')
         .in('thread_id', threadIds)
         .order('created_at', { ascending: false });

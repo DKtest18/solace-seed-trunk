@@ -57,7 +57,7 @@ export function Navbar() {
         {
           event: '*',
           schema: 'public',
-          table: 'messages',
+          table: 'dkai_messages',
         },
         () => loadUnreadCount()
       )

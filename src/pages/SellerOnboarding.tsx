@@ -89,8 +89,8 @@ export default function SellerOnboarding() {
     
     // Check if user already has 2FA enabled
     const check2FAStatus = async () => {
-      const { data: profile } = await supabase
-        .from('profiles')
+      const { data: profile } = await db
+        .from('dkai_profiles')
         .select('is_2fa_enabled')
         .eq('id', user.id)
         .single();

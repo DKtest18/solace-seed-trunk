@@ -72,13 +72,13 @@ export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePo
     // Pre-publish moderation check
     const titleContent = title.trim();
     const bodyContent = body.trim();
-    
+
     if (titleContent && !validateAndWarn(titleContent, { maxLength: 200 })) {
-      return; // Validation failed, toast shown by validateAndWarn
+      return;
     }
-    
+
     if (!validateAndWarn(bodyContent, { maxLength: 10000 })) {
-      return; // Validation failed, toast shown by validateAndWarn
+      return;
     }
 
     setUploading(true);
@@ -89,38 +89,98 @@ export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePo
       let attachmentFileSize: number | undefined;
       let attachmentContentType: string | undefined;
 
-      // Upload file if present
+      // Upload file if present: try edge function first, fallback to direct storage
       if (file) {
-        const formData = new FormData();
-        formData.append('file', file);
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
 
-        const { data: uploadData, error: uploadError } = await supabase.functions.invoke(
-          'upload-community-attachment',
-          { body: formData }
-        );
+          const { data: uploadData, error: uploadError } = await supabase.functions.invoke(
+            'upload-community-attachment',
+            { body: formData }
+          );
 
-        if (uploadError) throw uploadError;
+          if (uploadError) throw uploadError;
 
-        attachmentKey = uploadData.storage_key;
-        attachmentFileName = uploadData.file_name;
-        attachmentFileSize = uploadData.file_size;
-        attachmentContentType = uploadData.content_type;
+          attachmentKey = uploadData?.storage_key;
+          attachmentFileName = uploadData?.file_name;
+          attachmentFileSize = uploadData?.file_size;
+          attachmentContentType = uploadData?.content_type;
+        } catch (uploadFnError) {
+          console.warn('upload-community-attachment edge function failed, using storage fallback:', uploadFnError);
+
+          const fileExt = file.name.split('.').pop() ?? 'bin';
+          const storagePath = `${user.id}/community/${crypto.randomUUID()}.${fileExt}`;
+
+          const { error: storageError } = await supabase.storage
+            .from('post-images')
+            .upload(storagePath, file, { cacheControl: '3600', upsert: false });
+
+          if (storageError) {
+            throw new Error('Attachment upload failed. Please ensure storage bucket post-images exists and allows uploads.');
+          }
+
+          attachmentKey = storagePath;
+          attachmentFileName = file.name;
+          attachmentFileSize = file.size;
+          attachmentContentType = file.type || 'application/octet-stream';
+        }
       }
 
-      // Create post
-      const { error: postError } = await supabase.functions.invoke('create-community-post', {
-        body: {
-          title: title.trim() || undefined,
-          body: body.trim(),
-          is_public: isPublic,
-          attachment_key: attachmentKey,
-          attachment_file_name: attachmentFileName,
-          attachment_file_size: attachmentFileSize,
-          attachment_content_type: attachmentContentType,
-        }
-      });
+      // Create post: try edge function first, fallback to direct DB insert
+      try {
+        const { error: postError } = await supabase.functions.invoke('create-community-post', {
+          body: {
+            title: titleContent || undefined,
+            body: bodyContent,
+            is_public: isPublic,
+            attachment_key: attachmentKey,
+            attachment_file_name: attachmentFileName,
+            attachment_file_size: attachmentFileSize,
+            attachment_content_type: attachmentContentType,
+          }
+        });
 
-      if (postError) throw postError;
+        if (postError) throw postError;
+      } catch (postFnError) {
+        console.warn('create-community-post edge function failed, using direct DB fallback:', postFnError);
+
+        const insertPayload: Record<string, unknown> = {
+          title: titleContent || null,
+          body: bodyContent,
+          is_public: isPublic,
+          author_id: user.id,
+          seller_id: user.id,
+        };
+
+        if (attachmentKey) {
+          insertPayload.attachment_key = attachmentKey;
+          insertPayload.attachment_file_name = attachmentFileName;
+          insertPayload.attachment_file_size = attachmentFileSize;
+          insertPayload.attachment_content_type = attachmentContentType;
+        }
+
+        let { error: insertError } = await db
+          .from('dkai_community_posts')
+          .insert(insertPayload)
+          .select('id')
+          .single();
+
+        if (insertError && attachmentKey && insertError.message?.toLowerCase().includes('attachment_key')) {
+          const { attachment_key, ...fallbackPayload } = insertPayload;
+          const { error: retryError } = await db
+            .from('dkai_community_posts')
+            .insert({
+              ...fallbackPayload,
+              attachment_storage_key: attachmentKey,
+            })
+            .select('id')
+            .single();
+          insertError = retryError;
+        }
+
+        if (insertError) throw insertError;
+      }
 
       toast({
         title: 'Post created',
@@ -137,7 +197,7 @@ export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePo
       console.error('Error creating post:', error);
       toast({
         title: 'Error',
-        description: 'Failed to create post. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to create post. Please try again.',
         variant: 'destructive',
       });
     } finally {

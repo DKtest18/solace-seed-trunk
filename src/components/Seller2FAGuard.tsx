@@ -40,7 +40,7 @@ export function Seller2FAGuard({ children }: Seller2FAGuardProps) {
     if (!user) return;
     const check = async () => {
       const { data } = await supabase
-        .from('profiles')
+        .from('dkai_profiles')
         .select('is_2fa_enabled')
         .eq('id', user.id)
         .single();

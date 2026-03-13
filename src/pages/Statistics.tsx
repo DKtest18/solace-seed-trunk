@@ -81,7 +81,7 @@ export default function Statistics() {
       if (ordersError) throw ordersError;
 
       // Fetch products with categories
-      const { data: products, error: productsError } = await supabase
+      const { data: products, error: productsError } = await db
         .from('products')
         .select('id, product_type, title, total_sales, trending_score, recent_7day_sales, average_rating, category_id, product_categories(name)')
         .eq('is_published', true)

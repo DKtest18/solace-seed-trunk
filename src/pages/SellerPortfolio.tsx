@@ -710,10 +710,32 @@ export default function SellerPortfolio() {
       `📅 Completed: ${format(parseISO(product.completed_date), 'MMM d, yyyy')}`,
     ].filter(Boolean).join('\n');
     try {
+      const payload = { title: `Portfolio: ${product.title}`, body, is_public: true, seller_id: user.id };
+
       const { data, error } = await supabase.functions.invoke('create-community-post', {
-        body: { title: `Portfolio: ${product.title}`, body, is_public: true, seller_id: user.id },
+        body: payload,
       });
-      if (error) throw error;
+
+      if (error) {
+        const { data: fallbackPost, error: fallbackError } = await db
+          .from('dkai_community_posts')
+          .insert({
+            title: payload.title,
+            body: payload.body,
+            is_public: payload.is_public,
+            author_id: user.id,
+            seller_id: user.id,
+          })
+          .select('id')
+          .single();
+
+        if (fallbackError) throw fallbackError;
+
+        toast.success('Shared to community!');
+        if (fallbackPost?.id) navigate(`/community/${fallbackPost.id}`);
+        return;
+      }
+
       toast.success('Shared to community!');
       if (data?.id) navigate(`/community/${data.id}`);
     } catch (err: any) {

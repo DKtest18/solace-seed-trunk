@@ -34,10 +34,10 @@ export function useUserSettings() {
     queryFn: async () => {
       if (!user) return null;
       const { data, error } = await supabase
-        .from('user_settings')
+        .from('dkai_user_settings')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
       if (error && error.code !== 'PGRST116') throw error;
       return data as UserSettings | null;

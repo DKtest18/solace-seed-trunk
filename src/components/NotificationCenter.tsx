@@ -113,7 +113,7 @@ export function NotificationCenter() {
       const notifs: Notification[] = [];
 
       // Load unread messages
-      const { data: messages } = await supabase
+      const { data: messages } = await db
         .from('dkai_messages')
         .select('id, content, created_at, sender_id')
         .eq('recipient_id', user.id)

@@ -82,17 +82,12 @@ Deno.serve(async (req) => {
       enabled_at: new Date().toISOString(),
     }, { onConflict: 'user_id' });
 
-    // Also update profiles for legacy compatibility
-    await admin.from('profiles').update({
+    // Update dkai_profiles
+    await admin.from('dkai_profiles').upsert({
+      id: user.id,
       is_2fa_enabled: true,
       two_fa_secret: secret,
-    }).eq('id', user.id);
-
-    // Also update dkai_profiles
-    await admin.from('dkai_profiles').update({
-      is_2fa_enabled: true,
-      two_fa_secret: secret,
-    }).eq('id', user.id);
+    }, { onConflict: 'id' });
 
     return jsonResponse({ success: true });
   } catch (err) {

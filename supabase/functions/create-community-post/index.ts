@@ -9,17 +9,26 @@ Deno.serve(async (req) => {
   if (error || !user) return errorResponse('Unauthorized', 401);
 
   try {
-    const { title, body, is_public, seller_id } = await req.json();
+    const { title, body, is_public, seller_id, attachment_key, attachment_file_name, attachment_file_size, attachment_content_type } = await req.json();
     const admin = getServiceClient();
+
+    const insertData: Record<string, unknown> = {
+      title,
+      body,
+      is_public: is_public ?? true,
+      author_id: seller_id || user.id,
+    };
+
+    if (attachment_key) {
+      insertData.attachment_key = attachment_key;
+      insertData.attachment_file_name = attachment_file_name;
+      insertData.attachment_file_size = attachment_file_size;
+      insertData.attachment_content_type = attachment_content_type;
+    }
 
     const { data: post, error: postError } = await admin
       .from('dkai_community_posts')
-      .insert({
-        title,
-        body,
-        is_public: is_public ?? true,
-        author_id: seller_id || user.id,
-      })
+      .insert(insertData)
       .select()
       .single();
 

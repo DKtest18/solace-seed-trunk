@@ -64,7 +64,7 @@ export default function PurchaseHistory() {
 
   const confirmReceipt = useMutation({
     mutationFn: async (orderId: string) => {
-      const { data, error } = await supabase.functions.invoke('buyer-confirm-receipt', {
+      const { data, error } = await db.functions.invoke('buyer-confirm-receipt', {
         body: { orderId }
       });
       if (error) throw error;

@@ -81,7 +81,7 @@ export default function PurchaseHistory() {
 
   const requestRefund = useMutation({
     mutationFn: async ({ orderId, reason }: { orderId: string; reason: string }) => {
-      const { data, error } = await supabase.functions.invoke('request-refund', {
+      const { data, error } = await db.functions.invoke('request-refund', {
         body: { orderId, reason }
       });
       if (error) throw error;

@@ -65,10 +65,10 @@ export function useUserSettings() {
       }
       
       const { data: existing } = await supabase
-        .from('user_settings')
+        .from('dkai_user_settings')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         const { error } = await supabase

@@ -143,8 +143,8 @@ export default function SellerOnboarding() {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
+      const { error } = await db
+        .from('dkai_profiles')
         .update({
           full_name: `${firstName} ${lastName}`,
           is_age_verified: true,

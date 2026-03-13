@@ -68,7 +68,7 @@ export default function Messages() {
     
     try {
       const { error } = await supabase
-        .from('messages')
+        .from('dkai_messages')
         .update({ content: newContent.trim(), edited_at: new Date().toISOString() })
         .eq('id', messageId)
         .eq('sender_id', user?.id);

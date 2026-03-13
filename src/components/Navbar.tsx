@@ -64,7 +64,7 @@ export function Navbar() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      db.removeChannel(channel);
     };
   }, [user]);
 

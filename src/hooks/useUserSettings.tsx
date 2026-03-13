@@ -64,7 +64,7 @@ export function useUserSettings() {
         applyTheme(newSettings.theme_color);
       }
       
-      const { data: existing } = await supabase
+      const { data: existing } = await db
         .from('dkai_user_settings')
         .select('id')
         .eq('user_id', user.id)

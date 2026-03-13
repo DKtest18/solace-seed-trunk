@@ -101,8 +101,8 @@ export function NotificationCenter() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(messagesChannel);
-      supabase.removeChannel(productsChannel);
+      db.removeChannel(messagesChannel);
+      db.removeChannel(productsChannel);
     };
   }, [user]);
 

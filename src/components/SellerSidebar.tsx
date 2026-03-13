@@ -66,7 +66,7 @@ export function SellerSidebar() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      db.removeChannel(channel);
     };
   }, [user]);
 

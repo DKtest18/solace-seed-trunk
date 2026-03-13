@@ -67,9 +67,8 @@ export default function Community() {
 
     const { data: rawPosts, error: postsError } = await db
       .from('dkai_community_posts')
-      .select('id, title, body, created_at, pinned, views_count, comments_count, attachment_file_name, attachment_key, author_id, product_id, seller_id, is_public')
+      .select('id, title, body, created_at, views_count, comments_count, attachment_file_name, attachment_key, author_id, product_id, seller_id, is_public')
       .eq('is_public', true)
-      .order('pinned', { ascending: false })
       .order('created_at', { ascending: false })
       .range(from, to);
 
@@ -106,7 +105,7 @@ export default function Community() {
         title: post.title ?? null,
         body: post.body,
         created_at: post.created_at,
-        pinned: !!post.pinned,
+        pinned: false,
         views_count: post.views_count ?? 0,
         comments_count: post.comments_count ?? 0,
         has_attachment: !!(post.attachment_file_name || post.attachment_key),

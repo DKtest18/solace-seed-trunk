@@ -56,11 +56,11 @@ export default function SellerOnboardingIdentity() {
     }
 
     // Check age verification
-    const { data: profile } = await supabase
-      .from('profiles')
+    const { data: profile } = await db
+      .from('dkai_profiles')
       .select('is_age_verified, terms_accepted')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (profile) {
       setAgeConfirmed(!!profile.is_age_verified);

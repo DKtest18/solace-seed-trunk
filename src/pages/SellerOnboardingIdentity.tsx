@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { Loader2, ArrowLeft, CheckCircle2, FileText } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -39,11 +39,11 @@ export default function SellerOnboardingIdentity() {
   const checkExistingApplication = async () => {
     if (!user) return;
 
-    const { data: existingApp } = await supabase
-      .from('seller_applications')
+    const { data: existingApp } = await db
+      .from('dkai_seller_applications')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (existingApp) {
       setFormData({
@@ -56,11 +56,11 @@ export default function SellerOnboardingIdentity() {
     }
 
     // Check age verification
-    const { data: profile } = await supabase
-      .from('profiles')
+    const { data: profile } = await db
+      .from('dkai_profiles')
       .select('is_age_verified, terms_accepted')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (profile) {
       setAgeConfirmed(!!profile.is_age_verified);
@@ -93,8 +93,8 @@ export default function SellerOnboardingIdentity() {
     setLoading(true);
     try {
       // Update profile with age verification and terms
-      const { error: profileError } = await supabase
-        .from('profiles')
+      const { error: profileError } = await db
+        .from('dkai_profiles')
         .update({
           is_age_verified: ageConfirmed,
           age_verified_at: new Date().toISOString(),
@@ -106,8 +106,8 @@ export default function SellerOnboardingIdentity() {
       if (profileError) throw profileError;
 
       // Upsert seller application
-      const { error: appError } = await supabase
-        .from('seller_applications')
+      const { error: appError } = await db
+        .from('dkai_seller_applications')
         .upsert({
           user_id: user.id,
           first_name: formData.first_name,
@@ -115,7 +115,7 @@ export default function SellerOnboardingIdentity() {
           creator_name: formData.creator_name,
           bio: formData.bio,
           country: formData.country,
-          status: 'approved', // Auto-approve for now
+          status: 'approved',
           applied_at: new Date().toISOString(),
         });
 

@@ -93,8 +93,8 @@ export default function SellerOnboardingIdentity() {
     setLoading(true);
     try {
       // Update profile with age verification and terms
-      const { error: profileError } = await supabase
-        .from('profiles')
+      const { error: profileError } = await db
+        .from('dkai_profiles')
         .update({
           is_age_verified: ageConfirmed,
           age_verified_at: new Date().toISOString(),

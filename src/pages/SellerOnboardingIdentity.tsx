@@ -39,11 +39,11 @@ export default function SellerOnboardingIdentity() {
   const checkExistingApplication = async () => {
     if (!user) return;
 
-    const { data: existingApp } = await supabase
-      .from('seller_applications')
+    const { data: existingApp } = await db
+      .from('dkai_seller_applications')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (existingApp) {
       setFormData({

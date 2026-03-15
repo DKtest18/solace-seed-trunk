@@ -106,8 +106,8 @@ export default function SellerOnboardingIdentity() {
       if (profileError) throw profileError;
 
       // Upsert seller application
-      const { error: appError } = await supabase
-        .from('seller_applications')
+      const { error: appError } = await db
+        .from('dkai_seller_applications')
         .upsert({
           user_id: user.id,
           first_name: formData.first_name,
@@ -115,7 +115,7 @@ export default function SellerOnboardingIdentity() {
           creator_name: formData.creator_name,
           bio: formData.bio,
           country: formData.country,
-          status: 'approved', // Auto-approve for now
+          status: 'approved',
           applied_at: new Date().toISOString(),
         });
 

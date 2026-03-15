@@ -44,7 +44,8 @@ async function generateTOTPCode(secret: string, timeCounter: number): Promise<st
 async function verifyTOTP(secret: string, token: string): Promise<boolean> {
   if (!secret || !token || token.length !== 6) return false;
   const currentTime = Math.floor(Date.now() / 1000 / 30);
-  for (let i = -1; i <= 1; i++) {
+  // Wider window (±2 = ±60 seconds) to account for clock skew
+  for (let i = -2; i <= 2; i++) {
     const expectedCode = await generateTOTPCode(secret, currentTime + i);
     if (expectedCode === token) return true;
   }

@@ -169,6 +169,11 @@ export default function Profile() {
     }
   };
 
+  const handleAvatarDelete = () => {
+    setFormData(prev => ({ ...prev, avatar_url: '' }));
+    toast({ title: 'Avatar removed', description: 'Click "Save Changes" to persist the removal.' });
+  };
+
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;

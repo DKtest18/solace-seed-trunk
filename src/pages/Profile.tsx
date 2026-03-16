@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, User, Globe, MapPin, Mail, Calendar, Camera, AlertTriangle, Crop } from 'lucide-react';
+import { Loader2, User, Globe, MapPin, Mail, Calendar, Camera, AlertTriangle, Crop, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { AppLayout } from '@/components/AppLayout';
 import { useHasRole } from '@/hooks/useUserRole';
@@ -167,6 +167,11 @@ export default function Profile() {
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleAvatarDelete = () => {
+    setFormData(prev => ({ ...prev, avatar_url: '' }));
+    toast({ title: 'Avatar removed', description: 'Click "Save Changes" to persist the removal.' });
   };
 
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -455,13 +460,22 @@ export default function Profile() {
                 </div>
               </Label>
               {formData.avatar_url && (
-                <button
-                  type="button"
-                  onClick={() => setShowCropEditor(true)}
-                  className="absolute bottom-2 left-2 h-10 w-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center shadow-lg hover:bg-secondary/90 transition-colors"
-                >
-                  <Crop className="h-5 w-5" />
-                </button>
+                <div className="absolute bottom-2 left-2 flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowCropEditor(true)}
+                    className="h-10 w-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center shadow-lg hover:bg-secondary/90 transition-colors"
+                  >
+                    <Crop className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAvatarDelete}
+                    className="h-10 w-10 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg hover:bg-destructive/90 transition-colors"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                </div>
               )}
               <Input
                 id="avatar-upload"

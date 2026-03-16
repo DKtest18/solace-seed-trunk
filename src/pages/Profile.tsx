@@ -152,12 +152,12 @@ export default function Profile() {
       const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, file);
+        .from('avatars')
+        .upload(filePath, file, { cacheControl: '3600', upsert: true });
       if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage
-        .from('product-images')
+        .from('avatars')
         .getPublicUrl(filePath);
 
       setFormData(prev => ({ ...prev, avatar_url: urlData.publicUrl }));
@@ -210,12 +210,12 @@ export default function Profile() {
           const filePath = `${user.id}/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
-            .from('product-images')
-            .upload(filePath, file, { cacheControl: '3600', upsert: false });
+            .from('avatars')
+            .upload(filePath, file, { cacheControl: '3600', upsert: true });
           if (uploadError) throw uploadError;
 
           const { data: urlData } = supabase.storage
-            .from('product-images')
+            .from('avatars')
             .getPublicUrl(filePath);
 
           setBannerUrl(urlData.publicUrl);

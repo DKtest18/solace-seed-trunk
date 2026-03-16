@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, Upload, User, Globe, MapPin, Mail, Calendar, Camera, AlertTriangle, Crop } from 'lucide-react';
@@ -67,8 +68,8 @@ export default function Profile() {
   const fetchProfile = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from('profiles')
+    const { data, error } = await db
+      .from('dkai_profiles')
       .select('*')
       .eq('id', user.id)
       .single();
@@ -308,8 +309,8 @@ export default function Profile() {
 
     setLoading(true);
     try {
-      const { data: updatedData, error } = await supabase
-        .from('profiles')
+      const { data: updatedData, error } = await db
+        .from('dkai_profiles')
         .update({
           username: formData.username || null,
           full_name: formData.full_name || null,

@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, Upload, User, Globe, MapPin, Mail, Calendar, Camera, AlertTriangle, Crop } from 'lucide-react';
+import { Loader2, User, Globe, MapPin, Mail, Calendar, Camera, AlertTriangle, Crop } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { AppLayout } from '@/components/AppLayout';
 import { useHasRole } from '@/hooks/useUserRole';
@@ -29,6 +29,7 @@ export default function Profile() {
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [showCropEditor, setShowCropEditor] = useState(false);
+
   const [originalData, setOriginalData] = useState({
     username: '',
     full_name: '',
@@ -42,6 +43,7 @@ export default function Profile() {
     avatar_position_x: 50,
     avatar_position_y: 50,
   });
+
   const [formData, setFormData] = useState({
     username: '',
     full_name: '',
@@ -54,6 +56,7 @@ export default function Profile() {
     avatar_position_x: 50,
     avatar_position_y: 50,
   });
+
   const [bannerUrl, setBannerUrl] = useState('');
   const [previousBannerUrl, setPreviousBannerUrl] = useState('');
 
@@ -111,9 +114,8 @@ export default function Profile() {
     setHasUnsavedChanges(false);
   };
 
-  // Detect unsaved changes
   useEffect(() => {
-    const hasChanges = 
+    const hasChanges =
       formData.username !== originalData.username ||
       formData.full_name !== originalData.full_name ||
       formData.bio !== originalData.bio ||
@@ -125,7 +127,7 @@ export default function Profile() {
       formData.avatar_position_x !== originalData.avatar_position_x ||
       formData.avatar_position_y !== originalData.avatar_position_y ||
       bannerUrl !== originalData.banner_url;
-    
+
     setHasUnsavedChanges(hasChanges);
   }, [formData, bannerUrl, originalData]);
 
@@ -133,24 +135,13 @@ export default function Profile() {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type)) {
-      toast({
-        title: 'Invalid file type',
-        description: 'Please upload a JPG, PNG, or WebP image.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Invalid file type', description: 'Please upload a JPG, PNG, or WebP image.', variant: 'destructive' });
       return;
     }
-
-    // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: 'File too large',
-        description: 'Please upload an image smaller than 10MB.',
-        variant: 'destructive',
-      });
+      toast({ title: 'File too large', description: 'Please upload an image smaller than 10MB.', variant: 'destructive' });
       return;
     }
 
@@ -163,7 +154,6 @@ export default function Profile() {
       const { error: uploadError } = await supabase.storage
         .from('product-images')
         .upload(filePath, file);
-
       if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage
@@ -171,17 +161,9 @@ export default function Profile() {
         .getPublicUrl(filePath);
 
       setFormData(prev => ({ ...prev, avatar_url: urlData.publicUrl }));
-
-      toast({
-        title: 'Avatar uploaded',
-        description: 'Click "Save Changes" to persist your new avatar.',
-      });
+      toast({ title: 'Avatar uploaded', description: 'Click "Save Changes" to persist your new avatar.' });
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to upload avatar',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: error.message || 'Failed to upload avatar', variant: 'destructive' });
     } finally {
       setUploading(false);
     }
@@ -191,74 +173,45 @@ export default function Profile() {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type)) {
-      toast({
-        title: 'Invalid file type',
-        description: 'Please upload a JPG, PNG, or WebP image.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Invalid file type', description: 'Please upload a JPG, PNG, or WebP image.', variant: 'destructive' });
       return;
     }
-
-    // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: 'File too large',
-        description: 'Please upload an image smaller than 10MB.',
-        variant: 'destructive',
-      });
+      toast({ title: 'File too large', description: 'Please upload an image smaller than 10MB.', variant: 'destructive' });
       return;
     }
 
-    // Set max dimensions based on role
     const maxWidth = isAdmin ? 1536 : 1200;
     const maxHeight = isAdmin ? 1024 : 400;
 
     setUploadingBanner(true);
     try {
-      // Create image to check dimensions
       const img = new Image();
       const reader = new FileReader();
 
       reader.onload = async (event) => {
         img.src = event.target?.result as string;
         img.onload = async () => {
-          // Check minimum dimensions for admin
           if (isAdmin && (img.width < maxWidth || img.height < maxHeight)) {
-            toast({
-              title: 'Image too small',
-              description: `Admin banner must be at least ${maxWidth}×${maxHeight}px. Current: ${img.width}×${img.height}px`,
-              variant: 'destructive',
-            });
+            toast({ title: 'Image too small', description: `Admin banner must be at least ${maxWidth}×${maxHeight}px.`, variant: 'destructive' });
             setUploadingBanner(false);
             return;
           }
-
-          // Check maximum dimensions
           if (img.width > maxWidth || img.height > maxHeight) {
-            toast({
-              title: 'Image too large',
-              description: `Banner size must be max ${maxWidth}×${maxHeight}px. Current: ${img.width}×${img.height}px`,
-              variant: 'destructive',
-            });
+            toast({ title: 'Image too large', description: `Banner max ${maxWidth}×${maxHeight}px. Current: ${img.width}×${img.height}px`, variant: 'destructive' });
             setUploadingBanner(false);
             return;
           }
 
           const fileExt = file.name.split('.').pop();
-          // Use versioned filename for cache busting
           const fileName = `${user.id}-banner-${Date.now()}.${fileExt}`;
           const filePath = `${user.id}/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
             .from('product-images')
-            .upload(filePath, file, {
-              cacheControl: '3600',
-              upsert: false
-            });
-
+            .upload(filePath, file, { cacheControl: '3600', upsert: false });
           if (uploadError) throw uploadError;
 
           const { data: urlData } = supabase.storage
@@ -266,32 +219,20 @@ export default function Profile() {
             .getPublicUrl(filePath);
 
           setBannerUrl(urlData.publicUrl);
-
-          toast({
-            title: 'Banner uploaded',
-            description: 'Click "Save Changes" to persist your new banner.',
-          });
+          toast({ title: 'Banner uploaded', description: 'Click "Save Changes" to persist your new banner.' });
           setUploadingBanner(false);
         };
       };
-
       reader.readAsDataURL(file);
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to upload banner',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: error.message || 'Failed to upload banner', variant: 'destructive' });
       setUploadingBanner(false);
     }
   };
 
   const handleRevertBanner = () => {
     setBannerUrl(previousBannerUrl);
-    toast({
-      title: 'Reverted',
-      description: 'Banner reverted to previously saved image.',
-    });
+    toast({ title: 'Reverted', description: 'Banner reverted to previously saved image.' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -302,8 +243,8 @@ export default function Profile() {
       toast({ title: 'Required', description: 'Display Name is required.', variant: 'destructive' });
       return;
     }
-    if (!formData.bio.trim()) {
-      toast({ title: 'Required', description: 'Bio / Description is required.', variant: 'destructive' });
+    if (!formData.username.trim()) {
+      toast({ title: 'Required', description: 'Username is required.', variant: 'destructive' });
       return;
     }
 
@@ -330,7 +271,6 @@ export default function Profile() {
 
       if (error) throw error;
 
-      // Read back from DB to confirm persistence
       const savedData = {
         username: updatedData.username || '',
         full_name: updatedData.full_name || '',
@@ -361,17 +301,9 @@ export default function Profile() {
       setPreviousBannerUrl(savedData.banner_url);
       setHasUnsavedChanges(false);
 
-      toast({
-        title: 'Success',
-        description: 'Profile saved successfully.',
-      });
+      toast({ title: 'Success', description: 'Profile saved successfully.' });
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update profile',
-        variant: 'destructive',
-      });
-      // Revert to previous state on error
+      toast({ title: 'Error', description: error.message || 'Failed to update profile', variant: 'destructive' });
       setFormData({
         username: originalData.username,
         full_name: originalData.full_name,
@@ -416,11 +348,8 @@ export default function Profile() {
     setHasUnsavedChanges(false);
     setShowUnsavedDialog(false);
     if (pendingNavigation) {
-      if (pendingNavigation === 'back') {
-        navigate(-1);
-      } else {
-        navigate(pendingNavigation);
-      }
+      if (pendingNavigation === 'back') navigate(-1);
+      else navigate(pendingNavigation);
       setPendingNavigation(null);
     }
   };
@@ -430,248 +359,224 @@ export default function Profile() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-background">
-      {/* Banner */}
-      <div className="relative h-48 md:h-64 bg-gradient-to-br from-primary/20 via-primary/10 to-background overflow-hidden group">
-        {bannerUrl && (
-          <img src={bannerUrl} alt="Profile banner" className="w-full h-full object-cover" />
-        )}
-        <Label htmlFor="banner-upload" className="absolute top-4 right-4 cursor-pointer">
-          <Button 
-            type="button" 
-            variant="secondary" 
-            size="sm" 
+        {/* Banner Section */}
+        <div className="relative h-48 md:h-64 bg-gradient-to-br from-primary/20 via-primary/10 to-background overflow-hidden group">
+          {bannerUrl && (
+            <img src={bannerUrl} alt="Profile banner" className="w-full h-full object-cover" />
+          )}
+          <div className="absolute top-4 right-4 flex gap-2">
+            <Label htmlFor="banner-upload" className="cursor-pointer">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={uploadingBanner}
+                className="bg-background/80 backdrop-blur-sm hover:bg-background/90"
+                asChild
+              >
+                <span>
+                  {uploadingBanner ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Camera className="h-4 w-4 mr-2" />
+                  )}
+                  Edit Banner
+                </span>
+              </Button>
+            </Label>
+            {bannerUrl !== previousBannerUrl && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleRevertBanner}
+                className="bg-background/80 backdrop-blur-sm hover:bg-background/90"
+              >
+                Revert
+              </Button>
+            )}
+          </div>
+          <Input
+            id="banner-upload"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleBannerUpload}
             disabled={uploadingBanner}
-            className="bg-background/80 backdrop-blur-sm hover:bg-background/90"
-            asChild
-          >
-            <span>
-              {uploadingBanner ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Camera className="h-4 w-4 mr-2" />
-              )}
-              Edit Banner
-            </span>
-          </Button>
-        </Label>
-        <Input
-          id="banner-upload"
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleBannerUpload}
-          disabled={uploadingBanner}
-        />
-      </div>
+          />
+        </div>
 
-      <div className="max-w-5xl mx-auto px-4 -mt-20 pb-12">
-        <form onSubmit={handleSubmit}>
-          <div className="flex flex-col md:flex-row gap-6 items-start">
-            {/* Avatar Section */}
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative group">
-                <Avatar className="h-40 w-40 border-4 border-background shadow-xl overflow-hidden">
-                  <AvatarImage 
-                    src={formData.avatar_url} 
-                    style={getAvatarCropStyle(formData.avatar_zoom, formData.avatar_position_x, formData.avatar_position_y)}
-                  />
-                  <AvatarFallback className="text-4xl">
-                    <User className="h-20 w-20" />
-                  </AvatarFallback>
-                </Avatar>
-                <Label 
-                  htmlFor="avatar-upload" 
-                  className="absolute bottom-2 right-2 cursor-pointer"
-                >
-                  <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors">
-                    {uploading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <Camera className="h-5 w-5" />
-                    )}
-                  </div>
-                </Label>
-                {formData.avatar_url && (
-                  <button
-                    type="button"
-                    onClick={() => setShowCropEditor(true)}
-                    className="absolute bottom-2 left-2 h-10 w-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center shadow-lg hover:bg-secondary/90 transition-colors"
-                  >
-                    <Crop className="h-5 w-5" />
-                  </button>
-                )}
-                <Input
-                  id="avatar-upload"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleAvatarUpload}
-                  disabled={uploading}
+        {/* Avatar overlapping banner */}
+        <div className="max-w-3xl mx-auto px-4 -mt-20">
+          <div className="flex flex-col items-center">
+            <div className="relative group">
+              <Avatar className="h-40 w-40 border-4 border-background shadow-xl overflow-hidden">
+                <AvatarImage
+                  src={formData.avatar_url}
+                  style={getAvatarCropStyle(formData.avatar_zoom, formData.avatar_position_x, formData.avatar_position_y)}
                 />
-              </div>
-            </div>
-
-            {/* Main Info */}
-            <div className="flex-1 space-y-6 mt-6 md:mt-0">
-              <Card className="border-0 shadow-none bg-transparent">
-                <CardContent className="p-0 space-y-4">
-                  {/* Display Name & Username */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="full_name" className="text-sm font-medium">
-                        Display Name <span className="text-destructive">*</span>
-                      </Label>
-                      <Input
-                        id="full_name"
-                        placeholder="John Doe"
-                        value={formData.full_name}
-                        onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-                        className="text-lg font-semibold"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="username" className="text-sm font-medium">
-                        Username
-                      </Label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                          @
-                        </span>
-                        <Input
-                          id="username"
-                          placeholder="johndoe"
-                          value={formData.username}
-                          onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
-                          className="pl-7"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Bio */}
-                  <div className="space-y-2">
-                    <Label htmlFor="bio" className="text-sm font-medium">
-                      Bio <span className="text-destructive">*</span>
-                    </Label>
-                    <Textarea
-                      id="bio"
-                      placeholder="Tell people about yourself in a few words..."
-                      value={formData.bio}
-                      onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                      rows={3}
-                      maxLength={150}
-                      className="resize-none"
-                    />
-                    <p className="text-xs text-muted-foreground text-right">
-                      {formData.bio.length}/150
-                    </p>
-                  </div>
-
-                  <Separator />
-
-                  {/* Extended Bio */}
-                  <div className="space-y-2">
-                    <Label htmlFor="expanded_bio" className="text-sm font-medium">
-                      About
-                    </Label>
-                    <Textarea
-                      id="expanded_bio"
-                      placeholder="Share your story, interests, or anything you'd like people to know..."
-                      value={formData.expanded_bio}
-                      onChange={(e) => setFormData(prev => ({ ...prev, expanded_bio: e.target.value }))}
-                      rows={5}
-                      className="resize-none"
-                    />
-                  </div>
-
-                  <Separator />
-
-                  {/* Additional Info */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="website_url" className="text-sm font-medium flex items-center gap-2">
-                        <Globe className="h-4 w-4" />
-                        Website
-                      </Label>
-                      <Input
-                        id="website_url"
-                        type="url"
-                        placeholder="https://yourwebsite.com"
-                        value={formData.website_url}
-                        onChange={(e) => setFormData(prev => ({ ...prev, website_url: e.target.value }))}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="country" className="text-sm font-medium flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        Location
-                      </Label>
-                      <Input
-                        id="country"
-                        placeholder="New York, USA"
-                        value={formData.country}
-                        onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Email & Join Date */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Mail className="h-4 w-4" />
-                      <span>{user.email}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      <span>Joined {new Date(user.created_at || '').toLocaleDateString()}</span>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-col gap-3 pt-4">
-                    {hasUnsavedChanges && (
-                      <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 p-3 rounded-md">
-                        <AlertTriangle className="h-4 w-4" />
-                        <span>You have unsaved changes</span>
-                      </div>
-                    )}
-                    <div className="flex gap-3">
-                      <Button 
-                        type="submit" 
-                        disabled={loading || !hasUnsavedChanges} 
-                        className="flex-1"
-                      >
-                        {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                        Save Changes
-                      </Button>
-                      {bannerUrl !== previousBannerUrl && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={handleRevertBanner}
-                          disabled={loading}
-                        >
-                          Revert Banner
-                        </Button>
-                      )}
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleCancel}
-                        disabled={loading}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                <AvatarFallback className="text-4xl">
+                  <User className="h-20 w-20" />
+                </AvatarFallback>
+              </Avatar>
+              <Label htmlFor="avatar-upload" className="absolute bottom-2 right-2 cursor-pointer">
+                <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors">
+                  {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
+                </div>
+              </Label>
+              {formData.avatar_url && (
+                <button
+                  type="button"
+                  onClick={() => setShowCropEditor(true)}
+                  className="absolute bottom-2 left-2 h-10 w-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center shadow-lg hover:bg-secondary/90 transition-colors"
+                >
+                  <Crop className="h-5 w-5" />
+                </button>
+              )}
+              <Input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarUpload}
+                disabled={uploading}
+              />
             </div>
           </div>
-        </form>
-      </div>
+
+          {/* Profile Form - pushed below avatar */}
+          <form onSubmit={handleSubmit} className="mt-8 pb-12">
+            <Card>
+              <CardContent className="pt-6 space-y-6">
+                {/* Display Name & Username - Required */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="full_name" className="text-sm font-medium">
+                      Display Name <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="full_name"
+                      placeholder="John Doe"
+                      value={formData.full_name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                      className="text-lg font-semibold"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="username" className="text-sm font-medium">
+                      Username <span className="text-destructive">*</span>
+                    </Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
+                      <Input
+                        id="username"
+                        placeholder="johndoe"
+                        value={formData.username}
+                        onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                        className="pl-7"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Bio - Optional */}
+                <div className="space-y-2">
+                  <Label htmlFor="bio" className="text-sm font-medium">Bio</Label>
+                  <Textarea
+                    id="bio"
+                    placeholder="Tell people about yourself in a few words..."
+                    value={formData.bio}
+                    onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                    rows={3}
+                    maxLength={150}
+                    className="resize-none"
+                  />
+                  <p className="text-xs text-muted-foreground text-right">{formData.bio.length}/150</p>
+                </div>
+
+                <Separator />
+
+                {/* About - Optional */}
+                <div className="space-y-2">
+                  <Label htmlFor="expanded_bio" className="text-sm font-medium">About</Label>
+                  <Textarea
+                    id="expanded_bio"
+                    placeholder="Share your story, interests, or anything you'd like people to know..."
+                    value={formData.expanded_bio}
+                    onChange={(e) => setFormData(prev => ({ ...prev, expanded_bio: e.target.value }))}
+                    rows={5}
+                    className="resize-none"
+                  />
+                </div>
+
+                <Separator />
+
+                {/* Website & Location - Optional */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="website_url" className="text-sm font-medium flex items-center gap-2">
+                      <Globe className="h-4 w-4" /> Website
+                    </Label>
+                    <Input
+                      id="website_url"
+                      type="url"
+                      placeholder="https://yourwebsite.com"
+                      value={formData.website_url}
+                      onChange={(e) => setFormData(prev => ({ ...prev, website_url: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="country" className="text-sm font-medium flex items-center gap-2">
+                      <MapPin className="h-4 w-4" /> Location
+                    </Label>
+                    <Input
+                      id="country"
+                      placeholder="New York, USA"
+                      value={formData.country}
+                      onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Read-only info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Mail className="h-4 w-4" />
+                    <span>{user.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>Joined {new Date(user.created_at || '').toLocaleDateString()}</span>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Actions */}
+                {hasUnsavedChanges && (
+                  <div className="flex items-center gap-2 text-sm text-warning bg-warning/10 p-3 rounded-md">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>You have unsaved changes</span>
+                  </div>
+                )}
+                <div className="flex gap-3">
+                  <Button type="submit" disabled={loading || !hasUnsavedChanges} className="flex-1">
+                    {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                    Save Changes
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
+                    Cancel
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </form>
+        </div>
       </div>
 
       {/* Unsaved Changes Dialog */}
@@ -684,9 +589,7 @@ export default function Profile() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowUnsavedDialog(false)}>
-              Stay on Page
-            </AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setShowUnsavedDialog(false)}>Stay on Page</AlertDialogCancel>
             <AlertDialogAction onClick={handleDiscardChanges} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Discard Changes
             </AlertDialogAction>
@@ -704,12 +607,7 @@ export default function Profile() {
           initialPositionX={formData.avatar_position_x}
           initialPositionY={formData.avatar_position_y}
           onSave={(zoom, posX, posY) => {
-            setFormData(prev => ({
-              ...prev,
-              avatar_zoom: zoom,
-              avatar_position_x: posX,
-              avatar_position_y: posY,
-            }));
+            setFormData(prev => ({ ...prev, avatar_zoom: zoom, avatar_position_x: posX, avatar_position_y: posY }));
           }}
         />
       )}

@@ -309,8 +309,8 @@ export default function Profile() {
 
     setLoading(true);
     try {
-      const { data: updatedData, error } = await supabase
-        .from('profiles')
+      const { data: updatedData, error } = await db
+        .from('dkai_profiles')
         .update({
           username: formData.username || null,
           full_name: formData.full_name || null,

@@ -248,6 +248,36 @@ export default function Profile() {
       return;
     }
 
+    // Check if username is already taken by another user
+    if (formData.username !== originalData.username) {
+      const { data: existingUsername } = await db
+        .from('dkai_profiles')
+        .select('id')
+        .eq('username', formData.username.trim())
+        .neq('id', user.id)
+        .maybeSingle();
+
+      if (existingUsername) {
+        toast({ title: 'Username taken', description: 'This username is already in use. Please choose another.', variant: 'destructive' });
+        return;
+      }
+    }
+
+    // Check if display name is already taken by another user
+    if (formData.full_name !== originalData.full_name) {
+      const { data: existingName } = await db
+        .from('dkai_profiles')
+        .select('id')
+        .eq('full_name', formData.full_name.trim())
+        .neq('id', user.id)
+        .maybeSingle();
+
+      if (existingName) {
+        toast({ title: 'Display Name taken', description: 'This display name is already in use. Please choose another.', variant: 'destructive' });
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const { data: updatedData, error } = await db

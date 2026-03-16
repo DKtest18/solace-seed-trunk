@@ -68,8 +68,8 @@ export default function Profile() {
   const fetchProfile = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from('profiles')
+    const { data, error } = await db
+      .from('dkai_profiles')
       .select('*')
       .eq('id', user.id)
       .single();

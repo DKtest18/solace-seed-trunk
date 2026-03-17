@@ -10,8 +10,8 @@ Deno.serve(async (req) => {
 
   try {
     const { type, context } = await req.json();
-    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
-    if (!anthropicKey) return errorResponse('Anthropic API key not configured', 500);
+    const googleKey = Deno.env.get('GOOGLE_API_KEY');
+    if (!googleKey) return errorResponse('Google API key not configured', 500);
 
     let prompt = '';
     let systemPrompt = 'You are a helpful assistant for the DK AI Marketplace – a digital trading platform. Always respond in English by default.';
@@ -25,31 +25,27 @@ Deno.serve(async (req) => {
       return errorResponse('Unknown AI assistant type');
     }
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 500,
-        system: systemPrompt,
-        messages: [
-          { role: 'user', content: prompt },
-        ],
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${googleKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 500 },
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error('Anthropic API error:', response.status, errText);
+      console.error('Google Gemini API error:', response.status, errText);
       return errorResponse('AI service error', 500);
     }
 
     const data = await response.json();
-    const content = data.content?.[0]?.text || '';
+    const content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
     return jsonResponse({ content });
   } catch (err) {

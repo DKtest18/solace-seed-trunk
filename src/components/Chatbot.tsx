@@ -39,7 +39,7 @@ export function Chatbot() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('ai-assistant', {
+      const { data, error } = await supabase.functions.invoke('dkaim_ai_assistant', {
         body: {
           type: 'chatbot',
           context: { message: input },

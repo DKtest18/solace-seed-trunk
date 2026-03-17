@@ -97,7 +97,8 @@ const App = () => (
           <UserSettingsProvider>
             <MeetingInfoModalProvider>
               <Navbar />
-              <Chatbot />
+              {/* AI Assistant deaktiviert – zum Aktivieren: <Chatbot /> einkommentieren */}
+              {/* <Chatbot /> */}
               <CookieConsent />
               <Optional2FAPrompt />
               <Routes>

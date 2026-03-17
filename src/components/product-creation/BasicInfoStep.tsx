@@ -70,7 +70,8 @@ export function BasicInfoStep({ data, onChange, errors }: BasicInfoStepProps) {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="description">Description *</Label>
-          <AIAssistantButton
+          {/* AI Assistant deaktiviert – zum Aktivieren einkommentieren */}
+          {/* <AIAssistantButton
             type="product_description"
             context={{
               title: data.title,
@@ -78,7 +79,7 @@ export function BasicInfoStep({ data, onChange, errors }: BasicInfoStepProps) {
               purpose: data.demo_url,
             }}
             onGenerated={(content) => onChange('description', content)}
-          />
+          /> */}
         </div>
         <Textarea
           id="description"

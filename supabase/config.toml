@@ -1,7 +1,7 @@
 [project]
 id = "dwqpkdatzdqhplgyhigg"
 
-[functions.ai-assistant]
+[functions.dkaim_ai_assistant]
 verify_jwt = false
 
 [functions.admin-escrow-action]

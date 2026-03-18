@@ -148,8 +148,8 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
     try {
       if (editing && userReview) {
         // Update existing review
-        const { error } = await supabase
-          .from("reviews")
+        const { error } = await db
+          .from("dkai_reviews")
           .update({
             rating,
             comment: comment.trim() || null,

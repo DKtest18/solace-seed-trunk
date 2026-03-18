@@ -119,8 +119,8 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
 
   const updateProductRating = async () => {
     // Calculate and update product's cached rating
-    const { data: allReviews } = await supabase
-      .from("reviews")
+    const { data: allReviews } = await db
+      .from("dkai_reviews")
       .select("rating")
       .eq("product_id", productId);
 

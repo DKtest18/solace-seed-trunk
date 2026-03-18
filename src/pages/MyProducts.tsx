@@ -92,8 +92,8 @@ export default function MyProducts() {
     setTogglingProductId(productId);
 
     try {
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .update({ is_published: !currentStatus })
         .eq('id', productId);
 

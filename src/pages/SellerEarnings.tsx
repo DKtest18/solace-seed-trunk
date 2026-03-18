@@ -26,8 +26,8 @@ export default function SellerEarnings() {
       if (!user) return null;
 
       // Get all seller's products
-      const { data: products, error: productsError } = await supabase
-        .from('products')
+      const { data: products, error: productsError } = await db
+        .from('dkai_products')
         .select('id, title, product_type, price')
         .eq('seller_id', user.id);
 

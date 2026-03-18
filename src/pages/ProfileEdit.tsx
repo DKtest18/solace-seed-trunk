@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, Upload, User, Globe, MapPin } from 'lucide-react';
@@ -37,8 +38,8 @@ export default function ProfileEdit() {
   const fetchProfile = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from('profiles')
+    const { data, error } = await db
+      .from('dkai_profiles')
       .select('*')
       .eq('id', user.id)
       .single();
@@ -66,16 +67,16 @@ export default function ProfileEdit() {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('product-images')
+        .from('avatars')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage
-        .from('product-images')
+        .from('avatars')
         .getPublicUrl(filePath);
 
       setFormData(prev => ({ ...prev, avatar_url: urlData.publicUrl }));
@@ -101,8 +102,8 @@ export default function ProfileEdit() {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
+      const { error } = await db
+        .from('dkai_profiles')
         .update({
           username: formData.username || null,
           full_name: formData.full_name || null,
@@ -110,6 +111,7 @@ export default function ProfileEdit() {
           website_url: formData.website_url || null,
           country: formData.country || null,
           avatar_url: formData.avatar_url || null,
+          updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
 

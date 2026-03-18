@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, XCircle, Loader2, ChevronRight, Sparkles } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 
 export default function SellerOnboardingChecklist() {
   const { user } = useAuth();
@@ -32,11 +32,9 @@ export default function SellerOnboardingChecklist() {
     }
 
     // Add seller role if not already present
-    const { error } = await supabase
-      .from('user_roles')
-      .insert({ user_id: user.id, role: 'seller' })
-      .select()
-      .single();
+    const { error } = await db
+      .from('dkai_user_roles')
+      .insert({ user_id: user.id, role: 'seller' });
 
     if (error && !error.message.includes('duplicate')) {
       toast({
@@ -68,7 +66,6 @@ export default function SellerOnboardingChecklist() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-12 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
         <div className="text-center space-y-4">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
             <Sparkles className="h-8 w-8 text-primary" />
@@ -79,7 +76,6 @@ export default function SellerOnboardingChecklist() {
           </p>
         </div>
 
-        {/* Progress Card */}
         <Card className="border-2">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -99,7 +95,6 @@ export default function SellerOnboardingChecklist() {
           </CardContent>
         </Card>
 
-        {/* Checklist */}
         <Card>
           <CardHeader>
             <CardTitle>Onboarding Checklist</CardTitle>
@@ -115,7 +110,6 @@ export default function SellerOnboardingChecklist() {
                   className="w-full group hover:bg-muted/50 rounded-lg p-4 transition-colors text-left"
                 >
                   <div className="flex items-start gap-4">
-                    {/* Status Icon */}
                     <div className="flex-shrink-0 mt-1">
                       {step.completed ? (
                         <CheckCircle2 className="h-6 w-6 text-green-500" />
@@ -123,30 +117,20 @@ export default function SellerOnboardingChecklist() {
                         <XCircle className="h-6 w-6 text-destructive/70" />
                       )}
                     </div>
-
-                    {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-base group-hover:text-primary transition-colors">
                           {step.title}
                         </h3>
                         {step.required && (
-                          <Badge variant="outline" className="text-xs">
-                            Required
-                          </Badge>
+                          <Badge variant="outline" className="text-xs">Required</Badge>
                         )}
                         {step.completed && (
-                          <Badge variant="default" className="text-xs bg-green-500">
-                            Complete
-                          </Badge>
+                          <Badge variant="default" className="text-xs bg-green-500">Complete</Badge>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {step.description}
-                      </p>
+                      <p className="text-sm text-muted-foreground">{step.description}</p>
                     </div>
-
-                    {/* Arrow */}
                     <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-1" />
                   </div>
                 </button>
@@ -156,7 +140,6 @@ export default function SellerOnboardingChecklist() {
           </CardContent>
         </Card>
 
-        {/* Finish Button */}
         {onboarding.allRequiredComplete && (
           <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
             <CardContent className="pt-6">
@@ -179,7 +162,6 @@ export default function SellerOnboardingChecklist() {
           </Card>
         )}
 
-        {/* Help Card */}
         <Card className="bg-muted/50">
           <CardContent className="pt-6">
             <div className="text-center text-sm text-muted-foreground">

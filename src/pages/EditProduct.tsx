@@ -88,8 +88,8 @@ export default function EditProduct() {
 
     const loadProduct = async () => {
       try {
-        const { data: product, error } = await supabase
-          .from('products')
+        const { data: product, error } = await db
+          .from('dkai_products')
           .select('*')
           .eq('id', id)
           .single();

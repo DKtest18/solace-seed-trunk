@@ -16,8 +16,8 @@ export default function SellerProfile() {
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['seller-profile', sellerId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
+      const { data, error } = await db
+        .from('dkai_profiles')
         .select('*')
         .eq('id', sellerId)
         .single();

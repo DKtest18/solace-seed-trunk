@@ -97,10 +97,10 @@ export default function TopProducts() {
       if (error) throw error;
       
       // Transform data to include category info
-      return data?.map(product => ({
+      return data?.map((product: any) => ({
         ...product,
-        category_name: product.product_categories?.name || null,
-        category_icon: product.product_categories?.icon || null,
+        category_name: (product as any).product_categories?.name || null,
+        category_icon: (product as any).product_categories?.icon || null,
       })) as TopProduct[];
     },
     staleTime: 1000 * 60 * 5, // 5 minute cache

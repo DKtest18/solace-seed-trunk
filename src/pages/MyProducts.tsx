@@ -37,6 +37,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { SellerSidebar } from '@/components/SellerSidebar';
 import { db } from '@/lib/dkaiDb';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 

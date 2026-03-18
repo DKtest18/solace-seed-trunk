@@ -8,6 +8,7 @@ import Autoplay from 'embla-carousel-autoplay';
 import { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
+import { RatingDisplay } from '@/components/RatingDisplay';
 import { TrendingUp } from 'lucide-react';
 
 export function FeaturedProducts() {

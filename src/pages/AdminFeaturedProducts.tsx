@@ -51,8 +51,8 @@ export default function AdminFeaturedProducts() {
   const { data: lastRecalc } = useQuery({
     queryKey: ['trending-last-recalc'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('product_rankings')
+      const { data, error } = await db
+        .from('dkai_product_rankings')
         .select('last_calculated_at')
         .order('last_calculated_at', { ascending: false })
         .limit(1)

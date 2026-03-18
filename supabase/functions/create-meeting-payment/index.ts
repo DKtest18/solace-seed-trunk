@@ -10,14 +10,14 @@ Deno.serve(async (req) => {
 
   try {
     const { meeting_request_id, meeting_id, amount, seller_id } = await req.json();
-    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
-    if (!stripeKey) return errorResponse('Stripe not configured', 500);
+    const stripeKey = Deno.env.get('DKAIM_STRIPE_SECRET_KEY');
+    if (!stripeKey) return errorResponse('Stripe not configured: DKAIM_STRIPE_SECRET_KEY missing', 500);
 
     const admin = getServiceClient();
 
     // Get seller's Stripe account for direct payment
     const { data: seller } = await admin
-      .from('dkai_seller_profiles')
+      .from('dkaim_user_id')
       .select('stripe_account_id')
       .eq('user_id', seller_id)
       .single();

@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
 
     // Check if seller already has a Stripe account
     const { data: seller } = await admin
-      .from('dkai_seller_profiles')
+      .from('dkaim_user_id')
       .select('stripe_account_id')
       .eq('user_id', user.id)
       .single();
@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
       if (account.error) throw new Error(account.error.message);
       accountId = account.id;
 
-      await admin.from('dkai_seller_profiles').upsert({
+      await admin.from('dkaim_user_id').upsert({
         user_id: user.id,
         stripe_account_id: accountId,
         stripe_onboarded: false,

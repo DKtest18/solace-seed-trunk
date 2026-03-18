@@ -320,8 +320,8 @@ export default function CreateProduct() {
         }
 
         if (Object.keys(profileUpdates).length > 0) {
-          await supabase
-            .from('profiles')
+          await db
+            .from('dkai_profiles')
             .update(profileUpdates)
             .eq('id', user!.id);
         }

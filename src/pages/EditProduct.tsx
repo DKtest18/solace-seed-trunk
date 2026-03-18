@@ -274,8 +274,8 @@ export default function EditProduct() {
       }
 
       // Delete product
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .delete()
         .eq('id', id);
 

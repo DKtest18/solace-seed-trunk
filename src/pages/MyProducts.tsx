@@ -115,8 +115,8 @@ export default function MyProducts() {
     setResubmittingProductId(productId);
 
     try {
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .update({ 
           approval_status: 'pending',
           admin_rejection_reason: null,

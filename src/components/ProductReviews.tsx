@@ -52,8 +52,8 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
   const fetchReviews = async () => {
     try {
       // First get reviews
-      const { data: reviewsData, error } = await supabase
-        .from("reviews")
+      const { data: reviewsData, error } = await db
+        .from("dkai_reviews")
         .select("*")
         .eq("product_id", productId)
         .order("created_at", { ascending: false });

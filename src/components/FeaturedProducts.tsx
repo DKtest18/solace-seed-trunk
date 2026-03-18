@@ -23,7 +23,7 @@ export function FeaturedProducts() {
       const { data, error } = await db
         .from('dkai_products')
         .select('*')
-        .eq('is_featured', true)
+        .eq('is_published', true)
         .eq('is_published', true)
         .eq('approval_status', 'approved')
         .order('trending_score', { ascending: false, nullsFirst: false })

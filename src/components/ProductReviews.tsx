@@ -106,8 +106,8 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
     }
 
     // Check if user has purchased this product (must match RLS policy statuses)
-    const { data: orders } = await supabase
-      .from("orders")
+    const { data: orders } = await db
+      .from("dkai_orders")
       .select("id")
       .eq("product_id", productId)
       .eq("buyer_id", user.id)

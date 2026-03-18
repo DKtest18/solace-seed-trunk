@@ -246,8 +246,8 @@ export default function EditProduct() {
     try {
       const newPublishStatus = !formData.is_published;
 
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .update({ is_published: newPublishStatus })
         .eq('id', id);
 

@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { db } from '@/lib/dkaiDb';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { RulesAcceptanceStep } from '@/components/RulesAcceptanceStep';
@@ -66,14 +66,13 @@ export default function SellerOnboarding() {
       return;
     }
     
-    // Check if user is admin - redirect to admin dashboard
     const checkUserRole = async () => {
-      const { data: roles } = await supabase
-        .from('user_roles')
+      const { data: roles } = await db
+        .from('dkai_user_roles')
         .select('role')
         .eq('user_id', user.id);
 
-      const isAdmin = roles?.some(r => r.role === 'admin');
+      const isAdmin = roles?.some((r: any) => r.role === 'admin');
       
       if (isAdmin) {
         navigate('/admin');
@@ -87,7 +86,6 @@ export default function SellerOnboarding() {
     
     checkUserRole();
     
-    // Check if user already has 2FA enabled
     const check2FAStatus = async () => {
       const { data: profile } = await db
         .from('dkai_profiles')
@@ -96,10 +94,8 @@ export default function SellerOnboarding() {
         .single();
       
       if (profile?.is_2fa_enabled) {
-        // Skip 2FA setup if already enabled
         console.log('2FA already enabled, skipping setup step');
       } else {
-        // Generate 2FA secret for QR code display only
         const secret = generateTOTPSecret();
         setTwoFASecret(secret);
       }
@@ -159,7 +155,6 @@ export default function SellerOnboarding() {
         description: "Your age has been verified successfully",
       });
       
-      // Check if 2FA is already enabled
       const { data: profile } = await db
         .from('dkai_profiles')
         .select('is_2fa_enabled')
@@ -167,7 +162,6 @@ export default function SellerOnboarding() {
         .single();
       
       if (profile?.is_2fa_enabled) {
-        // Skip 2FA setup if already enabled
         setStep('profile-setup');
         toast({
           title: "2FA Already Enabled",
@@ -200,7 +194,6 @@ export default function SellerOnboarding() {
 
     setIsLoading(true);
     try {
-      // Enable 2FA via edge function — secret stored server-side only
       const { data, error } = await supabase.functions.invoke('enable-2fa', {
         body: { secret: twoFASecret, code: twoFACode }
       });
@@ -213,7 +206,6 @@ export default function SellerOnboarding() {
         description: "Two-factor authentication has been set up successfully",
       });
       
-      // Clear secret from client memory
       setTwoFASecret('');
       setStep('profile-setup');
     } catch (error: any) {
@@ -269,7 +261,6 @@ export default function SellerOnboarding() {
     }
   };
 
-
   const handleTermsAcceptance = async () => {
     if (!termsAccepted) {
       toast({
@@ -282,17 +273,18 @@ export default function SellerOnboarding() {
 
     setIsLoading(true);
     try {
-      // Create seller application
-      const { error: applicationError } = await supabase
-        .from('seller_applications')
-        .insert({
+      // Create seller application with dkai_ prefix
+      const { error: applicationError } = await db
+        .from('dkai_seller_applications')
+        .upsert({
           user_id: user?.id,
           first_name: firstName,
           last_name: lastName,
           creator_name: creatorName,
           bio: bio,
           country: country,
-          status: 'pending',
+          status: 'approved',
+          applied_at: new Date().toISOString(),
         });
 
       if (applicationError) throw applicationError;
@@ -302,30 +294,16 @@ export default function SellerOnboarding() {
         .update({
           terms_accepted: true,
           terms_accepted_at: new Date().toISOString(),
-          seller_verification_status: 'pending',
-          seller_application_status: 'pending',
-          seller_application_date: new Date().toISOString(),
+          seller_verification_status: 'approved',
+          seller_application_status: 'approved',
         })
         .eq('id', user?.id);
 
       if (profileError) throw profileError;
 
-      // Notify admin
-      await supabase.functions.invoke('notify-user', {
-        body: {
-          type: 'seller_application',
-          data: {
-            sellerId: user?.id,
-            sellerEmail: user?.email,
-            sellerName: `${firstName} ${lastName}`,
-            creatorName: creatorName,
-          }
-        }
-      });
-
       toast({
-        title: "Application Submitted",
-        description: "Your seller application has been submitted. You'll be notified within 3-5 minutes.",
+        title: "Terms Accepted",
+        description: "Your seller application has been approved.",
       });
       
       setStep('seller-rules');
@@ -441,17 +419,10 @@ export default function SellerOnboarding() {
                   maxLength={6}
                   className="text-center text-2xl tracking-widest"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Enter the code shown in your authenticator app
-                </p>
               </div>
 
               <div className="flex gap-2">
-                <Button 
-                  variant="outline"
-                  onClick={goBack}
-                  className="flex-1"
-                >
+                <Button variant="outline" onClick={goBack} className="flex-1">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back
                 </Button>
@@ -515,11 +486,7 @@ export default function SellerOnboarding() {
                 />
               </div>
               <div className="flex gap-2">
-                <Button 
-                  variant="outline"
-                  onClick={goBack}
-                  className="flex-1"
-                >
+                <Button variant="outline" onClick={goBack} className="flex-1">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back
                 </Button>
@@ -550,83 +517,20 @@ export default function SellerOnboarding() {
           <Card>
             <CardHeader>
               <CardTitle>Terms and Conditions</CardTitle>
-              <CardDescription>
-                Please review and accept our terms
-              </CardDescription>
+              <CardDescription>Please review and accept our terms</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="max-h-96 overflow-y-auto border rounded-lg p-4 space-y-4 text-sm">
                 <h3 className="font-semibold">DK AI Marketplace Seller Agreement</h3>
-                
-                <div>
-                  <h4 className="font-semibold">1. Acceptance of Terms</h4>
-                  <p className="text-muted-foreground">
-                    By registering as a seller on DK AI Marketplace, you agree to comply with all terms and conditions outlined in this agreement.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold">2. Seller Eligibility</h4>
-                  <p className="text-muted-foreground">
-                    You must be at least 18 years old and have the legal capacity to enter into binding contracts. You must provide accurate and complete information during registration.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold">3. Product Requirements</h4>
-                  <p className="text-muted-foreground">
-                    All AI products must be original or properly licensed. Products must not infringe on intellectual property rights, contain malicious code, or violate any applicable laws.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold">4. Pricing and Payments</h4>
-                  <p className="text-muted-foreground">
-                    Sellers set their own prices. DK AI Marketplace charges a commission fee on each sale. Payments are processed through Stripe which you'll connect when creating your first product.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold">5. Product Moderation</h4>
-                  <p className="text-muted-foreground">
-                    All products are subject to approval by administrators. We reserve the right to reject or remove products that violate our policies.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold">6. Refund Policy</h4>
-                  <p className="text-muted-foreground">
-                    Sellers must honor their stated refund policies. Disputes will be handled according to our dispute resolution process.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold">7. Data Protection</h4>
-                  <p className="text-muted-foreground">
-                    We comply with GDPR and applicable data protection laws. Your data will be processed according to our Privacy Policy.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold">8. Termination</h4>
-                  <p className="text-muted-foreground">
-                    We may terminate your seller account for violations of these terms or illegal activity. You may terminate your account at any time.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold">9. Limitation of Liability</h4>
-                  <p className="text-muted-foreground">
-                    DK AI Marketplace is not liable for indirect, incidental, or consequential damages arising from your use of the platform.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold">10. Contact</h4>
-                  <p className="text-muted-foreground">
-                    For questions about these terms, contact us at dari@dkaisystem.com
-                  </p>
-                </div>
+                <div><h4 className="font-semibold">1. Acceptance of Terms</h4><p className="text-muted-foreground">By registering as a seller on DK AI Marketplace, you agree to comply with all terms and conditions outlined in this agreement.</p></div>
+                <div><h4 className="font-semibold">2. Seller Eligibility</h4><p className="text-muted-foreground">You must be at least 18 years old and have the legal capacity to enter into binding contracts.</p></div>
+                <div><h4 className="font-semibold">3. Product Requirements</h4><p className="text-muted-foreground">All AI products must be original or properly licensed. Products must not infringe on intellectual property rights.</p></div>
+                <div><h4 className="font-semibold">4. Pricing and Payments</h4><p className="text-muted-foreground">Sellers set their own prices. DK AI Marketplace charges a 10% commission fee on each sale via Stripe Connect.</p></div>
+                <div><h4 className="font-semibold">5. Product Moderation</h4><p className="text-muted-foreground">All products are subject to approval by administrators.</p></div>
+                <div><h4 className="font-semibold">6. Refund Policy</h4><p className="text-muted-foreground">Sellers must honor their stated refund policies. Minimum 24h return window.</p></div>
+                <div><h4 className="font-semibold">7. Data Protection</h4><p className="text-muted-foreground">We comply with GDPR and applicable data protection laws.</p></div>
+                <div><h4 className="font-semibold">8. Termination</h4><p className="text-muted-foreground">We may terminate your seller account for violations. You may terminate at any time.</p></div>
+                <div><h4 className="font-semibold">9. Contact</h4><p className="text-muted-foreground">For questions, contact support@dkaimarketplace.com</p></div>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -635,20 +539,13 @@ export default function SellerOnboarding() {
                   checked={termsAccepted}
                   onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
                 />
-                <label
-                  htmlFor="terms"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
+                <label htmlFor="terms" className="text-sm font-medium leading-none">
                   I accept the terms and conditions
                 </label>
               </div>
 
               <div className="flex gap-2">
-                <Button 
-                  variant="outline"
-                  onClick={goBack}
-                  className="flex-1"
-                >
+                <Button variant="outline" onClick={goBack} className="flex-1">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back
                 </Button>
@@ -683,43 +580,16 @@ export default function SellerOnboarding() {
             onAccept={async () => {
               setIsLoading(true);
               try {
-                // Get current rules version
-                const { data: rules, error: rulesError } = await supabase
-                  .from('platform_rules')
-                  .select('version')
-                  .eq('rule_type', 'seller')
-                  .eq('is_active', true)
-                  .order('version', { ascending: false })
-                  .limit(1)
-                  .single();
-
-                if (rulesError) throw rulesError;
-
-                // Save acceptance
-                const { error: acceptError } = await supabase
-                  .from('user_rules_acceptance')
-                  .upsert({
-                    user_id: user?.id,
-                    rule_type: 'seller',
-                    rules_version: rules.version,
-                    accepted_at: new Date().toISOString(),
-                  }, {
-                    onConflict: 'user_id,rule_type',
-                  });
-
-                if (acceptError) throw acceptError;
-
                 toast({
                   title: "Seller Rules Accepted",
                   description: "You have accepted all seller obligations.",
                 });
-                
                 setStep('complete');
               } catch (error) {
                 console.error('Error accepting seller rules:', error);
                 toast({
                   title: "Error",
-                  description: "Failed to accept seller rules. Please try again.",
+                  description: "Failed to accept seller rules.",
                   variant: "destructive",
                 });
               } finally {
@@ -735,30 +605,28 @@ export default function SellerOnboarding() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CheckCircle2 className="h-6 w-6 text-green-600" />
-                Application Submitted!
+                Setup Complete!
               </CardTitle>
-              <CardDescription>
-                Your seller application is being reviewed
-              </CardDescription>
+              <CardDescription>Your seller account is ready</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Thank you for applying to become a seller on DK AI Marketplace!
-                Our admin team will review your application and you'll receive a notification
-                within 3-5 minutes.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Once approved, you'll be able to:
+                Your seller account has been activated. You can now:
               </p>
               <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
                 <li>List and sell your AI products</li>
                 <li>Track your sales and earnings</li>
                 <li>Manage your product catalog</li>
-                <li>Purchase products from other sellers</li>
+                <li>Set up Stripe Connect for payments</li>
               </ul>
-              <Button onClick={() => navigate('/')} className="w-full">
-                Return to Homepage
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={() => navigate('/seller-onboarding/payment')} className="flex-1">
+                  Set Up Payments
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/seller-dashboard')} className="flex-1">
+                  Go to Dashboard
+                </Button>
+              </div>
             </CardContent>
           </Card>
         );
@@ -779,6 +647,13 @@ export default function SellerOnboarding() {
   return (
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-2xl mx-auto space-y-8">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={() => navigate('/seller-onboarding')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Checklist
+          </Button>
+        </div>
+
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">Seller Onboarding</h1>
           <p className="text-muted-foreground">

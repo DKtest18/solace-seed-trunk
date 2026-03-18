@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
     const { data: sellerProfile } = await admin
       .from('dkaim_user_id')
       .select('stripe_account_id, stripe_onboarded')
-      .eq('user_id', product.seller_id)
+      .eq('id', product.seller_id)
       .single();
 
     // Get buyer profile for notification

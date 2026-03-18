@@ -41,10 +41,10 @@ Deno.serve(async (req) => {
       accountId = account.id;
 
       await admin.from('dkaim_user_id').upsert({
-        user_id: user.id,
+        id: user.id,
         stripe_account_id: accountId,
         stripe_onboarded: false,
-      }, { onConflict: 'user_id' });
+      }, { onConflict: 'id' });
     }
 
     // Create onboarding link

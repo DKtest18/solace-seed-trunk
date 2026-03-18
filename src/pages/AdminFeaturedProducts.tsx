@@ -27,8 +27,8 @@ export default function AdminFeaturedProducts() {
   const { data: products, isLoading } = useQuery({
     queryKey: ['admin-products-featured', sortBy],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
+      const { data, error } = await db
+        .from('dkai_products')
         .select(`
           id, title, image_url, price, is_featured, trending_score, total_sales, 
           average_rating, recent_7day_sales, approval_status, is_published,

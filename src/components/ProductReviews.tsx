@@ -161,8 +161,8 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
         toast.success("Review updated successfully");
       } else {
         // Create new review
-        const { error } = await supabase
-          .from("reviews")
+        const { error } = await db
+          .from("dkai_reviews")
           .insert({
             product_id: productId,
             user_id: user.id,

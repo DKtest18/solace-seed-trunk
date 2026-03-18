@@ -40,9 +40,11 @@ Deno.serve(async (req) => {
       if (account.error) throw new Error(account.error.message);
       accountId = account.id;
 
-      await admin.from('dkai_seller_profiles').update({
+      await admin.from('dkai_seller_profiles').upsert({
+        user_id: user.id,
         stripe_account_id: accountId,
-      }).eq('user_id', user.id);
+        stripe_onboarded: false,
+      }, { onConflict: 'user_id' });
     }
 
     // Create onboarding link

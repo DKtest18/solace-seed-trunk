@@ -63,8 +63,8 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
       // Then fetch profiles for each review
       if (reviewsData && reviewsData.length > 0) {
         const userIds = [...new Set(reviewsData.map(r => r.user_id))];
-        const { data: profilesData } = await supabase
-          .from("profiles")
+        const { data: profilesData } = await db
+          .from("dkai_profiles")
           .select("id, full_name, username, avatar_url")
           .in("id", userIds);
         

@@ -7,8 +7,7 @@ import { trackProductClick } from '@/utils/analytics';
 import Autoplay from 'embla-carousel-autoplay';
 import { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { RatingDisplay } from '@/components/RatingDisplay';
+import { db } from '@/lib/dkaiDb';
 import { TrendingUp } from 'lucide-react';
 
 export function FeaturedProducts() {

@@ -19,8 +19,8 @@ export function FeaturedProducts() {
   const { data: products, isLoading } = useQuery({
     queryKey: ['featured-products-slider'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
+      const { data, error } = await db
+        .from('dkai_products')
         .select('*')
         .eq('is_featured', true)
         .eq('is_published', true)

@@ -99,8 +99,8 @@ export default function Marketplace() {
   const { data: allTags } = useQuery({
     queryKey: ['all-tags'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
+      const { data, error } = await db
+        .from('dkai_products')
         .select('tags')
         .eq('is_published', true);
 

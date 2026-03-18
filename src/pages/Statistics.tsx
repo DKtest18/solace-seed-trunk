@@ -82,7 +82,7 @@ export default function Statistics() {
 
       // Fetch products with categories
       const { data: products, error: productsError } = await db
-        .from('products')
+        .from('dkai_products')
         .select('id, product_type, title, total_sales, trending_score, recent_7day_sales, average_rating, category_id, product_categories(name)')
         .eq('is_published', true)
         .eq('approval_status', 'approved');

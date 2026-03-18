@@ -34,8 +34,8 @@ export default function SellerEarnings() {
       if (productsError) throw productsError;
 
       // Get all purchases for these products
-      const { data: purchases, error: purchasesError } = await supabase
-        .from('purchases')
+      const { data: purchases, error: purchasesError } = await db
+        .from('dkai_orders')
         .select('*')
         .eq('seller_id', user.id)
         .eq('status', 'completed')

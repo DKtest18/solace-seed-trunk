@@ -60,8 +60,8 @@ export default function Checkout() {
 
   const fetchProduct = async () => {
     try {
-      const { data, error } = await supabase
-        .from("products")
+      const { data, error } = await db
+        .from("dkai_products")
         .select("*")
         .eq("id", productId)
         .single();

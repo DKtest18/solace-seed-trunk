@@ -67,8 +67,8 @@ export default function AdminFeaturedProducts() {
   // Toggle featured mutation
   const toggleFeatured = useMutation({
     mutationFn: async ({ productId, isFeatured }: { productId: string; isFeatured: boolean }) => {
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .update({ is_featured: isFeatured })
         .eq('id', productId);
 

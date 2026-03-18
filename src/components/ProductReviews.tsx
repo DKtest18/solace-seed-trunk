@@ -191,8 +191,8 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase
-        .from("reviews")
+      const { error } = await db
+        .from("dkai_reviews")
         .delete()
         .eq("id", userReview.id);
 

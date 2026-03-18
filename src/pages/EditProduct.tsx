@@ -329,8 +329,8 @@ export default function EditProduct() {
       }
 
       // Update product
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .update({
           title: formData.title,
           description: formData.description,

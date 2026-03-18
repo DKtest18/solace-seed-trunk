@@ -155,8 +155,8 @@ export default function MyProducts() {
       }
 
       // Delete product (this will cascade delete related records)
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .delete()
         .eq('id', deletingProductId);
 

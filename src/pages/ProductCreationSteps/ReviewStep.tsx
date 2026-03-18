@@ -31,8 +31,8 @@ export default function ProductCreationReview() {
     setLoading(true);
     try {
       // Create product in database
-      const { data: product, error: productError } = await supabase
-        .from('products')
+      const { data: product, error: productError } = await db
+        .from('dkai_products')
         .insert({
           seller_id: user.id,
           title: productData.title,

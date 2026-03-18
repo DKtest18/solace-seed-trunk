@@ -327,8 +327,8 @@ export default function CreateProduct() {
         }
       }
 
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .insert({
           seller_id: user!.id,
           title: formData.title,

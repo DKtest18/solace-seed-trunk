@@ -43,8 +43,8 @@ export default function TopProducts() {
   const { data: products, isLoading } = useQuery({
     queryKey: ['top-products', sortBy],
     queryFn: async () => {
-      let query = supabase
-        .from('products')
+      let query = db
+        .from('dkai_products')
         .select(`
           id,
           title,

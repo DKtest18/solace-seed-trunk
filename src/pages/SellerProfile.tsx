@@ -64,8 +64,8 @@ export default function SellerProfile() {
   const { data: sales } = useQuery({
     queryKey: ['seller-sales', sellerId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('purchases')
+      const { data, error } = await db
+        .from('dkai_orders')
         .select('*')
         .eq('seller_id', sellerId)
         .eq('status', 'completed');

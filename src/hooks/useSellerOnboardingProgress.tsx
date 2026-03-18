@@ -21,7 +21,7 @@ export function useSellerOnboardingProgress() {
 
       const { data: profile } = await db.from('dkai_profiles').select('*').eq('id', user.id).single();
       const { data: roles } = await db.from('dkai_user_roles').select('role').eq('user_id', user.id);
-      const { data: sellerApp } = await db.from('dkai_seller_applications').select('*').eq('user_id', user.id).single();
+      const { data: sellerApp } = await db.from('dkai_seller_applications').select('*').eq('user_id', user.id).maybeSingle();
       const { data: payoutMethods } = await db.from('dkai_payout_methods').select('*').eq('seller_id', user.id);
 
       const isSeller = roles?.some((r: any) => r.role === 'seller');

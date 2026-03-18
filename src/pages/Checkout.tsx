@@ -45,7 +45,7 @@ export default function Checkout() {
     if (!productId) return;
     setCheckingCardAvailability(true);
     try {
-      const { data, error } = await supabase.rpc("is_card_payments_allowed", {
+      const { data, error } = await db.rpc("dkai_is_card_payments_allowed", {
         p_product_id: productId,
       });
       if (!error) {

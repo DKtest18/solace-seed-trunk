@@ -46,15 +46,15 @@ export default function SellerProfile() {
   const { data: reviews } = useQuery({
     queryKey: ['seller-reviews', sellerId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('reviews')
+      const { data, error } = await db
+        .from('dkai_reviews')
         .select(`
           *,
-          products!inner (
+          dkai_products!inner (
             seller_id
           )
         `)
-        .eq('products.seller_id', sellerId);
+        .eq('dkai_products.seller_id', sellerId);
 
       if (error) throw error;
       return data;

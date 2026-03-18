@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     const { data: seller } = await admin
       .from('dkaim_user_id')
       .select('stripe_account_id, stripe_onboarded')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single();
 
     if (!seller?.stripe_account_id) {

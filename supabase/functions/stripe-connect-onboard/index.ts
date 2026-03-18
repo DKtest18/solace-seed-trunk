@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     const { data: seller } = await admin
       .from('dkaim_user_id')
       .select('stripe_account_id')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single();
 
     let accountId = seller?.stripe_account_id;
@@ -41,10 +41,10 @@ Deno.serve(async (req) => {
       accountId = account.id;
 
       await admin.from('dkaim_user_id').upsert({
-        user_id: user.id,
+        id: user.id,
         stripe_account_id: accountId,
         stripe_onboarded: false,
-      }, { onConflict: 'user_id' });
+      }, { onConflict: 'id' });
     }
 
     // Create onboarding link

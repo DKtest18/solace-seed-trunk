@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
     const { data: seller } = await admin
       .from('dkaim_user_id')
       .select('stripe_account_id')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single();
 
     if (!seller?.stripe_account_id) return errorResponse('No Stripe account found');
@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
     await admin.from('dkaim_user_id').update({
       stripe_account_id: null,
       stripe_onboarded: false,
-    }).eq('user_id', user.id);
+    }).eq('id', user.id);
 
     return jsonResponse({ success: true });
   } catch (err) {

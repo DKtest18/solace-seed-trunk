@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Navigate } from 'react-router-dom';
@@ -26,16 +26,16 @@ export default function SellerEarnings() {
       if (!user) return null;
 
       // Get all seller's products
-      const { data: products, error: productsError } = await supabase
-        .from('products')
+      const { data: products, error: productsError } = await db
+        .from('dkai_products')
         .select('id, title, product_type, price')
         .eq('seller_id', user.id);
 
       if (productsError) throw productsError;
 
       // Get all purchases for these products
-      const { data: purchases, error: purchasesError } = await supabase
-        .from('purchases')
+      const { data: purchases, error: purchasesError } = await db
+        .from('dkai_orders')
         .select('*')
         .eq('seller_id', user.id)
         .eq('status', 'completed')

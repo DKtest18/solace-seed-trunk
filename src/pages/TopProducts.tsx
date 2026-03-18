@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,8 +43,8 @@ export default function TopProducts() {
   const { data: products, isLoading } = useQuery({
     queryKey: ['top-products', sortBy],
     queryFn: async () => {
-      let query = supabase
-        .from('products')
+      let query = db
+        .from('dkai_products')
         .select(`
           id,
           title,
@@ -97,10 +97,10 @@ export default function TopProducts() {
       if (error) throw error;
       
       // Transform data to include category info
-      return data?.map(product => ({
+      return data?.map((product: any) => ({
         ...product,
-        category_name: product.product_categories?.name || null,
-        category_icon: product.product_categories?.icon || null,
+        category_name: (product as any).product_categories?.name || null,
+        category_icon: (product as any).product_categories?.icon || null,
       })) as TopProduct[];
     },
     staleTime: 1000 * 60 * 5, // 5 minute cache

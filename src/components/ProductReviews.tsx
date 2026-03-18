@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/dkaiDb";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,8 +52,8 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
   const fetchReviews = async () => {
     try {
       // First get reviews
-      const { data: reviewsData, error } = await supabase
-        .from("reviews")
+      const { data: reviewsData, error } = await db
+        .from("dkai_reviews")
         .select("*")
         .eq("product_id", productId)
         .order("created_at", { ascending: false });
@@ -63,8 +63,8 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
       // Then fetch profiles for each review
       if (reviewsData && reviewsData.length > 0) {
         const userIds = [...new Set(reviewsData.map(r => r.user_id))];
-        const { data: profilesData } = await supabase
-          .from("profiles")
+        const { data: profilesData } = await db
+          .from("dkai_profiles")
           .select("id, full_name, username, avatar_url")
           .in("id", userIds);
         
@@ -106,8 +106,8 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
     }
 
     // Check if user has purchased this product (must match RLS policy statuses)
-    const { data: orders } = await supabase
-      .from("orders")
+    const { data: orders } = await db
+      .from("dkai_orders")
       .select("id")
       .eq("product_id", productId)
       .eq("buyer_id", user.id)
@@ -119,8 +119,8 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
 
   const updateProductRating = async () => {
     // Calculate and update product's cached rating
-    const { data: allReviews } = await supabase
-      .from("reviews")
+    const { data: allReviews } = await db
+      .from("dkai_reviews")
       .select("rating")
       .eq("product_id", productId);
 
@@ -130,8 +130,8 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
         ? Math.round((allReviews.reduce((sum, r) => sum + r.rating, 0) / count) * 10) / 10
         : 0;
       
-      await supabase
-        .from("products")
+      await db
+        .from("dkai_products")
         .update({ 
           average_rating: avg, 
           ratings_count: count,
@@ -148,8 +148,8 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
     try {
       if (editing && userReview) {
         // Update existing review
-        const { error } = await supabase
-          .from("reviews")
+        const { error } = await db
+          .from("dkai_reviews")
           .update({
             rating,
             comment: comment.trim() || null,
@@ -161,8 +161,8 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
         toast.success("Review updated successfully");
       } else {
         // Create new review
-        const { error } = await supabase
-          .from("reviews")
+        const { error } = await db
+          .from("dkai_reviews")
           .insert({
             product_id: productId,
             user_id: user.id,
@@ -191,8 +191,8 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase
-        .from("reviews")
+      const { error } = await db
+        .from("dkai_reviews")
         .delete()
         .eq("id", userReview.id);
 

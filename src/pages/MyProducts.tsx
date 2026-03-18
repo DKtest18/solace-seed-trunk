@@ -36,6 +36,7 @@ import { Loader2, Eye, MousePointer, ShoppingCart, Pencil, Trash2, Plus, Clock, 
 import { Link, useNavigate } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { SellerSidebar } from '@/components/SellerSidebar';
+import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -92,8 +93,8 @@ export default function MyProducts() {
     setTogglingProductId(productId);
 
     try {
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .update({ is_published: !currentStatus })
         .eq('id', productId);
 
@@ -115,8 +116,8 @@ export default function MyProducts() {
     setResubmittingProductId(productId);
 
     try {
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .update({ 
           approval_status: 'pending',
           admin_rejection_reason: null,
@@ -140,8 +141,8 @@ export default function MyProducts() {
 
     try {
       // Get product details to delete image
-      const { data: product } = await supabase
-        .from('products')
+      const { data: product } = await db
+        .from('dkai_products')
         .select('image_url')
         .eq('id', deletingProductId)
         .single();
@@ -155,8 +156,8 @@ export default function MyProducts() {
       }
 
       // Delete product (this will cascade delete related records)
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .delete()
         .eq('id', deletingProductId);
 

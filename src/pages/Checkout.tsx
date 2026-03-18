@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { db } from "@/lib/dkaiDb";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -44,7 +45,7 @@ export default function Checkout() {
     if (!productId) return;
     setCheckingCardAvailability(true);
     try {
-      const { data, error } = await supabase.rpc("is_card_payments_allowed", {
+      const { data, error } = await db.rpc("dkai_is_card_payments_allowed", {
         p_product_id: productId,
       });
       if (!error) {
@@ -59,8 +60,8 @@ export default function Checkout() {
 
   const fetchProduct = async () => {
     try {
-      const { data, error } = await supabase
-        .from("products")
+      const { data, error } = await db
+        .from("dkai_products")
         .select("*")
         .eq("id", productId)
         .single();

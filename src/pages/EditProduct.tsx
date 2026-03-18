@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
+import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -88,8 +89,8 @@ export default function EditProduct() {
 
     const loadProduct = async () => {
       try {
-        const { data: product, error } = await supabase
-          .from('products')
+        const { data: product, error } = await db
+          .from('dkai_products')
           .select('*')
           .eq('id', id)
           .single();
@@ -246,8 +247,8 @@ export default function EditProduct() {
     try {
       const newPublishStatus = !formData.is_published;
 
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .update({ is_published: newPublishStatus })
         .eq('id', id);
 
@@ -274,8 +275,8 @@ export default function EditProduct() {
       }
 
       // Delete product
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .delete()
         .eq('id', id);
 
@@ -329,8 +330,8 @@ export default function EditProduct() {
       }
 
       // Update product
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .update({
           title: formData.title,
           description: formData.description,

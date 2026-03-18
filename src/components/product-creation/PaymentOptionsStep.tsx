@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { InfoIcon, CreditCard, CheckCircle, AlertTriangle, Loader2, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useNavigate } from 'react-router-dom';
 
 interface PaymentOptionsStepProps {
@@ -24,8 +24,8 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
     queryKey: ['seller-stripe-config', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data, error } = await supabase
-        .from('seller_payment_configs')
+      const { data, error } = await db
+        .from('dkai_seller_payment_configs')
         .select('stripe_account_id, stripe_onboarding_status, card_payments_enabled')
         .eq('seller_id', user.id)
         .maybeSingle();

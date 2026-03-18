@@ -7,7 +7,7 @@ import { trackProductClick } from '@/utils/analytics';
 import Autoplay from 'embla-carousel-autoplay';
 import { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { RatingDisplay } from '@/components/RatingDisplay';
 import { TrendingUp } from 'lucide-react';
 
@@ -20,8 +20,8 @@ export function FeaturedProducts() {
   const { data: products, isLoading } = useQuery({
     queryKey: ['featured-products-slider'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
+      const { data, error } = await db
+        .from('dkai_products')
         .select('*')
         .eq('is_featured', true)
         .eq('is_published', true)

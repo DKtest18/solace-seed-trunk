@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,8 +16,8 @@ export default function SellerProfile() {
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['seller-profile', sellerId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
+      const { data, error } = await db
+        .from('dkai_profiles')
         .select('*')
         .eq('id', sellerId)
         .single();
@@ -30,8 +30,8 @@ export default function SellerProfile() {
   const { data: products, isLoading: productsLoading } = useQuery({
     queryKey: ['seller-products', sellerId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
+      const { data, error } = await db
+        .from('dkai_products')
         .select('*')
         .eq('seller_id', sellerId)
         .eq('is_published', true)
@@ -46,15 +46,15 @@ export default function SellerProfile() {
   const { data: reviews } = useQuery({
     queryKey: ['seller-reviews', sellerId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('reviews')
+      const { data, error } = await db
+        .from('dkai_reviews')
         .select(`
           *,
-          products!inner (
+          dkai_products!inner (
             seller_id
           )
         `)
-        .eq('products.seller_id', sellerId);
+        .eq('dkai_products.seller_id', sellerId);
 
       if (error) throw error;
       return data;
@@ -64,8 +64,8 @@ export default function SellerProfile() {
   const { data: sales } = useQuery({
     queryKey: ['seller-sales', sellerId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('purchases')
+      const { data, error } = await db
+        .from('dkai_orders')
         .select('*')
         .eq('seller_id', sellerId)
         .eq('status', 'completed');

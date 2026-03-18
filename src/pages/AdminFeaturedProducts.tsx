@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
@@ -27,8 +28,8 @@ export default function AdminFeaturedProducts() {
   const { data: products, isLoading } = useQuery({
     queryKey: ['admin-products-featured', sortBy],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
+      const { data, error } = await db
+        .from('dkai_products')
         .select(`
           id, title, image_url, price, is_featured, trending_score, total_sales, 
           average_rating, recent_7day_sales, approval_status, is_published,
@@ -51,8 +52,8 @@ export default function AdminFeaturedProducts() {
   const { data: lastRecalc } = useQuery({
     queryKey: ['trending-last-recalc'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('product_rankings')
+      const { data, error } = await db
+        .from('dkai_product_rankings')
         .select('last_calculated_at')
         .order('last_calculated_at', { ascending: false })
         .limit(1)
@@ -67,8 +68,8 @@ export default function AdminFeaturedProducts() {
   // Toggle featured mutation
   const toggleFeatured = useMutation({
     mutationFn: async ({ productId, isFeatured }: { productId: string; isFeatured: boolean }) => {
-      const { error } = await supabase
-        .from('products')
+      const { error } = await db
+        .from('dkai_products')
         .update({ is_featured: isFeatured })
         .eq('id', productId);
 

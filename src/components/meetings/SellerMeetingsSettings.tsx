@@ -695,13 +695,13 @@ function MeetingTypeDialog({
     queryKey: ['seller-payment-config-stripe', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data, error } = await supabase
-        .from('dkai_seller_payment_configs' as any)
+      const { data, error } = await (supabase as any)
+        .from('dkai_seller_payment_configs')
         .select('stripe_account_id, stripe_onboarding_status')
         .eq('seller_id', user.id)
         .maybeSingle();
       if (error) return null;
-      return data;
+      return data as { stripe_account_id: string | null; stripe_onboarding_status: string | null } | null;
     },
     enabled: !!user
   });

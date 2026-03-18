@@ -30,8 +30,8 @@ export default function SellerProfile() {
   const { data: products, isLoading: productsLoading } = useQuery({
     queryKey: ['seller-products', sellerId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
+      const { data, error } = await db
+        .from('dkai_products')
         .select('*')
         .eq('seller_id', sellerId)
         .eq('is_published', true)

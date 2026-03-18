@@ -130,8 +130,8 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
         ? Math.round((allReviews.reduce((sum, r) => sum + r.rating, 0) / count) * 10) / 10
         : 0;
       
-      await supabase
-        .from("products")
+      await db
+        .from("dkai_products")
         .update({ 
           average_rating: avg, 
           ratings_count: count,

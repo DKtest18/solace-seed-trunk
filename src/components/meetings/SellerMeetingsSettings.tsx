@@ -696,7 +696,7 @@ function MeetingTypeDialog({
     queryFn: async () => {
       if (!user) return null;
       const { data, error } = await supabase
-        .from('seller_payment_configs')
+        .from('dkai_seller_payment_configs' as any)
         .select('stripe_account_id, stripe_onboarding_status')
         .eq('seller_id', user.id)
         .maybeSingle();

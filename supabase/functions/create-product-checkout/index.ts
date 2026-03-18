@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
     // Get product details
     const { data: product, error: productError } = await admin
       .from('dkai_products')
-      .select('*, profiles:seller_id(email, display_name, username)')
+      .select('*, dkai_profiles:seller_id(email, display_name, username)')
       .eq('id', productId)
       .single();
 
@@ -24,40 +24,57 @@ Deno.serve(async (req) => {
     const platformFee = product.price * 0.1;
     const sellerEarnings = product.price - platformFee;
 
+    // Get seller's Stripe account for Connect
+    const { data: sellerProfile } = await admin
+      .from('dkai_seller_profiles')
+      .select('stripe_account_id, stripe_onboarded')
+      .eq('user_id', product.seller_id)
+      .single();
+
     // Get buyer profile for notification
     const { data: buyerProfile } = await admin
-      .from('profiles')
+      .from('dkai_profiles')
       .select('email, display_name, username')
       .eq('id', user.id)
       .single();
 
     const buyerName = buyerProfile?.display_name || buyerProfile?.username || 'A buyer';
     const buyerEmail = buyerProfile?.email || user.email;
-    const sellerName = product.profiles?.display_name || product.profiles?.username || 'the seller';
-    const sellerEmail = product.profiles?.email;
+    const sellerName = product.dkai_profiles?.display_name || product.dkai_profiles?.username || 'the seller';
+    const sellerEmail = product.dkai_profiles?.email;
 
-    if (paymentMethod === 'stripe') {
+    if (paymentMethod === 'stripe' || paymentMethod === 'card') {
       const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
       if (!stripeKey) return errorResponse('Stripe not configured', 500);
 
-      // Create Stripe checkout session
+      if (!sellerProfile?.stripe_account_id || !sellerProfile?.stripe_onboarded) {
+        return errorResponse('Seller has not connected their Stripe account', 400);
+      }
+
+      // Build Stripe checkout params with Connect split
+      const params: Record<string, string> = {
+        'mode': 'payment',
+        'success_url': `${req.headers.get('origin')}/purchase-history?success=true`,
+        'cancel_url': `${req.headers.get('origin')}/checkout?productId=${productId}&canceled=true`,
+        'line_items[0][price_data][currency]': 'usd',
+        'line_items[0][price_data][product_data][name]': product.title,
+        'line_items[0][price_data][unit_amount]': String(Math.round(product.price * 100)),
+        'line_items[0][quantity]': '1',
+        'metadata[product_id]': productId,
+        'metadata[buyer_id]': user.id,
+        'metadata[seller_id]': product.seller_id,
+        // 10% platform fee via Stripe Connect
+        'payment_intent_data[application_fee_amount]': String(Math.round(platformFee * 100)),
+        'payment_intent_data[transfer_data][destination]': sellerProfile.stripe_account_id,
+      };
+
       const stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${stripeKey}`,
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: new URLSearchParams({
-          'mode': 'payment',
-          'success_url': `${req.headers.get('origin')}/purchase-history?success=true`,
-          'cancel_url': `${req.headers.get('origin')}/checkout/${productId}?canceled=true`,
-          'line_items[0][price_data][currency]': 'usd',
-          'line_items[0][price_data][product_data][name]': product.title,
-          'line_items[0][price_data][unit_amount]': String(Math.round(product.price * 100)),
-          'line_items[0][quantity]': '1',
-          'metadata[product_id]': productId,
-          'metadata[buyer_id]': user.id,
-        }),
+        body: new URLSearchParams(params),
       });
 
       const session = await stripeRes.json();
@@ -67,6 +84,7 @@ Deno.serve(async (req) => {
       const { data: order } = await admin.from('dkai_orders').insert({
         buyer_id: user.id,
         product_id: productId,
+        seller_id: product.seller_id,
         price: product.price,
         platform_fee: platformFee,
         seller_earnings: sellerEarnings,
@@ -95,6 +113,7 @@ Deno.serve(async (req) => {
     const { data: order, error: orderError } = await admin.from('dkai_orders').insert({
       buyer_id: user.id,
       product_id: productId,
+      seller_id: product.seller_id,
       price: product.price,
       platform_fee: platformFee,
       seller_earnings: sellerEarnings,
@@ -139,7 +158,6 @@ async function sendNotificationEmails(
     paymentMethod: string;
   }
 ) {
-  const origin = req.headers.get('origin') || 'https://dkaimarketplace.lovable.app';
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   if (!supabaseUrl || !serviceKey) return;

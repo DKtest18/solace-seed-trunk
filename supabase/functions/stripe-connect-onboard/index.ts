@@ -9,8 +9,8 @@ Deno.serve(async (req) => {
   if (error || !user) return errorResponse('Unauthorized', 401);
 
   try {
-    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
-    if (!stripeKey) return errorResponse('Stripe not configured', 500);
+    const stripeKey = Deno.env.get('DKAIM_STRIPE_SECRET_KEY');
+    if (!stripeKey) return errorResponse('Stripe not configured: DKAIM_STRIPE_SECRET_KEY missing', 500);
 
     const admin = getServiceClient();
 

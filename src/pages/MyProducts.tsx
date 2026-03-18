@@ -140,8 +140,8 @@ export default function MyProducts() {
 
     try {
       // Get product details to delete image
-      const { data: product } = await supabase
-        .from('products')
+      const { data: product } = await db
+        .from('dkai_products')
         .select('image_url')
         .eq('id', deletingProductId)
         .single();

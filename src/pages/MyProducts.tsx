@@ -36,7 +36,7 @@ import { Loader2, Eye, MousePointer, ShoppingCart, Pencil, Trash2, Plus, Clock, 
 import { Link, useNavigate } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { SellerSidebar } from '@/components/SellerSidebar';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 

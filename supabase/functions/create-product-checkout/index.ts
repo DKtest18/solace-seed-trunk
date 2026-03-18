@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
 
     // Get seller's Stripe account for Connect
     const { data: sellerProfile } = await admin
-      .from('dkai_seller_profiles')
+      .from('dkaim_user_id')
       .select('stripe_account_id, stripe_onboarded')
       .eq('user_id', product.seller_id)
       .single();
@@ -44,8 +44,8 @@ Deno.serve(async (req) => {
     const sellerEmail = product.dkai_profiles?.email;
 
     if (paymentMethod === 'stripe' || paymentMethod === 'card') {
-      const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
-      if (!stripeKey) return errorResponse('Stripe not configured', 500);
+      const stripeKey = Deno.env.get('DKAIM_STRIPE_SECRET_KEY');
+      if (!stripeKey) return errorResponse('Stripe not configured: DKAIM_STRIPE_SECRET_KEY missing', 500);
 
       if (!sellerProfile?.stripe_account_id || !sellerProfile?.stripe_onboarded) {
         return errorResponse('Seller has not connected their Stripe account', 400);

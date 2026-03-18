@@ -9,14 +9,14 @@ Deno.serve(async (req) => {
   if (error || !user) return errorResponse('Unauthorized', 401);
 
   try {
-    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
-    if (!stripeKey) return errorResponse('Stripe not configured', 500);
+    const stripeKey = Deno.env.get('DKAIM_STRIPE_SECRET_KEY');
+    if (!stripeKey) return errorResponse('Stripe not configured: DKAIM_STRIPE_SECRET_KEY missing', 500);
 
     const admin = getServiceClient();
 
     // Get seller's Stripe account ID
     const { data: seller } = await admin
-      .from('dkai_seller_profiles')
+      .from('dkaim_user_id')
       .select('stripe_account_id, stripe_onboarded')
       .eq('user_id', user.id)
       .single();

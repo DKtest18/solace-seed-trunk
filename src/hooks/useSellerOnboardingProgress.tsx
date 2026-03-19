@@ -28,7 +28,7 @@ export function useSellerOnboardingProgress() {
       const hasSellerApp = !!sellerApp;
 
       const steps: OnboardingStep[] = [
-        { id: 'profile', title: 'Profile Information', description: 'Complete your basic profile with name and avatar', required: true, completed: !!(profile?.full_name && profile?.avatar_url), route: '/profile' },
+        { id: 'profile', title: 'Profile Information', description: 'Set your Display Name and Username', required: true, completed: !!(profile?.full_name && profile?.username), route: '/profile?from=checklist' },
         { id: 'email', title: 'Email Verification', description: 'Verify your email address', required: true, completed: !!user.email_confirmed_at, route: '/settings' },
         { id: '2fa', title: '2FA Setup', description: 'Optional: Add two-factor authentication for extra security', required: false, completed: !!profile?.is_2fa_enabled, route: '/settings' },
         { id: 'seller-identity', title: 'Seller Identity & Basic Info', description: 'Provide your seller details and accept terms', required: true, completed: hasSellerApp && sellerApp?.status === 'approved', route: '/seller-onboarding/identity' },

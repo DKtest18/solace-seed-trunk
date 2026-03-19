@@ -22,8 +22,6 @@ import {
   Lock, 
   Users,
   Eye,
-  Link2,
-  Unlink,
   Calendar as CalendarIcon,
   Check,
   AlertCircle

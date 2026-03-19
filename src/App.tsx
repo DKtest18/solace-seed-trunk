@@ -83,6 +83,7 @@ import JoinMeetingPage from "./pages/JoinMeetingPage";
 import JoinMeetingByCode from "./pages/JoinMeetingByCode";
 import PublicBookingPage from "./pages/PublicBookingPage";
 import MeetingInviteResponse from "./pages/MeetingInviteResponse";
+import SellerAnalytics from "./pages/SellerAnalytics";
 import { Seller2FAGuard } from "@/components/Seller2FAGuard";
 import { Optional2FAPrompt } from "@/components/Optional2FAPrompt";
 const queryClient = new QueryClient({

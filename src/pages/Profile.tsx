@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, User, Globe, MapPin, Mail, Calendar, Camera, AlertTriangle, Crop, Trash2 } from 'lucide-react';
+import { Loader2, User, Globe, MapPin, Mail, Calendar, Camera, AlertTriangle, Crop, Trash2, ArrowLeft } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { AppLayout } from '@/components/AppLayout';
 import { useHasRole } from '@/hooks/useUserRole';

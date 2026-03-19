@@ -281,6 +281,32 @@ export function SellerMeetingsSettings() {
     ));
   };
 
+  const addTimeSlot = (dayOfWeek: number) => {
+    setAvailability(prev => prev.map(a => {
+      if (a.day_of_week !== dayOfWeek) return a;
+      const slots = a.extra_slots || [];
+      return { ...a, extra_slots: [...slots, { start_time: '13:00', end_time: '17:00' }] };
+    }));
+  };
+
+  const removeTimeSlot = (dayOfWeek: number, index: number) => {
+    setAvailability(prev => prev.map(a => {
+      if (a.day_of_week !== dayOfWeek) return a;
+      const slots = [...(a.extra_slots || [])];
+      slots.splice(index, 1);
+      return { ...a, extra_slots: slots };
+    }));
+  };
+
+  const updateTimeSlot = (dayOfWeek: number, index: number, field: 'start_time' | 'end_time', value: string) => {
+    setAvailability(prev => prev.map(a => {
+      if (a.day_of_week !== dayOfWeek) return a;
+      const slots = [...(a.extra_slots || [])];
+      slots[index] = { ...slots[index], [field]: value };
+      return { ...a, extra_slots: slots };
+    }));
+  };
+
   const isLoading = configLoading || availabilityLoading || typesLoading;
 
   if (isLoading) {

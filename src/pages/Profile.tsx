@@ -20,6 +20,8 @@ import { AvatarCropEditor, getAvatarCropStyle } from '@/components/AvatarCropEdi
 export default function Profile() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const fromChecklist = searchParams.get('from') === 'checklist';
   const { toast } = useToast();
   const { hasRole: isAdmin } = useHasRole('admin');
   const [loading, setLoading] = useState(false);

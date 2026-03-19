@@ -12,6 +12,13 @@ Deno.serve(async (req) => {
     const stripeKey = Deno.env.get('DKAIM_STRIPE_SECRET_KEY');
     if (!stripeKey) return errorResponse('Stripe not configured: DKAIM_STRIPE_SECRET_KEY missing', 500);
 
+    // Read optional return_path from body
+    let returnPath = '/seller-onboarding/payment';
+    try {
+      const body = await req.json();
+      if (body?.return_path) returnPath = body.return_path;
+    } catch { /* no body or invalid json, use default */ }
+
     const admin = getServiceClient();
 
     // Check if seller already has a Stripe account
@@ -47,7 +54,7 @@ Deno.serve(async (req) => {
       }, { onConflict: 'id' });
     }
 
-    // Create onboarding link — return to seller-payment-settings (correct route)
+    // Create onboarding link — return to the page the user came from
     const origin = req.headers.get('origin') || 'https://solace-seed-trunk.lovable.app';
     const linkRes = await fetch('https://api.stripe.com/v1/account_links', {
       method: 'POST',
@@ -57,8 +64,8 @@ Deno.serve(async (req) => {
       },
       body: new URLSearchParams({
         account: accountId,
-        refresh_url: `${origin}/seller-payment-settings?refresh=true`,
-        return_url: `${origin}/seller-payment-settings?onboarding=complete`,
+        refresh_url: `${origin}${returnPath}?refresh=true`,
+        return_url: `${origin}${returnPath}?onboarding=complete`,
         type: 'account_onboarding',
       }),
     });

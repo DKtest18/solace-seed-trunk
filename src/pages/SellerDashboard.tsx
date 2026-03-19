@@ -12,7 +12,7 @@ import { useAllProductsAnalytics } from '@/hooks/useProductAnalytics';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { ProfileCompletionIndicator } from '@/components/ProfileCompletionIndicator';
+
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -122,8 +122,6 @@ export default function SellerDashboard() {
                 </div>
               ) : (
                 <div className="space-y-8">
-                  <ProfileCompletionIndicator />
-
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                     <Card className="rounded-2xl border-2 hover:border-primary/50 transition-colors">
                       <CardHeader className="pb-3">

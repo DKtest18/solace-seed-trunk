@@ -143,7 +143,7 @@ export default function SellerOnboardingPayment() {
       const { data, error } = await supabase.functions.invoke("stripe-connect-dashboard");
       if (error) throw error;
       if (!data.success || !data.url) throw new Error(data.error || "Failed to open dashboard");
-      window.open(data.url, "_blank");
+      window.open(data.url, "_blank", "noopener,noreferrer");
     } catch (error: any) {
       toast({ title: "Error", description: error.message || "Failed to open Stripe dashboard", variant: "destructive" });
     }
@@ -182,10 +182,14 @@ export default function SellerOnboardingPayment() {
 
     setTogglingCard(true);
     try {
+      // Upsert to handle case where row doesn't exist yet
       const { error } = await db
         .from("dkai_seller_payment_configs")
-        .update({ card_payments_enabled: enabled, updated_at: new Date().toISOString() })
-        .eq("seller_id", user?.id);
+        .upsert({ 
+          seller_id: user?.id,
+          card_payments_enabled: enabled, 
+          updated_at: new Date().toISOString() 
+        }, { onConflict: 'seller_id' });
 
       if (error) throw error;
       setStripeStatus(prev => ({ ...prev, cardPaymentsEnabled: enabled }));

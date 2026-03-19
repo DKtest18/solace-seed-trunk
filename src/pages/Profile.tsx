@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, User, Globe, MapPin, Mail, Calendar, Camera, AlertTriangle, Crop, Trash2 } from 'lucide-react';
+import { Loader2, User, Globe, MapPin, Mail, Calendar, Camera, AlertTriangle, Crop, Trash2, ArrowLeft } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { AppLayout } from '@/components/AppLayout';
 import { useHasRole } from '@/hooks/useUserRole';
@@ -20,6 +20,8 @@ import { AvatarCropEditor, getAvatarCropStyle } from '@/components/AvatarCropEdi
 export default function Profile() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const fromChecklist = searchParams.get('from') === 'checklist';
   const { toast } = useToast();
   const { hasRole: isAdmin } = useHasRole('admin');
   const [loading, setLoading] = useState(false);
@@ -394,6 +396,19 @@ export default function Profile() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-background">
+        {fromChecklist && (
+          <div className="max-w-3xl mx-auto px-4 pt-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/seller-onboarding-checklist')}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Checklist
+            </Button>
+          </div>
+        )}
         {/* Banner Section */}
         <div className="relative h-48 md:h-64 bg-gradient-to-br from-primary/20 via-primary/10 to-background overflow-hidden group">
           {bannerUrl && (

@@ -115,22 +115,7 @@ export function SellerCalendar({ calendarVisibility, onVisibilityChange }: Selle
     participant_emails: ''
   });
 
-  // Fetch calendar connection status
-  const { data: calendarConnection } = useQuery({
-    queryKey: ['seller-calendar-connection', user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data, error } = await supabase
-        .from('seller_meeting_configs')
-        .select('google_calendar_connected, google_calendar_email, outlook_calendar_connected, outlook_calendar_email')
-        .eq('seller_id', user.id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') throw error;
-      return data as CalendarConnection | null;
-    },
-    enabled: !!user
-  });
+  // Calendar connections removed
 
   // Fetch calendar events
   const { data: events, isLoading } = useQuery({

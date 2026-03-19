@@ -55,6 +55,11 @@ interface MeetingConfig {
   meeting_pitch?: string;
 }
 
+interface TimeSlot {
+  start_time: string;
+  end_time: string;
+}
+
 interface Availability {
   id?: string;
   seller_id: string;
@@ -62,6 +67,7 @@ interface Availability {
   is_available: boolean;
   start_time: string;
   end_time: string;
+  extra_slots?: TimeSlot[];
 }
 
 interface MeetingType {

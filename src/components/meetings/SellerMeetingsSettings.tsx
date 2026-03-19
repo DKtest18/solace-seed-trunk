@@ -147,6 +147,9 @@ export function SellerMeetingsSettings() {
     enabled: !!user
   });
 
+  // Auto-detect browser timezone
+  const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   // Initialize state from fetched data
   useEffect(() => {
     if (configData) {
@@ -159,7 +162,7 @@ export function SellerMeetingsSettings() {
         seller_id: user.id,
         meetings_enabled: false,
         booking_mode: 'calendar',
-        timezone: 'Europe/Zurich',
+        timezone: detectedTimezone || 'Europe/Zurich',
         max_meetings_per_day: 8,
         break_minutes: 15,
         preferred_platform: 'google_meet',
@@ -169,15 +172,18 @@ export function SellerMeetingsSettings() {
 
   useEffect(() => {
     if (availabilityData && availabilityData.length > 0) {
-      setAvailability(availabilityData);
+      setAvailability(availabilityData.map((a: any) => ({
+        ...a,
+        extra_slots: a.extra_slots ? (typeof a.extra_slots === 'string' ? JSON.parse(a.extra_slots) : a.extra_slots) : [],
+      })));
     } else if (user) {
-      // Create default availability for all days
       setAvailability(DAYS_OF_WEEK.map(day => ({
         seller_id: user.id,
         day_of_week: day.value,
-        is_available: day.value >= 1 && day.value <= 5, // Mon-Fri
+        is_available: day.value >= 1 && day.value <= 5,
         start_time: '09:00',
         end_time: '17:00',
+        extra_slots: [],
       })));
     }
   }, [availabilityData, user]);

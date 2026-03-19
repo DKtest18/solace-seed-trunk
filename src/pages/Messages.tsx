@@ -9,7 +9,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send, Loader2, Paperclip, Download, Pencil, Trash2, X, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { AppLayout } from '@/components/AppLayout';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SellerSidebar } from '@/components/SellerSidebar';
+import { useHasRole } from '@/hooks/useUserRole';
 import { formatDistanceToNow } from 'date-fns';
 import { FileAttachmentUpload } from '@/components/FileAttachmentUpload';
 import { toast as sonnerToast } from 'sonner';
@@ -50,6 +52,8 @@ export default function Messages() {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { hasRole: isSeller } = useHasRole('seller');
+  const { hasRole: isAdmin } = useHasRole('admin');
   const [searchParams] = useSearchParams();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
@@ -114,14 +118,11 @@ export default function Messages() {
 
     loadConversations();
     
-    // Check if we should create/open a thread with a specific user
-    // Support both ?seller= and ?user= params for backward compatibility
     const sellerId = searchParams.get('seller') || searchParams.get('user');
     if (sellerId && sellerId !== user.id) {
       createOrOpenThread(sellerId);
     }
     
-    // Subscribe to messages changes
     const messagesChannel = supabase
       .channel('messages-updates')
       .on(
@@ -140,7 +141,6 @@ export default function Messages() {
       )
       .subscribe();
 
-    // Subscribe to threads changes
     const threadsChannel = supabase
       .channel('threads-updates')
       .on(
@@ -172,7 +172,6 @@ export default function Messages() {
 
       if (error) throw error;
       
-      // Handle blocked user response (403)
       if (data?.error === "Cannot message this user") {
         toast({
           title: "Cannot Message User",
@@ -186,7 +185,6 @@ export default function Messages() {
       setSelectedThreadId(threadId);
       setMessages(data.messages || []);
 
-      // Load recipient profile
       const { data: profile } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url')
@@ -201,14 +199,12 @@ export default function Messages() {
         });
       }
 
-      // Mark messages as read
       await db
         .from('dkai_messages')
         .update({ is_read: true })
         .eq('thread_id', threadId)
         .eq('recipient_id', user.id);
 
-      // Scroll to bottom
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
@@ -216,7 +212,6 @@ export default function Messages() {
     } catch (error: any) {
       console.error('Failed to create/open thread:', error);
       
-      // Check for blocked user error
       if (error?.message?.includes('Cannot message') || error?.status === 403) {
         toast({
           title: "Cannot Message User",
@@ -241,7 +236,6 @@ export default function Messages() {
     const backoffMs = Math.min(1000 * Math.pow(2, retryCount), 5000);
 
     try {
-      // Get blocked user IDs for filtering
       const { data: blocks } = await supabase
         .from('user_blocks')
         .select('blocker_id, blocked_id')
@@ -256,7 +250,6 @@ export default function Messages() {
         }
       });
 
-      // Get all threads user is participant in
       const { data: participations, error: partError } = await supabase
         .from('chat_participants')
         .select('thread_id')
@@ -272,7 +265,6 @@ export default function Messages() {
 
       const threadIds = participations.map(p => p.thread_id);
 
-      // Get threads with their latest update
       const { data: threads, error: threadsError } = await supabase
         .from('threads')
         .select('*')
@@ -281,7 +273,6 @@ export default function Messages() {
 
       if (threadsError) throw threadsError;
 
-      // Get all participants for these threads
       const { data: allParticipants, error: allPartError } = await supabase
         .from('chat_participants')
         .select('thread_id, user_id')
@@ -289,7 +280,6 @@ export default function Messages() {
 
       if (allPartError) throw allPartError;
 
-      // Get unique user IDs (excluding current user AND blocked users)
       const userIds = new Set<string>();
       allParticipants?.forEach(p => {
         if (p.user_id !== user.id && !blockedIds.has(p.user_id)) {
@@ -303,7 +293,6 @@ export default function Messages() {
         return;
       }
 
-      // Get profiles for these users
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url')
@@ -311,7 +300,6 @@ export default function Messages() {
 
       const profileMap = new Map(profiles?.map(p => [p.id, p]));
 
-      // Get last message for each thread
       const { data: lastMessages } = await db
         .from('dkai_messages')
         .select('thread_id, content, created_at, is_read, recipient_id')
@@ -332,10 +320,8 @@ export default function Messages() {
         }
       });
 
-      // Build conversations (excluding blocked users)
       const convs: Conversation[] = [];
       threads?.forEach(thread => {
-        // Find other participant
         const otherParticipant = allParticipants?.find(
           p => p.thread_id === thread.id && p.user_id !== user.id
         );
@@ -362,7 +348,6 @@ export default function Messages() {
     } catch (error: any) {
       console.error('Failed to load conversations:', error);
       
-      // Retry with exponential backoff
       if (retryCount < maxRetries) {
         console.log(`Retrying in ${backoffMs}ms (attempt ${retryCount + 1}/${maxRetries})`);
         setTimeout(() => loadConversations(retryCount + 1), backoffMs);
@@ -393,14 +378,12 @@ export default function Messages() {
 
       setMessages(data || []);
 
-      // Mark messages as read
       await db
         .from('dkai_messages')
         .update({ is_read: true })
         .eq('thread_id', threadId)
         .eq('recipient_id', user.id);
 
-      // Scroll to bottom
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
@@ -424,12 +407,11 @@ export default function Messages() {
   const sendMessage = async () => {
     if (!user || !selectedThreadId || (!newMessage.trim() && !attachmentFile)) return;
 
-    // Client-side content moderation - block before sending
     if (newMessage.trim()) {
       const { moderateContent } = await import('@/utils/strictModerationService');
       const result = moderateContent(newMessage.trim());
       if (result.blocked) {
-        sonnerToast.error(result.reason || 'Your message contains words or content that are not allowed on this platform. Please remove any profanity, threats, sexual or illegal content.');
+        sonnerToast.error(result.reason || 'Your message contains words or content that are not allowed on this platform.');
         return;
       }
     }
@@ -437,7 +419,6 @@ export default function Messages() {
     setSending(true);
     let attachmentKey: string | undefined;
 
-    // Upload attachment if present
     if (attachmentFile) {
       setUploadingAttachment(true);
       try {
@@ -475,7 +456,7 @@ export default function Messages() {
       setNewMessage("");
       setAttachmentFile(null);
       loadThreadMessages(selectedThreadId);
-      loadConversations(); // Refresh conversation list
+      loadConversations();
     } catch (error: any) {
       console.error('Failed to send message:', error);
       toast({
@@ -490,10 +471,9 @@ export default function Messages() {
 
   const downloadAttachment = async (storageKey: string, caption: string) => {
     try {
-      // Get signed URL from storage bucket
       const { data, error } = await supabase.storage
         .from('message-attachments')
-        .createSignedUrl(storageKey, 3600); // 1 hour expiry
+        .createSignedUrl(storageKey, 3600);
 
       if (error) throw error;
 
@@ -512,266 +492,285 @@ export default function Messages() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-[calc(100vh-65px)]">
-          <Loader2 className="h-8 w-8 animate-spin" />
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full bg-background">
+          {(isSeller || isAdmin) && <SellerSidebar />}
+          <div className="flex-1 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
         </div>
-      </AppLayout>
+      </SidebarProvider>
     );
   }
 
-  return (
-    <AppLayout>
-      <div className="flex h-[calc(100vh-65px)]">
-        {/* Left Sidebar - Conversations */}
-        <div className="w-[380px] border-r bg-card flex flex-col">
-          <div className="p-4 border-b">
-            <h2 className="text-xl font-bold">Messages</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-          
-          <ScrollArea className="flex-1">
-            {conversations.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-8 text-center">
-                <p className="text-muted-foreground">No conversations yet</p>
-                <p className="text-sm text-muted-foreground mt-2">Start messaging sellers from product pages</p>
-              </div>
-            ) : (
-              <div>
-                {conversations.map((conv) => (
-                  <div
-                    key={conv.threadId}
-                    onClick={() => {
-                      setSelectedThreadId(conv.threadId);
-                      setSelectedUserProfile({
-                        id: conv.userId,
-                        name: conv.userName,
-                        avatar: conv.userAvatar
-                      });
-                      loadThreadMessages(conv.threadId);
-                    }}
-                    className={`p-4 cursor-pointer transition-colors border-b hover:bg-accent/50 ${
-                      selectedThreadId === conv.threadId ? 'bg-accent' : ''
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <Avatar className="h-14 w-14">
-                          <AvatarImage src={conv.userAvatar} />
-                          <AvatarFallback className="text-lg font-semibold">
-                            {conv.userName[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        {conv.unreadCount > 0 && (
-                          <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                            {conv.unreadCount}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className="font-semibold truncate">{conv.userName}</p>
+  const messagesContent = (
+    <div className="flex h-[calc(100vh-65px)] flex-1">
+      {/* Left Sidebar - Conversations */}
+      <div className="w-[320px] border-r bg-card flex flex-col shrink-0">
+        <div className="p-4 border-b">
+          <h2 className="text-xl font-bold">Messages</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+        
+        <ScrollArea className="flex-1">
+          {conversations.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-8 text-center">
+              <p className="text-muted-foreground">No conversations yet</p>
+              <p className="text-sm text-muted-foreground mt-2">Start messaging sellers from product pages</p>
+            </div>
+          ) : (
+            <div>
+              {conversations.map((conv) => (
+                <div
+                  key={conv.threadId}
+                  onClick={() => {
+                    setSelectedThreadId(conv.threadId);
+                    setSelectedUserProfile({
+                      id: conv.userId,
+                      name: conv.userName,
+                      avatar: conv.userAvatar
+                    });
+                    loadThreadMessages(conv.threadId);
+                  }}
+                  className={`p-4 cursor-pointer transition-colors border-b hover:bg-accent/50 ${
+                    selectedThreadId === conv.threadId ? 'bg-accent' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={conv.userAvatar} />
+                        <AvatarFallback className="text-lg font-semibold">
+                          {conv.userName[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      {conv.unreadCount > 0 && (
+                        <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                          {conv.unreadCount}
                         </div>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {conv.lastMessage}
-                        </p>
-                      </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate">{conv.userName}</p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {conv.lastMessage}
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </ScrollArea>
-        </div>
-
-        {/* Right Side - Active Conversation */}
-        <div className="flex-1 flex flex-col bg-background">
-          {selectedThreadId && selectedUserProfile ? (
-            <>
-              {/* Header */}
-              <div className="p-4 border-b bg-card flex items-center gap-3">
-                <Link to={`/profile/${selectedUserProfile.id}`}>
-                  <Avatar className="h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity">
-                    <AvatarImage src={selectedUserProfile.avatar} />
-                    <AvatarFallback>{selectedUserProfile.name[0]}</AvatarFallback>
-                  </Avatar>
-                </Link>
-                <div>
-                  <Link to={`/profile/${selectedUserProfile.id}`}>
-                    <h3 className="font-semibold hover:underline cursor-pointer">{selectedUserProfile.name}</h3>
-                  </Link>
-                  <p className="text-xs text-muted-foreground">Active now</p>
                 </div>
-              </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+      </div>
 
-              {/* Messages */}
-              <ScrollArea className="flex-1 p-6">
-                <div className="space-y-4 max-w-4xl mx-auto">
-                  {messages.map((msg) => {
-                    const isSender = msg.sender_id === user?.id;
-                    const isEditing = editingMessageId === msg.id;
-                    return (
-                      <div
-                        key={msg.id}
-                        className={`flex items-end gap-2 group ${isSender ? 'flex-row-reverse' : 'flex-row'}`}
-                      >
-                        {!isSender && (
-                          <Link to={`/profile/${selectedUserProfile.id}`}>
-                            <Avatar className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity">
-                              <AvatarImage src={selectedUserProfile.avatar} />
-                              <AvatarFallback className="text-xs">
-                                {selectedUserProfile.name[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                          </Link>
-                        )}
-                        <div className={`flex flex-col ${isSender ? 'items-end' : 'items-start'}`}>
-                          <div className={`flex items-center gap-1 ${isSender ? 'flex-row-reverse' : 'flex-row'}`}>
-                            <div
-                              className={`max-w-md rounded-2xl px-4 py-2 ${
-                                isSender
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'bg-muted'
-                              }`}
-                            >
-                              {isEditing ? (
-                                <div className="flex items-center gap-2">
-                                  <Input
-                                    value={editingContent}
-                                    onChange={(e) => setEditingContent(e.target.value)}
-                                    className="text-sm h-8 bg-background text-foreground"
-                                    autoFocus
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter') {
-                                        handleEditMessage(msg.id, editingContent);
-                                      } else if (e.key === 'Escape') {
-                                        setEditingMessageId(null);
-                                        setEditingContent("");
-                                      }
-                                    }}
-                                  />
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-6 w-6"
-                                    onClick={() => handleEditMessage(msg.id, editingContent)}
-                                  >
-                                    <Check className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-6 w-6"
-                                    onClick={() => {
+      {/* Right Side - Active Conversation */}
+      <div className="flex-1 flex flex-col bg-background min-w-0">
+        {selectedThreadId && selectedUserProfile ? (
+          <>
+            <div className="p-4 border-b bg-card flex items-center gap-3">
+              <Link to={`/profile/${selectedUserProfile.id}`}>
+                <Avatar className="h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity">
+                  <AvatarImage src={selectedUserProfile.avatar} />
+                  <AvatarFallback>{selectedUserProfile.name[0]}</AvatarFallback>
+                </Avatar>
+              </Link>
+              <div>
+                <Link to={`/profile/${selectedUserProfile.id}`}>
+                  <h3 className="font-semibold hover:underline cursor-pointer">{selectedUserProfile.name}</h3>
+                </Link>
+                <p className="text-xs text-muted-foreground">Active now</p>
+              </div>
+            </div>
+
+            <ScrollArea className="flex-1 p-6">
+              <div className="space-y-4 max-w-4xl mx-auto">
+                {messages.map((msg) => {
+                  const isSender = msg.sender_id === user?.id;
+                  const isEditing = editingMessageId === msg.id;
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex items-end gap-2 group ${isSender ? 'flex-row-reverse' : 'flex-row'}`}
+                    >
+                      {!isSender && (
+                        <Link to={`/profile/${selectedUserProfile.id}`}>
+                          <Avatar className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity">
+                            <AvatarImage src={selectedUserProfile.avatar} />
+                            <AvatarFallback className="text-xs">
+                              {selectedUserProfile.name[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                        </Link>
+                      )}
+                      <div className={`flex flex-col ${isSender ? 'items-end' : 'items-start'}`}>
+                        <div className={`flex items-center gap-1 ${isSender ? 'flex-row-reverse' : 'flex-row'}`}>
+                          <div
+                            className={`max-w-md rounded-2xl px-4 py-2 ${
+                              isSender
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted'
+                            }`}
+                          >
+                            {isEditing ? (
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  value={editingContent}
+                                  onChange={(e) => setEditingContent(e.target.value)}
+                                  className="text-sm h-8 bg-background text-foreground"
+                                  autoFocus
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleEditMessage(msg.id, editingContent);
+                                    } else if (e.key === 'Escape') {
                                       setEditingMessageId(null);
                                       setEditingContent("");
-                                    }}
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              ) : (
-                                <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
-                              )}
-                              {msg.attachment_storage_key && (
+                                    }
+                                  }}
+                                />
                                 <Button
+                                  size="icon"
                                   variant="ghost"
-                                  size="sm"
-                                  className="mt-2 gap-2"
-                                  onClick={() => downloadAttachment(msg.attachment_storage_key!, msg.attachment_caption || 'attachment')}
+                                  className="h-6 w-6"
+                                  onClick={() => handleEditMessage(msg.id, editingContent)}
                                 >
-                                  <Download className="h-4 w-4" />
-                                  <span className="text-xs">{msg.attachment_caption || 'Download Attachment'}</span>
+                                  <Check className="h-3 w-3" />
                                 </Button>
-                              )}
-                            </div>
-                            {/* Edit/Delete buttons - only for sender's messages */}
-                            {isSender && !isEditing && (
-                              <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button
                                   size="icon"
                                   variant="ghost"
                                   className="h-6 w-6"
                                   onClick={() => {
-                                    setEditingMessageId(msg.id);
-                                    setEditingContent(msg.content);
+                                    setEditingMessageId(null);
+                                    setEditingContent("");
                                   }}
                                 >
-                                  <Pencil className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-6 w-6 text-destructive hover:text-destructive"
-                                  onClick={() => handleDeleteMessage(msg.id)}
-                                >
-                                  <Trash2 className="h-3 w-3" />
+                                  <X className="h-3 w-3" />
                                 </Button>
                               </div>
+                            ) : (
+                              <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                            )}
+                            {msg.attachment_storage_key && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="mt-2 gap-2"
+                                onClick={() => downloadAttachment(msg.attachment_storage_key!, msg.attachment_caption || 'attachment')}
+                              >
+                                <Download className="h-4 w-4" />
+                                <span className="text-xs">{msg.attachment_caption || 'Download Attachment'}</span>
+                              </Button>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1 px-2">
-                            {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
-                          </p>
+                          {isSender && !isEditing && (
+                            <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6"
+                                onClick={() => {
+                                  setEditingMessageId(msg.id);
+                                  setEditingContent(msg.content);
+                                }}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6 text-destructive hover:text-destructive"
+                                onClick={() => handleDeleteMessage(msg.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
+                        <p className="text-xs text-muted-foreground mt-1 px-2">
+                          {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
+                        </p>
                       </div>
-                    );
-                  })}
-                  <div ref={messagesEndRef} />
-                </div>
-              </ScrollArea>
-
-              {/* Input Area */}
-              <div className="p-4 border-t bg-card">
-                <div className="max-w-4xl mx-auto space-y-3">
-                  <FileAttachmentUpload
-                    onFileSelect={setAttachmentFile}
-                    onClear={() => setAttachmentFile(null)}
-                    selectedFile={attachmentFile}
-                    uploading={uploadingAttachment}
-                  />
-                  <div className="flex items-center gap-2">
-                    <Input
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          sendMessage();
-                        }
-                      }}
-                      placeholder="Message..."
-                      className="rounded-full"
-                    />
-                    <Button 
-                      onClick={sendMessage} 
-                      disabled={sending || uploadingAttachment || (!newMessage.trim() && !attachmentFile)}
-                      size="icon"
-                      className="shrink-0 rounded-full"
-                    >
-                      {sending || uploadingAttachment ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <Send className="h-5 w-5" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
+                    </div>
+                  );
+                })}
+                <div ref={messagesEndRef} />
               </div>
-            </>
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <Send className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
-                <p className="text-xl font-semibold mb-2">Your Messages</p>
-                <p className="text-muted-foreground">Select a conversation to start messaging</p>
+            </ScrollArea>
+
+            <div className="p-4 border-t bg-card">
+              <div className="max-w-4xl mx-auto space-y-3">
+                <FileAttachmentUpload
+                  onFileSelect={setAttachmentFile}
+                  onClear={() => setAttachmentFile(null)}
+                  selectedFile={attachmentFile}
+                  uploading={uploadingAttachment}
+                />
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                      }
+                    }}
+                    placeholder="Message..."
+                    className="rounded-full"
+                  />
+                  <Button 
+                    onClick={sendMessage} 
+                    disabled={sending || uploadingAttachment || (!newMessage.trim() && !attachmentFile)}
+                    size="icon"
+                    className="shrink-0 rounded-full"
+                  >
+                    {sending || uploadingAttachment ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Send className="h-5 w-5" />
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
-          )}
-        </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <Send className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
+              <p className="text-xl font-semibold mb-2">Your Messages</p>
+              <p className="text-muted-foreground">Select a conversation to start messaging</p>
+            </div>
+          </div>
+        )}
       </div>
-    </AppLayout>
+    </div>
+  );
+
+  // If seller/admin, show with SellerSidebar; otherwise use basic layout
+  if (isSeller || isAdmin) {
+    return (
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full bg-background">
+          <SellerSidebar />
+          <div className="flex-1 flex flex-col min-w-0">
+            <header className="h-14 border-b bg-card/50 backdrop-blur-sm flex items-center px-6 sticky top-0 z-10">
+              <SidebarTrigger className="mr-4" />
+              <h1 className="text-xl font-bold">Messages</h1>
+            </header>
+            {messagesContent}
+          </div>
+        </div>
+      </SidebarProvider>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {messagesContent}
+    </div>
   );
 }

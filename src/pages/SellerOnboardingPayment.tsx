@@ -143,7 +143,7 @@ export default function SellerOnboardingPayment() {
       const { data, error } = await supabase.functions.invoke("stripe-connect-dashboard");
       if (error) throw error;
       if (!data.success || !data.url) throw new Error(data.error || "Failed to open dashboard");
-      window.open(data.url, "_blank");
+      window.open(data.url, "_blank", "noopener,noreferrer");
     } catch (error: any) {
       toast({ title: "Error", description: error.message || "Failed to open Stripe dashboard", variant: "destructive" });
     }

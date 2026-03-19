@@ -85,7 +85,16 @@ import PublicBookingPage from "./pages/PublicBookingPage";
 import MeetingInviteResponse from "./pages/MeetingInviteResponse";
 import { Seller2FAGuard } from "@/components/Seller2FAGuard";
 import { Optional2FAPrompt } from "@/components/Optional2FAPrompt";
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 2, // 2 min cache
+      gcTime: 1000 * 60 * 10,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

@@ -47,7 +47,8 @@ Deno.serve(async (req) => {
       }, { onConflict: 'id' });
     }
 
-    // Create onboarding link
+    // Create onboarding link — return to seller-payment-settings (correct route)
+    const origin = req.headers.get('origin') || 'https://solace-seed-trunk.lovable.app';
     const linkRes = await fetch('https://api.stripe.com/v1/account_links', {
       method: 'POST',
       headers: {
@@ -56,8 +57,8 @@ Deno.serve(async (req) => {
       },
       body: new URLSearchParams({
         account: accountId,
-        refresh_url: `${req.headers.get('origin')}/seller/payment-settings`,
-        return_url: `${req.headers.get('origin')}/seller/payment-settings?onboarded=true`,
+        refresh_url: `${origin}/seller-payment-settings?refresh=true`,
+        return_url: `${origin}/seller-payment-settings?onboarding=complete`,
         type: 'account_onboarding',
       }),
     });

@@ -108,12 +108,12 @@ export default function SellerPaymentSettings() {
       if (error) throw error;
       if (!data.success || !data.url) throw new Error(data.error || "Failed to create onboarding link");
 
-      toast.info("Redirecting to Stripe (new tab)...");
-      window.open(data.url, "_blank", "noopener,noreferrer");
+      toast.info("Redirecting to Stripe...");
+      // Use same-tab navigation so the return_url brings them back logged in
+      window.location.href = data.url;
     } catch (error: any) {
       console.error("Error connecting Stripe:", error);
       toast.error(error.message || "Failed to start Stripe onboarding");
-    } finally {
       setConnecting(false);
     }
   };

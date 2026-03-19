@@ -593,12 +593,21 @@ export default function Profile() {
                     <Label htmlFor="country" className="text-sm font-medium flex items-center gap-2">
                       <MapPin className="h-4 w-4" /> Location
                     </Label>
-                    <Input
-                      id="country"
-                      placeholder="New York, USA"
+                    <Select
                       value={formData.country}
-                      onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-                    />
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <ScrollArea className="h-[200px]">
+                          {COUNTRIES.map((c) => (
+                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                          ))}
+                        </ScrollArea>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 

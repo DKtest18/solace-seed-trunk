@@ -418,7 +418,9 @@ export default function SellerDashboard() {
             </div>
           </main>
         </div>
-        <MessagesSidebar />
+        <div className="hidden xl:flex w-80 flex-shrink-0 border-l bg-card">
+          <MessagesSidebar />
+        </div>
       </div>
     </SidebarProvider>
   );

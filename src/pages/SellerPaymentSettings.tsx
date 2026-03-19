@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Loader2, CreditCard, CheckCircle, XCircle, ExternalLink, Shield, RefreshCw, AlertTriangle } from "lucide-react";
+import { Loader2, CreditCard, CheckCircle, XCircle, ExternalLink, Shield, RefreshCw, AlertTriangle, PartyPopper, Trash2, ArrowLeft } from "lucide-react";
 import { useHasRole } from "@/hooks/useUserRole";
 import { IOSToggle } from "@/components/ui/ios-toggle";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +42,7 @@ export default function SellerPaymentSettings() {
   const [refreshing, setRefreshing] = useState(false);
   const [togglingCard, setTogglingCard] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus>({
     connected: false,
     onboardingStatus: "not_connected",
@@ -72,8 +73,10 @@ export default function SellerPaymentSettings() {
   useEffect(() => {
     if (searchParams.get("onboarding") === "complete") {
       toast.success("Stripe onboarding completed! Checking status...");
-      fetchStripeStatus();
-      // Clear the URL params
+      fetchStripeStatus().then(() => {
+        setShowSuccessAnimation(true);
+        setTimeout(() => setShowSuccessAnimation(false), 5000);
+      });
       window.history.replaceState({}, "", "/seller-payment-settings");
     }
     if (searchParams.get("refresh") === "true") {
@@ -87,10 +90,28 @@ export default function SellerPaymentSettings() {
     setRefreshing(true);
     try {
       const { data, error } = await supabase.functions.invoke("stripe-connect-status");
-      
       if (error) throw error;
       
-      setStripeStatus(data);
+      // Map response — handle both old flat shape and new camelCase shape
+      const mapped: StripeConnectStatus = {
+        connected: data.connected ?? false,
+        accountId: data.accountId || data.account_id,
+        maskedAccountId: data.maskedAccountId,
+        onboardingStatus: data.onboardingStatus || (
+          !data.connected ? 'not_connected' :
+          (data.onboarded || (data.charges_enabled && data.payouts_enabled)) ? 'connected' :
+          'onboarding'
+        ),
+        chargesEnabled: data.chargesEnabled ?? data.charges_enabled ?? false,
+        payoutsEnabled: data.payoutsEnabled ?? data.payouts_enabled ?? false,
+        detailsSubmitted: data.detailsSubmitted ?? data.details_submitted ?? false,
+        cardPaymentsEnabled: data.cardPaymentsEnabled ?? data.card_payments_enabled ?? false,
+        email: data.email,
+        requirements: data.requirements,
+        isTestMode: data.isTestMode ?? data.is_test_mode,
+      };
+      
+      setStripeStatus(mapped);
     } catch (error) {
       console.error("Error fetching Stripe status:", error);
       toast.error("Failed to fetch Stripe status");
@@ -103,8 +124,9 @@ export default function SellerPaymentSettings() {
   const handleConnectStripe = async () => {
     setConnecting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("stripe-connect-onboard");
-      
+      const { data, error } = await supabase.functions.invoke("stripe-connect-onboard", {
+        body: { return_path: '/seller-payment-settings' }
+      });
       if (error) throw error;
       if (!data.success || !data.url) throw new Error(data.error || "Failed to create onboarding link");
 
@@ -121,10 +143,8 @@ export default function SellerPaymentSettings() {
   const handleOpenDashboard = async () => {
     try {
       const { data, error } = await supabase.functions.invoke("stripe-connect-dashboard");
-      
       if (error) throw error;
       if (!data.success || !data.url) throw new Error(data.error || "Failed to open dashboard");
-
       window.open(data.url, "_blank");
     } catch (error: any) {
       console.error("Error opening dashboard:", error);
@@ -133,19 +153,17 @@ export default function SellerPaymentSettings() {
   };
 
   const handleDisconnectStripe = async () => {
-    if (!confirm("Are you sure you want to disconnect your Stripe account? Card payments will be disabled for all your products.")) {
+    if (!confirm("Are you sure you want to disconnect your Stripe account? This will delete the connection and disable card payments for all your products. You can connect a different account afterwards.")) {
       return;
     }
 
     setDisconnecting(true);
     try {
       const { data, error } = await supabase.functions.invoke("stripe-connect-disconnect");
-      
       if (error) throw error;
       if (!data.success) throw new Error(data.error || "Failed to disconnect");
 
-      toast.success("Stripe account disconnected");
-      // Reset status
+      toast.success("Stripe account disconnected. You can now connect a different account.");
       setStripeStatus({
         connected: false,
         onboardingStatus: "not_connected",
@@ -219,10 +237,32 @@ export default function SellerPaymentSettings() {
   return (
     <AppLayout>
       <div className="container max-w-3xl mx-auto py-8 px-4">
+        <Button variant="ghost" onClick={() => navigate('/seller-onboarding')} className="mb-4">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Checklist
+        </Button>
+
         <h1 className="text-3xl font-bold mb-2">Payment Settings</h1>
         <p className="text-muted-foreground mb-8">
           Connect your Stripe account to receive card payments directly
         </p>
+
+        {/* Success Animation */}
+        {showSuccessAnimation && isFullyOnboarded && (
+          <div className="mb-6 p-6 rounded-lg border-2 border-green-500 bg-green-50 dark:bg-green-950 text-center space-y-3 animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="flex justify-center">
+              <div className="p-3 rounded-full bg-green-100 dark:bg-green-900">
+                <PartyPopper className="h-10 w-10 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+            <h3 className="text-xl font-bold text-green-700 dark:text-green-300">
+              🎉 Stripe Successfully Connected!
+            </h3>
+            <p className="text-green-600 dark:text-green-400">
+              Your account is fully set up. You can now receive card payments — 90% of each sale goes directly to your bank!
+            </p>
+          </div>
+        )}
 
         {/* Sandbox Mode Warning */}
         {stripeStatus.isTestMode && (
@@ -370,30 +410,29 @@ export default function SellerPaymentSettings() {
                     </Button>
                   )}
                   {isFullyOnboarded && (
-                    <>
-                      <Button variant="outline" onClick={handleOpenDashboard}>
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Open Stripe Dashboard
-                      </Button>
-                      <Button 
-                        variant="destructive" 
-                        onClick={handleDisconnectStripe} 
-                        disabled={disconnecting}
-                      >
-                        {disconnecting ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Disconnecting...
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Disconnect Account
-                          </>
-                        )}
-                      </Button>
-                    </>
+                    <Button variant="outline" onClick={handleOpenDashboard}>
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Open Stripe Dashboard
+                    </Button>
                   )}
+                  {/* Always show disconnect — works for in-progress AND completed */}
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleDisconnectStripe} 
+                    disabled={disconnecting}
+                  >
+                    {disconnecting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Disconnecting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete Connection
+                      </>
+                    )}
+                  </Button>
                 </div>
 
                 {/* Card Payments Toggle */}

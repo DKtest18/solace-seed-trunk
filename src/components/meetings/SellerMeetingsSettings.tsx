@@ -543,32 +543,75 @@ export function SellerMeetingsSettings() {
               {DAYS_OF_WEEK.map(day => {
                 const avail = availability.find(a => a.day_of_week === day.value);
                 return (
-                  <div key={day.value} className="flex items-center gap-4 py-2 border-b last:border-0">
-                    <div className="w-28">
-                      <Switch
-                        checked={avail?.is_available || false}
-                        onCheckedChange={(checked) => updateAvailability(day.value, 'is_available', checked)}
-                      />
-                    </div>
-                    <span className="w-24 font-medium">{day.label}</span>
-                    {avail?.is_available ? (
-                      <div className="flex items-center gap-2 flex-1">
-                        <Input
-                          type="time"
-                          value={avail.start_time}
-                          onChange={(e) => updateAvailability(day.value, 'start_time', e.target.value)}
-                          className="w-32"
-                        />
-                        <span className="text-muted-foreground">to</span>
-                        <Input
-                          type="time"
-                          value={avail.end_time}
-                          onChange={(e) => updateAvailability(day.value, 'end_time', e.target.value)}
-                          className="w-32"
+                  <div key={day.value} className="py-3 border-b last:border-0 space-y-2">
+                    <div className="flex items-center gap-4">
+                      <div className="w-28">
+                        <Switch
+                          checked={avail?.is_available || false}
+                          onCheckedChange={(checked) => updateAvailability(day.value, 'is_available', checked)}
                         />
                       </div>
-                    ) : (
-                      <span className="text-muted-foreground">Unavailable</span>
+                      <span className="w-24 font-medium">{day.label}</span>
+                      {avail?.is_available ? (
+                        <div className="flex items-center gap-2 flex-1 flex-wrap">
+                          <Input
+                            type="time"
+                            value={avail.start_time}
+                            onChange={(e) => updateAvailability(day.value, 'start_time', e.target.value)}
+                            className="w-32"
+                          />
+                          <span className="text-muted-foreground">to</span>
+                          <Input
+                            type="time"
+                            value={avail.end_time}
+                            onChange={(e) => updateAvailability(day.value, 'end_time', e.target.value)}
+                            className="w-32"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => addTimeSlot(day.value)}
+                            className="ml-2"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add Slot
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">Unavailable</span>
+                      )}
+                    </div>
+                    {/* Extra time slots */}
+                    {avail?.is_available && avail.extra_slots && avail.extra_slots.length > 0 && (
+                      <div className="ml-52 space-y-2">
+                        {avail.extra_slots.map((slot, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <Input
+                              type="time"
+                              value={slot.start_time}
+                              onChange={(e) => updateTimeSlot(day.value, idx, 'start_time', e.target.value)}
+                              className="w-32"
+                            />
+                            <span className="text-muted-foreground">to</span>
+                            <Input
+                              type="time"
+                              value={slot.end_time}
+                              onChange={(e) => updateTimeSlot(day.value, idx, 'end_time', e.target.value)}
+                              className="w-32"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive"
+                              onClick={() => removeTimeSlot(day.value, idx)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 );

@@ -396,6 +396,19 @@ export default function Profile() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-background">
+        {fromChecklist && (
+          <div className="max-w-3xl mx-auto px-4 pt-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/seller-onboarding-checklist')}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Checklist
+            </Button>
+          </div>
+        )}
         {/* Banner Section */}
         <div className="relative h-48 md:h-64 bg-gradient-to-br from-primary/20 via-primary/10 to-background overflow-hidden group">
           {bannerUrl && (

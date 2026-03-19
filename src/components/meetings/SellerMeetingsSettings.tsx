@@ -436,6 +436,21 @@ export function SellerMeetingsSettings() {
                   ))}
                 </SelectContent>
               </Select>
+              {detectedTimezone && detectedTimezone !== config.timezone && (
+                <p className="text-xs text-muted-foreground">
+                  Your browser detected: <strong>{detectedTimezone}</strong>.{' '}
+                  <button 
+                    type="button"
+                    className="text-primary underline"
+                    onClick={() => setConfig(prev => prev ? { ...prev, timezone: detectedTimezone } : null)}
+                  >
+                    Use detected timezone
+                  </button>
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Current time in your timezone: {new Date().toLocaleTimeString('en-US', { timeZone: config.timezone, hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })}
+              </p>
             </div>
 
             {/* Meeting Settings */}

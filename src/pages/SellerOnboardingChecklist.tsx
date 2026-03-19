@@ -31,18 +31,29 @@ export default function SellerOnboardingChecklist() {
       return;
     }
 
-    // Add seller role if not already present
-    const { error } = await db
+    // Check if seller role already exists
+    const { data: existingRoles } = await db
       .from('dkai_user_roles')
-      .insert({ user_id: user.id, role: 'seller' });
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('role', 'seller')
+      .maybeSingle();
 
-    if (error && !error.message.includes('duplicate')) {
-      toast({
-        title: 'Error',
-        description: 'Failed to complete setup. Please try again.',
-        variant: 'destructive',
-      });
-      return;
+    if (!existingRoles) {
+      // Add seller role
+      const { error } = await db
+        .from('dkai_user_roles')
+        .insert({ user_id: user.id, role: 'seller' });
+
+      if (error) {
+        console.error('Error adding seller role:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to complete setup. Please try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     toast({

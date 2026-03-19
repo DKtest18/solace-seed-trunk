@@ -182,10 +182,14 @@ export default function SellerOnboardingPayment() {
 
     setTogglingCard(true);
     try {
+      // Upsert to handle case where row doesn't exist yet
       const { error } = await db
         .from("dkai_seller_payment_configs")
-        .update({ card_payments_enabled: enabled, updated_at: new Date().toISOString() })
-        .eq("seller_id", user?.id);
+        .upsert({ 
+          seller_id: user?.id,
+          card_payments_enabled: enabled, 
+          updated_at: new Date().toISOString() 
+        }, { onConflict: 'seller_id' });
 
       if (error) throw error;
       setStripeStatus(prev => ({ ...prev, cardPaymentsEnabled: enabled }));

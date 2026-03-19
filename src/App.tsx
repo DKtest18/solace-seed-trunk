@@ -133,7 +133,7 @@ const App = () => (
             <Route path="/seller-dashboard/products" element={<Seller2FAGuard><MyProducts /></Seller2FAGuard>} />
             <Route path="/seller-dashboard" element={<Seller2FAGuard><SellerDashboard /></Seller2FAGuard>} />
             <Route path="/seller-orders" element={<Seller2FAGuard><SellerOrders /></Seller2FAGuard>} />
-            <Route path="/seller-dashboard/analytics" element={<Seller2FAGuard><SellerDashboard /></Seller2FAGuard>} />
+            <Route path="/seller-dashboard/analytics" element={<Seller2FAGuard><SellerAnalytics /></Seller2FAGuard>} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/transactions" element={<AdminTransactions />} />
             <Route path="/purchases" element={<PurchaseHistory />} />

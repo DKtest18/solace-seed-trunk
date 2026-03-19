@@ -262,12 +262,21 @@ export default function ProfileEdit() {
                   <MapPin className="h-4 w-4 inline mr-2" />
                   Location
                 </Label>
-                <Input
-                  id="country"
-                  placeholder="United States"
+                <Select
                   value={formData.country}
-                  onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-                />
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <ScrollArea className="h-[200px]">
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </ScrollArea>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex gap-2">

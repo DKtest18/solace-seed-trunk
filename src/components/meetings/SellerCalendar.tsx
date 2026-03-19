@@ -45,12 +45,7 @@ interface CalendarEvent {
   participant_emails: string[];
 }
 
-interface CalendarConnection {
-  google_calendar_connected: boolean;
-  google_calendar_email: string | null;
-  outlook_calendar_connected: boolean;
-  outlook_calendar_email: string | null;
-}
+// Calendar connections removed - no Google/Outlook integration
 
 interface ScheduledMeeting {
   id: string;

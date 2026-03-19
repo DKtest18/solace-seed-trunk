@@ -469,6 +469,25 @@ export default function SellerPaymentSettings() {
                         </p>
                       </div>
                     )}
+
+                    {/* Stripe Management Notice */}
+                    <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
+                      <CreditCard className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      <AlertDescription className="text-blue-800 dark:text-blue-200">
+                        <strong>Want to change accepted payment methods?</strong> Payment method settings (cards, SEPA, iDEAL, etc.) are managed directly in your Stripe account.
+                        <Button 
+                          variant="link" 
+                          className="p-0 h-auto text-blue-700 dark:text-blue-300 underline ml-1"
+                          onClick={handleOpenDashboard}
+                        >
+                          Open Stripe Dashboard →
+                        </Button>
+                      </AlertDescription>
+                    </Alert>
+
+                    <p className="text-xs text-muted-foreground">
+                      Payouts are sent automatically to your connected bank account via Stripe. To change your payout schedule or bank details, visit your Stripe Dashboard.
+                    </p>
                   </div>
                 )}
               </>

@@ -83,9 +83,19 @@ import JoinMeetingPage from "./pages/JoinMeetingPage";
 import JoinMeetingByCode from "./pages/JoinMeetingByCode";
 import PublicBookingPage from "./pages/PublicBookingPage";
 import MeetingInviteResponse from "./pages/MeetingInviteResponse";
+import SellerAnalytics from "./pages/SellerAnalytics";
 import { Seller2FAGuard } from "@/components/Seller2FAGuard";
 import { Optional2FAPrompt } from "@/components/Optional2FAPrompt";
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 2, // 2 min cache
+      gcTime: 1000 * 60 * 10,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -123,7 +133,7 @@ const App = () => (
             <Route path="/seller-dashboard/products" element={<Seller2FAGuard><MyProducts /></Seller2FAGuard>} />
             <Route path="/seller-dashboard" element={<Seller2FAGuard><SellerDashboard /></Seller2FAGuard>} />
             <Route path="/seller-orders" element={<Seller2FAGuard><SellerOrders /></Seller2FAGuard>} />
-            <Route path="/seller-dashboard/analytics" element={<Seller2FAGuard><SellerDashboard /></Seller2FAGuard>} />
+            <Route path="/seller-dashboard/analytics" element={<Seller2FAGuard><SellerAnalytics /></Seller2FAGuard>} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/transactions" element={<AdminTransactions />} />
             <Route path="/purchases" element={<PurchaseHistory />} />

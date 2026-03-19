@@ -55,6 +55,11 @@ interface MeetingConfig {
   meeting_pitch?: string;
 }
 
+interface TimeSlot {
+  start_time: string;
+  end_time: string;
+}
+
 interface Availability {
   id?: string;
   seller_id: string;
@@ -62,6 +67,7 @@ interface Availability {
   is_available: boolean;
   start_time: string;
   end_time: string;
+  extra_slots?: TimeSlot[];
 }
 
 interface MeetingType {
@@ -141,6 +147,9 @@ export function SellerMeetingsSettings() {
     enabled: !!user
   });
 
+  // Auto-detect browser timezone
+  const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   // Initialize state from fetched data
   useEffect(() => {
     if (configData) {
@@ -153,7 +162,7 @@ export function SellerMeetingsSettings() {
         seller_id: user.id,
         meetings_enabled: false,
         booking_mode: 'calendar',
-        timezone: 'Europe/Zurich',
+        timezone: detectedTimezone || 'Europe/Zurich',
         max_meetings_per_day: 8,
         break_minutes: 15,
         preferred_platform: 'google_meet',
@@ -163,15 +172,18 @@ export function SellerMeetingsSettings() {
 
   useEffect(() => {
     if (availabilityData && availabilityData.length > 0) {
-      setAvailability(availabilityData);
+      setAvailability(availabilityData.map((a: any) => ({
+        ...a,
+        extra_slots: a.extra_slots ? (typeof a.extra_slots === 'string' ? JSON.parse(a.extra_slots) : a.extra_slots) : [],
+      })));
     } else if (user) {
-      // Create default availability for all days
       setAvailability(DAYS_OF_WEEK.map(day => ({
         seller_id: user.id,
         day_of_week: day.value,
-        is_available: day.value >= 1 && day.value <= 5, // Mon-Fri
+        is_available: day.value >= 1 && day.value <= 5,
         start_time: '09:00',
         end_time: '17:00',
+        extra_slots: [],
       })));
     }
   }, [availabilityData, user]);
@@ -267,6 +279,32 @@ export function SellerMeetingsSettings() {
     setAvailability(prev => prev.map(a => 
       a.day_of_week === dayOfWeek ? { ...a, [field]: value } : a
     ));
+  };
+
+  const addTimeSlot = (dayOfWeek: number) => {
+    setAvailability(prev => prev.map(a => {
+      if (a.day_of_week !== dayOfWeek) return a;
+      const slots = a.extra_slots || [];
+      return { ...a, extra_slots: [...slots, { start_time: '13:00', end_time: '17:00' }] };
+    }));
+  };
+
+  const removeTimeSlot = (dayOfWeek: number, index: number) => {
+    setAvailability(prev => prev.map(a => {
+      if (a.day_of_week !== dayOfWeek) return a;
+      const slots = [...(a.extra_slots || [])];
+      slots.splice(index, 1);
+      return { ...a, extra_slots: slots };
+    }));
+  };
+
+  const updateTimeSlot = (dayOfWeek: number, index: number, field: 'start_time' | 'end_time', value: string) => {
+    setAvailability(prev => prev.map(a => {
+      if (a.day_of_week !== dayOfWeek) return a;
+      const slots = [...(a.extra_slots || [])];
+      slots[index] = { ...slots[index], [field]: value };
+      return { ...a, extra_slots: slots };
+    }));
   };
 
   const isLoading = configLoading || availabilityLoading || typesLoading;
@@ -398,6 +436,21 @@ export function SellerMeetingsSettings() {
                   ))}
                 </SelectContent>
               </Select>
+              {detectedTimezone && detectedTimezone !== config.timezone && (
+                <p className="text-xs text-muted-foreground">
+                  Your browser detected: <strong>{detectedTimezone}</strong>.{' '}
+                  <button 
+                    type="button"
+                    className="text-primary underline"
+                    onClick={() => setConfig(prev => prev ? { ...prev, timezone: detectedTimezone } : null)}
+                  >
+                    Use detected timezone
+                  </button>
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Current time in your timezone: {new Date().toLocaleTimeString('en-US', { timeZone: config.timezone, hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })}
+              </p>
             </div>
 
             {/* Meeting Settings */}
@@ -490,32 +543,75 @@ export function SellerMeetingsSettings() {
               {DAYS_OF_WEEK.map(day => {
                 const avail = availability.find(a => a.day_of_week === day.value);
                 return (
-                  <div key={day.value} className="flex items-center gap-4 py-2 border-b last:border-0">
-                    <div className="w-28">
-                      <Switch
-                        checked={avail?.is_available || false}
-                        onCheckedChange={(checked) => updateAvailability(day.value, 'is_available', checked)}
-                      />
-                    </div>
-                    <span className="w-24 font-medium">{day.label}</span>
-                    {avail?.is_available ? (
-                      <div className="flex items-center gap-2 flex-1">
-                        <Input
-                          type="time"
-                          value={avail.start_time}
-                          onChange={(e) => updateAvailability(day.value, 'start_time', e.target.value)}
-                          className="w-32"
-                        />
-                        <span className="text-muted-foreground">to</span>
-                        <Input
-                          type="time"
-                          value={avail.end_time}
-                          onChange={(e) => updateAvailability(day.value, 'end_time', e.target.value)}
-                          className="w-32"
+                  <div key={day.value} className="py-3 border-b last:border-0 space-y-2">
+                    <div className="flex items-center gap-4">
+                      <div className="w-28">
+                        <Switch
+                          checked={avail?.is_available || false}
+                          onCheckedChange={(checked) => updateAvailability(day.value, 'is_available', checked)}
                         />
                       </div>
-                    ) : (
-                      <span className="text-muted-foreground">Unavailable</span>
+                      <span className="w-24 font-medium">{day.label}</span>
+                      {avail?.is_available ? (
+                        <div className="flex items-center gap-2 flex-1 flex-wrap">
+                          <Input
+                            type="time"
+                            value={avail.start_time}
+                            onChange={(e) => updateAvailability(day.value, 'start_time', e.target.value)}
+                            className="w-32"
+                          />
+                          <span className="text-muted-foreground">to</span>
+                          <Input
+                            type="time"
+                            value={avail.end_time}
+                            onChange={(e) => updateAvailability(day.value, 'end_time', e.target.value)}
+                            className="w-32"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => addTimeSlot(day.value)}
+                            className="ml-2"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add Slot
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">Unavailable</span>
+                      )}
+                    </div>
+                    {/* Extra time slots */}
+                    {avail?.is_available && avail.extra_slots && avail.extra_slots.length > 0 && (
+                      <div className="ml-52 space-y-2">
+                        {avail.extra_slots.map((slot, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <Input
+                              type="time"
+                              value={slot.start_time}
+                              onChange={(e) => updateTimeSlot(day.value, idx, 'start_time', e.target.value)}
+                              className="w-32"
+                            />
+                            <span className="text-muted-foreground">to</span>
+                            <Input
+                              type="time"
+                              value={slot.end_time}
+                              onChange={(e) => updateTimeSlot(day.value, idx, 'end_time', e.target.value)}
+                              className="w-32"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive"
+                              onClick={() => removeTimeSlot(day.value, idx)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 );

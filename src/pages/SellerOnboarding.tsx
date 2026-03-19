@@ -504,12 +504,21 @@ export default function SellerOnboarding() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="country">Country *</Label>
-                <Input
-                  id="country"
+                <Select
                   value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  placeholder="Your country"
-                />
+                  onValueChange={(value) => setCountry(value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <ScrollArea className="h-[200px]">
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </ScrollArea>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={goBack} className="flex-1">

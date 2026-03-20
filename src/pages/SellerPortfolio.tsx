@@ -1053,7 +1053,7 @@ export default function SellerPortfolio() {
                   {renderPortfolioForm()}
                   <DialogFooter>
                     <Button variant="outline" onClick={() => { setIsCreateDialogOpen(false); setEditingProduct(null); resetForm(); }}>Cancel</Button>
-                    <Button onClick={handleSubmit} disabled={!formData.title || !formData.description || !formData.category || !formData.completed_date || createMutation.isPending || updateMutation.isPending}>
+                    <Button onClick={handleSubmit} disabled={!formData.title || !formData.description || !formData.category || !formData.completed_date || (uploadedImages.length === 0 && uploadedVideos.length === 0) || createMutation.isPending || updateMutation.isPending}>
                       {editingProduct ? 'Update' : 'Create'}
                     </Button>
                   </DialogFooter>

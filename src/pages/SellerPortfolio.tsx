@@ -622,8 +622,12 @@ export default function SellerPortfolio() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from('portfolio_products')
+      if (uploadedImages.length === 0 && uploadedVideos.length === 0) {
+        throw new Error('Please upload at least one image or video');
+      }
+      if (!formData.title.trim()) throw new Error('Title is required');
+      const { error } = await db
+        .from('dkai_portfolio_products')
         .insert({
           seller_id: user?.id,
           title: formData.title,
@@ -633,9 +637,10 @@ export default function SellerPortfolio() {
           currency: formData.currency,
           time_spent_hours: formData.time_spent_hours ? parseFloat(formData.time_spent_hours) : null,
           completed_date: formData.completed_date,
-          tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+          tags: tagsList,
           external_url: formData.external_url.trim() || null,
-          website_links: formData.website_links.filter(l => l.url.trim()) as any,
+          external_links: externalLinksList,
+          website_links: websiteLinksList.map(url => ({ label: '', url })),
           is_public: formData.is_public,
           show_seller_name: formData.show_seller_name,
           customer_name: formData.customer_name.trim() || null,
@@ -643,6 +648,11 @@ export default function SellerPortfolio() {
           price_display_mode: formData.price_display_mode,
           price_range_min: formData.price_range_min ? parseFloat(formData.price_range_min) : null,
           price_range_max: formData.price_range_max ? parseFloat(formData.price_range_max) : null,
+          pricing_type: formData.pricing_type,
+          monthly_price: formData.monthly_price ? parseFloat(formData.monthly_price) : null,
+          yearly_price: formData.yearly_price ? parseFloat(formData.yearly_price) : null,
+          daily_price: formData.daily_price ? parseFloat(formData.daily_price) : null,
+          one_time_price: formData.one_time_price ? parseFloat(formData.one_time_price) : null,
           images: uploadedImages,
           videos: uploadedVideos,
         });
@@ -659,8 +669,11 @@ export default function SellerPortfolio() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id }: { id: string }) => {
-      const { error } = await supabase
-        .from('portfolio_products')
+      if (uploadedImages.length === 0 && uploadedVideos.length === 0) {
+        throw new Error('Please upload at least one image or video');
+      }
+      const { error } = await db
+        .from('dkai_portfolio_products')
         .update({
           title: formData.title,
           description: formData.description,
@@ -669,9 +682,10 @@ export default function SellerPortfolio() {
           currency: formData.currency,
           time_spent_hours: formData.time_spent_hours ? parseFloat(formData.time_spent_hours) : null,
           completed_date: formData.completed_date,
-          tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+          tags: tagsList,
           external_url: formData.external_url.trim() || null,
-          website_links: formData.website_links.filter(l => l.url.trim()) as any,
+          external_links: externalLinksList,
+          website_links: websiteLinksList.map(url => ({ label: '', url })),
           is_public: formData.is_public,
           show_seller_name: formData.show_seller_name,
           customer_name: formData.customer_name.trim() || null,
@@ -679,6 +693,11 @@ export default function SellerPortfolio() {
           price_display_mode: formData.price_display_mode,
           price_range_min: formData.price_range_min ? parseFloat(formData.price_range_min) : null,
           price_range_max: formData.price_range_max ? parseFloat(formData.price_range_max) : null,
+          pricing_type: formData.pricing_type,
+          monthly_price: formData.monthly_price ? parseFloat(formData.monthly_price) : null,
+          yearly_price: formData.yearly_price ? parseFloat(formData.yearly_price) : null,
+          daily_price: formData.daily_price ? parseFloat(formData.daily_price) : null,
+          one_time_price: formData.one_time_price ? parseFloat(formData.one_time_price) : null,
           images: uploadedImages,
           videos: uploadedVideos,
         })
@@ -720,31 +739,17 @@ export default function SellerPortfolio() {
     ].filter(Boolean).join('\n');
     try {
       const payload = { title: `Portfolio: ${product.title}`, body, is_public: true, seller_id: user.id };
-
-      const { data, error } = await supabase.functions.invoke('create-community-post', {
-        body: payload,
-      });
-
+      const { data, error } = await supabase.functions.invoke('create-community-post', { body: payload });
       if (error) {
         const { data: fallbackPost, error: fallbackError } = await db
           .from('dkai_community_posts')
-          .insert({
-            title: payload.title,
-            body: payload.body,
-            is_public: payload.is_public,
-            author_id: user.id,
-            seller_id: user.id,
-          })
-          .select('id')
-          .single();
-
+          .insert({ title: payload.title, body: payload.body, is_public: payload.is_public, author_id: user.id, seller_id: user.id })
+          .select('id').single();
         if (fallbackError) throw fallbackError;
-
         toast.success('Shared to community!');
         if (fallbackPost?.id) navigate(`/community/${fallbackPost.id}`);
         return;
       }
-
       toast.success('Shared to community!');
       if (data?.id) navigate(`/community/${data.id}`);
     } catch (err: any) {
@@ -755,39 +760,82 @@ export default function SellerPortfolio() {
   const resetForm = () => {
     setFormData({
       title: '', description: '', category: '', price_paid: '', currency: 'USD',
-      time_spent_hours: '', completed_date: '', tags: '', external_url: '',
-      website_links: [{ label: '', url: '' }], is_public: true, show_seller_name: true,
+      time_spent_hours: '', completed_date: '', external_url: '',
+      is_public: true, show_seller_name: true,
       customer_name: '', customer_anonymous: true, price_display_mode: 'hidden',
       price_range_min: '', price_range_max: '',
+      pricing_type: 'one_time', monthly_price: '', yearly_price: '', daily_price: '', one_time_price: '',
     });
     setUploadedImages([]);
     setUploadedVideos([]);
+    setTagsList([]);
+    setTagInput('');
+    setExternalLinksList([]);
+    setExternalLinkInput('');
+    setWebsiteLinksList([]);
+    setWebsiteLinkInput('');
   };
 
   const openEditDialog = (product: PortfolioProduct) => {
     setEditingProduct(product);
     const links = (product as any).website_links;
-    const parsedLinks = Array.isArray(links) && links.length > 0
-      ? links.map((l: any) => ({ label: l.label || '', url: l.url || '' }))
-      : [{ label: '', url: '' }];
+    const parsedWebsiteLinks = Array.isArray(links) ? links.map((l: any) => l.url || l).filter(Boolean) : [];
+    const extLinks = (product as any).external_links;
+    const parsedExtLinks = Array.isArray(extLinks) ? extLinks.filter(Boolean) : [];
     setFormData({
       title: product.title, description: product.description, category: product.category,
       price_paid: product.price_paid.toString(), currency: product.currency,
       time_spent_hours: product.time_spent_hours?.toString() || '', completed_date: product.completed_date,
-      tags: (product.tags || []).join(', '), external_url: product.external_url || '',
-      website_links: parsedLinks, is_public: product.is_public, show_seller_name: product.show_seller_name,
+      external_url: product.external_url || '',
+      is_public: product.is_public, show_seller_name: product.show_seller_name,
       customer_name: product.customer_name || '', customer_anonymous: product.customer_anonymous ?? true,
       price_display_mode: product.price_display_mode || 'hidden',
       price_range_min: product.price_range_min?.toString() || '',
       price_range_max: product.price_range_max?.toString() || '',
+      pricing_type: (product as any).pricing_type || 'one_time',
+      monthly_price: (product as any).monthly_price?.toString() || '',
+      yearly_price: (product as any).yearly_price?.toString() || '',
+      daily_price: (product as any).daily_price?.toString() || '',
+      one_time_price: (product as any).one_time_price?.toString() || '',
     });
+    setTagsList(product.tags || []);
+    setExternalLinksList(parsedExtLinks);
+    setWebsiteLinksList(parsedWebsiteLinks);
     setUploadedImages(product.images || []);
     setUploadedVideos(product.videos || []);
   };
 
   const handleSubmit = () => {
+    if (!formData.title.trim()) { toast.error('Title is required'); return; }
+    if (uploadedImages.length === 0 && uploadedVideos.length === 0) { toast.error('Upload at least one image or video'); return; }
     if (editingProduct) updateMutation.mutate({ id: editingProduct.id });
     else createMutation.mutate();
+  };
+
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      e.preventDefault();
+      if (!tagsList.includes(tagInput.trim())) setTagsList(prev => [...prev, tagInput.trim()]);
+      setTagInput('');
+    }
+  };
+
+  const handleExternalLinkKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && externalLinkInput.trim()) {
+      e.preventDefault();
+      const url = externalLinkInput.trim().startsWith('http') ? externalLinkInput.trim() : `https://${externalLinkInput.trim()}`;
+      if (!externalLinksList.includes(url)) setExternalLinksList(prev => [...prev, url]);
+      setExternalLinkInput('');
+    }
+  };
+
+  const handleWebsiteLinkKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && websiteLinkInput.trim()) {
+      e.preventDefault();
+      const url = websiteLinkInput.trim().startsWith('http') ? websiteLinkInput.trim() : `https://${websiteLinkInput.trim()}`;
+      if (!websiteLinksList.includes(url)) setWebsiteLinksList(prev => [...prev, url]);
+      setWebsiteLinkInput('');
+    }
   };
 
   if (!user) {
@@ -836,20 +884,23 @@ export default function SellerPortfolio() {
         )}
       </div>
 
-      {/* Price Display */}
+      {/* Pricing Models */}
       <div className="space-y-3 p-4 rounded-lg border border-border">
-        <h4 className="font-medium flex items-center gap-2"><DollarSign className="h-4 w-4" /> Price Display</h4>
-        <Select value={formData.price_display_mode} onValueChange={(value) => setFormData(prev => ({ ...prev, price_display_mode: value }))}>
+        <h4 className="font-medium flex items-center gap-2"><DollarSign className="h-4 w-4" /> Pricing</h4>
+        <Select value={formData.pricing_type} onValueChange={(value) => setFormData(prev => ({ ...prev, pricing_type: value }))}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="hidden">Don't show price</SelectItem>
-            <SelectItem value="exact">Show exact price</SelectItem>
-            <SelectItem value="range">Show price range</SelectItem>
+            <SelectItem value="one_time">One-Time Cost</SelectItem>
+            <SelectItem value="monthly">Monthly Subscription</SelectItem>
+            <SelectItem value="yearly">Yearly Subscription</SelectItem>
+            <SelectItem value="daily">Daily Rate</SelectItem>
+            <SelectItem value="range">Price Range</SelectItem>
+            <SelectItem value="hidden">Don't Show Price</SelectItem>
           </SelectContent>
         </Select>
-        {formData.price_display_mode === 'exact' && (
+        {formData.pricing_type === 'one_time' && (
           <div className="flex gap-2">
-            <div className="flex-1"><Label>Price</Label><Input type="number" value={formData.price_paid} onChange={(e) => setFormData(prev => ({ ...prev, price_paid: e.target.value }))} /></div>
+            <div className="flex-1"><Label>One-Time Price</Label><Input type="number" value={formData.one_time_price} onChange={(e) => setFormData(prev => ({ ...prev, one_time_price: e.target.value }))} placeholder="0.00" /></div>
             <div><Label>Currency</Label>
               <Select value={formData.currency} onValueChange={(v) => setFormData(prev => ({ ...prev, currency: v }))}>
                 <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
@@ -858,7 +909,16 @@ export default function SellerPortfolio() {
             </div>
           </div>
         )}
-        {formData.price_display_mode === 'range' && (
+        {formData.pricing_type === 'monthly' && (
+          <div className="flex gap-2"><div className="flex-1"><Label>Monthly Price</Label><Input type="number" value={formData.monthly_price} onChange={(e) => setFormData(prev => ({ ...prev, monthly_price: e.target.value }))} placeholder="0.00/mo" /></div></div>
+        )}
+        {formData.pricing_type === 'yearly' && (
+          <div className="flex gap-2"><div className="flex-1"><Label>Yearly Price</Label><Input type="number" value={formData.yearly_price} onChange={(e) => setFormData(prev => ({ ...prev, yearly_price: e.target.value }))} placeholder="0.00/yr" /></div></div>
+        )}
+        {formData.pricing_type === 'daily' && (
+          <div className="flex gap-2"><div className="flex-1"><Label>Daily Rate</Label><Input type="number" value={formData.daily_price} onChange={(e) => setFormData(prev => ({ ...prev, daily_price: e.target.value }))} placeholder="0.00/day" /></div></div>
+        )}
+        {formData.pricing_type === 'range' && (
           <div className="grid grid-cols-3 gap-2">
             <div><Label>Min</Label><Input type="number" value={formData.price_range_min} onChange={(e) => setFormData(prev => ({ ...prev, price_range_min: e.target.value }))} /></div>
             <div><Label>Max</Label><Input type="number" value={formData.price_range_max} onChange={(e) => setFormData(prev => ({ ...prev, price_range_max: e.target.value }))} /></div>
@@ -872,38 +932,85 @@ export default function SellerPortfolio() {
         )}
       </div>
 
-      {/* Media Upload */}
-      <MediaUploader
-        userId={user.id}
-        existingImages={uploadedImages}
-        existingVideos={uploadedVideos}
-        onImagesChange={setUploadedImages}
-        onVideosChange={setUploadedVideos}
-      />
+      {/* Media Upload (required) */}
+      <div className="space-y-2">
+        <MediaUploader
+          userId={user.id}
+          existingImages={uploadedImages}
+          existingVideos={uploadedVideos}
+          onImagesChange={setUploadedImages}
+          onVideosChange={setUploadedVideos}
+        />
+        {uploadedImages.length === 0 && uploadedVideos.length === 0 && (
+          <p className="text-sm text-destructive">⚠ At least one image or video is required</p>
+        )}
+      </div>
 
       {/* Time Spent */}
       <div><Label>Time Spent (hours)</Label><Input type="number" value={formData.time_spent_hours} onChange={(e) => setFormData(prev => ({ ...prev, time_spent_hours: e.target.value }))} placeholder="e.g., 40" /></div>
       
-      {/* Tags */}
-      <div><Label>Tags (comma-separated)</Label><Input value={formData.tags} onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))} placeholder="e.g., React, Node.js" /></div>
-      
-      {/* External Link */}
-      <div><Label>External Link (optional)</Label><Input value={formData.external_url} onChange={(e) => setFormData(prev => ({ ...prev, external_url: e.target.value }))} placeholder="https://example.com" type="url" /></div>
-      
-      {/* Website Links */}
-      <div className="space-y-3 p-4 rounded-lg border border-border">
-        <h4 className="font-medium flex items-center gap-2"><ExternalLink className="h-4 w-4" /> Website Links</h4>
-        {formData.website_links.map((link, idx) => (
-          <div key={idx} className="flex gap-2">
-            <Input value={link.label} onChange={(e) => { const u = [...formData.website_links]; u[idx] = { ...u[idx], label: e.target.value }; setFormData(prev => ({ ...prev, website_links: u })); }} placeholder="Label" className="w-1/3" />
-            <Input value={link.url} onChange={(e) => { const u = [...formData.website_links]; u[idx] = { ...u[idx], url: e.target.value }; setFormData(prev => ({ ...prev, website_links: u })); }} placeholder="https://..." type="url" className="flex-1" />
-            {formData.website_links.length > 1 && (
-              <Button type="button" variant="ghost" size="icon" onClick={() => setFormData(prev => ({ ...prev, website_links: prev.website_links.filter((_, i) => i !== idx) }))}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-            )}
+      {/* Tags - Enter to add */}
+      <div className="space-y-2">
+        <Label>Tags (press Enter to add)</Label>
+        <Input 
+          value={tagInput} 
+          onChange={(e) => setTagInput(e.target.value)} 
+          onKeyDown={handleTagKeyDown}
+          placeholder="Type a tag and press Enter..." 
+        />
+        {tagsList.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {tagsList.map((tag, i) => (
+              <Badge key={i} variant="secondary" className="gap-1">
+                <Tag className="h-3 w-3" />{tag}
+                <button type="button" onClick={() => setTagsList(prev => prev.filter((_, idx) => idx !== i))} className="ml-1 hover:text-destructive"><X className="h-3 w-3" /></button>
+              </Badge>
+            ))}
           </div>
-        ))}
-        {formData.website_links.length < 5 && (
-          <Button type="button" variant="outline" size="sm" onClick={() => setFormData(prev => ({ ...prev, website_links: [...prev.website_links, { label: '', url: '' }] }))}><Plus className="h-4 w-4 mr-1" /> Add Link</Button>
+        )}
+      </div>
+      
+      {/* External Links - Enter to add */}
+      <div className="space-y-2">
+        <Label>External Links (press Enter to add)</Label>
+        <Input 
+          value={externalLinkInput} 
+          onChange={(e) => setExternalLinkInput(e.target.value)} 
+          onKeyDown={handleExternalLinkKeyDown}
+          placeholder="https://example.com then press Enter..." 
+        />
+        {externalLinksList.length > 0 && (
+          <div className="space-y-1">
+            {externalLinksList.map((url, i) => (
+              <div key={i} className="flex items-center gap-2 p-2 rounded-md border border-border bg-muted/50">
+                <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
+                <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary truncate flex-1 hover:underline">{url}</a>
+                <button type="button" onClick={() => setExternalLinksList(prev => prev.filter((_, idx) => idx !== i))} className="hover:text-destructive"><X className="h-3 w-3" /></button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Website Links - Enter to add */}
+      <div className="space-y-2">
+        <Label>Website Links (press Enter to add)</Label>
+        <Input 
+          value={websiteLinkInput} 
+          onChange={(e) => setWebsiteLinkInput(e.target.value)} 
+          onKeyDown={handleWebsiteLinkKeyDown}
+          placeholder="https://mywebsite.com then press Enter..." 
+        />
+        {websiteLinksList.length > 0 && (
+          <div className="space-y-1">
+            {websiteLinksList.map((url, i) => (
+              <div key={i} className="flex items-center gap-2 p-2 rounded-md border border-border bg-muted/50">
+                <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
+                <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary truncate flex-1 hover:underline">{url}</a>
+                <button type="button" onClick={() => setWebsiteLinksList(prev => prev.filter((_, idx) => idx !== i))} className="hover:text-destructive"><X className="h-3 w-3" /></button>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
@@ -918,7 +1025,6 @@ export default function SellerPortfolio() {
           <Switch checked={formData.show_seller_name} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, show_seller_name: checked }))} />
         </div>
       </div>
-    </div>
   );
 
   return (

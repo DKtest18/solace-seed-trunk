@@ -1025,6 +1025,7 @@ export default function SellerPortfolio() {
           <Switch checked={formData.show_seller_name} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, show_seller_name: checked }))} />
         </div>
       </div>
+    </div>
   );
 
   return (

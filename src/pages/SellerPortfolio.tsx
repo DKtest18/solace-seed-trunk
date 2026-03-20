@@ -513,6 +513,12 @@ export default function SellerPortfolio() {
   const [editingProduct, setEditingProduct] = useState<PortfolioProduct | null>(null);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [uploadedVideos, setUploadedVideos] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
+  const [tagsList, setTagsList] = useState<string[]>([]);
+  const [externalLinkInput, setExternalLinkInput] = useState('');
+  const [externalLinksList, setExternalLinksList] = useState<string[]>([]);
+  const [websiteLinkInput, setWebsiteLinkInput] = useState('');
+  const [websiteLinksList, setWebsiteLinksList] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -521,9 +527,7 @@ export default function SellerPortfolio() {
     currency: 'USD',
     time_spent_hours: '',
     completed_date: '',
-    tags: '',
     external_url: '',
-    website_links: [{ label: '', url: '' }],
     is_public: true,
     show_seller_name: true,
     customer_name: '',
@@ -531,6 +535,11 @@ export default function SellerPortfolio() {
     price_display_mode: 'hidden',
     price_range_min: '',
     price_range_max: '',
+    pricing_type: 'one_time',
+    monthly_price: '',
+    yearly_price: '',
+    daily_price: '',
+    one_time_price: '',
   });
 
   const { data: portfolioProducts, isLoading } = useQuery({

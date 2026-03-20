@@ -596,8 +596,8 @@ export default function SellerPortfolio() {
 
   const importToPortfolio = async (sold: SoldProduct, anonymous: boolean, priceDisplay: string = 'exact', isPublic: boolean = true) => {
     if (!user) return;
-    const { error } = await supabase
-      .from('portfolio_products')
+    const { error } = await db
+      .from('dkai_portfolio_products')
       .insert({
         seller_id: user.id,
         title: sold.product_title,
@@ -615,7 +615,7 @@ export default function SellerPortfolio() {
         price_display_mode: priceDisplay,
         price_range_min: null, price_range_max: null,
         videos: [],
-        product_id: sold.product_id, // Link to actual product for reviews/ratings
+        product_id: sold.product_id,
       });
     if (error) toast.error('Failed to import', { description: error.message });
   };

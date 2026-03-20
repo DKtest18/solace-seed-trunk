@@ -568,12 +568,12 @@ export default function SellerPortfolio() {
         .order('created_at', { ascending: false });
       if (error) throw error;
 
-      const sellerOrders = (data || []).filter((o: any) => o.products?.seller_id === user.id);
+      const sellerOrders = (data || []).filter((o: any) => o.dkai_products?.seller_id === user.id);
       const grouped: Record<string, SoldProduct> = {};
       for (const order of sellerOrders) {
         const pid = order.product_id;
         if (!grouped[pid]) {
-          const product = order.products as any;
+          const product = (order as any).dkai_products;
           grouped[pid] = {
             product_id: pid,
             product_title: product?.title || 'Unknown Product',
@@ -585,7 +585,7 @@ export default function SellerPortfolio() {
         }
         grouped[pid].total_sold += 1;
         grouped[pid].total_revenue += order.price || 0;
-        const buyer = order.profiles as any;
+        const buyer = (order as any).dkai_profiles;
         const buyerName = buyer?.full_name || buyer?.username || 'Anonymous';
         if (!grouped[pid].buyers.includes(buyerName)) grouped[pid].buyers.push(buyerName);
       }

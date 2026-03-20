@@ -10,6 +10,7 @@ const PAGE_TYPES: Record<string, string> = {
   privacy: "Privacy Policy",
   cookies: "Cookie Policy",
   refund: "Refund Policy",
+  seller: "Seller Terms & Obligations",
   imprint: "Legal Notice / Imprint",
   meetings: "Meeting Guidelines",
   community: "Community Guidelines",

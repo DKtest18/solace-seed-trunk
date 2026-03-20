@@ -97,7 +97,7 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
             htmlFor="accept-rules" 
             className="text-sm font-medium cursor-pointer"
           >
-            I have read, understood, and agree to all {ruleType === 'user' ? 'platform' : 'seller'} rules.
+            I have read, understood, and agree to all {ruleType === 'user' ? 'platform' : ruleType === 'seller' ? 'seller' : ruleType === 'meeting' ? 'meeting' : 'community'} rules.
           </label>
         </div>
       </CardContent>

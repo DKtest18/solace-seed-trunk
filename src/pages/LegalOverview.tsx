@@ -8,6 +8,7 @@ const legalPages = [
   { type: "privacy", title: "Privacy Policy", description: "Datenschutzerklärung — Wie wir Ihre Daten verarbeiten (DSGVO/nDSG)", icon: Shield },
   { type: "cookies", title: "Cookie Policy", description: "Informationen über die von uns verwendeten Cookies", icon: Cookie },
   { type: "refund", title: "Refund & Return Policy", description: "Widerrufsbelehrung & Rückgaberecht gemäss EU-Richtlinie 2011/83/EU", icon: ReceiptText },
+  { type: "seller", title: "Seller Terms & Obligations", description: "Verkäuferbedingungen — Pflichten, Gebühren, Treuhand & Haftung", icon: FileText },
   { type: "imprint", title: "Legal Notice / Impressum", description: "Angaben gemäss Impressumspflicht — Betreiberinformationen", icon: Building },
   { type: "meetings", title: "Meeting Guidelines", description: "Meeting-Richtlinien — Regeln für Video-Meetings (18+, nur geschäftlich)", icon: Video },
   { type: "community", title: "Community Guidelines", description: "Community-Richtlinien — Verhaltensregeln für die Community", icon: Users },

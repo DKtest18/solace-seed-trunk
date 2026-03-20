@@ -67,15 +67,17 @@ export default function Portfolio() {
     queryFn: async () => {
       const { data, error } = await db
         .from('dkai_portfolio_products')
-        .select(`
-          *,
-          seller:dkai_profiles!portfolio_products_seller_id_fkey (id, username, full_name, avatar_url),
-          product:dkai_products!portfolio_products_product_id_fkey (id, title, average_rating, total_sales, is_published, price)
-        `)
+        .select(`*`)
         .eq('is_public', true)
         .order('completed_date', { ascending: false });
       if (error) throw error;
-      return data as unknown as PortfolioItem[];
+      // Fetch seller profiles separately
+      const items = data as any[];
+      const sellerIds = [...new Set(items.map(i => i.seller_id))];
+      const { data: sellers } = await db.from('dkai_profiles').select('id, username, full_name, avatar_url').in('id', sellerIds);
+      const sellerMap: Record<string, any> = {};
+      (sellers || []).forEach((s: any) => { sellerMap[s.id] = s; });
+      return items.map(item => ({ ...item, seller: sellerMap[item.seller_id] || null, product: null })) as PortfolioItem[];
     }
   });
 

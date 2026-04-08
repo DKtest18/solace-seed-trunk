@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
     if (link.error) throw new Error(link.error.message);
 
     return jsonResponse({ success: true, url: link.url });
-  } catch (err) {
-    return errorResponse(err.message, 500);
+  } catch (err: unknown) {
+    return errorResponse(err instanceof Error ? err instanceof Error ? err.message : String(err) : String(err)), 500);
   }
 });

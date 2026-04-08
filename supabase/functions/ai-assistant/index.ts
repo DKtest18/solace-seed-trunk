@@ -48,8 +48,8 @@ Deno.serve(async (req) => {
     const content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
     return jsonResponse({ content });
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('AI assistant error:', err);
-    return errorResponse(err.message, 500);
+    return errorResponse(err instanceof Error ? err instanceof Error ? err.message : String(err) : String(err)), 500);
   }
 });

@@ -74,9 +74,9 @@ Deno.serve(async (req) => {
     }
 
     return jsonResponse({ success: true, message: 'Notification email sent' });
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('send-notification-email error:', err);
-    return errorResponse(err.message, 500);
+    return errorResponse(err instanceof Error ? err instanceof Error ? err.message : String(err) : String(err)), 500);
   }
 });
 
@@ -755,5 +755,7 @@ function buildNotificationEmail(
         ].join('')),
       };
     }
+    default:
+      return { subject: 'DK AI Marketplace Notification', html: '<p>You have a new notification.</p>' };
   }
 }

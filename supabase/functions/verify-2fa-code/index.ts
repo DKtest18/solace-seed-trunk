@@ -28,7 +28,7 @@ async function generateTOTPCode(secret: string, timeCounter: number): Promise<st
     counter = Math.floor(counter / 256);
   }
   const cryptoKey = await crypto.subtle.importKey(
-    'raw', secretBytes, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']
+    'raw', secretBytes.buffer as ArrayBuffer, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']
   );
   const signature = await crypto.subtle.sign('HMAC', cryptoKey, timeBytes);
   const hash = new Uint8Array(signature);
@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
       .eq('action', '2fa_verify');
 
     return jsonResponse({ valid: true });
-  } catch (err) {
-    return errorResponse(err.message, 500);
+  } catch (err: unknown) {
+    return errorResponse(err instanceof Error ? err instanceof Error ? err.message : String(err) : String(err)), 500);
   }
 });

@@ -86,9 +86,9 @@ Deno.serve(async (req) => {
     }
 
     return jsonResponse({ success: true, message: 'Email sent successfully' });
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('send-auth-email error:', err);
-    return errorResponse(err.message, 500);
+    return errorResponse(err instanceof Error ? err instanceof Error ? err.message : String(err) : String(err)), 500);
   }
 });
 

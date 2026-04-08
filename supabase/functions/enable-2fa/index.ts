@@ -27,7 +27,7 @@ async function generateTOTPCode(secret: string, timeCounter: number): Promise<st
     counter = Math.floor(counter / 256);
   }
   const cryptoKey = await crypto.subtle.importKey(
-    'raw', secretBytes, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']
+    'raw', secretBytes.buffer as ArrayBuffer, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']
   );
   const signature = await crypto.subtle.sign('HMAC', cryptoKey, timeBytes);
   const hash = new Uint8Array(signature);

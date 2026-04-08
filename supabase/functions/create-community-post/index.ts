@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     if (postError) throw postError;
 
     return jsonResponse({ success: true, post });
-  } catch (err: unknown) {
-    return errorResponse(err instanceof Error ? err instanceof Error ? err.message : String(err) : String(err)), 500);
+  } catch (err) {
+    return errorResponse(err.message, 500);
   }
 });

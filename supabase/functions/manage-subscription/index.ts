@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
     }
 
     return jsonResponse({ success: true });
-  } catch (err: unknown) {
-    return errorResponse(err instanceof Error ? err instanceof Error ? err.message : String(err) : String(err)), 500);
+  } catch (err) {
+    return errorResponse(err.message, 500);
   }
 });

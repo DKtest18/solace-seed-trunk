@@ -755,5 +755,7 @@ function buildNotificationEmail(
         ].join('')),
       };
     }
+    default:
+      return { subject: 'DK AI Marketplace Notification', html: '<p>You have a new notification.</p>' };
   }
 }

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import dkAiLogo from '@/assets/dk-ai-logo.png';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
@@ -73,8 +74,8 @@ export function Navbar() {
       <div className="container mx-auto px-4 lg:px-6 py-3 flex items-center justify-between">
         {/* Left: Logo + desktop links */}
         <div className="flex items-center gap-4 lg:gap-8">
-          <Link to="/" className="flex items-center font-bold text-base lg:text-lg text-foreground hover:text-primary transition-colors whitespace-nowrap">
-            DK AI MARKETPLACE
+          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <img src={dkAiLogo} alt="DK AI Marketplace" className="h-8 lg:h-10 w-auto" />
           </Link>
           <div className="hidden md:flex items-center gap-6 lg:gap-8">
             {navLinks.map((link) => (

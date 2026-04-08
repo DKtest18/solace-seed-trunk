@@ -7,6 +7,7 @@ import { useHasRole } from '@/hooks/useUserRole';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { HeroBackground } from '@/components/HeroBackground';
 import { FeaturedProducts } from '@/components/FeaturedProducts';
+import dkaiLogo from '@/assets/dk-ai-marketplace-logo.png';
 
 export default function Index() {
   const { user } = useAuth();
@@ -21,9 +22,11 @@ export default function Index() {
       <section className="animated-gradient-bg container mx-auto px-4 py-20 text-center relative overflow-hidden">
         <HeroBackground />
         <div className="max-w-4xl mx-auto space-y-6 relative z-10 animate-fade-in">
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
-            Welcome to <span className="text-primary">DK AI MARKETPLACE</span>
-          </h1>
+          <img 
+            src={dkaiLogo} 
+            alt="DK AI Marketplace" 
+            className="mx-auto max-w-md md:max-w-lg w-full h-auto"
+          />
           <p className="text-lg italic text-muted-foreground/80 font-medium">
             "Made by AI made for AI. -DK"
           </p>

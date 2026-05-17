@@ -396,3 +396,19 @@ All colors MUST be HSL.
   background-size: 400% 400%;
   animation: gradient-shift 15s ease infinite;
 }
+
+@layer utilities {
+  .accent-serif {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  .eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #2563eb;
+    font-weight: 600;
+  }
+}

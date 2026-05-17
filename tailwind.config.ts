@@ -13,15 +13,34 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        display: ["Sora", "system-ui", "sans-serif"],
+        body: ["Inter", "system-ui", "sans-serif"],
+        serif: ["Fraunces", "Georgia", "serif"],
+      },
       colors: {
-        border: "hsl(var(--border))",
+        border: {
+          DEFAULT: "#e5e7eb",
+          strong: "#d1d5db",
+        },
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
+        background: {
+          DEFAULT: "#ffffff",
+          soft: "#f8fafc",
+          accent: "#eff6ff",
+        },
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
+          DEFAULT: "#2563eb",
+          hover: "#1d4ed8",
+          soft: "#eff6ff",
           foreground: "hsl(var(--primary-foreground))",
+        },
+        muted: {
+          DEFAULT: "#64748b",
+          dim: "#94a3b8",
+          foreground: "hsl(var(--muted-foreground))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -30,10 +49,6 @@ export default {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
           DEFAULT: "hsl(var(--accent))",
@@ -84,6 +99,10 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+      },
+      boxShadow: {
+        card: "0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05)",
+        "card-hover": "0 10px 25px -5px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05)",
       },
     },
   },

@@ -1,22 +1,20 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate, Link } from 'react-router-dom';
-import { Loader2, Search, SlidersHorizontal, Heart } from 'lucide-react';
+import { Search, SlidersHorizontal, PackageOpen, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { RatingDisplay } from '@/components/RatingDisplay';
 import { useProductsWithRatings } from '@/hooks/useProductsWithRatings';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
 import { WishlistButton } from '@/components/WishlistButton';
 import { trackProductClick } from '@/utils/analytics';
-
 import { AppLayout } from '@/components/AppLayout';
 
 export default function Marketplace() {
@@ -32,9 +30,7 @@ export default function Marketplace() {
 
   const { data: productsWithRatings, isLoading } = useProductsWithRatings();
 
-  // Filter and sort products
   const products = productsWithRatings?.filter((product) => {
-    // Search filter
     if (searchQuery) {
       const searchLower = searchQuery.toLowerCase();
       if (
@@ -44,58 +40,30 @@ export default function Marketplace() {
         return false;
       }
     }
-
-    // Product type filter
-    if (productType !== 'all' && product.product_type !== productType) {
-      return false;
-    }
-
-    // Pricing model filter
-    if (pricingModel !== 'all' && product.pricing_model !== pricingModel) {
-      return false;
-    }
-
-    // Tags filter
+    if (productType !== 'all' && product.product_type !== productType) return false;
+    if (pricingModel !== 'all' && product.pricing_model !== pricingModel) return false;
     if (selectedTags.length > 0) {
-      if (!selectedTags.some((tag) => product.tags?.includes(tag))) {
-        return false;
-      }
+      if (!selectedTags.some((tag) => product.tags?.includes(tag))) return false;
     }
-
-    // Price range filter
     if (priceRange.min || priceRange.max) {
       const price = Number(product.price);
       const min = priceRange.min ? parseFloat(priceRange.min) : 0;
       const max = priceRange.max ? parseFloat(priceRange.max) : Infinity;
-      if (price < min || price > max) {
-        return false;
-      }
+      if (price < min || price > max) return false;
     }
-
-    // Rating filter
-    if (minRating > 0 && product.rating.average < minRating) {
-      return false;
-    }
-
+    if (minRating > 0 && product.rating.average < minRating) return false;
     return true;
   }).sort((a, b) => {
-    // Sorting logic
     switch (sortBy) {
-      case 'highest-rated':
-        return b.rating.average - a.rating.average;
-      case 'most-reviewed':
-        return b.rating.count - a.rating.count;
-      case 'price-low':
-        return Number(a.price) - Number(b.price);
-      case 'price-high':
-        return Number(b.price) - Number(a.price);
+      case 'highest-rated': return b.rating.average - a.rating.average;
+      case 'most-reviewed': return b.rating.count - a.rating.count;
+      case 'price-low': return Number(a.price) - Number(b.price);
+      case 'price-high': return Number(b.price) - Number(a.price);
       case 'newest':
-      default:
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }
   });
 
-  // Get all unique tags from all products
   const { data: allTags } = useQuery({
     queryKey: ['all-tags'],
     queryFn: async () => {
@@ -103,14 +71,11 @@ export default function Marketplace() {
         .from('dkai_products')
         .select('tags')
         .eq('is_published', true);
-
       if (error) throw error;
-
       const tags = new Set<string>();
       data?.forEach((product) => {
         product.tags?.forEach((tag: string) => tags.add(tag));
       });
-
       return Array.from(tags).sort();
     },
   });
@@ -131,14 +96,29 @@ export default function Marketplace() {
     setSortBy('newest');
   };
 
+  const hasActiveFilters =
+    selectedTags.length > 0 ||
+    productType !== 'all' ||
+    pricingModel !== 'all' ||
+    priceRange.min !== '' ||
+    priceRange.max !== '' ||
+    minRating > 0;
+
+  const FilterPill = ({ label, onRemove }: { label: string; onRemove: () => void }) => (
+    <span className="rounded-full bg-primary-soft text-primary px-3 py-1 text-xs flex items-center gap-1">
+      {label}
+      <button onClick={onRemove} className="hover:opacity-70" aria-label={`Remove ${label}`}>
+        <X className="w-3 h-3" />
+      </button>
+    </span>
+  );
+
   const FilterPanel = () => (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <Label>Product Type</Label>
+    <div>
+      <div className="mb-8">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">Product Type</h3>
         <Select value={productType} onValueChange={setProductType}>
-          <SelectTrigger>
-            <SelectValue placeholder="All Types" />
-          </SelectTrigger>
+          <SelectTrigger className="text-sm"><SelectValue placeholder="All Types" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="agent">AI Agent</SelectItem>
@@ -147,12 +127,10 @@ export default function Marketplace() {
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label>Pricing Model</Label>
+      <div className="mb-8">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">Pricing Model</h3>
         <Select value={pricingModel} onValueChange={setPricingModel}>
-          <SelectTrigger>
-            <SelectValue placeholder="All Models" />
-          </SelectTrigger>
+          <SelectTrigger className="text-sm"><SelectValue placeholder="All Models" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Models</SelectItem>
             <SelectItem value="one_time">One-time</SelectItem>
@@ -162,8 +140,8 @@ export default function Marketplace() {
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label>Price Range</Label>
+      <div className="mb-8">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">Price Range</h3>
         <div className="flex gap-2 items-center">
           <Input
             type="number"
@@ -171,53 +149,55 @@ export default function Marketplace() {
             value={priceRange.min}
             onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
             min="0"
+            className="text-sm"
           />
-          <span className="text-muted-foreground">-</span>
+          <span className="text-muted">-</span>
           <Input
             type="number"
             placeholder="Max"
             value={priceRange.max}
             onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
             min="0"
+            className="text-sm"
           />
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>Minimum Rating</Label>
+      <div className="mb-8">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">Minimum Rating</h3>
         <Select value={minRating.toString()} onValueChange={(v) => setMinRating(Number(v))}>
-          <SelectTrigger>
-            <SelectValue placeholder="Any Rating" />
-          </SelectTrigger>
+          <SelectTrigger className="text-sm"><SelectValue placeholder="Any Rating" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="0">Any Rating</SelectItem>
-            <SelectItem value="1">⭐ 1+</SelectItem>
-            <SelectItem value="1.5">⭐ 1.5+</SelectItem>
-            <SelectItem value="2">⭐ 2+</SelectItem>
-            <SelectItem value="2.5">⭐ 2.5+</SelectItem>
-            <SelectItem value="3">⭐ 3+</SelectItem>
-            <SelectItem value="3.5">⭐ 3.5+</SelectItem>
-            <SelectItem value="4">⭐ 4+</SelectItem>
-            <SelectItem value="4.5">⭐ 4.5+</SelectItem>
-            <SelectItem value="5">⭐ 5</SelectItem>
+            <SelectItem value="1">1+ Stars</SelectItem>
+            <SelectItem value="2">2+ Stars</SelectItem>
+            <SelectItem value="3">3+ Stars</SelectItem>
+            <SelectItem value="4">4+ Stars</SelectItem>
+            <SelectItem value="5">5 Stars</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {allTags && allTags.length > 0 && (
-        <div className="space-y-2">
-          <Label>Tags</Label>
+        <div className="mb-8">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">Tags</h3>
           <div className="flex flex-wrap gap-2">
-            {allTags.map((tag) => (
-              <Badge
-                key={tag}
-                variant={selectedTags.includes(tag) ? 'default' : 'outline'}
-                className="cursor-pointer"
-                onClick={() => toggleTag(tag)}
-              >
-                {tag}
-              </Badge>
-            ))}
+            {allTags.map((tag) => {
+              const active = selectedTags.includes(tag);
+              return (
+                <button
+                  key={tag}
+                  onClick={() => toggleTag(tag)}
+                  className={
+                    active
+                      ? 'rounded-full bg-primary text-white px-3 py-1 text-xs'
+                      : 'rounded-full border border-border text-gray-700 px-3 py-1 text-xs hover:border-primary hover:text-primary transition-colors'
+                  }
+                >
+                  {tag}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -228,59 +208,54 @@ export default function Marketplace() {
     </div>
   );
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  const SkeletonCard = () => (
+    <Card className="overflow-hidden">
+      <Skeleton className="aspect-video w-full" />
+      <div className="p-5">
+        <Skeleton className="h-5 w-20 mb-3 rounded-full" />
+        <Skeleton className="h-6 w-3/4 mb-2" />
+        <Skeleton className="h-4 w-full mb-2" />
+        <Skeleton className="h-4 w-2/3 mb-4" />
+        <div className="flex items-center justify-between pt-4 border-t border-border">
+          <Skeleton className="h-6 w-16" />
+          <Skeleton className="h-9 w-20" />
+        </div>
       </div>
-    );
-  }
+    </Card>
+  );
 
   return (
     <AppLayout>
-      
-      <div className="min-h-screen">
-        <div className="container mx-auto px-6 py-10 max-w-[1600px]">
-          <div className="mb-10 p-6 rounded-2xl backdrop-blur-md bg-background/80 border border-border/50">
-            <h1 className="text-4xl sm:text-5xl font-bold mb-3 tracking-tight text-foreground">
-              AI Agent & Software Marketplace
-            </h1>
-            <p className="text-lg text-foreground/70 max-w-3xl">
-              Discover powerful AI agents and software solutions to automate and enhance your workflow
-            </p>
-          </div>
+      <div className="min-h-screen bg-background">
+        <header className="max-w-7xl mx-auto px-6 pt-12 pb-8">
+          <h1 className="text-4xl font-display font-semibold text-gray-900 mb-2">Marketplace</h1>
+          <p className="text-muted text-lg">
+            AI agents, automations, prompts, and tools — built by verified sellers.
+          </p>
+        </header>
 
-          <div className="flex gap-6">
-          <aside className="hidden lg:block w-72 flex-shrink-0">
-            <Card className="sticky top-4 backdrop-blur-md bg-background/80 border-border/50 rounded-2xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <SlidersHorizontal className="w-5 h-5" />
-                  Filters
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <FilterPanel />
-              </CardContent>
-            </Card>
+        <div className="max-w-7xl mx-auto px-6 pb-16 grid lg:grid-cols-[280px_1fr] gap-8">
+          {/* Filters sidebar */}
+          <aside className="hidden lg:block sticky top-24 self-start">
+            <FilterPanel />
           </aside>
 
-          {/* Middle Column: Main Content */}
-          <div className="flex-1 min-w-0 space-y-6">
-            {/* Search Bar and Sort */}
-            <div className="flex gap-2">
+          {/* Right column */}
+          <div className="min-w-0">
+            {/* Search + sort */}
+            <div className="mb-6 flex gap-3">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                 <Input
                   placeholder="Search products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 rounded-lg border border-border bg-white px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
                 />
               </div>
-              
+
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[180px] rounded-full">
+                <SelectTrigger className="w-[180px] rounded-lg border border-border bg-white px-4 py-2.5 text-sm">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -292,7 +267,7 @@ export default function Marketplace() {
                 </SelectContent>
               </Select>
 
-              {/* Mobile Filter Button */}
+              {/* Mobile filter trigger */}
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="outline" size="icon" className="lg:hidden">
@@ -302,9 +277,7 @@ export default function Marketplace() {
                 <SheetContent>
                   <SheetHeader>
                     <SheetTitle>Filters</SheetTitle>
-                    <SheetDescription>
-                      Refine your search with filters
-                    </SheetDescription>
+                    <SheetDescription>Refine your search with filters</SheetDescription>
                   </SheetHeader>
                   <div className="mt-6">
                     <FilterPanel />
@@ -313,178 +286,108 @@ export default function Marketplace() {
               </Sheet>
             </div>
 
-            {/* Active Filters */}
-            {(selectedTags.length > 0 || productType !== 'all' || pricingModel !== 'all' || priceRange.min || priceRange.max) && (
-              <div className="flex flex-wrap gap-2 items-center">
-                <span className="text-sm text-muted-foreground">Active filters:</span>
+            {/* Active filter pills */}
+            {hasActiveFilters && (
+              <div className="flex flex-wrap gap-2 items-center mb-6">
                 {productType !== 'all' && (
-                  <Badge variant="secondary">
-                    Type: {productType}
-                  </Badge>
+                  <FilterPill label={`Type: ${productType}`} onRemove={() => setProductType('all')} />
                 )}
                 {pricingModel !== 'all' && (
-                  <Badge variant="secondary">
-                    Pricing: {pricingModel}
-                  </Badge>
+                  <FilterPill label={`Pricing: ${pricingModel}`} onRemove={() => setPricingModel('all')} />
                 )}
                 {(priceRange.min || priceRange.max) && (
-                  <Badge variant="secondary">
-                    ${priceRange.min || '0'} - ${priceRange.max || '∞'}
-                  </Badge>
+                  <FilterPill
+                    label={`$${priceRange.min || '0'} - $${priceRange.max || '∞'}`}
+                    onRemove={() => setPriceRange({ min: '', max: '' })}
+                  />
+                )}
+                {minRating > 0 && (
+                  <FilterPill label={`${minRating}+ Stars`} onRemove={() => setMinRating(0)} />
                 )}
                 {selectedTags.map((tag) => (
-                  <Badge key={tag} variant="secondary">
-                    {tag}
-                  </Badge>
+                  <FilterPill key={tag} label={tag} onRemove={() => toggleTag(tag)} />
                 ))}
               </div>
             )}
 
-            {/* Products Grid */}
-            {products && products.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Grid */}
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+              </div>
+            ) : products && products.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {products.map((product) => (
-                  <div 
+                  <Card
                     key={product.id}
-                    className="cursor-pointer"
                     onClick={() => {
                       trackProductClick(product.id, user?.id);
                       navigate(`/product/${product.id}`);
                     }}
+                    className="cursor-pointer overflow-hidden hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
                   >
-                    <Card 
-                      className="flex flex-col hover:shadow-xl transition-all hover:scale-[1.02] duration-300 backdrop-blur-md bg-background/80 border-border/50 rounded-2xl overflow-hidden h-full"
-                    >
-                    {product.image_url && (
-                      <div className="aspect-video bg-muted overflow-hidden rounded-t-lg">
+                    <div className="aspect-video w-full bg-background-soft overflow-hidden">
+                      {product.image_url ? (
                         <img
                           src={product.image_url}
                           alt={product.title}
                           className="w-full h-full object-cover"
                         />
-                      </div>
-                    )}
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-2">
-                        <CardTitle className="line-clamp-1">{product.title}</CardTitle>
-                        <Badge variant="secondary" className="shrink-0">
-                          {product.product_type}
-                        </Badge>
-                      </div>
-                      <CardDescription className="line-clamp-2">
+                      ) : null}
+                    </div>
+                    <div className="p-5 flex flex-col flex-1">
+                      <span className="inline-flex self-start bg-primary-soft text-primary text-xs font-medium px-2.5 py-1 rounded-full mb-3">
+                        {product.product_type}
+                      </span>
+                      <h3 className="font-display text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                        {product.title}
+                      </h3>
+                      <p className="text-sm text-muted mb-4 line-clamp-2">
                         {product.description || 'No description available'}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex-1">
+                      </p>
+
                       {product.rating.count > 0 && (
                         <div className="mb-4">
-                          <RatingDisplay 
-                            rating={product.rating.average} 
-                            count={product.rating.count} 
+                          <RatingDisplay
+                            rating={product.rating.average}
+                            count={product.rating.count}
                             size="sm"
                           />
                         </div>
                       )}
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {product.tags?.slice(0, 3).map((tag, i) => (
-                          <Badge key={i} variant="outline">
-                            {tag}
-                          </Badge>
-                        ))}
+
+                      <div className="mt-auto flex items-center justify-between pt-4 border-t border-border">
+                        <div className="text-xl font-display font-semibold text-gray-900">
+                          ${product.price}
+                          <span className="text-xs font-normal text-muted ml-1">
+                            {product.pricing_model === 'one_time' && 'once'}
+                            {product.pricing_model === 'monthly' && '/mo'}
+                            {product.pricing_model === 'yearly' && '/yr'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                          <WishlistButton productId={product.id} />
+                          <Button variant="dark" size="sm" asChild>
+                            <Link to={`/product/${product.id}`}>View</Link>
+                          </Button>
+                        </div>
                       </div>
-                      <div className="text-2xl font-bold text-primary">
-                        ${product.price}
-                        <span className="text-sm font-normal text-muted-foreground ml-1">
-                          {product.pricing_model === 'one_time' && 'once'}
-                          {product.pricing_model === 'monthly' && '/month'}
-                          {product.pricing_model === 'yearly' && '/year'}
-                        </span>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="gap-2">
-                      <div className="w-full" onClick={(e) => e.stopPropagation()}>
-                        <WishlistButton productId={product.id} />
-                      </div>
-                    </CardFooter>
+                    </div>
                   </Card>
-                  </div>
                 ))}
               </div>
             ) : (
-              <Card className="text-center py-12 backdrop-blur-md bg-background/80 border-border/50">
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">No products found matching your criteria</p>
-                  <Button variant="outline" onClick={clearFilters}>
-                    Clear Filters
-                  </Button>
-                </CardContent>
-              </Card>
+              <div className="text-center py-20">
+                <PackageOpen className="mx-auto mb-4 text-muted" size={48} />
+                <h2 className="font-display text-xl font-semibold text-gray-900 mb-2">
+                  No products match your filters
+                </h2>
+                <p className="text-muted mb-6 max-w-md mx-auto">
+                  Try removing some filters or check back soon — we're pre-launch and adding new sellers daily.
+                </p>
+                <Button variant="outline" onClick={clearFilters}>Reset filters</Button>
+              </div>
             )}
-          </div>
-
-          <aside className="hidden xl:block w-80 flex-shrink-0">
-            <div className="sticky top-4 space-y-6">
-              <Card className="backdrop-blur-md bg-background/80 border-border/50 rounded-2xl">
-                <CardHeader>
-                  <CardTitle>Marketplace Stats</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Total Products</span>
-                    <span className="font-bold text-lg">{products?.length || 0}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">AI Agents</span>
-                    <span className="font-bold text-lg">
-                      {products?.filter(p => p.product_type === 'agent').length || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Software</span>
-                    <span className="font-bold text-lg">
-                      {products?.filter(p => p.product_type === 'software').length || 0}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {allTags && allTags.length > 0 && (
-                <Card className="backdrop-blur-md bg-background/80 border-border/50">
-                  <CardHeader>
-                    <CardTitle>Popular Categories</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {allTags.slice(0, 10).map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant={selectedTags.includes(tag) ? 'default' : 'outline'}
-                          className="cursor-pointer"
-                          onClick={() => toggleTag(tag)}
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              <Card className="backdrop-blur-md bg-background/80 border-border/50">
-                <CardHeader>
-                  <CardTitle>Become a Seller</CardTitle>
-                  <CardDescription>
-                    Start selling your AI agents and software on our marketplace
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter>
-                  <Button asChild className="w-full">
-                    <Link to="/create-product">Create Product</Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
-          </aside>
           </div>
         </div>
       </div>

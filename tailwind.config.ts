@@ -19,14 +19,28 @@ export default {
         serif: ["Fraunces", "Georgia", "serif"],
       },
       colors: {
-        border: "hsl(var(--border))",
+        border: {
+          DEFAULT: "#e5e7eb",
+          strong: "#d1d5db",
+        },
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
+        background: {
+          DEFAULT: "#ffffff",
+          soft: "#f8fafc",
+          accent: "#eff6ff",
+        },
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
+          DEFAULT: "#2563eb",
+          hover: "#1d4ed8",
+          soft: "#eff6ff",
           foreground: "hsl(var(--primary-foreground))",
+        },
+        muted: {
+          DEFAULT: "#64748b",
+          dim: "#94a3b8",
+          foreground: "hsl(var(--muted-foreground))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { db } from '@/lib/dkaiDb';
@@ -6,12 +6,13 @@ import { useAuth } from '@/contexts/AuthContext';
 
 import { AppLayout } from '@/components/AppLayout';
 import { CommunityRulesGuard } from '@/components/community/CommunityRulesGuard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, MessageCircle, Eye, Pin, Paperclip, Plus } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Loader2, MessageCircle, Paperclip, MessageSquare, Share2, Pin, Eye,
+} from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { ClickableAvatar } from '@/components/ClickableAvatar';
 import { CreatePostDialog } from '@/components/community/CreatePostDialog';
 import { useToast } from '@/hooks/use-toast';
 
@@ -41,25 +42,32 @@ interface CommunityPost {
   can_message_seller: boolean;
 }
 
+type FilterKey = 'all' | 'pinned' | 'attachments';
+
 export default function Community() {
   const { user } = useAuth();
-  
   const { toast } = useToast();
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-
-  const handleCreatePost = () => {
-    setCreateDialogOpen(true);
-  };
+  const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
+  const [memberCount, setMemberCount] = useState<number | null>(null);
 
   const PAGE_SIZE = 20;
 
-  useEffect(() => {
-    fetchPosts();
-  }, [page, user?.id]);
+  useEffect(() => { fetchPosts(); /* eslint-disable-next-line */ }, [page, user?.id]);
+  useEffect(() => { fetchMemberCount(); }, []);
+
+  const fetchMemberCount = async () => {
+    try {
+      const { count } = await db.from('dkai_profiles').select('id', { count: 'exact', head: true });
+      if (typeof count === 'number') setMemberCount(count);
+    } catch {
+      // silent — sidebar will fall back to "Growing daily"
+    }
+  };
 
   const fetchPostsDirect = async () => {
     const from = (page - 1) * PAGE_SIZE;
@@ -86,20 +94,11 @@ export default function Community() {
         : Promise.resolve({ data: [], error: null }),
     ]);
 
-    if (profilesRes.error) {
-      console.warn('Community profiles fallback query failed:', profilesRes.error);
-    }
-
-    if (productsRes.error) {
-      console.warn('Community products fallback query failed:', productsRes.error);
-    }
-
     const profilesById = new Map((profilesRes.data ?? []).map((profile: any) => [profile.id, profile]));
     const productsById = new Map((productsRes.data ?? []).map((product: any) => [product.id, product]));
 
     const normalizedPosts: CommunityPost[] = (rawPosts ?? []).map((post: any) => {
       const resolvedSellerId = post.seller_id ?? post.author_id ?? null;
-
       return {
         id: post.id,
         title: post.title ?? null,
@@ -117,10 +116,7 @@ export default function Community() {
       };
     });
 
-    return {
-      posts: normalizedPosts,
-      hasMore: (rawPosts?.length ?? 0) === PAGE_SIZE,
-    };
+    return { posts: normalizedPosts, hasMore: (rawPosts?.length ?? 0) === PAGE_SIZE };
   };
 
   const fetchPosts = async () => {
@@ -139,51 +135,16 @@ export default function Community() {
       setHasMore(Boolean(data.has_more));
     } catch (primaryError) {
       console.warn('Edge function get-community-posts failed, using direct DB fallback:', primaryError);
-
       try {
         const fallbackData = await fetchPostsDirect();
         setPosts(prev => page === 1 ? fallbackData.posts : [...prev, ...fallbackData.posts]);
         setHasMore(fallbackData.hasMore);
       } catch (fallbackError) {
         console.error('Error fetching community posts:', fallbackError);
-        toast({
-          title: 'Error',
-          description: 'Failed to load community posts',
-          variant: 'destructive',
-        });
+        toast({ title: 'Error', description: 'Failed to load community posts', variant: 'destructive' });
       }
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleContactSeller = async (sellerId: string, productId: string | null) => {
-    if (!user) {
-      toast({
-        title: 'Please log in',
-        description: 'You must be logged in to message sellers',
-      });
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.functions.invoke('create-message-thread', {
-        body: {
-          recipient_id: sellerId,
-          product_id: productId || undefined,
-        }
-      });
-
-      if (error) throw error;
-
-      window.location.href = `/messages?thread=${data.thread_id}`;
-    } catch (error) {
-      console.error('Error creating thread:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to start conversation',
-        variant: 'destructive',
-      });
     }
   };
 
@@ -193,160 +154,239 @@ export default function Community() {
     fetchPosts();
   };
 
+  const handleShare = (postId: string) => {
+    const url = `${window.location.origin}/community/${postId}`;
+    if (navigator.share) {
+      navigator.share({ url }).catch(() => {/* user cancelled */});
+    } else {
+      navigator.clipboard?.writeText(url).then(
+        () => toast({ title: 'Link copied', description: 'Post URL copied to clipboard.' }),
+        () => toast({ title: 'Copy failed', variant: 'destructive' }),
+      );
+    }
+  };
+
+  const filteredPosts = useMemo(() => {
+    if (activeFilter === 'pinned') return posts.filter(p => p.pinned);
+    if (activeFilter === 'attachments') return posts.filter(p => p.has_attachment);
+    return posts;
+  }, [posts, activeFilter]);
+
+  const filters: { key: FilterKey; label: string }[] = [
+    { key: 'all', label: 'All' },
+    { key: 'pinned', label: 'Pinned' },
+    { key: 'attachments', label: 'With attachments' },
+  ];
+
   return (
     <AppLayout>
       <CommunityRulesGuard>
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">Community</h1>
-              <p className="text-muted-foreground">Share insights and connect with sellers</p>
-            </div>
-            {user && (
-              <Button onClick={handleCreatePost}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Post
-              </Button>
-            )}
-          </div>
+        <div className="min-h-screen bg-background">
+          <header className="max-w-5xl mx-auto px-6 pt-12 pb-6">
+            <h1 className="text-4xl font-display font-semibold text-gray-900 mb-2">Community</h1>
+            <p className="text-muted">
+              Ask questions, share builds, discuss AI tooling with other DK AI Marketplace members.
+            </p>
+          </header>
 
-          {/* Posts Feed */}
-          <div className="space-y-6">
-            {loading && page === 1 ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : posts.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">No posts yet. Be the first to share!</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-                {posts.map((post) => (
-                  <Card key={post.id} className={post.pinned ? 'border-primary' : ''}>
-                    <CardHeader>
-                      <div className="flex items-start gap-4">
-                        {post.author && (
-                          <ClickableAvatar
-                            userId={post.author.id}
-                            avatarUrl={post.author.avatar_url}
-                            username={post.author.username || post.author.full_name}
-                          />
-                        )}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Link
-                              to={`/profile/${post.author?.id}`}
-                              className="font-semibold hover:underline"
-                            >
-                              {post.author?.full_name || post.author?.username || 'Anonymous'}
-                            </Link>
-                            <span className="text-sm text-muted-foreground">
-                              • {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-                            </span>
-                            {post.pinned && (
-                              <Badge variant="secondary">
-                                <Pin className="h-3 w-3 mr-1" />
-                                Pinned
-                              </Badge>
-                            )}
-                          </div>
-                          {post.title && (
-                            <CardTitle className="mb-2">
-                              <Link to={`/community/${post.id}`} className="hover:text-primary">
-                                {post.title}
-                              </Link>
-                            </CardTitle>
-                          )}
-                          <p className="text-foreground whitespace-pre-wrap mb-4">{post.body}</p>
+          <div className="max-w-5xl mx-auto px-6 pb-16 grid lg:grid-cols-[1fr_280px] gap-8">
+            {/* Main column */}
+            <div className="min-w-0">
+              {/* Create post entry */}
+              {user && (
+                <Card className="p-4 flex items-center gap-3 mb-6 rounded-xl">
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={user.user_metadata?.avatar_url} />
+                    <AvatarFallback>
+                      {user.email?.[0]?.toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <button
+                    onClick={() => setCreateDialogOpen(true)}
+                    className="flex-1 text-left text-muted bg-background-soft rounded-full px-4 py-2.5 hover:bg-gray-100 transition-colors text-sm"
+                  >
+                    Share something with the community...
+                  </button>
+                </Card>
+              )}
 
-                          {/* Product Card */}
-                          {post.product && (
-                            <Link to={`/product/${post.product.id}`}>
-                              <Card className="mb-4 hover:shadow-lg transition-shadow">
-                                <CardContent className="p-4 flex items-center gap-4">
-                                  {post.product.image_url && (
-                                    <img
-                                      src={post.product.image_url}
-                                      alt={post.product.title}
-                                      className="w-16 h-16 object-cover rounded"
-                                    />
-                                  )}
-                                  <div className="flex-1">
-                                    <h4 className="font-semibold">{post.product.title}</h4>
-                                    <Badge variant="secondary">${post.product.price}</Badge>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            </Link>
-                          )}
-
-                          {/* Footer */}
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Eye className="h-4 w-4" />
-                              {post.views_count}
-                            </span>
-                            <Link
-                              to={`/community/${post.id}`}
-                              className="flex items-center gap-1 hover:text-foreground"
-                            >
-                              <MessageCircle className="h-4 w-4" />
-                              {post.comments_count}
-                            </Link>
-                            {post.has_attachment && (
-                              <span className="flex items-center gap-1">
-                                <Paperclip className="h-4 w-4" />
-                                {post.attachment_file_name}
-                              </span>
-                            )}
-                            {post.can_message_seller && post.seller_id && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleContactSeller(post.seller_id!, post.product?.id || null)}
-                              >
-                                <MessageCircle className="h-3 w-3 mr-1" />
-                                Contact Seller
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                  </Card>
-                ))}
-
-                {/* Load More */}
-                {hasMore && (
-                  <div className="flex justify-center">
-                    <Button
-                      variant="outline"
-                      onClick={() => setPage(p => p + 1)}
-                      disabled={loading}
+              {/* Category / filter tabs */}
+              <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+                {filters.map((f) => {
+                  const active = activeFilter === f.key;
+                  return (
+                    <button
+                      key={f.key}
+                      onClick={() => setActiveFilter(f.key)}
+                      className={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm transition-colors ${
+                        active
+                          ? 'bg-gray-900 text-white'
+                          : 'bg-background-soft text-muted hover:bg-gray-100'
+                      }`}
                     >
-                      {loading ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      ) : null}
-                      Load More
-                    </Button>
+                      {f.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Post list */}
+              {loading && page === 1 ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : filteredPosts.length === 0 ? (
+                <div className="text-center py-20">
+                  <MessageSquare className="mx-auto mb-4 text-muted" size={48} />
+                  <h2 className="font-display text-xl font-semibold text-gray-900 mb-2">
+                    {activeFilter === 'all' ? 'No posts yet' : 'Nothing in this category yet.'}
+                  </h2>
+                  {activeFilter === 'all' && (
+                    <p className="text-muted">Be the first to start a discussion.</p>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {filteredPosts.map((post) => (
+                    <Link
+                      to={`/community/${post.id}`}
+                      key={post.id}
+                      className="block"
+                    >
+                      <Card className="p-5 hover:shadow-card-hover transition-all cursor-pointer rounded-xl">
+                        {/* Top meta row */}
+                        <div className="flex items-center gap-2 mb-3">
+                          <Avatar className="w-7 h-7">
+                            <AvatarImage src={post.author?.avatar_url || undefined} />
+                            <AvatarFallback>
+                              {post.author?.full_name?.[0] || post.author?.username?.[0] || 'A'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span
+                            className="text-sm font-medium text-gray-900 hover:underline"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = `/profile/${post.author?.id}`; }}
+                          >
+                            {post.author?.full_name || post.author?.username || 'Anonymous'}
+                          </span>
+                          <span className="text-muted text-sm">·</span>
+                          <span className="text-sm text-muted">
+                            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                          </span>
+                          {post.pinned && (
+                            <span className="ml-auto inline-flex items-center gap-1 bg-primary-soft text-primary text-xs px-2.5 py-0.5 rounded-full">
+                              <Pin className="h-3 w-3" /> Pinned
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Title */}
+                        {post.title && (
+                          <h2 className="font-display text-lg font-semibold text-gray-900 mb-2">
+                            {post.title}
+                          </h2>
+                        )}
+
+                        {/* Body excerpt */}
+                        <p className="text-gray-700 line-clamp-3 mb-4 whitespace-pre-wrap">
+                          {post.body}
+                        </p>
+
+                        {/* Linked product */}
+                        {post.product && (
+                          <div
+                            className="mb-4 flex items-center gap-3 p-3 rounded-lg border border-border bg-background-soft hover:bg-gray-100 transition-colors"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = `/product/${post.product!.id}`; }}
+                          >
+                            {post.product.image_url && (
+                              <img
+                                src={post.product.image_url}
+                                alt={post.product.title}
+                                className="w-14 h-14 object-cover rounded-md"
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 truncate">{post.product.title}</p>
+                              <span className="inline-flex bg-primary-soft text-primary text-xs px-2 py-0.5 rounded-full mt-1">
+                                ${post.product.price}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Attachment indicator */}
+                        {post.has_attachment && (
+                          <div className="flex items-center gap-1 text-sm text-muted mb-4">
+                            <Paperclip className="h-4 w-4" />
+                            <span className="truncate">{post.attachment_file_name || 'Attachment'}</span>
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-5 text-muted text-sm">
+                          <span className="inline-flex items-center gap-1.5">
+                            <Eye className="h-4 w-4" />
+                            {post.views_count}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 hover:text-gray-900 transition-colors">
+                            <MessageCircle className="h-4 w-4" />
+                            {post.comments_count}
+                          </span>
+                          <button
+                            className="inline-flex items-center gap-1.5 hover:text-gray-900 transition-colors ml-auto"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleShare(post.id); }}
+                            aria-label="Share post"
+                          >
+                            <Share2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </Card>
+                    </Link>
+                  ))}
+
+                  {hasMore && (
+                    <div className="flex justify-center mt-2">
+                      <Button variant="outline" onClick={() => setPage(p => p + 1)} disabled={loading}>
+                        {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                        Load More
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar */}
+            <aside className="hidden lg:block">
+              <div className="sticky top-24 flex flex-col gap-4">
+                <Card className="p-5 rounded-xl">
+                  <h3 className="font-display font-semibold text-gray-900 mb-3">About community</h3>
+                  <p className="text-sm text-gray-700 mb-4 leading-relaxed">
+                    A focused space for AI builders, founders, and curious learners to share what
+                    they're working on and help each other ship better.
+                  </p>
+                  <div className="flex items-center justify-between text-sm border-t border-border pt-3 mb-3">
+                    <span className="text-muted">Members</span>
+                    <span className="font-medium text-gray-900">
+                      {memberCount !== null ? memberCount.toLocaleString() : 'Growing daily'}
+                    </span>
                   </div>
-                )}
-              </>
-            )}
+                  <Link
+                    to="/legal/community-guidelines"
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Community guidelines →
+                  </Link>
+                </Card>
+              </div>
+            </aside>
           </div>
         </div>
-      </div>
 
-      <CreatePostDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-        onPostCreated={handlePostCreated}
-      />
+        <CreatePostDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          onPostCreated={handlePostCreated}
+        />
       </CommunityRulesGuard>
     </AppLayout>
   );

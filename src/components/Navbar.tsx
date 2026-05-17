@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import dkAiLogo from '@/assets/dk-ai-logo.png';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
+import { NavLink } from '@/components/NavLink';
 
 import {
   DropdownMenu,
@@ -15,14 +15,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { User, Plus, Settings, LogOut, ShoppingBag, DollarSign, Heart, MessageSquare, LayoutDashboard, Bell, Menu } from 'lucide-react';
+import { User, Plus, Settings, LogOut, ShoppingBag, DollarSign, Heart, MessageSquare, LayoutDashboard, Menu } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/dkaiDb';
 import { NotificationCenter } from '@/components/NotificationCenter';
 
 const navLinks = [
-  { to: '/', label: 'Home' },
+  { to: '/', label: 'Home', end: true },
   { to: '/marketplace', label: 'Marketplace' },
   { to: '/meetings', label: 'Meetings' },
   { to: '/portfolio', label: 'Portfolio' },
@@ -70,31 +70,35 @@ export function Navbar() {
   }, [user]);
 
   return (
-    <nav className="border-b bg-card/50 backdrop-blur-sm shadow-sm sticky top-0 z-50 transition-colors">
-      <div className="container mx-auto px-4 lg:px-6 py-3 flex items-center justify-between">
-        {/* Left: Logo + desktop links */}
-        <div className="flex items-center gap-4 lg:gap-8">
-          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <img src={dkAiLogo} alt="DK AI Marketplace" className="h-8 lg:h-10 w-auto" />
-          </Link>
-          <div className="hidden md:flex items-center gap-6 lg:gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className="text-sm font-semibold hover:text-primary transition-colors relative group"
-              >
-                {link.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
-              </Link>
-            ))}
-            {isSeller && (
-              <Link to="/seller-dashboard" className="text-sm font-semibold hover:text-primary transition-colors relative group">
-                Dashboard
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
-              </Link>
-            )}
-          </div>
+    <nav className="bg-white border-b border-border sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        {/* Left: Logo pill */}
+        <Link to="/" className="bg-gray-900 rounded-lg p-1 px-2 hover:opacity-90 transition-opacity">
+          <img src="/logo.png" alt="DK AI Marketplace" className="h-9 w-auto" />
+        </Link>
+
+        {/* Center: nav links */}
+        <div className="hidden md:flex items-center space-x-7">
+          {navLinks.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              end={link.end}
+              activeClassName="text-primary"
+              className="text-sm font-medium text-gray-700 hover:text-primary transition-colors"
+            >
+              {link.label}
+            </NavLink>
+          ))}
+          {isSeller && (
+            <NavLink
+              to="/seller-dashboard"
+              activeClassName="text-primary"
+              className="text-sm font-medium text-gray-700 hover:text-primary transition-colors"
+            >
+              Dashboard
+            </NavLink>
+          )}
         </div>
 
         {/* Right: actions */}
@@ -254,12 +258,12 @@ export function Navbar() {
               </Sheet>
             </>
           ) : (
-            <div className="flex gap-2">
-              <Button variant="ghost" asChild className="rounded-full" size="sm">
-                <Link to="/login">Sign In</Link>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" asChild size="sm">
+                <Link to="/login">Sign in</Link>
               </Button>
-              <Button asChild className="rounded-full" size="sm">
-                <Link to="/signup">Sign Up</Link>
+              <Button variant="navCta" asChild size="sm">
+                <Link to="/signup">Get started</Link>
               </Button>
             </div>
           )}

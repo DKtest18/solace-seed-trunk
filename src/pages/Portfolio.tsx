@@ -138,42 +138,66 @@ export default function Portfolio() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-start justify-between mb-8">
+        <div className="max-w-7xl mx-auto px-6 pt-12 pb-16">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">Portfolio Showcase</h1>
-              <p className="text-muted-foreground">Browse completed projects from our talented sellers</p>
+              <h1 className="text-4xl font-display font-semibold text-gray-900 mb-2">Portfolio Showcase</h1>
+              <p className="text-muted text-lg max-w-2xl">
+                Real projects delivered by verified sellers — browse work, see results, and find the right builder for your next idea.
+              </p>
             </div>
             {user && (
-              <Button asChild>
+              <Button asChild variant="navCta">
                 <Link to="/seller-dashboard/portfolio"><Plus className="h-4 w-4 mr-2" /> Create Portfolio</Link>
               </Button>
             )}
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="flex flex-col md:flex-row gap-3 mb-8">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search portfolio items..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
+              <Input
+                placeholder="Search portfolio items..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 rounded-lg border border-border bg-white px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
+              />
             </div>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-full md:w-[200px]"><SelectValue placeholder="Category" /></SelectTrigger>
+              <SelectTrigger className="w-full md:w-[200px] rounded-lg border border-border bg-white px-4 py-2.5 text-sm"><SelectValue placeholder="Category" /></SelectTrigger>
               <SelectContent>{categories.map((cat) => (<SelectItem key={cat} value={cat}>{cat}</SelectItem>))}</SelectContent>
             </Select>
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (<Card key={i}><Skeleton className="aspect-video w-full rounded-t-lg" /><CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader><CardContent><Skeleton className="h-20 w-full" /></CardContent></Card>))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="overflow-hidden">
+                  <Skeleton className="aspect-video w-full" />
+                  <div className="p-5">
+                    <Skeleton className="h-5 w-20 mb-3 rounded-full" />
+                    <Skeleton className="h-6 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-full mb-2" />
+                    <Skeleton className="h-4 w-2/3" />
+                  </div>
+                </Card>
+              ))}
             </div>
           ) : filteredItems?.length === 0 ? (
-            <div className="text-center py-12">
-              <Briefcase className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No portfolio items found</h3>
-              <p className="text-muted-foreground">{searchQuery || categoryFilter !== 'All Categories' ? 'Try adjusting your filters' : 'No sellers have shared their work yet'}</p>
+            <div className="text-center py-20">
+              <Briefcase className="h-12 w-12 mx-auto text-muted mb-4" />
+              <h3 className="font-display text-xl font-semibold text-gray-900 mb-2">No portfolio items match your filters</h3>
+              <p className="text-muted mb-6 max-w-md mx-auto">
+                {searchQuery || categoryFilter !== 'All Categories'
+                  ? 'Try removing some filters or search terms.'
+                  : "We're pre-launch — sellers are uploading their work daily. Check back soon."}
+              </p>
+              {(searchQuery || categoryFilter !== 'All Categories') && (
+                <Button variant="outline" onClick={() => { setSearchQuery(''); setCategoryFilter('All Categories'); }}>Reset filters</Button>
+              )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredItems?.map((item) => {
                 const hasProduct = item.product_id && item.product;
                 const isAvailable = hasProduct && item.product!.is_published;
@@ -181,37 +205,31 @@ export default function Portfolio() {
                 const reviewCount = (item.product_id && reviewCounts?.[item.product_id]) || 0;
 
                 return (
-                  <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col cursor-pointer" onClick={() => { setSelectedItem(item); setMediaIndex(0); }}>
+                  <Card key={item.id} className="overflow-hidden hover:-translate-y-0.5 transition-all duration-200 flex flex-col cursor-pointer" onClick={() => { setSelectedItem(item); setMediaIndex(0); }}>
                     {item.images && item.images.length > 0 && (
-                      <div className="aspect-video w-full overflow-hidden bg-muted relative">
+                      <div className="aspect-video w-full overflow-hidden bg-background-soft relative">
                         <img src={item.images[0]} alt={item.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                         {((item.images?.length || 0) + (item.videos?.length || 0)) > 1 && (
                           <div className="absolute bottom-2 right-2 flex gap-1">
-                            {item.images.length > 1 && <Badge variant="secondary" className="text-xs bg-background/80 backdrop-blur-sm"><ImageIcon className="h-3 w-3 mr-1" /> {item.images.length}</Badge>}
-                            {item.videos && item.videos.length > 0 && <Badge variant="secondary" className="text-xs bg-background/80 backdrop-blur-sm"><Video className="h-3 w-3 mr-1" /> {item.videos.length}</Badge>}
+                            {item.images.length > 1 && <span className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm text-gray-900 text-xs px-2 py-1 rounded-full"><ImageIcon className="h-3 w-3" /> {item.images.length}</span>}
+                            {item.videos && item.videos.length > 0 && <span className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm text-gray-900 text-xs px-2 py-1 rounded-full"><Video className="h-3 w-3" /> {item.videos.length}</span>}
                           </div>
                         )}
                         {hasProduct && (
                           <div className="absolute top-2 left-2">
-                            <Badge variant={isAvailable ? "default" : "secondary"} className="text-xs">
-                              {isAvailable ? <><ShoppingBag className="h-3 w-3 mr-1" /> Available</> : 'Custom Project'}
-                            </Badge>
+                            <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full ${isAvailable ? 'bg-primary text-white' : 'bg-white/90 backdrop-blur-sm text-gray-900'}`}>
+                              {isAvailable ? <><ShoppingBag className="h-3 w-3" /> Available</> : 'Custom Project'}
+                            </span>
                           </div>
                         )}
                       </div>
                     )}
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-lg truncate">{item.title}</CardTitle>
-                          <Badge variant="secondary" className="mt-1">{item.category}</Badge>
-                        </div>
-                      </div>
-                      {rating > 0 && <div className="mt-2"><RatingDisplay rating={rating} count={reviewCount} size="sm" showCount /></div>}
-                    </CardHeader>
-                    <CardContent className="pb-3 flex-1">
-                      <p className="text-sm text-muted-foreground line-clamp-3 mb-4">{item.description}</p>
-                      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-4">
+                    <div className="p-5 flex flex-col flex-1">
+                      <span className="inline-flex self-start bg-primary-soft text-primary text-xs font-medium px-2.5 py-1 rounded-full mb-3">{item.category}</span>
+                      <h3 className="font-display text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{item.title}</h3>
+                      {rating > 0 && <div className="mb-3"><RatingDisplay rating={rating} count={reviewCount} size="sm" showCount /></div>}
+                      <p className="text-sm text-muted line-clamp-3 mb-4">{item.description}</p>
+                      <div className="flex flex-wrap gap-3 text-xs text-muted mb-4">
                         <div className="flex items-center gap-1"><User className="h-3 w-3" />{item.customer_anonymous ? 'Anonymous' : (item.customer_name || 'Anonymous')}</div>
                         <div className="flex items-center gap-1"><Calendar className="h-3 w-3" />{format(parseISO(item.completed_date), 'MMM yyyy')}</div>
                         {renderPrice(item)}
@@ -221,30 +239,30 @@ export default function Portfolio() {
                         {reviewCount > 0 && <div className="flex items-center gap-1"><MessageSquare className="h-3 w-3" />{reviewCount} review{reviewCount !== 1 ? 's' : ''}</div>}
                       </div>
                       {(item.tags || []).length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {item.tags.slice(0, 4).map((tag, idx) => (<Badge key={idx} variant="outline" className="text-xs"><Tag className="h-2 w-2 mr-1" />{tag}</Badge>))}
-                          {item.tags.length > 4 && <Badge variant="outline" className="text-xs">+{item.tags.length - 4}</Badge>}
+                        <div className="flex flex-wrap gap-1.5 mb-4">
+                          {item.tags.slice(0, 4).map((tag, idx) => (
+                            <span key={idx} className="inline-flex items-center gap-1 rounded-full border border-border text-gray-700 text-xs px-2 py-0.5"><Tag className="h-2.5 w-2.5" />{tag}</span>
+                          ))}
+                          {item.tags.length > 4 && <span className="rounded-full border border-border text-gray-700 text-xs px-2 py-0.5">+{item.tags.length - 4}</span>}
                         </div>
                       )}
-                    </CardContent>
-                    <CardFooter className="pt-3 border-t flex items-center justify-between">
-                      {item.show_seller_name && item.seller ? (
-                        <Link to={`/u/${item.seller.username}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={item.seller.avatar_url || undefined} />
-                            <AvatarFallback>{item.seller.full_name?.[0] || item.seller.username?.[0] || 'S'}</AvatarFallback>
-                          </Avatar>
-                          <div className="text-sm">
-                            <p className="font-medium">{item.seller.full_name || item.seller.username || 'Anonymous'}</p>
-                          </div>
-                        </Link>
-                      ) : <div />}
-                      {hasProduct && isAvailable && (
-                        <Button size="sm" variant="outline" asChild onClick={(e) => e.stopPropagation()}>
-                          <Link to={`/product/${item.product_id}`}>View Product</Link>
-                        </Button>
-                      )}
-                    </CardFooter>
+                      <div className="mt-auto flex items-center justify-between pt-4 border-t border-border">
+                        {item.show_seller_name && item.seller ? (
+                          <Link to={`/u/${item.seller.username}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={item.seller.avatar_url || undefined} />
+                              <AvatarFallback>{item.seller.full_name?.[0] || item.seller.username?.[0] || 'S'}</AvatarFallback>
+                            </Avatar>
+                            <p className="text-sm font-medium text-gray-900">{item.seller.full_name || item.seller.username || 'Anonymous'}</p>
+                          </Link>
+                        ) : <div />}
+                        {hasProduct && isAvailable && (
+                          <Button size="sm" variant="dark" asChild onClick={(e) => e.stopPropagation()}>
+                            <Link to={`/product/${item.product_id}`}>View</Link>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   </Card>
                 );
               })}

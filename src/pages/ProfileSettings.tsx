@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { db } from '@/lib/dkaiDb';
-import { Shield, Copy, Download, Store, CheckCircle, Palette, LayoutGrid, Mail, Ban, Globe } from 'lucide-react';
+import { Shield, Copy, Download, Store, CheckCircle, Palette, LayoutGrid, Mail, Ban, Globe, User, Bell, Lock, Eye } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import QRCode from 'react-qr-code';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
@@ -204,57 +204,81 @@ export default function ProfileSettings() {
 
   if (!user) return null;
 
+  const tabs = [
+    { value: 'profile', label: 'Profile', icon: User },
+    { value: 'security', label: 'Security', icon: Shield },
+    { value: 'appearance', label: 'Appearance', icon: Palette },
+    { value: 'privacy', label: 'Privacy', icon: Eye },
+    { value: 'blocked', label: 'Blocked users', icon: Ban },
+    { value: 'data', label: 'Account', icon: Lock },
+  ];
+
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">Profile Settings</h1>
-          <p className="text-muted-foreground">Manage your account security and preferences</p>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-5xl mx-auto px-6 py-12">
+        <div className="mb-8">
+          <h1 className="text-3xl font-display font-semibold mb-2">Settings</h1>
+          <p className="text-muted-foreground">Manage your account, profile, and preferences.</p>
         </div>
 
-        <Tabs defaultValue="security" className="space-y-6">
-           <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="security">Security</TabsTrigger>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="appearance">Appearance</TabsTrigger>
-            <TabsTrigger value="privacy">Privacy</TabsTrigger>
-            <TabsTrigger value="blocked">Blocked</TabsTrigger>
-            <TabsTrigger value="data">Data & Account</TabsTrigger>
+        <Tabs defaultValue="profile" className="grid lg:grid-cols-[240px_1fr] gap-8">
+          <TabsList className="h-auto bg-transparent p-0 flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible justify-start">
+            {tabs.map((t) => {
+              const Icon = t.icon;
+              return (
+                <TabsTrigger
+                  key={t.value}
+                  value={t.value}
+                  className="w-full justify-start gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 hover:bg-muted data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:font-medium data-[state=active]:shadow-none"
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{t.label}</span>
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
 
-          <TabsContent value="security">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
+          <div className="min-w-0">
+          <TabsContent value="security" className="mt-0">
+            <Card className="bg-white border border-border rounded-xl p-6 shadow-none">
+              <CardHeader className="p-0 mb-6">
+                <CardTitle className="font-display text-xl font-semibold mb-1 flex items-center gap-2">
                   <Shield className="h-5 w-5" />
-                  <CardTitle>Two-Factor Authentication (2FA)</CardTitle>
-                </div>
-                <CardDescription>
+                  Two-Factor Authentication
+                </CardTitle>
+                <CardDescription className="text-sm text-muted-foreground">
                   Add an extra layer of security to your account
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="p-0 space-y-6">
                 {profile?.is_2fa_enabled ? (
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
-                      <div>
-                        <p className="font-medium text-foreground">2FA is enabled</p>
-                        <p className="text-sm text-muted-foreground">Your account is protected</p>
+                    <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/40">
+                      <div className="flex items-center gap-3">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Enabled</span>
+                        <div>
+                          <p className="font-medium text-foreground">2FA is active</p>
+                          <p className="text-sm text-muted-foreground">Your account is protected</p>
+                        </div>
                       </div>
                       <Button
-                        variant="destructive"
+                        variant="outline"
                         onClick={disable2FA}
                         disabled={loading}
                       >
-                        Disable 2FA
+                        Disable
                       </Button>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-6">
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">Not enabled</span>
+                      <p className="text-sm text-muted-foreground">Protect your account with an authenticator app.</p>
+                    </div>
                     {!twoFASetup.secret ? (
                       <Button onClick={generate2FASecret} disabled={loading}>
-                        Set Up 2FA
+                        Enable 2FA
                       </Button>
                     ) : (
                       <>
@@ -314,14 +338,7 @@ export default function ProfileSettings() {
                                 </div>
                               </div>
 
-                              <div className="flex gap-2">
-                                <Button
-                                  onClick={enable2FA}
-                                  disabled={loading || verificationCode.length !== 6}
-                                  className="flex-1"
-                                >
-                                  Enable 2FA
-                                </Button>
+                              <div className="flex gap-2 justify-end">
                                 <Button
                                   variant="outline"
                                   onClick={() => setTwoFASetup({})}
@@ -329,21 +346,27 @@ export default function ProfileSettings() {
                                 >
                                   Cancel
                                 </Button>
+                                <Button
+                                  onClick={enable2FA}
+                                  disabled={loading || verificationCode.length !== 6}
+                                >
+                                  Enable 2FA
+                                </Button>
                               </div>
                             </div>
                           </div>
                         ) : (
                           <div className="space-y-4">
-                            <div className="p-4 border rounded-lg bg-muted/50">
+                            <div className="p-4 border rounded-lg bg-muted/40">
                               <h3 className="font-semibold mb-2 flex items-center gap-2">
                                 <Shield className="h-5 w-5 text-green-500" />
-                                2FA Enabled Successfully!
+                                2FA Enabled Successfully
                               </h3>
                               <p className="text-sm text-muted-foreground mb-4">
                                 Save these backup codes in a safe place. You can use them to access your account if you lose your authenticator device.
                               </p>
                               
-                              <div className="space-y-2 mb-4">
+                              <div className="grid grid-cols-2 gap-2 mb-4">
                                 {twoFASetup.backupCodes?.map((code, index) => (
                                   <div key={index} className="font-mono text-sm p-2 bg-background rounded border">
                                     {code}
@@ -378,148 +401,151 @@ export default function ProfileSettings() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="profile">
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Profile Information</CardTitle>
-                  <CardDescription>
-                    Update your personal information
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Email</Label>
-                      <Input value={user.email} disabled />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Full Name</Label>
-                      <Input value={profile?.full_name || ''} disabled />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Username</Label>
-                      <Input value={profile?.username || 'Not set'} disabled />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-2">
-                        <Globe className="h-4 w-4" />
-                        Your Time Zone
-                      </Label>
-                      <Select 
-                        value={profile?.timezone || 'Europe/Zurich'} 
-                        onValueChange={async (value) => {
-                          const { error } = await db
-                            .from('dkai_profiles')
-                            .update({ timezone: value })
-                            .eq('id', user.id);
-                          if (error) {
-                            toast({ title: 'Error', description: 'Failed to update timezone', variant: 'destructive' });
-                          } else {
-                            setProfile({ ...profile, timezone: value });
-                            toast({ title: 'Success', description: 'Timezone updated' });
-                          }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Europe/Zurich">Europe/Zurich</SelectItem>
-                          <SelectItem value="Europe/Berlin">Europe/Berlin</SelectItem>
-                          <SelectItem value="Europe/London">Europe/London</SelectItem>
-                          <SelectItem value="America/New_York">America/New York</SelectItem>
-                          <SelectItem value="America/Los_Angeles">America/Los Angeles</SelectItem>
-                          <SelectItem value="America/Chicago">America/Chicago</SelectItem>
-                          <SelectItem value="Asia/Tokyo">Asia/Tokyo</SelectItem>
-                          <SelectItem value="Asia/Singapore">Asia/Singapore</SelectItem>
-                          <SelectItem value="Australia/Sydney">Australia/Sydney</SelectItem>
-                          <SelectItem value="UTC">UTC</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">
-                        Used for meetings and calendar display
-                      </p>
-                    </div>
-                    <Button onClick={() => navigate('/profile/edit')} className="w-full">
+          <TabsContent value="profile" className="mt-0 space-y-6">
+            <Card className="bg-white border border-border rounded-xl p-6 shadow-none">
+              <CardHeader className="p-0 mb-6">
+                <CardTitle className="font-display text-xl font-semibold mb-1">Profile Information</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground">
+                  Update your personal information
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">Email</Label>
+                    <Input value={user.email} disabled />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">Full Name</Label>
+                    <Input value={profile?.full_name || ''} disabled />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">Username</Label>
+                    <Input value={profile?.username || 'Not set'} disabled />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      Your Time Zone
+                    </Label>
+                    <Select 
+                      value={profile?.timezone || 'Europe/Zurich'} 
+                      onValueChange={async (value) => {
+                        const { error } = await db
+                          .from('dkai_profiles')
+                          .update({ timezone: value })
+                          .eq('id', user.id);
+                        if (error) {
+                          toast({ title: 'Error', description: 'Failed to update timezone', variant: 'destructive' });
+                        } else {
+                          setProfile({ ...profile, timezone: value });
+                          toast({ title: 'Success', description: 'Timezone updated' });
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Europe/Zurich">Europe/Zurich</SelectItem>
+                        <SelectItem value="Europe/Berlin">Europe/Berlin</SelectItem>
+                        <SelectItem value="Europe/London">Europe/London</SelectItem>
+                        <SelectItem value="America/New_York">America/New York</SelectItem>
+                        <SelectItem value="America/Los_Angeles">America/Los Angeles</SelectItem>
+                        <SelectItem value="America/Chicago">America/Chicago</SelectItem>
+                        <SelectItem value="Asia/Tokyo">Asia/Tokyo</SelectItem>
+                        <SelectItem value="Asia/Singapore">Asia/Singapore</SelectItem>
+                        <SelectItem value="Australia/Sydney">Australia/Sydney</SelectItem>
+                        <SelectItem value="UTC">UTC</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Used for meetings and calendar display
+                    </p>
+                  </div>
+                  <div className="flex justify-end pt-2">
+                    <Button onClick={() => navigate('/profile/edit')}>
                       Edit Profile
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
 
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <Store className="h-5 w-5" />
-                    <CardTitle>Seller Account</CardTitle>
+            <Card className="bg-white border border-border rounded-xl p-6 shadow-none">
+              <CardHeader className="p-0 mb-6">
+                <CardTitle className="font-display text-xl font-semibold mb-1 flex items-center gap-2">
+                  <Store className="h-5 w-5" />
+                  Seller Account
+                </CardTitle>
+                <CardDescription className="text-sm text-muted-foreground">
+                  {isSeller 
+                    ? 'You have access to sell products on the marketplace'
+                    : 'Upgrade to start selling your AI agents and software'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                {roleLoading ? (
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground">Loading seller status...</p>
                   </div>
-                  <CardDescription>
-                    {isSeller 
-                      ? 'You have access to sell products on the marketplace'
-                      : 'Upgrade to start selling your AI agents and software'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {roleLoading ? (
-                    <div className="text-center py-4">
-                      <p className="text-muted-foreground">Loading seller status...</p>
-                    </div>
-                  ) : isSeller ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 p-4 border rounded-lg bg-muted/50">
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                        <div className="flex-1">
-                          <p className="font-medium text-foreground">Seller Account Active</p>
-                          <p className="text-sm text-muted-foreground">You can create and manage products</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button onClick={() => navigate('/create-product')} className="flex-1">
-                          Create Product
-                        </Button>
-                        <Button onClick={() => navigate('/seller-dashboard')} variant="outline" className="flex-1">
-                          Seller Dashboard
-                        </Button>
+                ) : isSeller ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 p-4 border border-border rounded-lg bg-muted/40">
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground">Seller Account Active</p>
+                        <p className="text-sm text-muted-foreground">You can create and manage products</p>
                       </div>
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="p-4 border rounded-lg">
-                        <h4 className="font-medium mb-2">Benefits of Becoming a Seller:</h4>
-                        <ul className="space-y-2 text-sm text-muted-foreground">
-                          <li>• List and sell your AI agents and software</li>
-                          <li>• Manage your products and sales</li>
-                          <li>• Track analytics and earnings</li>
-                          <li>• Connect with buyers worldwide</li>
-                        </ul>
-                      </div>
-                      <Button onClick={() => navigate('/seller-onboarding')} className="w-full">
+                    <div className="flex gap-2 justify-end">
+                      <Button onClick={() => navigate('/seller-dashboard')} variant="outline">
+                        Seller Dashboard
+                      </Button>
+                      <Button onClick={() => navigate('/create-product')}>
+                        Create Product
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="p-4 border border-border rounded-lg bg-muted/40">
+                      <h4 className="font-medium mb-2">Benefits of Becoming a Seller</h4>
+                      <ul className="space-y-2 text-sm text-muted-foreground">
+                        <li>• List and sell your AI agents and software</li>
+                        <li>• Manage your products and sales</li>
+                        <li>• Track analytics and earnings</li>
+                        <li>• Connect with buyers worldwide</li>
+                      </ul>
+                    </div>
+                    <div className="flex justify-end">
+                      <Button onClick={() => navigate('/seller-onboarding')}>
                         Become a Seller
                       </Button>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          <TabsContent value="appearance">
+          <TabsContent value="appearance" className="mt-0">
             <AppearanceSettings />
           </TabsContent>
 
-          <TabsContent value="privacy" className="space-y-6">
+          <TabsContent value="privacy" className="mt-0 space-y-6">
             <MessagePrivacySettings />
             <SidebarLayoutSettings />
           </TabsContent>
 
-          <TabsContent value="blocked">
+          <TabsContent value="blocked" className="mt-0">
             <BlockedUsersSettings />
           </TabsContent>
 
-          <TabsContent value="data">
+          <TabsContent value="data" className="mt-0">
             <AccountDeletionSettings />
           </TabsContent>
+          </div>
         </Tabs>
       </div>
     </div>

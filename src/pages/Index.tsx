@@ -1,114 +1,68 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, MessageSquare, Sparkles, Shield, Zap, Briefcase, CheckCircle2 } from 'lucide-react';
+import { ShoppingBag, Briefcase, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
-import { useScrollAnimation } from '@/hooks/useScrollAnimation';
-import { HeroBackground } from '@/components/HeroBackground';
 import { FeaturedProducts } from '@/components/FeaturedProducts';
 
 export default function Index() {
   const { user } = useAuth();
   const { hasRole: isSeller } = useHasRole('seller');
-  const feature1 = useScrollAnimation();
-  const feature2 = useScrollAnimation();
-  const feature3 = useScrollAnimation();
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="animated-gradient-bg container mx-auto px-4 py-20 text-center relative overflow-hidden">
-        <HeroBackground />
-        <div className="max-w-4xl mx-auto space-y-6 relative z-10 animate-fade-in">
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
-            Welcome to <span className="text-primary">DK AI MARKETPLACE</span>
-          </h1>
-          <p className="text-lg italic text-muted-foreground/80 font-medium">
-            "Made by AI made for AI. -DK"
-          </p>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            The ultimate marketplace for AI agents and software solutions. Buy, sell, and discover powerful tools to automate your workflow.
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center pt-6">
-            <Button asChild size="lg" className="text-lg px-8 rounded-full shadow-lg hover:shadow-xl transition-shadow">
-              <Link to="/marketplace">
-                <ShoppingBag className="mr-2 h-5 w-5" />
-                Explore Marketplace
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="text-lg px-8 rounded-full">
-              <Link to="/feed">
-                <MessageSquare className="mr-2 h-5 w-5" />
-                Join Community
-              </Link>
-            </Button>
-          </div>
+      <section className="max-w-6xl mx-auto px-6 py-24 text-center">
+        <div className="eyebrow mb-6">FOUNDING SELLERS WANTED</div>
+        <h1 className="text-5xl md:text-6xl font-display font-semibold tracking-tight text-gray-900 mb-6">
+          The marketplace for AI{' '}
+          <span className="text-primary">builders &amp; buyers</span>.
+        </h1>
+        <p className="text-lg text-muted max-w-2xl mx-auto mb-3">
+          Sell your AI agents, automations, and prompts. Commission custom AI work. Connect with verified experts.
+        </p>
+        <p className="accent-serif text-lg text-gray-500 mb-10">
+          Made by AI, made for AI. — DK
+        </p>
+        <div className="flex gap-4 justify-center">
+          <Button asChild variant="hero">
+            <Link to="/marketplace">
+              <ShoppingBag className="mr-2 h-5 w-5" />
+              Explore Marketplace
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="bg-white border-primary text-primary rounded-full px-6 py-3 font-medium"
+          >
+            <Link to="/signup">Join as Founding Seller</Link>
+          </Button>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="container mx-auto px-4 py-16 bg-background">
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          <div
-            ref={feature1.ref}
-            className={`transition-all duration-700 ${
-              feature1.isVisible
-                ? 'opacity-100 translate-y-0'
-                : 'opacity-0 translate-y-10'
-            }`}
-            style={{ transitionDelay: '100ms' }}
-          >
-            <Card className="h-full hover-scale rounded-2xl border-2">
-              <CardHeader>
-                <Sparkles className="h-8 w-8 text-primary mb-2" />
-                <CardTitle>Powerful AI Solutions</CardTitle>
-                <CardDescription>
-                  Discover cutting-edge AI agents and software tools designed to enhance productivity and automate tasks
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-
-          <div
-            ref={feature2.ref}
-            className={`transition-all duration-700 ${
-              feature2.isVisible
-                ? 'opacity-100 translate-y-0'
-                : 'opacity-0 translate-y-10'
-            }`}
-            style={{ transitionDelay: '200ms' }}
-          >
-            <Card className="h-full hover-scale rounded-2xl border-2">
-              <CardHeader>
-                <Shield className="h-8 w-8 text-primary mb-2" />
-                <CardTitle>Secure Payments</CardTitle>
-                <CardDescription>
-                  All transactions are protected with enterprise-grade security and encrypted payment processing
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-
-          <div
-            ref={feature3.ref}
-            className={`transition-all duration-700 ${
-              feature3.isVisible
-                ? 'opacity-100 translate-y-0'
-                : 'opacity-0 translate-y-10'
-            }`}
-            style={{ transitionDelay: '300ms' }}
-          >
-            <Card className="h-full hover-scale rounded-2xl border-2">
-              <CardHeader>
-                <Zap className="h-8 w-8 text-primary mb-2" />
-                <CardTitle>Active Community</CardTitle>
-                <CardDescription>
-                  Connect with other users, share insights, and stay updated with the latest AI innovations and releases
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
+      {/* Two-Column Value Prop Section */}
+      <section className="max-w-5xl mx-auto px-6 py-16">
+        <div className="grid md:grid-cols-2 gap-8">
+          <Card className="p-8">
+            <h2 className="font-display text-2xl font-semibold mb-4">For Buyers</h2>
+            <ul className="list-disc list-inside space-y-2 text-muted">
+              <li>Browse AI agents, automations, and prompts</li>
+              <li>Commission custom AI work from verified experts</li>
+              <li>Book consultation calls with AI builders</li>
+              <li>Pay securely with Stripe — no hidden fees</li>
+            </ul>
+          </Card>
+          <Card className="p-8">
+            <h2 className="font-display text-2xl font-semibold mb-4">For Sellers</h2>
+            <ul className="list-disc list-inside space-y-2 text-muted">
+              <li>Keep 95% of revenue — only 5% platform fee</li>
+              <li>Direct buyer communication</li>
+              <li>Showcase your portfolio</li>
+              <li>Founding seller perks: priority placement, custom badge</li>
+            </ul>
+          </Card>
         </div>
       </section>
 
@@ -176,6 +130,19 @@ export default function Index() {
           </Card>
         </section>
       )}
+
+      {/* Closing Section */}
+      <section className="max-w-3xl mx-auto px-6 py-20 text-center">
+        <h2 className="text-3xl font-display font-semibold mb-4">
+          Be one of the first 10 founding sellers.
+        </h2>
+        <p className="text-muted mb-8">
+          We&apos;re pre-launch. Founding sellers keep their 95% revenue share for life and get a permanent badge on their profile.
+        </p>
+        <Button asChild variant="hero">
+          <Link to="/signup">Apply as Founding Seller</Link>
+        </Button>
+      </section>
     </div>
   );
 }

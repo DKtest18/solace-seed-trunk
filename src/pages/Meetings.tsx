@@ -6,14 +6,17 @@ import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Calendar, Clock, Globe, MessageSquare, Search, User, Video, MessageSquareText, ShoppingBag, Trophy, Package } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Calendar, Globe, MessageSquare, Search, User, Video,
+  MessageSquareText, SlidersHorizontal, Users as UsersIcon, X,
+} from 'lucide-react';
 import { MeetingBookingDialog } from '@/components/meetings/MeetingBookingDialog';
 import { OpenRequestForm } from '@/components/meetings/OpenRequestForm';
 import { BuyerCalendarView } from '@/components/meetings/BuyerCalendarView';
@@ -44,7 +47,6 @@ interface SellerWithMeetings {
     is_group: boolean;
     max_participants?: number;
   }[];
-  // Trust signals
   product_count?: number;
   sales_count?: number;
   achievements?: { title: string; icon_url: string }[];
@@ -57,13 +59,11 @@ export default function Meetings() {
   const [bookingModeFilter, setBookingModeFilter] = useState<string>('all');
   const [selectedSeller, setSelectedSeller] = useState<SellerWithMeetings | null>(null);
   const [calendarViewOpen, setCalendarViewOpen] = useState(false);
-  const [calendarBookingOpen, setCalendarBookingOpen] = useState(false);
   const [openRequestFormOpen, setOpenRequestFormOpen] = useState(false);
 
   const { data: sellers, isLoading } = useQuery({
     queryKey: ['sellers-with-meetings'],
     queryFn: async () => {
-      // Get sellers with meetings enabled
       const { data: configs, error: configError } = await supabase
         .from('seller_meeting_configs')
         .select('*')
@@ -72,7 +72,6 @@ export default function Meetings() {
       if (configError) throw configError;
       if (!configs?.length) return [];
 
-      // Get profiles for these sellers
       const sellerIds = configs.map(c => c.seller_id);
       const { data: profiles, error: profileError } = await db
         .from('dkai_profiles')
@@ -81,7 +80,6 @@ export default function Meetings() {
 
       if (profileError) throw profileError;
 
-      // Get meeting types for calendar-mode sellers
       const calendarSellerIds = configs.filter(c => c.booking_mode === 'calendar').map(c => c.seller_id);
       let meetingTypes: any[] = [];
       if (calendarSellerIds.length > 0) {
@@ -95,7 +93,6 @@ export default function Meetings() {
         meetingTypes = types || [];
       }
 
-      // Get product counts for sellers
       const { data: productCounts } = await db
         .from('dkai_products')
         .select('seller_id')
@@ -107,7 +104,6 @@ export default function Meetings() {
         productCountMap.set(p.seller_id, (productCountMap.get(p.seller_id) || 0) + 1);
       });
 
-      // Get sales counts (completed orders) for sellers
       const { data: salesData } = await db
         .from('dkai_orders')
         .select('product_id, dkai_products!inner(seller_id)')
@@ -121,7 +117,6 @@ export default function Meetings() {
         }
       });
 
-      // Get top achievements for sellers
       const { data: achievementsData } = await db
         .from('dkai_achievements')
         .select('user_id, title, icon_url')
@@ -137,7 +132,6 @@ export default function Meetings() {
         }
       });
 
-      // Combine data - filter by visibility
       return configs.map(config => ({
         ...config,
         booking_mode: (config.booking_mode as 'calendar' | 'open_request') || 'calendar',
@@ -149,7 +143,6 @@ export default function Meetings() {
         sales_count: salesCountMap.get(config.seller_id) || 0,
         achievements: achievementsMap.get(config.seller_id) || []
       })).filter(s => {
-        // Filter out sellers with private calendars (only me)
         if (s.calendar_visibility === 'private') return false;
         return s.profile;
       }) as SellerWithMeetings[];
@@ -157,7 +150,7 @@ export default function Meetings() {
   });
 
   const filteredSellers = sellers?.filter(seller => {
-    const matchesSearch = 
+    const matchesSearch =
       seller.profile.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       seller.profile.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       seller.profile.bio?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -180,288 +173,309 @@ export default function Meetings() {
       return;
     }
     setSelectedSeller(seller);
-    
-    // Open the appropriate dialog based on booking mode
     if (seller.booking_mode === 'open_request') {
       setOpenRequestFormOpen(true);
     } else {
-      // Open the full calendar view for direct slot booking
       setCalendarViewOpen(true);
     }
   };
 
   const canBookSeller = (seller: SellerWithMeetings) => {
-    // Check visibility
     if (seller.calendar_visibility === 'private') return false;
-    // For followers-only, would need to check follow status
-    // For now, allow booking for public and followers
     return seller.booking_mode === 'open_request' || seller.meeting_types.length > 0;
   };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setMeetingTypeFilter('all');
+    setBookingModeFilter('all');
+  };
+
+  const hasActiveFilters = meetingTypeFilter !== 'all' || bookingModeFilter !== 'all';
+
+  const FilterPill = ({ label, onRemove }: { label: string; onRemove: () => void }) => (
+    <span className="rounded-full bg-primary-soft text-primary px-3 py-1 text-xs flex items-center gap-1">
+      {label}
+      <button onClick={onRemove} className="hover:opacity-70" aria-label={`Remove ${label}`}>
+        <X className="w-3 h-3" />
+      </button>
+    </span>
+  );
+
+  const FilterPanel = () => (
+    <div>
+      <div className="mb-8">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">Meeting Type</h3>
+        <Select value={meetingTypeFilter} onValueChange={setMeetingTypeFilter}>
+          <SelectTrigger className="text-sm"><SelectValue placeholder="All Types" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="free">Free Meetings</SelectItem>
+            <SelectItem value="paid">Paid Meetings</SelectItem>
+            <SelectItem value="group">Group Meetings</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="mb-8">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">Booking Mode</h3>
+        <Select value={bookingModeFilter} onValueChange={setBookingModeFilter}>
+          <SelectTrigger className="text-sm"><SelectValue placeholder="All Modes" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Modes</SelectItem>
+            <SelectItem value="calendar">Calendar Booking</SelectItem>
+            <SelectItem value="open_request">Open Requests</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Button variant="outline" onClick={clearFilters} className="w-full">
+        Clear Filters
+      </Button>
+    </div>
+  );
+
+  const SkeletonCard = () => (
+    <Card className="overflow-hidden">
+      <Skeleton className="h-20 w-full" />
+      <div className="px-6 pb-6 -mt-10">
+        <Skeleton className="h-20 w-20 rounded-full mx-auto ring-4 ring-white" />
+        <Skeleton className="h-5 w-32 mx-auto mt-4" />
+        <Skeleton className="h-4 w-24 mx-auto mt-2" />
+        <div className="flex justify-center gap-2 mt-4">
+          <Skeleton className="h-6 w-16 rounded-full" />
+          <Skeleton className="h-6 w-16 rounded-full" />
+        </div>
+        <Skeleton className="h-10 w-full mt-4" />
+      </div>
+    </Card>
+  );
 
   return (
     <AppLayout>
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
-            <h1 className="text-3xl font-bold text-foreground">Book a Meeting</h1>
-            <Button asChild size="lg" variant="default">
+        <header className="max-w-7xl mx-auto px-6 pt-12 pb-8">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-display font-semibold text-gray-900 mb-2">
+                Book a call with AI experts
+              </h1>
+              <p className="text-muted text-lg max-w-2xl">
+                1-on-1 consultations with verified AI builders. Get help with your specific use case,
+                technical questions, or product strategy.
+              </p>
+            </div>
+            <Button asChild variant="outline">
               <Link to="/join-meeting">
-                <Video className="mr-2 h-5 w-5" />
+                <Video className="mr-2 h-4 w-4" />
                 Join Meeting
               </Link>
             </Button>
           </div>
-          <p className="text-muted-foreground">
-            Schedule meetings with sellers for consultations, project discussions, or service delivery.
-          </p>
-        </div>
+        </header>
 
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search sellers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={meetingTypeFilter} onValueChange={setMeetingTypeFilter}>
-            <SelectTrigger className="w-full md:w-[180px]">
-              <SelectValue placeholder="Meeting type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="free">Free Meetings</SelectItem>
-              <SelectItem value="paid">Paid Meetings</SelectItem>
-              <SelectItem value="group">Group Meetings</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={bookingModeFilter} onValueChange={setBookingModeFilter}>
-            <SelectTrigger className="w-full md:w-[180px]">
-              <SelectValue placeholder="Booking mode" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Modes</SelectItem>
-              <SelectItem value="calendar">Calendar Booking</SelectItem>
-              <SelectItem value="open_request">Open Requests</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <div className="max-w-7xl mx-auto px-6 pb-16 grid lg:grid-cols-[280px_1fr] gap-8">
+          {/* Filters sidebar */}
+          <aside className="hidden lg:block sticky top-24 self-start">
+            <FilterPanel />
+          </aside>
 
-        {/* Seller Grid */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i}>
-                <CardHeader className="flex flex-row items-center gap-4">
-                  <Skeleton className="h-16 w-16 rounded-full" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-24" />
+          {/* Right column */}
+          <div className="min-w-0">
+            {/* Search */}
+            <div className="mb-6 flex gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                <Input
+                  placeholder="Search experts..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 rounded-lg border border-border bg-white px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
+                />
+              </div>
+
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon" className="lg:hidden">
+                    <SlidersHorizontal className="w-4 h-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>Filters</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6">
+                    <FilterPanel />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-16 w-full" />
-                </CardContent>
-                <CardFooter>
-                  <Skeleton className="h-10 w-full" />
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        ) : filteredSellers?.length === 0 ? (
-          <div className="text-center py-12">
-            <Video className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No sellers available</h3>
-            <p className="text-muted-foreground">
-              {searchQuery || meetingTypeFilter !== 'all' 
-                ? 'Try adjusting your filters'
-                : 'No sellers have enabled meetings yet'}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredSellers?.map((seller) => (
-              <Card key={seller.seller_id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-4">
-                  <div className="flex items-start gap-4">
-                    <Link to={`/u/${seller.profile.username}`}>
-                      <Avatar className="h-16 w-16 cursor-pointer hover:ring-2 hover:ring-primary transition-all">
-                        <AvatarImage src={seller.profile.avatar_url} />
-                        <AvatarFallback>
-                          {seller.profile.full_name?.[0] || seller.profile.username?.[0] || 'S'}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Link>
-                    <div className="flex-1 min-w-0">
-                      <Link to={`/u/${seller.profile.username}`} className="hover:underline">
-                        <h3 className="font-semibold text-foreground truncate">
-                          {seller.profile.full_name || seller.profile.creator_name || seller.profile.username}
-                        </h3>
-                      </Link>
-                      <p className="text-sm text-muted-foreground truncate">@{seller.profile.username}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Globe className="h-3 w-3" />
-                          <span>{seller.timezone}</span>
-                        </div>
-                        {seller.booking_mode === 'open_request' && (
-                          <Badge variant="outline" className="text-xs">
-                            <MessageSquareText className="h-3 w-3 mr-1" />
-                            Open Request
-                          </Badge>
+                </SheetContent>
+              </Sheet>
+            </div>
+
+            {/* Active filter pills */}
+            {hasActiveFilters && (
+              <div className="flex flex-wrap gap-2 items-center mb-6">
+                {meetingTypeFilter !== 'all' && (
+                  <FilterPill label={`Type: ${meetingTypeFilter}`} onRemove={() => setMeetingTypeFilter('all')} />
+                )}
+                {bookingModeFilter !== 'all' && (
+                  <FilterPill label={`Mode: ${bookingModeFilter}`} onRemove={() => setBookingModeFilter('all')} />
+                )}
+              </div>
+            )}
+
+            {/* Grid */}
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+              </div>
+            ) : filteredSellers && filteredSellers.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredSellers.map((seller) => {
+                  const minPaid = seller.meeting_types
+                    .filter(mt => mt.is_paid)
+                    .sort((a, b) => Number(a.price) - Number(b.price))[0];
+                  const minFree = seller.meeting_types.find(mt => !mt.is_paid);
+                  const priceLabel = minPaid
+                    ? `€${minPaid.price} / ${minPaid.duration_minutes}min`
+                    : minFree
+                      ? `Free / ${minFree.duration_minutes}min`
+                      : seller.booking_mode === 'open_request' ? 'Open Request' : 'Contact';
+
+                  return (
+                    <Card key={seller.seller_id} className="overflow-hidden hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
+                      {/* Gradient header strip */}
+                      <div className="h-20 bg-gradient-to-r from-primary-soft to-background-soft" />
+
+                      <div className="px-6 pb-6 flex flex-col flex-1">
+                        <Link to={`/u/${seller.profile.username}`} className="self-center">
+                          <Avatar className="w-20 h-20 ring-4 ring-white -mt-10 mx-auto">
+                            <AvatarImage src={seller.profile.avatar_url} />
+                            <AvatarFallback>
+                              {seller.profile.full_name?.[0] || seller.profile.username?.[0] || 'S'}
+                            </AvatarFallback>
+                          </Avatar>
+                        </Link>
+
+                        <Link to={`/u/${seller.profile.username}`} className="text-center mt-3 hover:underline">
+                          <h3 className="font-display text-lg font-semibold text-gray-900">
+                            {seller.profile.full_name || seller.profile.creator_name || seller.profile.username}
+                          </h3>
+                        </Link>
+                        <p className="text-sm text-muted text-center mb-3">
+                          @{seller.profile.username}
+                        </p>
+
+                        {(seller.meeting_pitch || seller.profile.bio) && (
+                          <p className="text-sm text-muted text-center mb-4 line-clamp-2">
+                            {seller.meeting_pitch || seller.profile.bio}
+                          </p>
                         )}
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="pb-4">
-                  {/* Meeting pitch or bio */}
-                  {(seller.meeting_pitch || seller.profile.bio) && (
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                      {seller.meeting_pitch || seller.profile.bio}
-                    </p>
-                  )}
 
-                  {/* Trust signals: Products, Sales, Achievements */}
-                  <div className="flex flex-wrap items-center gap-3 mb-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Package className="h-3 w-3" />
-                      <span>{seller.product_count || 0} product{seller.product_count !== 1 ? 's' : ''}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <ShoppingBag className="h-3 w-3" />
-                      <span>{seller.sales_count || 0} sale{seller.sales_count !== 1 ? 's' : ''}</span>
-                    </div>
-                    {seller.achievements && seller.achievements.length > 0 && (
-                      <div className="flex items-center gap-1">
-                        <Trophy className="h-3 w-3 text-amber-500" />
-                        <span className="text-amber-600">{seller.achievements.length} achievement{seller.achievements.length !== 1 ? 's' : ''}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Achievement badges */}
-                  {seller.achievements && seller.achievements.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {seller.achievements.slice(0, 3).map((ach, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs bg-amber-50 border-amber-200 text-amber-700">
-                          <Trophy className="h-2.5 w-2.5 mr-1" />
-                          {ach.title}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* Meeting Types or Open Request Info */}
-                  <div className="space-y-2">
-                    {seller.booking_mode === 'calendar' ? (
-                      <>
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Available Meetings</p>
-                        <div className="flex flex-wrap gap-2">
+                        {/* Skill / signal pills */}
+                        <div className="flex flex-wrap gap-1.5 justify-center mb-4">
+                          {seller.booking_mode === 'open_request' && (
+                            <span className="bg-primary-soft text-primary text-xs px-2.5 py-1 rounded-full inline-flex items-center gap-1">
+                              <MessageSquareText className="h-3 w-3" /> Open Request
+                            </span>
+                          )}
                           {seller.meeting_types.slice(0, 3).map((type) => (
-                            <Badge 
-                              key={type.id} 
-                              variant={type.is_paid ? "default" : "secondary"}
-                              className="text-xs"
-                            >
-                              <Clock className="h-3 w-3 mr-1" />
-                              {type.duration_minutes}min
-                              {type.is_paid ? ` - $${type.price}` : ' - Free'}
-                              {type.is_group && ' (Group)'}
-                            </Badge>
+                            <span key={type.id} className="bg-primary-soft text-primary text-xs px-2.5 py-1 rounded-full">
+                              {type.duration_minutes}min{type.is_group ? ' · Group' : ''}
+                            </span>
                           ))}
                           {seller.meeting_types.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{seller.meeting_types.length - 3} more
-                            </Badge>
-                          )}
-                          {seller.meeting_types.length === 0 && (
-                            <p className="text-xs text-muted-foreground">No meeting types defined</p>
+                            <span className="bg-background-soft text-muted text-xs px-2.5 py-1 rounded-full">
+                              +{seller.meeting_types.length - 3}
+                            </span>
                           )}
                         </div>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Open Requests</p>
-                        <p className="text-xs text-muted-foreground">
-                          This seller accepts open meeting requests. Submit your preferred date/time and they will confirm.
-                        </p>
-                      </>
-                    )}
-                  </div>
-                </CardContent>
-                
-                <CardFooter className="flex gap-2 pt-4 border-t">
-                  <Button 
-                    className="flex-1"
-                    onClick={() => handleBookMeeting(seller)}
-                    disabled={!canBookSeller(seller)}
-                  >
-                    {seller.booking_mode === 'open_request' ? (
-                      <>
-                        <MessageSquareText className="h-4 w-4 mr-2" />
-                        Request Meeting
-                      </>
-                    ) : (
-                      <>
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Book Meeting
-                      </>
-                    )}
-                  </Button>
-                  <Button variant="outline" size="icon" asChild>
-                    <Link to={`/u/${seller.profile.username}`}>
-                      <User className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                  {user && (
-                    <Button variant="outline" size="icon" asChild>
-                      <Link to={`/messages?seller=${seller.seller_id}`}>
-                        <MessageSquare className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  )}
-                </CardFooter>
-              </Card>
-            ))}
+
+                        {/* Trust row */}
+                        <div className="flex items-center justify-center gap-3 text-xs text-muted mb-4">
+                          <span className="inline-flex items-center gap-1">
+                            <Globe className="h-3 w-3" />
+                            {seller.timezone}
+                          </span>
+                          {(seller.sales_count ?? 0) > 0 && (
+                            <span>· {seller.sales_count} sales</span>
+                          )}
+                        </div>
+
+                        {/* Bottom */}
+                        <div className="mt-auto flex items-center justify-between pt-4 border-t border-border gap-2">
+                          <span className="text-sm font-medium text-gray-900">{priceLabel}</span>
+                          <div className="flex items-center gap-1">
+                            <Button variant="outline" size="icon" asChild aria-label="Profile">
+                              <Link to={`/u/${seller.profile.username}`}>
+                                <User className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                            {user && (
+                              <Button variant="outline" size="icon" asChild aria-label="Message">
+                                <Link to={`/messages?seller=${seller.seller_id}`}>
+                                  <MessageSquare className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                            )}
+                            <Button
+                              variant="navCta"
+                              size="sm"
+                              onClick={() => handleBookMeeting(seller)}
+                              disabled={!canBookSeller(seller)}
+                            >
+                              {seller.booking_mode === 'open_request' ? 'Request' : 'Book call'}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-20">
+                <UsersIcon className="mx-auto mb-4 text-muted" size={48} />
+                <h2 className="font-display text-xl font-semibold text-gray-900 mb-2">
+                  No experts match your filters
+                </h2>
+                <p className="text-muted mb-6 max-w-md mx-auto">
+                  Try removing some filters or check back soon — we're pre-launch and onboarding new
+                  AI experts daily.
+                </p>
+                <Button variant="outline" onClick={clearFilters}>Reset filters</Button>
+              </div>
+            )}
           </div>
+        </div>
+
+        {/* Calendar booking dialog */}
+        {selectedSeller && selectedSeller.booking_mode === 'calendar' && (
+          <Dialog open={calendarViewOpen} onOpenChange={setCalendarViewOpen}>
+            <DialogContent className="max-w-6xl h-[90vh] p-0">
+              <BuyerCalendarView
+                sellerId={selectedSeller.seller_id}
+                sellerProfile={selectedSeller.profile}
+                sellerConfig={{
+                  seller_id: selectedSeller.seller_id,
+                  timezone: selectedSeller.timezone,
+                  calendar_visibility: selectedSeller.calendar_visibility || 'public',
+                  booking_mode: selectedSeller.booking_mode
+                }}
+                meetingTypes={selectedSeller.meeting_types}
+                onClose={() => setCalendarViewOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
         )}
-      </div>
 
-      {/* Full Calendar View Dialog for Direct Booking */}
-      {selectedSeller && selectedSeller.booking_mode === 'calendar' && (
-        <Dialog open={calendarViewOpen} onOpenChange={setCalendarViewOpen}>
-          <DialogContent className="max-w-6xl h-[90vh] p-0">
-            <BuyerCalendarView
-              sellerId={selectedSeller.seller_id}
-              sellerProfile={selectedSeller.profile}
-              sellerConfig={{
-                seller_id: selectedSeller.seller_id,
-                timezone: selectedSeller.timezone,
-                calendar_visibility: selectedSeller.calendar_visibility || 'public',
-                booking_mode: selectedSeller.booking_mode
-              }}
-              meetingTypes={selectedSeller.meeting_types}
-              onClose={() => setCalendarViewOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Open Request Form */}
-      {selectedSeller && selectedSeller.booking_mode === 'open_request' && (
-        <OpenRequestForm
-          open={openRequestFormOpen}
-          onOpenChange={setOpenRequestFormOpen}
-          seller={selectedSeller}
-        />
-      )}
+        {/* Open Request Form */}
+        {selectedSeller && selectedSeller.booking_mode === 'open_request' && (
+          <OpenRequestForm
+            open={openRequestFormOpen}
+            onOpenChange={setOpenRequestFormOpen}
+            seller={selectedSeller}
+          />
+        )}
       </div>
     </AppLayout>
   );

@@ -138,39 +138,63 @@ export default function Portfolio() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-start justify-between mb-8">
+        <div className="max-w-7xl mx-auto px-6 pt-12 pb-16">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">Portfolio Showcase</h1>
-              <p className="text-muted-foreground">Browse completed projects from our talented sellers</p>
+              <h1 className="text-4xl font-display font-semibold text-gray-900 mb-2">Portfolio Showcase</h1>
+              <p className="text-muted text-lg max-w-2xl">
+                Real projects delivered by verified sellers — browse work, see results, and find the right builder for your next idea.
+              </p>
             </div>
             {user && (
-              <Button asChild>
+              <Button asChild variant="navCta">
                 <Link to="/seller-dashboard/portfolio"><Plus className="h-4 w-4 mr-2" /> Create Portfolio</Link>
               </Button>
             )}
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="flex flex-col md:flex-row gap-3 mb-8">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search portfolio items..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
+              <Input
+                placeholder="Search portfolio items..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 rounded-lg border border-border bg-white px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary"
+              />
             </div>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-full md:w-[200px]"><SelectValue placeholder="Category" /></SelectTrigger>
+              <SelectTrigger className="w-full md:w-[200px] rounded-lg border border-border bg-white px-4 py-2.5 text-sm"><SelectValue placeholder="Category" /></SelectTrigger>
               <SelectContent>{categories.map((cat) => (<SelectItem key={cat} value={cat}>{cat}</SelectItem>))}</SelectContent>
             </Select>
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (<Card key={i}><Skeleton className="aspect-video w-full rounded-t-lg" /><CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader><CardContent><Skeleton className="h-20 w-full" /></CardContent></Card>))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="overflow-hidden">
+                  <Skeleton className="aspect-video w-full" />
+                  <div className="p-5">
+                    <Skeleton className="h-5 w-20 mb-3 rounded-full" />
+                    <Skeleton className="h-6 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-full mb-2" />
+                    <Skeleton className="h-4 w-2/3" />
+                  </div>
+                </Card>
+              ))}
             </div>
           ) : filteredItems?.length === 0 ? (
-            <div className="text-center py-12">
-              <Briefcase className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No portfolio items found</h3>
-              <p className="text-muted-foreground">{searchQuery || categoryFilter !== 'All Categories' ? 'Try adjusting your filters' : 'No sellers have shared their work yet'}</p>
+            <div className="text-center py-20">
+              <Briefcase className="h-12 w-12 mx-auto text-muted mb-4" />
+              <h3 className="font-display text-xl font-semibold text-gray-900 mb-2">No portfolio items match your filters</h3>
+              <p className="text-muted mb-6 max-w-md mx-auto">
+                {searchQuery || categoryFilter !== 'All Categories'
+                  ? 'Try removing some filters or search terms.'
+                  : "We're pre-launch — sellers are uploading their work daily. Check back soon."}
+              </p>
+              {(searchQuery || categoryFilter !== 'All Categories') && (
+                <Button variant="outline" onClick={() => { setSearchQuery(''); setCategoryFilter('All Categories'); }}>Reset filters</Button>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

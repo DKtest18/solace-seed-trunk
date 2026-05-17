@@ -202,6 +202,8 @@ export default function ProfileSettings() {
     });
   };
 
+  if (!user) return null;
+
   const tabs = [
     { value: 'profile', label: 'Profile', icon: User },
     { value: 'security', label: 'Security', icon: Shield },

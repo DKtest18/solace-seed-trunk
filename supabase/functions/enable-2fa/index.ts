@@ -1,5 +1,6 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
+import { encryptSecret } from '../_shared/twofa-crypto.ts';
 
 // Base32 decode
 function base32Decode(secret: string): Uint8Array {
@@ -74,20 +75,20 @@ Deno.serve(async (req) => {
 
     const admin = getServiceClient();
 
-    // Store in dkai_user_2fa table
+    // Encrypt the TOTP secret before it ever touches the database.
+    const encryptedSecret = await encryptSecret(secret);
+
     await admin.from('dkai_user_2fa').upsert({
       user_id: user.id,
-      totp_secret: secret,
-      is_enabled: true,
+      secret: encryptedSecret,
       recovery_key: recoveryKey || null,
-      enabled_at: new Date().toISOString(),
+      enabled: true,
     }, { onConflict: 'user_id' });
 
-    // Update dkai_profiles
     await admin.from('dkai_profiles').upsert({
       id: user.id,
       is_2fa_enabled: true,
-      two_fa_secret: secret,
+      two_fa_secret: encryptedSecret,
     }, { onConflict: 'id' });
 
     return jsonResponse({ success: true });

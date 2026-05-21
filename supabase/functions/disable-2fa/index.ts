@@ -36,16 +36,10 @@ Deno.serve(async (req) => {
     // Disable in dkai_user_2fa
     await admin
       .from('dkai_user_2fa')
-      .update({ is_enabled: false, totp_secret: null })
+      .update({ enabled: false, secret: null })
       .eq('user_id', user.id);
 
-    // Also clear legacy profiles field
-    await admin
-      .from('profiles')
-      .update({ is_2fa_enabled: false, two_fa_secret: null })
-      .eq('id', user.id);
-
-    // Also clear dkai_profiles
+    // Clear dkai_profiles
     await admin
       .from('dkai_profiles')
       .update({ is_2fa_enabled: false, two_fa_secret: null })

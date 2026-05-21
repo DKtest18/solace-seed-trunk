@@ -43,7 +43,6 @@ import SellerProfile from "./pages/SellerProfile";
 import ProfileSettings from "./pages/ProfileSettings";
 import Profile from "./pages/Profile";
 import PublicProfile from "./pages/PublicProfile";
-import TOTPTest from "./pages/TOTPTest";
 import TopProducts from "./pages/TopProducts";
 import TopSellers from "./pages/TopSellers";
 import Statistics from "./pages/Statistics";
@@ -152,7 +151,6 @@ const App = () => (
             <Route path="/settings" element={<ProfileSettings />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/u/:username" element={<PublicProfile />} />
-            <Route path="/totp-test" element={<TOTPTest />} />
 
             <Route path="/manual-payment" element={<ManualPayment />} />
             <Route path="/messages" element={<Messages />} />

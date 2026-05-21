@@ -9,11 +9,11 @@ Deno.serve(async (req) => {
   if (error || !user) return errorResponse('Unauthorized', 401);
 
   try {
-    const { user_id, rule_type } = await req.json();
+    const { rule_type } = await req.json();
     const admin = getServiceClient();
 
     await admin.from('dkai_rules_acceptance').upsert({
-      user_id: user_id || user.id,
+      user_id: user.id,
       rule_type: rule_type || 'user',
       accepted_at: new Date().toISOString(),
       accepted: true,

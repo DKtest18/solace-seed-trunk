@@ -15,6 +15,8 @@ import Marketplace from "./pages/Marketplace";
 import ProductDetail from "./pages/ProductDetail";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import CheckEmail from "./pages/CheckEmail";
+import EmailVerified from "./pages/EmailVerified";
 import Feed from "./pages/Feed";
 import CreateProduct from "./pages/CreateProduct";
 import EditProduct from "./pages/EditProduct";

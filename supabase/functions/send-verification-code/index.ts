@@ -1,6 +1,19 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
+// Cryptographically secure, uniformly distributed 6-digit code.
+function generateSixDigitCode(): string {
+  const range = 900000;
+  const limit = Math.floor(0xffffffff / range) * range; // reject bias
+  const buf = new Uint32Array(1);
+  let n: number;
+  do {
+    crypto.getRandomValues(buf);
+    n = buf[0];
+  } while (n >= limit);
+  return String(100000 + (n % range));
+}
+
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
@@ -12,7 +25,7 @@ Deno.serve(async (req) => {
     const admin = getServiceClient();
 
     // Generate a 6-digit verification code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const code = generateSixDigitCode();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 minutes
 
     // Store code in database
@@ -22,10 +35,6 @@ Deno.serve(async (req) => {
       expires_at: expiresAt,
       verified: false,
     }, { onConflict: 'user_id' });
-
-    // Send email via Supabase Auth or email service
-    // For now, log the code (in production, send via email service)
-    console.log(`Verification code for ${user.email}: ${code}`);
 
     // Try sending via Resend if configured
     const resendKey = Deno.env.get('RESEND_API_KEY');

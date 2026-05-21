@@ -1,5 +1,4 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
-import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
 const NOTIFICATION_TYPES = [
   'new_sale',
@@ -39,6 +38,14 @@ Deno.serve(async (req) => {
   if (corsRes) return corsRes;
 
   try {
+    // Invoked only by other trusted edge functions, which authenticate with
+    // the service-role key. Reject any other (external) caller so this cannot
+    // be used as an unauthenticated phishing/spam relay.
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!serviceKey || req.headers.get('Authorization') !== `Bearer ${serviceKey}`) {
+      return errorResponse('Unauthorized', 401);
+    }
+
     const resendKey = Deno.env.get('RESEND_API_KEY');
     if (!resendKey) return errorResponse('Email service not configured', 500);
 

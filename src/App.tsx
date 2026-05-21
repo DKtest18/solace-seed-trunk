@@ -15,6 +15,8 @@ import Marketplace from "./pages/Marketplace";
 import ProductDetail from "./pages/ProductDetail";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import CheckEmail from "./pages/CheckEmail";
+import EmailVerified from "./pages/EmailVerified";
 import Feed from "./pages/Feed";
 import CreateProduct from "./pages/CreateProduct";
 import EditProduct from "./pages/EditProduct";
@@ -117,6 +119,8 @@ const App = () => (
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/auth/check-email" element={<CheckEmail />} />
+            <Route path="/auth/verified" element={<EmailVerified />} />
             <Route path="/feed" element={<Feed />} />
             <Route path="/top-products" element={<TopProducts />} />
             <Route path="/top-sellers" element={<TopSellers />} />

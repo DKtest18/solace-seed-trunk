@@ -115,7 +115,7 @@ export default function Signup() {
         password,
         options: {
           data: { full_name: sanitizedFullName, email_verified: false, is_2fa_enabled: false },
-          emailRedirectTo: `${window.location.origin}/signup`,
+          emailRedirectTo: `${window.location.origin}/auth/verified`,
         },
       });
 
@@ -130,10 +130,9 @@ export default function Signup() {
 
       if (!data.user) throw new Error('Failed to create account');
 
-      toast.success('Verification email sent! Please check your inbox.');
       setSignupUserId(data.user.id);
-      setStep('verify-email');
-      setResendCooldown(60);
+      navigate(`/auth/check-email?email=${encodeURIComponent(sanitizedEmail)}`);
+      return;
     } catch (error: any) {
       console.error('Signup error:', error);
       toast.error(error.message || 'Failed to create account. Please try again.');

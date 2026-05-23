@@ -22,6 +22,7 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [reasonForJoining, setReasonForJoining] = useState('');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<SignupStep>('details');
   const [signupUserId, setSignupUserId] = useState<string | null>(null);
@@ -114,7 +115,12 @@ export default function Signup() {
         email: sanitizedEmail,
         password,
         options: {
-          data: { full_name: sanitizedFullName, email_verified: false, is_2fa_enabled: false },
+          data: {
+            full_name: sanitizedFullName,
+            email_verified: false,
+            is_2fa_enabled: false,
+            reason_for_joining: sanitizeText(reasonForJoining).slice(0, 500),
+          },
           emailRedirectTo: `${window.location.origin}/auth/verified`,
         },
       });
@@ -306,6 +312,24 @@ export default function Signup() {
                 <PasswordStrengthIndicator password={password} />
                 <p className="text-xs text-muted mt-1">
                   Must be 8+ characters with uppercase, lowercase, number, and special character.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="reasonForJoining" className="text-sm font-medium text-gray-900 mb-1.5 block">
+                  Why do you want to join DK AI Marketplace? <span className="text-muted font-normal">(optional)</span>
+                </label>
+                <textarea
+                  id="reasonForJoining"
+                  placeholder="I build AI agents and..."
+                  value={reasonForJoining}
+                  onChange={(e) => setReasonForJoining(e.target.value.slice(0, 500))}
+                  rows={3}
+                  maxLength={500}
+                  className={`${inputClass} resize-none`}
+                />
+                <p className="text-xs text-muted mt-1">
+                  This helps us prioritize founding members. {reasonForJoining.length}/500
                 </p>
               </div>
 

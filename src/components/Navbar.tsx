@@ -35,6 +35,22 @@ export function Navbar() {
   const { hasRole: isAdmin } = useHasRole('admin');
   const [unreadCount, setUnreadCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [pendingWaitlist, setPendingWaitlist] = useState(0);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    const loadPending = async () => {
+      const { count } = await db
+        .from('dkai_waitlist')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'pending');
+      setPendingWaitlist(count || 0);
+    };
+    loadPending();
+    const interval = setInterval(loadPending, 60_000);
+    return () => clearInterval(interval);
+  }, [isAdmin]);
+
 
   useEffect(() => {
     if (!user) return;
@@ -157,6 +173,14 @@ export function Navbar() {
                   {isAdmin && (
                     <>
                       <DropdownMenuItem asChild><Link to="/admin"><Settings className="w-4 h-4 mr-2" />Admin Dashboard</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin/waitlist" className="flex items-center justify-between gap-2">
+                          <span className="flex items-center"><User className="w-4 h-4 mr-2" />Waitlist</span>
+                          {pendingWaitlist > 0 && (
+                            <Badge variant="destructive" className="rounded-full h-5 px-2 text-xs">{pendingWaitlist}</Badge>
+                          )}
+                        </Link>
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                     </>
                   )}
@@ -238,6 +262,10 @@ export function Navbar() {
                           <div className="border-t my-2" />
                           <div className="px-2 space-y-1">
                             <Link to="/admin" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors"><Settings className="w-4 h-4 mr-3" />Admin</Link>
+                            <Link to="/admin/waitlist" onClick={() => setMobileOpen(false)} className="flex items-center justify-between px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors">
+                              <span className="flex items-center"><User className="w-4 h-4 mr-3" />Waitlist</span>
+                              {pendingWaitlist > 0 && <Badge variant="destructive" className="rounded-full h-5 px-2 text-xs">{pendingWaitlist}</Badge>}
+                            </Link>
                           </div>
                         </>
                       )}

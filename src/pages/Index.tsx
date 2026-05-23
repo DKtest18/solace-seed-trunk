@@ -12,6 +12,14 @@ export default function Index() {
 
   return (
     <div className="min-h-screen">
+      {/* Pre-launch waitlist banner */}
+      <div className="bg-primary-soft border-y border-primary/30 py-3 px-4 text-center">
+        <p className="text-sm font-medium text-primary">
+          DK AI Marketplace is in development — official launch later this year.
+          Join the waitlist below to be among the first.
+        </p>
+      </div>
+
       {/* Hero Section */}
       <section className="max-w-6xl mx-auto px-6 py-24 text-center">
         <div className="eyebrow mb-6">FOUNDING SELLERS WANTED</div>
@@ -25,11 +33,11 @@ export default function Index() {
         <p className="accent-serif text-lg text-gray-500 mb-10">
           Made by AI, made for AI. — DK
         </p>
-        <div className="flex gap-4 justify-center">
+        <div className="flex gap-4 justify-center flex-wrap">
           <Button asChild variant="hero">
-            <Link to="/marketplace">
+            <Link to="/signup">
               <ShoppingBag className="mr-2 h-5 w-5" />
-              Explore Marketplace
+              Join the waitlist
             </Link>
           </Button>
           <Button
@@ -41,6 +49,7 @@ export default function Index() {
           </Button>
         </div>
       </section>
+
 
       {/* Two-Column Value Prop Section */}
       <section className="max-w-5xl mx-auto px-6 py-16">

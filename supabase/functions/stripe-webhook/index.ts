@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
   }
 
   const signature = req.headers.get('stripe-signature');
-  const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
+  const webhookSecret = Deno.env.get('DKAIM_STRIPE_WEBHOOK_SECRET');
   if (!signature || !webhookSecret) {
     return new Response('Missing Stripe signature or webhook secret', { status: 400 });
   }

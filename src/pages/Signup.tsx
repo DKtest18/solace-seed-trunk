@@ -115,7 +115,12 @@ export default function Signup() {
         email: sanitizedEmail,
         password,
         options: {
-          data: { full_name: sanitizedFullName, email_verified: false, is_2fa_enabled: false },
+          data: {
+            full_name: sanitizedFullName,
+            email_verified: false,
+            is_2fa_enabled: false,
+            reason_for_joining: sanitizeText(reasonForJoining).slice(0, 500),
+          },
           emailRedirectTo: `${window.location.origin}/auth/verified`,
         },
       });

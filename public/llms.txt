@@ -1,0 +1,22 @@
+# DK AI Marketplace
+
+> Marketplace for AI builders and buyers. Sell AI agents, automations and prompts, commission custom AI work, and book consultations with verified experts.
+
+DK AI Marketplace connects independent AI builders with buyers who need ready-made AI products or custom work. Sellers keep 95% of revenue; buyers pay securely via Stripe.
+
+## Pages
+
+- [Home](/): Overview of the marketplace and founding-seller program.
+- [Marketplace](/marketplace): Browse AI agents, automations, and prompts.
+- [Top Products](/top-products): Highest-rated and trending AI products.
+- [Top Sellers](/top-sellers): Leading AI builders on the platform.
+- [Community](/community): Discussions on AI tooling, builds, and questions.
+- [Feed](/feed): Latest community activity.
+- [Statistics](/statistics): Platform stats and metrics.
+- [Achievements](/achievements): Seller rank and achievement system.
+- [Legal](/legal): Terms, privacy, and policy documents.
+
+## Optional
+
+- [Sign up](/signup): Create a buyer or seller account.
+- [Log in](/login): Existing account access.

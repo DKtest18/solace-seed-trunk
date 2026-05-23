@@ -315,7 +315,24 @@ export default function Signup() {
                 </p>
               </div>
 
-              <Button type="submit" variant="hero" className="w-full mt-6" disabled={loading}>
+              <div>
+                <label htmlFor="reasonForJoining" className="text-sm font-medium text-gray-900 mb-1.5 block">
+                  Why do you want to join DK AI Marketplace? <span className="text-muted font-normal">(optional)</span>
+                </label>
+                <textarea
+                  id="reasonForJoining"
+                  placeholder="I build AI agents and..."
+                  value={reasonForJoining}
+                  onChange={(e) => setReasonForJoining(e.target.value.slice(0, 500))}
+                  rows={3}
+                  maxLength={500}
+                  className={`${inputClass} resize-none`}
+                />
+                <p className="text-xs text-muted mt-1">
+                  This helps us prioritize founding members. {reasonForJoining.length}/500
+                </p>
+              </div>
+
                 {loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account...</>) : 'Create account'}
               </Button>
 

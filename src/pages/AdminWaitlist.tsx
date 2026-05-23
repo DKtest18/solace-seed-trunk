@@ -71,6 +71,18 @@ function AdminWaitlistContent() {
     },
   });
 
+  const { data: verification = {} } = useQuery({
+    queryKey: ['admin-waitlist-verification', rows.map((r) => r.user_id).join(',')],
+    enabled: rows.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('get-waitlist-verification', {
+        body: { user_ids: rows.map((r) => r.user_id) },
+      });
+      if (error) throw error;
+      return (data?.verification || {}) as Record<string, { email_confirmed_at: string | null }>;
+    },
+  });
+
   const { data: counts } = useQuery({
     queryKey: ['admin-waitlist-counts'],
     queryFn: async () => {

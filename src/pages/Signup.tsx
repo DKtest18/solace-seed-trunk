@@ -136,6 +136,18 @@ export default function Signup() {
 
       if (!data.user) throw new Error('Failed to create account');
 
+      // Add to waitlist immediately (before email verification)
+      try {
+        await supabase.functions.invoke('join-waitlist', {
+          body: {
+            full_name: sanitizedFullName,
+            reason_for_joining: sanitizeText(reasonForJoining).slice(0, 500),
+          },
+        });
+      } catch (e) {
+        console.error('join-waitlist failed (non-blocking)', e);
+      }
+
       setSignupUserId(data.user.id);
       navigate(`/auth/check-email?email=${encodeURIComponent(sanitizedEmail)}`);
       return;

@@ -71,6 +71,18 @@ function AdminWaitlistContent() {
     },
   });
 
+  const { data: verification = {} } = useQuery({
+    queryKey: ['admin-waitlist-verification', rows.map((r) => r.user_id).join(',')],
+    enabled: rows.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('get-waitlist-verification', {
+        body: { user_ids: rows.map((r) => r.user_id) },
+      });
+      if (error) throw error;
+      return (data?.verification || {}) as Record<string, { email_confirmed_at: string | null }>;
+    },
+  });
+
   const { data: counts } = useQuery({
     queryKey: ['admin-waitlist-counts'],
     queryFn: async () => {
@@ -208,6 +220,7 @@ function AdminWaitlistContent() {
                         <TableHead className="w-12"></TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
+                        <TableHead>Verified</TableHead>
                         <TableHead>Joined</TableHead>
                         {status === 'pending' && <TableHead>Reason</TableHead>}
                         {status === 'approved' && <TableHead>Approved</TableHead>}
@@ -225,6 +238,17 @@ function AdminWaitlistContent() {
                           </TableCell>
                           <TableCell className="font-medium">{row.full_name || '—'}</TableCell>
                           <TableCell className="text-sm">{row.email}</TableCell>
+                          <TableCell>
+                            {verification[row.user_id]?.email_confirmed_at ? (
+                              <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">
+                                <CheckCircle2 className="h-3 w-3 mr-1" /> Verified
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-amber-700 border-amber-300">
+                                Pending
+                              </Badge>
+                            )}
+                          </TableCell>
                           <TableCell className="text-sm text-muted">{fmtDate(row.created_at)}</TableCell>
                           {status === 'pending' && (
                             <TableCell title={row.reason_for_joining || ''} className="max-w-sm">

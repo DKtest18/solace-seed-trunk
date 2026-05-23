@@ -190,6 +190,46 @@ function buildNotificationEmail(
   const baseUrl = 'https://dkaimarketplace.lovable.app';
 
   switch (type) {
+    // ── WAITLIST APPROVED ──
+    case 'waitlist_approved': {
+      const name = data.name || 'there';
+      const actionUrl = data.actionUrl || 'https://dkaimarketplace.com';
+      return {
+        subject: "You're in — welcome to DK AI Marketplace",
+        html: wrapEmail([
+          h("You're in."),
+          p(`Hi ${name},`),
+          p(`Great news — your application to ${link('DK AI Marketplace')} has been approved. You now have full access to the platform.`),
+          br(),
+          p('You can browse the marketplace, list products as a seller, book meetings, and join the community.'),
+          br(),
+          btn(actionUrl, 'Enter the marketplace'),
+          br(),
+          ft('Welcome aboard. — The DK AI team'),
+        ].join('')),
+      };
+    }
+
+    // ── WAITLIST DECLINED ──
+    case 'waitlist_declined': {
+      const name = data.name || 'there';
+      const reason = data.reason || 'No reason provided.';
+      return {
+        subject: 'Update on your DK AI Marketplace application',
+        html: wrapEmail([
+          h('Application update'),
+          p(`Hi ${name},`),
+          p(`Thank you for applying to ${link('DK AI Marketplace')}. After reviewing your application, we are unable to approve access at this time.`),
+          br(),
+          quoteBlock('Reason from our team', reason),
+          br(),
+          p('We appreciate your interest and wish you the best.'),
+          br(),
+          ft('— The DK AI team'),
+        ].join('')),
+      };
+    }
+
     // ── NEW SALE (seller notification) ──
     case 'new_sale': {
       const productTitle = data.productTitle || 'Unknown Product';

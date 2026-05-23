@@ -1,5 +1,6 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
+import { hashBackupCode } from '../_shared/twofa-crypto.ts';
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -22,14 +23,16 @@ Deno.serve(async (req) => {
       codes.push(`${code.slice(0, 4)}-${code.slice(4, 8)}`);
     }
 
-    // Store hashed backup codes
+    // Store only hashed backup codes; the plaintext is returned once below.
     await admin.from('dkai_backup_codes').delete().eq('user_id', user.id);
 
-    const codeEntries = codes.map(code => ({
-      user_id: user.id,
-      code_hash: code, // In production, hash these
-      used: false,
-    }));
+    const codeEntries = await Promise.all(
+      codes.map(async (code) => ({
+        user_id: user.id,
+        code_hash: await hashBackupCode(code),
+        used: false,
+      })),
+    );
 
     await admin.from('dkai_backup_codes').insert(codeEntries);
 

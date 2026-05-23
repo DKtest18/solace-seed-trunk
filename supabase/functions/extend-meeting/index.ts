@@ -10,9 +10,13 @@ Deno.serve(async (req) => {
 
   try {
     const { meeting_id, extension_minutes } = await req.json();
+    if (!meeting_id) return errorResponse('meeting_id is required', 400);
+    if (!Number.isInteger(extension_minutes) || extension_minutes <= 0 || extension_minutes > 240) {
+      return errorResponse('extension_minutes must be a positive integer (max 240)', 400);
+    }
     const admin = getServiceClient();
 
-    // Verify participant
+    // Only the meeting host may extend it.
     const { data: participant } = await admin
       .from('meeting_participants')
       .select('role')
@@ -21,6 +25,9 @@ Deno.serve(async (req) => {
       .single();
 
     if (!participant) return errorResponse('Not a meeting participant', 403);
+    if (participant.role !== 'host') {
+      return errorResponse('Only the meeting host can extend the meeting', 403);
+    }
 
     // Update meeting duration
     const { data: meeting, error: meetingError } = await admin

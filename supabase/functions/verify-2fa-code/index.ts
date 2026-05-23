@@ -1,5 +1,6 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
+import { decryptSecret } from '../_shared/twofa-crypto.ts';
 
 // Base32 decode
 function base32Decode(secret: string): Uint8Array {
@@ -88,31 +89,37 @@ Deno.serve(async (req) => {
       }, 429);
     }
 
-    // Fetch secret SERVER-SIDE only — never sent to client
+    // Fetch the encrypted secret SERVER-SIDE only — never sent to client.
     const { data: twoFAData } = await admin
       .from('dkai_user_2fa')
-      .select('totp_secret, is_enabled')
+      .select('secret, enabled')
       .eq('user_id', user.id)
-      .eq('is_enabled', true)
-      .single();
+      .eq('enabled', true)
+      .maybeSingle();
 
-    let isValid = false;
+    let storedSecret: string | null | undefined = twoFAData?.secret;
 
-    if (!twoFAData?.totp_secret) {
-      // Fallback: check profiles table (legacy)
+    if (!storedSecret) {
+      // Fallback: dkai_profiles, kept in sync by enable-2fa.
       const { data: profile } = await admin
-        .from('profiles')
+        .from('dkai_profiles')
         .select('two_fa_secret, is_2fa_enabled')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!profile?.two_fa_secret || !profile?.is_2fa_enabled) {
         return jsonResponse({ valid: false, error: '2FA not enabled' });
       }
+      storedSecret = profile.two_fa_secret;
+    }
 
-      isValid = await verifyTOTP(profile.two_fa_secret, code);
-    } else {
-      isValid = await verifyTOTP(twoFAData.totp_secret, code);
+    let isValid = false;
+    try {
+      const secret = await decryptSecret(storedSecret);
+      isValid = await verifyTOTP(secret, code);
+    } catch (_e) {
+      // Secret predates encryption — force a clean re-enrollment.
+      return jsonResponse({ valid: false, error: '2FA must be re-enrolled', reenroll: true });
     }
 
     if (!isValid) {

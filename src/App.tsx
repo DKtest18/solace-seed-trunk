@@ -43,7 +43,6 @@ import SellerProfile from "./pages/SellerProfile";
 import ProfileSettings from "./pages/ProfileSettings";
 import Profile from "./pages/Profile";
 import PublicProfile from "./pages/PublicProfile";
-import TOTPTest from "./pages/TOTPTest";
 import TopProducts from "./pages/TopProducts";
 import TopSellers from "./pages/TopSellers";
 import Statistics from "./pages/Statistics";
@@ -87,6 +86,7 @@ import PublicBookingPage from "./pages/PublicBookingPage";
 import MeetingInviteResponse from "./pages/MeetingInviteResponse";
 import SellerAnalytics from "./pages/SellerAnalytics";
 import { Seller2FAGuard } from "@/components/Seller2FAGuard";
+import { AdminRouteGuard } from "@/components/AdminRouteGuard";
 import { Optional2FAPrompt } from "@/components/Optional2FAPrompt";
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -138,8 +138,8 @@ const App = () => (
             <Route path="/seller-dashboard" element={<Seller2FAGuard><SellerDashboard /></Seller2FAGuard>} />
             <Route path="/seller-orders" element={<Seller2FAGuard><SellerOrders /></Seller2FAGuard>} />
             <Route path="/seller-dashboard/analytics" element={<Seller2FAGuard><SellerAnalytics /></Seller2FAGuard>} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/transactions" element={<AdminTransactions />} />
+            <Route path="/admin" element={<AdminRouteGuard><AdminDashboard /></AdminRouteGuard>} />
+            <Route path="/admin/transactions" element={<AdminRouteGuard><AdminTransactions /></AdminRouteGuard>} />
             <Route path="/purchases" element={<PurchaseHistory />} />
             <Route path="/earnings" element={<Seller2FAGuard><SellerEarnings /></Seller2FAGuard>} />
             <Route path="/balances" element={<Seller2FAGuard><SellerBalances /></Seller2FAGuard>} />
@@ -152,35 +152,34 @@ const App = () => (
             <Route path="/settings" element={<ProfileSettings />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/u/:username" element={<PublicProfile />} />
-            <Route path="/totp-test" element={<TOTPTest />} />
 
             <Route path="/manual-payment" element={<ManualPayment />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/notifications" element={<Notifications />} />
-            <Route path="/admin/payment-confirmations" element={<AdminPaymentConfirmations />} />
-            <Route path="/admin/refund-disputes" element={<AdminRefundDisputes />} />
-            <Route path="/admin/disputes" element={<AdminDisputes />} />
+            <Route path="/admin/payment-confirmations" element={<AdminRouteGuard><AdminPaymentConfirmations /></AdminRouteGuard>} />
+            <Route path="/admin/refund-disputes" element={<AdminRouteGuard><AdminRefundDisputes /></AdminRouteGuard>} />
+            <Route path="/admin/disputes" element={<AdminRouteGuard><AdminDisputes /></AdminRouteGuard>} />
             <Route path="/payouts" element={<PayoutRequests />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/achievements" element={<Achievements />} />
             <Route path="/seller-dashboard/payment-settings" element={<Seller2FAGuard><SellerPaymentSettings /></Seller2FAGuard>} />
             <Route path="/seller-payment-settings" element={<Seller2FAGuard><SellerPaymentSettings /></Seller2FAGuard>} />
-            <Route path="/admin/payment-settings" element={<AdminPaymentSettings />} />
+            <Route path="/admin/payment-settings" element={<AdminRouteGuard><AdminPaymentSettings /></AdminRouteGuard>} />
             <Route path="/community" element={<Community />} />
             <Route path="/community/:id" element={<CommunityPost />} />
             <Route path="/profile/:username" element={<PublicProfile />} />
             <Route path="/purchase-history" element={<PurchaseHistory />} />
             <Route path="/legal" element={<LegalOverview />} />
             <Route path="/legal/:type" element={<Legal />} />
-            <Route path="/admin/reports" element={<AdminReports />} />
-            <Route path="/admin/email-logs" element={<AdminEmailLogs />} />
+            <Route path="/admin/reports" element={<AdminRouteGuard><AdminReports /></AdminRouteGuard>} />
+            <Route path="/admin/email-logs" element={<AdminRouteGuard><AdminEmailLogs /></AdminRouteGuard>} />
             <Route path="/invites" element={<Invites />} />
 
             <Route path="/my-subscriptions" element={<MySubscriptions />} />
             <Route path="/seller-subscriptions" element={<Seller2FAGuard><SellerSubscriptions /></Seller2FAGuard>} />
-            <Route path="/admin/escrow" element={<EscrowManagement />} />
-            <Route path="/admin/featured" element={<AdminFeaturedProducts />} />
-            <Route path="/admin/dispute-management" element={<AdminDisputeManagement />} />
+            <Route path="/admin/escrow" element={<AdminRouteGuard><EscrowManagement /></AdminRouteGuard>} />
+            <Route path="/admin/featured" element={<AdminRouteGuard><AdminFeaturedProducts /></AdminRouteGuard>} />
+            <Route path="/admin/dispute-management" element={<AdminRouteGuard><AdminDisputeManagement /></AdminRouteGuard>} />
             <Route path="/dispute/:id" element={<DisputeDetail />} />
             <Route path="/meetings" element={<Meetings />} />
             <Route path="/meetings/join/:joinSlug" element={<JoinMeetingPage />} />

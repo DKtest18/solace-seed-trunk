@@ -51,6 +51,22 @@ Deno.serve(async (req) => {
         return errorResponse('Seller has not connected their Stripe account', 400);
       }
 
+      // Create the order first so its id can travel in Stripe metadata; the
+      // stripe-webhook function settles the order from that metadata.
+      const { data: order, error: orderError } = await admin.from('dkai_orders').insert({
+        buyer_id: user.id,
+        product_id: productId,
+        seller_id: product.seller_id,
+        price: product.price,
+        platform_fee: platformFee,
+        seller_earnings: sellerEarnings,
+        held_amount: product.price,
+        payment_method: 'stripe',
+        escrow_status: 'pending',
+        status: 'pending_payment',
+      }).select('id').single();
+      if (orderError || !order) throw orderError ?? new Error('Failed to create order');
+
       // Build Stripe checkout params with Connect split
       const params: Record<string, string> = {
         'mode': 'payment',
@@ -60,9 +76,13 @@ Deno.serve(async (req) => {
         'line_items[0][price_data][product_data][name]': product.title,
         'line_items[0][price_data][unit_amount]': String(Math.round(product.price * 100)),
         'line_items[0][quantity]': '1',
+        'metadata[order_id]': order.id,
         'metadata[product_id]': productId,
         'metadata[buyer_id]': user.id,
         'metadata[seller_id]': product.seller_id,
+        // Stamp order_id on the PaymentIntent too, so webhook events of any
+        // type can be resolved back to this order.
+        'payment_intent_data[metadata][order_id]': order.id,
         // 10% platform fee via Stripe Connect
         'payment_intent_data[application_fee_amount]': String(Math.round(platformFee * 100)),
         'payment_intent_data[transfer_data][destination]': sellerProfile.stripe_account_id,
@@ -80,19 +100,9 @@ Deno.serve(async (req) => {
       const session = await stripeRes.json();
       if (session.error) throw new Error(session.error.message);
 
-      // Create order
-      const { data: order } = await admin.from('dkai_orders').insert({
-        buyer_id: user.id,
-        product_id: productId,
-        seller_id: product.seller_id,
-        price: product.price,
-        platform_fee: platformFee,
-        seller_earnings: sellerEarnings,
-        payment_method: 'stripe',
-        stripe_session_id: session.id,
-        escrow_status: 'pending',
-        status: 'pending_payment',
-      }).select('id').single();
+      await admin.from('dkai_orders')
+        .update({ stripe_session_id: session.id })
+        .eq('id', order.id);
 
       // Send emails (fire-and-forget)
       sendNotificationEmails(req, admin, {
@@ -102,7 +112,7 @@ Deno.serve(async (req) => {
         buyerEmail,
         sellerName,
         sellerEmail,
-        orderId: order?.id || session.id,
+        orderId: order.id,
         paymentMethod: 'Stripe (Card)',
       });
 

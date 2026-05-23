@@ -9,14 +9,14 @@ Deno.serve(async (req) => {
   if (error || !user) return errorResponse('Unauthorized', 401);
 
   try {
-    const { title, body, is_public, seller_id, attachment_key, attachment_file_name, attachment_file_size, attachment_content_type } = await req.json();
+    const { title, body, is_public, attachment_key, attachment_file_name, attachment_file_size, attachment_content_type } = await req.json();
     const admin = getServiceClient();
 
     const insertData: Record<string, unknown> = {
       title,
       body,
       is_public: is_public ?? true,
-      author_id: seller_id || user.id,
+      author_id: user.id,
     };
 
     if (attachment_key) {

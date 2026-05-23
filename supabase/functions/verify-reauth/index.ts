@@ -9,30 +9,19 @@ Deno.serve(async (req) => {
   if (error || !user) return errorResponse('Unauthorized', 401);
 
   try {
-    const { password, totpCode } = await req.json();
+    const { password } = await req.json();
     const admin = getServiceClient();
 
-    // Verify password by attempting sign-in
-    if (password) {
-      const { error: signInError } = await admin.auth.signInWithPassword({
-        email: user.email,
-        password,
-      });
-      if (signInError) return jsonResponse({ success: false, error: 'Invalid password' });
+    // Re-authentication must prove identity — require and verify the password.
+    if (!password) {
+      return jsonResponse({ success: false, error: 'Password is required' });
     }
 
-    // Verify TOTP if provided
-    if (totpCode) {
-      const { data: totpData } = await admin
-        .from('dkai_user_2fa')
-        .select('totp_secret')
-        .eq('user_id', user.id)
-        .eq('is_enabled', true)
-        .single();
-
-      if (!totpData) return jsonResponse({ success: false, error: '2FA not enabled' });
-      // TOTP verification would use a library like otpauth here
-    }
+    const { error: signInError } = await admin.auth.signInWithPassword({
+      email: user.email,
+      password,
+    });
+    if (signInError) return jsonResponse({ success: false, error: 'Invalid password' });
 
     // Create re-auth session
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 min

@@ -10,16 +10,18 @@ Deno.serve(async (req) => {
 
   try {
     const { disputeId, response: sellerResponse, evidence } = await req.json();
+    if (!disputeId) return errorResponse('disputeId is required', 400);
     const admin = getServiceClient();
 
-    // Verify seller owns the disputed order
+    // Verify the caller is the seller on the disputed order.
     const { data: dispute } = await admin
       .from('dkai_disputes')
-      .select('*, dkai_orders!inner(dkai_products!inner(seller_id))')
+      .select('id, seller_id')
       .eq('id', disputeId)
       .single();
 
     if (!dispute) return errorResponse('Dispute not found', 404);
+    if (dispute.seller_id !== user.id) return errorResponse('Forbidden', 403);
 
     await admin.from('dkai_disputes').update({
       seller_response: sellerResponse,

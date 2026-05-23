@@ -105,3 +105,9 @@ verify_jwt = false
 
 [functions.get-community-posts]
 verify_jwt = false
+
+[functions.scan-product-file]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false

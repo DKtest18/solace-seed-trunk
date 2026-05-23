@@ -87,7 +87,10 @@ import MeetingInviteResponse from "./pages/MeetingInviteResponse";
 import SellerAnalytics from "./pages/SellerAnalytics";
 import { Seller2FAGuard } from "@/components/Seller2FAGuard";
 import { AdminRouteGuard } from "@/components/AdminRouteGuard";
+import { WaitlistGuard } from "@/components/WaitlistGuard";
 import { Optional2FAPrompt } from "@/components/Optional2FAPrompt";
+import Waitlist from "./pages/Waitlist";
+import AdminWaitlist from "./pages/AdminWaitlist";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

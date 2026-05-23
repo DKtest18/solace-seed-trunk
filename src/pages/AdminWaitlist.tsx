@@ -220,6 +220,7 @@ function AdminWaitlistContent() {
                         <TableHead className="w-12"></TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
+                        <TableHead>Verified</TableHead>
                         <TableHead>Joined</TableHead>
                         {status === 'pending' && <TableHead>Reason</TableHead>}
                         {status === 'approved' && <TableHead>Approved</TableHead>}

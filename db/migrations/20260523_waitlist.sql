@@ -36,6 +36,19 @@ update public.dkai_profiles
    set is_active = true
  where id in (select id from auth.users);
 
+-- Backfill admin role for the founder account (in case it was created
+-- before this migration ran, so the trigger never fired for it).
+insert into public.dkai_user_roles (user_id, role)
+select u.id, 'admin'
+  from auth.users u
+ where lower(u.email) = 'dari@dkaisystem.com'
+on conflict do nothing;
+
+-- And make sure the admin profile is active.
+update public.dkai_profiles
+   set is_active = true
+ where id in (select id from auth.users where lower(email) = 'dari@dkaisystem.com');
+
 -- 3) RLS policies on dkai_waitlist ---------------------------
 drop policy if exists "waitlist_select_admin_or_owner" on public.dkai_waitlist;
 create policy "waitlist_select_admin_or_owner"

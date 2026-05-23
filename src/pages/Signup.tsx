@@ -22,6 +22,7 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [reasonForJoining, setReasonForJoining] = useState('');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<SignupStep>('details');
   const [signupUserId, setSignupUserId] = useState<string | null>(null);

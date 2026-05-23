@@ -118,16 +118,18 @@ const App = () => (
               <Optional2FAPrompt />
               <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/marketplace" element={<Marketplace />} />
-            <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/waitlist" element={<Waitlist />} />
+            <Route path="/marketplace" element={<WaitlistGuard><Marketplace /></WaitlistGuard>} />
+            <Route path="/product/:id" element={<WaitlistGuard><ProductDetail /></WaitlistGuard>} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/auth/check-email" element={<CheckEmail />} />
             <Route path="/auth/verified" element={<EmailVerified />} />
-            <Route path="/feed" element={<Feed />} />
-            <Route path="/top-products" element={<TopProducts />} />
-            <Route path="/top-sellers" element={<TopSellers />} />
-            <Route path="/statistics" element={<Statistics />} />
+            <Route path="/feed" element={<WaitlistGuard><Feed /></WaitlistGuard>} />
+            <Route path="/top-products" element={<WaitlistGuard><TopProducts /></WaitlistGuard>} />
+            <Route path="/top-sellers" element={<WaitlistGuard><TopSellers /></WaitlistGuard>} />
+            <Route path="/statistics" element={<WaitlistGuard><Statistics /></WaitlistGuard>} />
+            <Route path="/admin/waitlist" element={<AdminRouteGuard><AdminWaitlist /></AdminRouteGuard>} />
             <Route path="/create-product" element={<Seller2FAGuard><ProductCreationChecklist /></Seller2FAGuard>} />
             <Route path="/create-product/basic" element={<Seller2FAGuard><ProductCreationBasic /></Seller2FAGuard>} />
             <Route path="/create-product/images" element={<Seller2FAGuard><ProductCreationImages /></Seller2FAGuard>} />

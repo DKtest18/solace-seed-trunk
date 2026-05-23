@@ -145,52 +145,52 @@ const App = () => (
             <Route path="/seller-dashboard/analytics" element={<Seller2FAGuard><SellerAnalytics /></Seller2FAGuard>} />
             <Route path="/admin" element={<AdminRouteGuard><AdminDashboard /></AdminRouteGuard>} />
             <Route path="/admin/transactions" element={<AdminRouteGuard><AdminTransactions /></AdminRouteGuard>} />
-            <Route path="/purchases" element={<PurchaseHistory />} />
+            <Route path="/purchases" element={<WaitlistGuard><PurchaseHistory /></WaitlistGuard>} />
             <Route path="/earnings" element={<Seller2FAGuard><SellerEarnings /></Seller2FAGuard>} />
             <Route path="/balances" element={<Seller2FAGuard><SellerBalances /></Seller2FAGuard>} />
             <Route path="/seller-onboarding" element={<Seller2FAGuard><SellerOnboardingChecklist /></Seller2FAGuard>} />
             <Route path="/seller-onboarding/identity" element={<Seller2FAGuard><SellerOnboardingIdentity /></Seller2FAGuard>} />
             <Route path="/seller-onboarding/payment" element={<Seller2FAGuard><SellerOnboardingPayment /></Seller2FAGuard>} />
-            <Route path="/wishlist" element={<Wishlist />} />
-            <Route path="/disputes" element={<Disputes />} />
-            <Route path="/seller/:sellerId" element={<SellerProfile />} />
-            <Route path="/settings" element={<ProfileSettings />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/u/:username" element={<PublicProfile />} />
+            <Route path="/wishlist" element={<WaitlistGuard><Wishlist /></WaitlistGuard>} />
+            <Route path="/disputes" element={<WaitlistGuard><Disputes /></WaitlistGuard>} />
+            <Route path="/seller/:sellerId" element={<WaitlistGuard><SellerProfile /></WaitlistGuard>} />
+            <Route path="/settings" element={<WaitlistGuard><ProfileSettings /></WaitlistGuard>} />
+            <Route path="/profile" element={<WaitlistGuard><Profile /></WaitlistGuard>} />
+            <Route path="/u/:username" element={<WaitlistGuard><PublicProfile /></WaitlistGuard>} />
 
-            <Route path="/manual-payment" element={<ManualPayment />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/manual-payment" element={<WaitlistGuard><ManualPayment /></WaitlistGuard>} />
+            <Route path="/messages" element={<WaitlistGuard><Messages /></WaitlistGuard>} />
+            <Route path="/notifications" element={<WaitlistGuard><Notifications /></WaitlistGuard>} />
             <Route path="/admin/payment-confirmations" element={<AdminRouteGuard><AdminPaymentConfirmations /></AdminRouteGuard>} />
             <Route path="/admin/refund-disputes" element={<AdminRouteGuard><AdminRefundDisputes /></AdminRouteGuard>} />
             <Route path="/admin/disputes" element={<AdminRouteGuard><AdminDisputes /></AdminRouteGuard>} />
-            <Route path="/payouts" element={<PayoutRequests />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/achievements" element={<Achievements />} />
+            <Route path="/payouts" element={<WaitlistGuard><PayoutRequests /></WaitlistGuard>} />
+            <Route path="/checkout" element={<WaitlistGuard><Checkout /></WaitlistGuard>} />
+            <Route path="/achievements" element={<WaitlistGuard><Achievements /></WaitlistGuard>} />
             <Route path="/seller-dashboard/payment-settings" element={<Seller2FAGuard><SellerPaymentSettings /></Seller2FAGuard>} />
             <Route path="/seller-payment-settings" element={<Seller2FAGuard><SellerPaymentSettings /></Seller2FAGuard>} />
             <Route path="/admin/payment-settings" element={<AdminRouteGuard><AdminPaymentSettings /></AdminRouteGuard>} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/community/:id" element={<CommunityPost />} />
-            <Route path="/profile/:username" element={<PublicProfile />} />
-            <Route path="/purchase-history" element={<PurchaseHistory />} />
+            <Route path="/community" element={<WaitlistGuard><Community /></WaitlistGuard>} />
+            <Route path="/community/:id" element={<WaitlistGuard><CommunityPost /></WaitlistGuard>} />
+            <Route path="/profile/:username" element={<WaitlistGuard><PublicProfile /></WaitlistGuard>} />
+            <Route path="/purchase-history" element={<WaitlistGuard><PurchaseHistory /></WaitlistGuard>} />
             <Route path="/legal" element={<LegalOverview />} />
             <Route path="/legal/:type" element={<Legal />} />
             <Route path="/admin/reports" element={<AdminRouteGuard><AdminReports /></AdminRouteGuard>} />
             <Route path="/admin/email-logs" element={<AdminRouteGuard><AdminEmailLogs /></AdminRouteGuard>} />
-            <Route path="/invites" element={<Invites />} />
+            <Route path="/invites" element={<WaitlistGuard><Invites /></WaitlistGuard>} />
 
-            <Route path="/my-subscriptions" element={<MySubscriptions />} />
+            <Route path="/my-subscriptions" element={<WaitlistGuard><MySubscriptions /></WaitlistGuard>} />
             <Route path="/seller-subscriptions" element={<Seller2FAGuard><SellerSubscriptions /></Seller2FAGuard>} />
             <Route path="/admin/escrow" element={<AdminRouteGuard><EscrowManagement /></AdminRouteGuard>} />
             <Route path="/admin/featured" element={<AdminRouteGuard><AdminFeaturedProducts /></AdminRouteGuard>} />
             <Route path="/admin/dispute-management" element={<AdminRouteGuard><AdminDisputeManagement /></AdminRouteGuard>} />
-            <Route path="/dispute/:id" element={<DisputeDetail />} />
-            <Route path="/meetings" element={<Meetings />} />
-            <Route path="/meetings/join/:joinSlug" element={<JoinMeetingPage />} />
-            <Route path="/join-meeting" element={<JoinMeetingByCode />} />
-            <Route path="/my-meetings" element={<MyMeetings />} />
-            <Route path="/meeting-room/:roomCode" element={<MeetingRoomPage />} />
+            <Route path="/dispute/:id" element={<WaitlistGuard><DisputeDetail /></WaitlistGuard>} />
+            <Route path="/meetings" element={<WaitlistGuard><Meetings /></WaitlistGuard>} />
+            <Route path="/meetings/join/:joinSlug" element={<WaitlistGuard><JoinMeetingPage /></WaitlistGuard>} />
+            <Route path="/join-meeting" element={<WaitlistGuard><JoinMeetingByCode /></WaitlistGuard>} />
+            <Route path="/my-meetings" element={<WaitlistGuard><MyMeetings /></WaitlistGuard>} />
+            <Route path="/meeting-room/:roomCode" element={<WaitlistGuard><MeetingRoomPage /></WaitlistGuard>} />
             <Route path="/meeting-invite/:token" element={<MeetingInviteResponse />} />
             <Route path="/book/:username" element={<PublicBookingPage />} />
             <Route path="/sold-products" element={<Seller2FAGuard><SoldProducts /></Seller2FAGuard>} />

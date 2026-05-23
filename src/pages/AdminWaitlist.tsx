@@ -238,6 +238,17 @@ function AdminWaitlistContent() {
                           </TableCell>
                           <TableCell className="font-medium">{row.full_name || '—'}</TableCell>
                           <TableCell className="text-sm">{row.email}</TableCell>
+                          <TableCell>
+                            {verification[row.user_id]?.email_confirmed_at ? (
+                              <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">
+                                <CheckCircle2 className="h-3 w-3 mr-1" /> Verified
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-amber-700 border-amber-300">
+                                Pending
+                              </Badge>
+                            )}
+                          </TableCell>
                           <TableCell className="text-sm text-muted">{fmtDate(row.created_at)}</TableCell>
                           {status === 'pending' && (
                             <TableCell title={row.reason_for_joining || ''} className="max-w-sm">

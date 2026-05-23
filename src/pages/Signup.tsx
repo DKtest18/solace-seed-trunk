@@ -333,6 +333,7 @@ export default function Signup() {
                 </p>
               </div>
 
+              <Button type="submit" variant="hero" className="w-full mt-6" disabled={loading}>
                 {loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account...</>) : 'Create account'}
               </Button>
 

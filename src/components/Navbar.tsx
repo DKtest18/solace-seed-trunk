@@ -262,6 +262,10 @@ export function Navbar() {
                           <div className="border-t my-2" />
                           <div className="px-2 space-y-1">
                             <Link to="/admin" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors"><Settings className="w-4 h-4 mr-3" />Admin</Link>
+                            <Link to="/admin/waitlist" onClick={() => setMobileOpen(false)} className="flex items-center justify-between px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors">
+                              <span className="flex items-center"><User className="w-4 h-4 mr-3" />Waitlist</span>
+                              {pendingWaitlist > 0 && <Badge variant="destructive" className="rounded-full h-5 px-2 text-xs">{pendingWaitlist}</Badge>}
+                            </Link>
                           </div>
                         </>
                       )}

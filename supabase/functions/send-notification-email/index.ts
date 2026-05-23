@@ -23,6 +23,8 @@ const NOTIFICATION_TYPES = [
   'refund_accepted',
   'refund_declined',
   'refund_completed',
+  'waitlist_approved',
+  'waitlist_declined',
 ] as const;
 
 type NotificationType = typeof NOTIFICATION_TYPES[number];

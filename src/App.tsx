@@ -91,6 +91,8 @@ import { WaitlistGuard } from "@/components/WaitlistGuard";
 import { Optional2FAPrompt } from "@/components/Optional2FAPrompt";
 import Waitlist from "./pages/Waitlist";
 import AdminWaitlist from "./pages/AdminWaitlist";
+import Impressum from "./pages/Impressum";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

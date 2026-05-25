@@ -8,7 +8,7 @@ import { UserSettingsProvider } from "@/contexts/UserSettingsContext";
 import { MeetingInfoModalProvider } from "@/contexts/MeetingInfoModalContext";
 import { Navbar } from "@/components/Navbar";
 import { Chatbot } from "@/components/Chatbot";
-import { CookieConsent } from "@/components/CookieConsent";
+import { CookieBanner } from "@/components/CookieBanner";
 import '@/i18n';
 import Index from "./pages/Index";
 import Marketplace from "./pages/Marketplace";
@@ -94,6 +94,8 @@ import AdminWaitlist from "./pages/AdminWaitlist";
 import Impressum from "./pages/Impressum";
 import Privacy from "./pages/Privacy";
 import TermsOfService from "./pages/TermsOfService";
+import CookiePolicy from "./pages/CookiePolicy";
+import CookieSettings from "./pages/CookieSettings";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -118,7 +120,7 @@ const App = () => (
               <Navbar />
               {/* AI Assistant deaktiviert – zum Aktivieren: <Chatbot /> einkommentieren */}
               {/* <Chatbot /> */}
-              <CookieConsent />
+              <CookieBanner />
               <Optional2FAPrompt />
               <Routes>
             <Route path="/" element={<Index />} />
@@ -132,6 +134,8 @@ const App = () => (
             <Route path="/datenschutz" element={<Privacy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/agb" element={<TermsOfService />} />
+            <Route path="/cookies" element={<CookiePolicy />} />
+            <Route path="/cookie-settings" element={<CookieSettings />} />
             <Route path="/auth/check-email" element={<CheckEmail />} />
             <Route path="/feed" element={<WaitlistGuard><Feed /></WaitlistGuard>} />
             <Route path="/top-products" element={<WaitlistGuard><TopProducts /></WaitlistGuard>} />

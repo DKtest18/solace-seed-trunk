@@ -92,6 +92,7 @@ import { Optional2FAPrompt } from "@/components/Optional2FAPrompt";
 import Waitlist from "./pages/Waitlist";
 import AdminWaitlist from "./pages/AdminWaitlist";
 import Impressum from "./pages/Impressum";
+import Privacy from "./pages/Privacy";
 
 const queryClient = new QueryClient({
   defaultOptions: {

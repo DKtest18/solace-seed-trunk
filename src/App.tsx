@@ -125,8 +125,8 @@ const App = () => (
             <Route path="/product/:id" element={<WaitlistGuard><ProductDetail /></WaitlistGuard>} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/impressum" element={<Impressum />} />
             <Route path="/auth/check-email" element={<CheckEmail />} />
-            <Route path="/auth/verified" element={<EmailVerified />} />
             <Route path="/feed" element={<WaitlistGuard><Feed /></WaitlistGuard>} />
             <Route path="/top-products" element={<WaitlistGuard><TopProducts /></WaitlistGuard>} />
             <Route path="/top-sellers" element={<WaitlistGuard><TopSellers /></WaitlistGuard>} />
@@ -177,6 +177,7 @@ const App = () => (
             <Route path="/profile/:username" element={<WaitlistGuard><PublicProfile /></WaitlistGuard>} />
             <Route path="/purchase-history" element={<WaitlistGuard><PurchaseHistory /></WaitlistGuard>} />
             <Route path="/legal" element={<LegalOverview />} />
+            <Route path="/legal/imprint" element={<Impressum />} />
             <Route path="/legal/:type" element={<Legal />} />
             <Route path="/admin/reports" element={<AdminRouteGuard><AdminReports /></AdminRouteGuard>} />
             <Route path="/admin/email-logs" element={<AdminRouteGuard><AdminEmailLogs /></AdminRouteGuard>} />

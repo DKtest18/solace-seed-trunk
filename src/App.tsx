@@ -127,6 +127,8 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/impressum" element={<Impressum />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/datenschutz" element={<Privacy />} />
             <Route path="/auth/check-email" element={<CheckEmail />} />
             <Route path="/feed" element={<WaitlistGuard><Feed /></WaitlistGuard>} />
             <Route path="/top-products" element={<WaitlistGuard><TopProducts /></WaitlistGuard>} />

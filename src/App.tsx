@@ -93,6 +93,7 @@ import Waitlist from "./pages/Waitlist";
 import AdminWaitlist from "./pages/AdminWaitlist";
 import Impressum from "./pages/Impressum";
 import Privacy from "./pages/Privacy";
+import TermsOfService from "./pages/TermsOfService";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -129,6 +130,8 @@ const App = () => (
             <Route path="/impressum" element={<Impressum />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/datenschutz" element={<Privacy />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/agb" element={<TermsOfService />} />
             <Route path="/auth/check-email" element={<CheckEmail />} />
             <Route path="/feed" element={<WaitlistGuard><Feed /></WaitlistGuard>} />
             <Route path="/top-products" element={<WaitlistGuard><TopProducts /></WaitlistGuard>} />

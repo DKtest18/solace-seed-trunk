@@ -665,6 +665,61 @@ function buildNotificationEmail(
       };
     }
 
+    // ── DATA EXPORT READY ──
+    case 'data_export_ready': {
+      const downloadUrl = data.downloadUrl || '#';
+      const expiryDate = data.expiryDate || '';
+      return {
+        subject: 'Your data export is ready – DK AI Marketplace',
+        html: wrapEmail([
+          h('Your data export is ready'),
+          p('You requested an export of your personal data. The archive is ready to download.'),
+          br(),
+          infoBox(`<p style="margin:0;font-size:14px;color:#374151;line-height:1.6;">The download link below is valid until <strong>${expiryDate}</strong> (7 days). After that, request a new export from your settings.</p>`),
+          br(),
+          btn(downloadUrl, 'Download my data (ZIP)'),
+          br(),
+          ft('If you did not request this export, please contact dari@dkaisystem.com immediately.'),
+        ].join('')),
+      };
+    }
+
+    // ── ACCOUNT DELETION INITIATED ──
+    case 'account_deletion_initiated': {
+      const scheduledDate = data.scheduledDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US');
+      return {
+        subject: 'Account deletion scheduled – DK AI Marketplace',
+        html: wrapEmail([
+          h('Account deletion scheduled'),
+          p(`We received your request to delete your DK AI Marketplace account.`),
+          br(),
+          infoBox(`<p style="margin:0;font-size:14px;color:#374151;line-height:1.6;">Your account is scheduled for permanent deletion on <strong>${scheduledDate}</strong>. You have 30 days to cancel by logging in and visiting Settings → Privacy & Data.</p>`),
+          br(),
+          p('Transactional records will be anonymized and retained for 10 years to comply with Swiss accounting law.'),
+          br(),
+          btn('https://dkaimarketplace.com/settings', 'Cancel deletion'),
+          br(),
+          ft('If you did not request this, contact dari@dkaisystem.com immediately.'),
+        ].join('')),
+      };
+    }
+
+    // ── ACCOUNT DELETION COMPLETED ──
+    case 'account_deletion_completed': {
+      const deletionDate = data.deletionDate || new Date().toLocaleDateString('en-US');
+      return {
+        subject: 'Account deleted – DK AI Marketplace',
+        html: wrapEmail([
+          h('Your account has been deleted'),
+          p(`As scheduled, your DK AI Marketplace account was permanently deleted on <strong>${deletionDate}</strong>.`),
+          br(),
+          p('Your personal data has been removed. Transactional records have been anonymized and retained for legal compliance (10 years, Swiss accounting law).'),
+          br(),
+          ft('Thank you for being part of DK AI Marketplace.'),
+        ].join('')),
+      };
+    }
+
     // ── SANCTION LIFTED (account reinstated) ──
     case 'sanction_lifted': {
       const originalSanction = data.originalSanction || 'Temporary Suspension';

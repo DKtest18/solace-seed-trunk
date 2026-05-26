@@ -19,6 +19,7 @@ import { SidebarLayoutSettings } from '@/components/settings/SidebarLayoutSettin
 import { MessagePrivacySettings } from '@/components/settings/MessagePrivacySettings';
 import { BlockedUsersSettings } from '@/components/settings/BlockedUsersSettings';
 import { AccountDeletionSettings } from '@/components/settings/AccountDeletionSettings';
+import { PrivacyDataSettings } from '@/components/settings/PrivacyDataSettings';
 
 export default function ProfileSettings() {
   const { user } = useAuth();
@@ -209,6 +210,7 @@ export default function ProfileSettings() {
     { value: 'security', label: 'Security', icon: Shield },
     { value: 'appearance', label: 'Appearance', icon: Palette },
     { value: 'privacy', label: 'Privacy', icon: Eye },
+    { value: 'privacy-data', label: 'Privacy & Data', icon: Shield },
     { value: 'blocked', label: 'Blocked users', icon: Ban },
     { value: 'data', label: 'Account', icon: Lock },
   ];
@@ -544,6 +546,10 @@ export default function ProfileSettings() {
 
           <TabsContent value="data" className="mt-0">
             <AccountDeletionSettings />
+          </TabsContent>
+
+          <TabsContent value="privacy-data" className="mt-0">
+            <PrivacyDataSettings />
           </TabsContent>
           </div>
         </Tabs>

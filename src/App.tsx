@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { UserSettingsProvider } from "@/contexts/UserSettingsContext";
 import { MeetingInfoModalProvider } from "@/contexts/MeetingInfoModalContext";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { Chatbot } from "@/components/Chatbot";
 import { CookieBanner } from "@/components/CookieBanner";
 import '@/i18n';
@@ -213,6 +214,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
               </Routes>
+              <Footer />
             </MeetingInfoModalProvider>
           </UserSettingsProvider>
         </AuthProvider>

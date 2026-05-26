@@ -547,6 +547,10 @@ export default function ProfileSettings() {
           <TabsContent value="data" className="mt-0">
             <AccountDeletionSettings />
           </TabsContent>
+
+          <TabsContent value="privacy-data" className="mt-0">
+            <PrivacyDataSettings />
+          </TabsContent>
           </div>
         </Tabs>
       </div>

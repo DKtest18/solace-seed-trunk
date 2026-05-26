@@ -111,3 +111,15 @@ verify_jwt = false
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.export-user-data]
+verify_jwt = false
+
+[functions.initiate-account-deletion]
+verify_jwt = false
+
+[functions.cancel-account-deletion]
+verify_jwt = false
+
+[functions.process-pending-deletions]
+verify_jwt = false

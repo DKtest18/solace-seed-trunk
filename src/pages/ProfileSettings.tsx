@@ -210,6 +210,7 @@ export default function ProfileSettings() {
     { value: 'security', label: 'Security', icon: Shield },
     { value: 'appearance', label: 'Appearance', icon: Palette },
     { value: 'privacy', label: 'Privacy', icon: Eye },
+    { value: 'privacy-data', label: 'Privacy & Data', icon: Shield },
     { value: 'blocked', label: 'Blocked users', icon: Ban },
     { value: 'data', label: 'Account', icon: Lock },
   ];

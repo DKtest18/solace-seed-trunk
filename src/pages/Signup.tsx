@@ -140,6 +140,7 @@ export default function Signup() {
       try {
         await supabase.functions.invoke('join-waitlist', {
           body: {
+            email: sanitizedEmail,
             full_name: sanitizedFullName,
             reason_for_joining: sanitizeText(reasonForJoining).slice(0, 500),
           },

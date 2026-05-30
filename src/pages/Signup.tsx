@@ -8,7 +8,7 @@ import { generateTOTPSecret, generateOTPAuthURI, verifyTOTP } from '@/utils/totp
 import { validatePassword } from '@/utils/passwordValidation';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
 import { sanitizeEmail, sanitizeText } from '@/utils/inputSanitization';
-import { Loader2, Mail, ShieldCheck } from 'lucide-react';
+import { Loader2, Mail, ShieldCheck, Check, X } from 'lucide-react';
 import { RulesAcceptanceStep } from '@/components/RulesAcceptanceStep';
 import { lovable } from '@/integrations/lovable/index';
 import dkLogo from '@/assets/dk-ai-logo.png';
@@ -33,7 +33,51 @@ export default function Signup() {
   const [recoveryKey, setRecoveryKey] = useState('');
   const [failedAttempts, setFailedAttempts] = useState(0);
 
+  const [emailCheck, setEmailCheck] = useState<{
+    status: 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
+    reason?: string;
+  }>({ status: 'idle' });
+
   const navigate = useNavigate();
+
+  const emailFormatRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const runEmailCheck = async (raw: string): Promise<{ available: boolean; reason?: string }> => {
+    const value = raw.trim().toLowerCase();
+    if (!value || !emailFormatRegex.test(value)) {
+      return { available: false, reason: 'Please enter a valid email address.' };
+    }
+    try {
+      const { data, error } = await supabase.functions.invoke('check-email-available', {
+        body: { email: value },
+      });
+      if (error) return { available: true }; // fail-open for UX; signUp will catch dupes
+      return data ?? { available: true };
+    } catch {
+      return { available: true };
+    }
+  };
+
+  useEffect(() => {
+    if (!email) {
+      setEmailCheck({ status: 'idle' });
+      return;
+    }
+    if (!emailFormatRegex.test(email.trim())) {
+      setEmailCheck({ status: 'invalid' });
+      return;
+    }
+    setEmailCheck({ status: 'checking' });
+    const handle = setTimeout(async () => {
+      const result = await runEmailCheck(email);
+      if (result.available) {
+        setEmailCheck({ status: 'available' });
+      } else {
+        setEmailCheck({ status: 'taken', reason: result.reason });
+      }
+    }, 500);
+    return () => clearTimeout(handle);
+  }, [email]);
 
   useEffect(() => {
     if (step === 'details') {

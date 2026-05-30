@@ -69,9 +69,26 @@ export default function CheckEmail() {
             </span>
           </div>
         )}
-        <p className="text-sm text-muted-foreground mb-8">
-          Don't see it? Check your spam folder or wait a minute — emails usually arrive within 30 seconds.
-        </p>
+        <div className="mt-6 mb-8 flex gap-3 items-start text-left bg-amber-50 dark:bg-amber-950/30 border-l-4 border-amber-400 p-4 rounded-md">
+          <AlertCircle className="text-amber-500 flex-shrink-0 mt-0.5" size={20} />
+          <div className="min-w-0">
+            <p className="font-semibold text-sm text-foreground mb-1">
+              Don't see the email?
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Please check your spam, junk, or promotions folder — verification emails sometimes land there,
+              especially the first time you sign up. If you find it there, mark it as "Not spam" so future emails
+              reach your inbox.
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+              Still nothing after 5 minutes? Try the resend button below, or contact us at{' '}
+              <a href="mailto:support@dkaimarketplace.com" className="text-primary hover:underline">
+                support@dkaimarketplace.com
+              </a>
+              .
+            </p>
+          </div>
+        </div>
 
         <div className="flex flex-col gap-3">
           <Button

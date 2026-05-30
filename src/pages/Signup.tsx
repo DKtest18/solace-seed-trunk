@@ -357,15 +357,43 @@ export default function Signup() {
                 <label htmlFor="email" className="text-sm font-medium text-gray-900 mb-1.5 block">
                   Email
                 </label>
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className={inputClass}
-                />
+                <div className="relative">
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className={`${inputClass} pr-10`}
+                    aria-invalid={emailCheck.status === 'taken' || emailCheck.status === 'invalid'}
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {emailCheck.status === 'checking' && (
+                      <Loader2 className="h-4 w-4 animate-spin text-muted" />
+                    )}
+                    {emailCheck.status === 'available' && (
+                      <Check className="h-4 w-4 text-green-600" />
+                    )}
+                    {(emailCheck.status === 'taken' || emailCheck.status === 'invalid') && (
+                      <X className="h-4 w-4 text-red-600" />
+                    )}
+                  </div>
+                </div>
+                {emailCheck.status === 'taken' && (
+                  <p className="text-red-600 text-sm mt-1">
+                    This email is already registered.{' '}
+                    <Link
+                      to={`/login?email=${encodeURIComponent(email.trim())}`}
+                      className="font-medium underline hover:no-underline"
+                    >
+                      Try signing in instead?
+                    </Link>
+                  </p>
+                )}
+                {emailCheck.status === 'invalid' && email.length > 0 && (
+                  <p className="text-red-600 text-sm mt-1">Please enter a valid email address.</p>
+                )}
               </div>
 
               <div>

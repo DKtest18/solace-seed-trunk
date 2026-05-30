@@ -155,6 +155,14 @@ export default function Signup() {
         return;
       }
 
+      // Defense in depth: re-check availability immediately before signUp
+      const recheck = await runEmailCheck(sanitizedEmail);
+      if (!recheck.available) {
+        setEmailCheck({ status: 'taken', reason: recheck.reason });
+        toast.error('This email is already registered. Try signing in instead?');
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email: sanitizedEmail,
         password,
@@ -170,15 +178,22 @@ export default function Signup() {
       });
 
       if (error) {
-        if (error.message.includes('already registered')) {
-          toast.error('This email is already registered. Please login instead.');
+        if (error.message.toLowerCase().includes('already') || error.message.toLowerCase().includes('registered')) {
+          setEmailCheck({ status: 'taken' });
+          toast.error('This email is already registered. Try signing in instead?');
         } else {
           throw error;
         }
         return;
       }
 
-      if (!data.user) throw new Error('Failed to create account');
+      // Supabase obfuscated_response: signUp returns a user with empty identities array
+      // when the email is already registered (to prevent enumeration).
+      if (!data.user || (Array.isArray(data.user.identities) && data.user.identities.length === 0)) {
+        setEmailCheck({ status: 'taken' });
+        toast.error('This email is already registered. Try signing in instead?');
+        return;
+      }
 
       // Add to waitlist immediately (before email verification)
       try {

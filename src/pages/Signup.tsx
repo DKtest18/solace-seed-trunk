@@ -8,7 +8,7 @@ import { generateTOTPSecret, generateOTPAuthURI, verifyTOTP } from '@/utils/totp
 import { validatePassword } from '@/utils/passwordValidation';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
 import { sanitizeEmail, sanitizeText } from '@/utils/inputSanitization';
-import { Loader2, Mail, ShieldCheck } from 'lucide-react';
+import { Loader2, Mail, ShieldCheck, Check, X } from 'lucide-react';
 import { RulesAcceptanceStep } from '@/components/RulesAcceptanceStep';
 import { lovable } from '@/integrations/lovable/index';
 import dkLogo from '@/assets/dk-ai-logo.png';
@@ -33,7 +33,51 @@ export default function Signup() {
   const [recoveryKey, setRecoveryKey] = useState('');
   const [failedAttempts, setFailedAttempts] = useState(0);
 
+  const [emailCheck, setEmailCheck] = useState<{
+    status: 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
+    reason?: string;
+  }>({ status: 'idle' });
+
   const navigate = useNavigate();
+
+  const emailFormatRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const runEmailCheck = async (raw: string): Promise<{ available: boolean; reason?: string }> => {
+    const value = raw.trim().toLowerCase();
+    if (!value || !emailFormatRegex.test(value)) {
+      return { available: false, reason: 'Please enter a valid email address.' };
+    }
+    try {
+      const { data, error } = await supabase.functions.invoke('check-email-available', {
+        body: { email: value },
+      });
+      if (error) return { available: true }; // fail-open for UX; signUp will catch dupes
+      return data ?? { available: true };
+    } catch {
+      return { available: true };
+    }
+  };
+
+  useEffect(() => {
+    if (!email) {
+      setEmailCheck({ status: 'idle' });
+      return;
+    }
+    if (!emailFormatRegex.test(email.trim())) {
+      setEmailCheck({ status: 'invalid' });
+      return;
+    }
+    setEmailCheck({ status: 'checking' });
+    const handle = setTimeout(async () => {
+      const result = await runEmailCheck(email);
+      if (result.available) {
+        setEmailCheck({ status: 'available' });
+      } else {
+        setEmailCheck({ status: 'taken', reason: result.reason });
+      }
+    }, 500);
+    return () => clearTimeout(handle);
+  }, [email]);
 
   useEffect(() => {
     if (step === 'details') {
@@ -111,6 +155,14 @@ export default function Signup() {
         return;
       }
 
+      // Defense in depth: re-check availability immediately before signUp
+      const recheck = await runEmailCheck(sanitizedEmail);
+      if (!recheck.available) {
+        setEmailCheck({ status: 'taken', reason: recheck.reason });
+        toast.error('This email is already registered. Try signing in instead?');
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email: sanitizedEmail,
         password,
@@ -126,15 +178,22 @@ export default function Signup() {
       });
 
       if (error) {
-        if (error.message.includes('already registered')) {
-          toast.error('This email is already registered. Please login instead.');
+        if (error.message.toLowerCase().includes('already') || error.message.toLowerCase().includes('registered')) {
+          setEmailCheck({ status: 'taken' });
+          toast.error('This email is already registered. Try signing in instead?');
         } else {
           throw error;
         }
         return;
       }
 
-      if (!data.user) throw new Error('Failed to create account');
+      // Supabase obfuscated_response: signUp returns a user with empty identities array
+      // when the email is already registered (to prevent enumeration).
+      if (!data.user || (Array.isArray(data.user.identities) && data.user.identities.length === 0)) {
+        setEmailCheck({ status: 'taken' });
+        toast.error('This email is already registered. Try signing in instead?');
+        return;
+      }
 
       // Add to waitlist immediately (before email verification)
       try {
@@ -298,15 +357,43 @@ export default function Signup() {
                 <label htmlFor="email" className="text-sm font-medium text-gray-900 mb-1.5 block">
                   Email
                 </label>
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className={inputClass}
-                />
+                <div className="relative">
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className={`${inputClass} pr-10`}
+                    aria-invalid={emailCheck.status === 'taken' || emailCheck.status === 'invalid'}
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {emailCheck.status === 'checking' && (
+                      <Loader2 className="h-4 w-4 animate-spin text-muted" />
+                    )}
+                    {emailCheck.status === 'available' && (
+                      <Check className="h-4 w-4 text-green-600" />
+                    )}
+                    {(emailCheck.status === 'taken' || emailCheck.status === 'invalid') && (
+                      <X className="h-4 w-4 text-red-600" />
+                    )}
+                  </div>
+                </div>
+                {emailCheck.status === 'taken' && (
+                  <p className="text-red-600 text-sm mt-1">
+                    This email is already registered.{' '}
+                    <Link
+                      to={`/login?email=${encodeURIComponent(email.trim())}`}
+                      className="font-medium underline hover:no-underline"
+                    >
+                      Try signing in instead?
+                    </Link>
+                  </p>
+                )}
+                {emailCheck.status === 'invalid' && email.length > 0 && (
+                  <p className="text-red-600 text-sm mt-1">Please enter a valid email address.</p>
+                )}
               </div>
 
               <div>
@@ -346,7 +433,18 @@ export default function Signup() {
                 </p>
               </div>
 
-              <Button type="submit" variant="hero" className="w-full mt-6" disabled={loading}>
+              <Button
+                type="submit"
+                variant="hero"
+                className="w-full mt-6"
+                disabled={
+                  loading ||
+                  !email ||
+                  emailCheck.status === 'checking' ||
+                  emailCheck.status === 'taken' ||
+                  emailCheck.status === 'invalid'
+                }
+              >
                 {loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account...</>) : 'Create account'}
               </Button>
 

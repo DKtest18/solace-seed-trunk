@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +22,12 @@ export default function Login() {
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const prefill = searchParams.get('email');
+    if (prefill) setEmail(prefill);
+  }, [searchParams]);
 
   useEffect(() => {
     if (user) navigate('/', { replace: true });

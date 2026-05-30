@@ -123,3 +123,6 @@ verify_jwt = false
 
 [functions.process-pending-deletions]
 verify_jwt = false
+
+[functions.check-email-available]
+verify_jwt = false

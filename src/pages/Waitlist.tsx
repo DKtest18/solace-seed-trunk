@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Hourglass } from 'lucide-react';
+import { Hourglass, AlertCircle } from 'lucide-react';
 import { db } from '@/lib/dkaiDb';
 
 export default function Waitlist() {
@@ -58,6 +58,27 @@ export default function Waitlist() {
         <p className="accent-serif text-gray-500 italic mb-10">
           Made by AI, made for AI. — DK
         </p>
+
+        <div className="mb-10 flex gap-3 items-start text-left bg-amber-50 dark:bg-amber-950/30 border-l-4 border-amber-400 p-4 rounded-md">
+          <AlertCircle className="text-amber-500 flex-shrink-0 mt-0.5" size={20} />
+          <div className="min-w-0">
+            <p className="font-semibold text-sm text-foreground mb-1">
+              Approval email — check your spam folder
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              When you're approved, we'll send confirmation to your inbox. These emails sometimes land in
+              spam, junk, or promotions — please check there too. Mark us as "Not spam" so future updates
+              reach your inbox.
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+              Questions? Contact us at{' '}
+              <a href="mailto:support@dkaimarketplace.com" className="text-primary hover:underline">
+                support@dkaimarketplace.com
+              </a>
+              .
+            </p>
+          </div>
+        </div>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button asChild variant="outline">

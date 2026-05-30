@@ -39,7 +39,7 @@ export default function CheckEmail() {
     try {
       const { error } = await supabase.auth.resend({ type: 'signup', email });
       if (error) throw error;
-      toast.success('Email sent!');
+      toast.success('Verification email resent — check your inbox and spam folder');
       setCooldown(60);
     } catch (e: any) {
       toast.error(e.message || 'Failed to resend email.');

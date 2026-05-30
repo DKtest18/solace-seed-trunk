@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { MailCheck } from 'lucide-react';
+import { MailCheck, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -39,7 +39,7 @@ export default function CheckEmail() {
     try {
       const { error } = await supabase.auth.resend({ type: 'signup', email });
       if (error) throw error;
-      toast.success('Email sent!');
+      toast.success('Verification email resent — check your inbox and spam folder');
       setCooldown(60);
     } catch (e: any) {
       toast.error(e.message || 'Failed to resend email.');

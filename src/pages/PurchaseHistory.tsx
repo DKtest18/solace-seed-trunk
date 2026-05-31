@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow, differenceInHours } from 'date-fns';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { BuyerProductDownloads } from '@/components/BuyerProductDownloads';
 
 export default function PurchaseHistory() {
   const { user } = useAuth();

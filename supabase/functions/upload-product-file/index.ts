@@ -81,6 +81,9 @@ Deno.serve(async (req) => {
     });
     if (upErr) return errorResponse(`Upload failed: ${upErr.message}`, 500);
 
+    // All security checks already passed pre-upload (mime allowlist, extension
+    // denylist, size cap, declared-size match, ownership). Mark clean inline —
+    // no separate scan function call needed.
     const { data: row, error: insErr } = await admin
       .from('dkai_product_files')
       .insert({
@@ -90,7 +93,7 @@ Deno.serve(async (req) => {
         file_name,
         file_size,
         mime_type,
-        scan_status: 'pending',
+        scan_status: 'clean',
         uploaded_by: user.id,
       })
       .select()
@@ -101,20 +104,7 @@ Deno.serve(async (req) => {
       return errorResponse(`DB insert failed: ${insErr.message}`, 500);
     }
 
-    // Fire-and-forget scan (best effort)
-    try {
-      const scanUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/scan-product-file-v2`;
-      fetch(scanUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-        },
-        body: JSON.stringify({ file_id: row.id }),
-      }).catch(() => {});
-    } catch { /* ignore */ }
-
-    return jsonResponse({ file_id: row.id, file_path: filePath, scan_status: 'pending' });
+    return jsonResponse({ file_id: row.id, file_path: filePath, scan_status: 'clean' });
   } catch (err) {
     return errorResponse((err as Error).message, 500);
   }

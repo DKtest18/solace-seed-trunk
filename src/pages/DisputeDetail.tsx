@@ -30,6 +30,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
+import { AdminProductFileAccess } from '@/components/admin/AdminProductFileAccess';
 import { useTranslation } from 'react-i18next';
 
 export default function DisputeDetail() {

@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { BasicInfoStep } from '@/components/product-creation/BasicInfoStep';
 import { ImagesStep } from '@/components/product-creation/ImagesStep';
+import { ProductDeliveryFilesManager } from '@/components/ProductDeliveryFilesManager';
 import { PricingStep } from '@/components/product-creation/PricingStep';
 import { FeaturesTagsStep } from '@/components/product-creation/FeaturesTagsStep';
 import { PurposeAudienceStep } from '@/components/product-creation/PurposeAudienceStep';
@@ -544,6 +545,21 @@ export default function EditProduct() {
             </div>
           </CardContent>
         </Card>
+
+        {id && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Delivery Files</CardTitle>
+              <CardDescription>
+                Private files buyers download after purchase. Virus-scanned automatically.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProductDeliveryFilesManager productId={id} />
+            </CardContent>
+          </Card>
+        )}
+
 
         <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <AlertDialogContent>

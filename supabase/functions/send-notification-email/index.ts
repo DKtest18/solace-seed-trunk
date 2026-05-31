@@ -28,6 +28,9 @@ const NOTIFICATION_TYPES = [
   'data_export_ready',
   'account_deletion_initiated',
   'account_deletion_completed',
+  'file_upload_success',
+  'file_infected',
+  'admin_accessed_file',
 ] as const;
 
 type NotificationType = typeof NOTIFICATION_TYPES[number];
@@ -862,5 +865,92 @@ function buildNotificationEmail(
         ].join('')),
       };
     }
+
+    // ── FILE UPLOAD SUCCESS (seller notification) ──
+    case 'file_upload_success': {
+      const fileName = data.fileName || 'your file';
+      const productTitle = data.productTitle || 'your product';
+      const fileSize = data.fileSize || '';
+      return {
+        subject: `File uploaded & scanned clean: ${fileName} – DK AI Marketplace`,
+        html: wrapEmail([
+          h('File ready for delivery'),
+          p(`Your delivery file for ${link('DK AI Marketplace')} has been uploaded, virus-scanned, and is now available to buyers.`),
+          br(),
+          infoBox([
+            infoRow('Product', productTitle),
+            infoRow('File', fileName),
+            ...(fileSize ? [infoRow('Size', String(fileSize))] : []),
+            infoRow('Scan result', '<strong style="color:#16a34a;">Clean</strong>'),
+          ].join('')),
+          br(),
+          p('Buyers who purchase this product can now download the file via short-lived signed links.'),
+          br(),
+          btn(`${baseUrl}/seller-dashboard`, 'Open Seller Dashboard'),
+          br(),
+          ft('Files are stored privately and never publicly indexed.'),
+        ].join('')),
+      };
+    }
+
+    // ── FILE INFECTED (seller alert) ──
+    case 'file_infected': {
+      const fileName = data.fileName || 'your file';
+      const productTitle = data.productTitle || 'your product';
+      const reason = data.reason || 'Malware or unsafe content was detected during the security scan.';
+      return {
+        subject: `Action required: file blocked – ${fileName}`,
+        html: wrapEmail([
+          h('File blocked by security scan'),
+          p(`A file you uploaded to ${link('DK AI Marketplace')} did <strong>not pass</strong> our virus / safety scan and has been blocked from delivery.`),
+          br(),
+          infoBox([
+            infoRow('Product', productTitle),
+            infoRow('File', fileName),
+            infoRow('Status', '<strong style="color:#dc2626;">Blocked</strong>'),
+          ].join('')),
+          br(),
+          quoteBlock('Scan result', reason),
+          br(),
+          p('Please review the file on your machine, remove the issue, and re-upload a clean version. Buyers cannot access blocked files.'),
+          br(),
+          btn(`${baseUrl}/seller-dashboard`, 'Replace File'),
+          br(),
+          ft('If you believe this was flagged in error, contact support@dkaimarketplace.com.'),
+        ].join('')),
+      };
+    }
+
+    // ── ADMIN ACCESSED FILE (seller transparency notification) ──
+    case 'admin_accessed_file': {
+      const fileName = data.fileName || 'one of your files';
+      const productTitle = data.productTitle || 'your product';
+      const justification = data.justification || 'Dispute investigation.';
+      const accessedAt = data.accessedAt || new Date().toISOString();
+      const disputeId = data.disputeId || '';
+      return {
+        subject: `Admin accessed a delivery file – ${productTitle}`,
+        html: wrapEmail([
+          h('Admin access notification'),
+          p(`For transparency: a ${link('DK AI Marketplace')} administrator accessed one of your product delivery files. This action is logged and auditable.`),
+          br(),
+          infoBox([
+            infoRow('Product', productTitle),
+            infoRow('File', fileName),
+            infoRow('Accessed at', new Date(accessedAt).toLocaleString()),
+            ...(disputeId ? [infoRow('Dispute', disputeId)] : []),
+          ].join('')),
+          br(),
+          quoteBlock('Justification provided by admin', justification),
+          br(),
+          p('Admins can only access delivery files via short-lived links (15 minutes) and must record a written justification. If you believe this access was inappropriate, contact support immediately.'),
+          br(),
+          btn(`${baseUrl}/disputes`, 'View Disputes'),
+          br(),
+          ft('Questions? Reach us at support@dkaimarketplace.com.'),
+        ].join('')),
+      };
+    }
   }
 }
+

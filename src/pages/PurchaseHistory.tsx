@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow, differenceInHours } from 'date-fns';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { BuyerProductDownloads } from '@/components/BuyerProductDownloads';
 
 export default function PurchaseHistory() {
   const { user } = useAuth();
@@ -307,7 +308,15 @@ export default function PurchaseHistory() {
                               </Button>
                             )}
                           </div>
+
+                          {/* Secure delivery file downloads (post-purchase) */}
+                          {order.products?.id && (order.escrow_status === 'held' || order.escrow_status === 'delivered' || order.escrow_status === 'released' || order.status === 'completed') && (
+                            <div className="mt-6 pt-6 border-t">
+                              <BuyerProductDownloads productId={order.products.id} />
+                            </div>
+                          )}
                         </CardContent>
+
                       </div>
                     </div>
                   </Card>

@@ -270,6 +270,11 @@ export default function DisputeDetail() {
               </CardContent>
             </Card>
 
+            {isAdmin && dispute.products?.id && (
+              <AdminProductFileAccess productId={dispute.products.id} disputeId={dispute.id} />
+            )}
+
+
             {/* Messages Thread */}
             <Card>
               <CardHeader>

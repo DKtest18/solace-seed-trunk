@@ -126,3 +126,15 @@ verify_jwt = false
 
 [functions.check-email-available]
 verify_jwt = false
+
+[functions.upload-product-file]
+verify_jwt = false
+
+[functions.scan-product-file-v2]
+verify_jwt = false
+
+[functions.generate-download-url]
+verify_jwt = false
+
+[functions.admin-access-file]
+verify_jwt = false

@@ -546,6 +546,21 @@ export default function EditProduct() {
           </CardContent>
         </Card>
 
+        {id && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Delivery Files</CardTitle>
+              <CardDescription>
+                Private files buyers download after purchase. Virus-scanned automatically.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProductDeliveryFilesManager productId={id} />
+            </CardContent>
+          </Card>
+        )}
+
+
         <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>

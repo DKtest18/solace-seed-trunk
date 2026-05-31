@@ -28,6 +28,9 @@ const NOTIFICATION_TYPES = [
   'data_export_ready',
   'account_deletion_initiated',
   'account_deletion_completed',
+  'file_upload_success',
+  'file_infected',
+  'admin_accessed_file',
 ] as const;
 
 type NotificationType = typeof NOTIFICATION_TYPES[number];

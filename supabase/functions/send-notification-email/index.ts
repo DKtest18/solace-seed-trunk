@@ -34,6 +34,13 @@ const NOTIFICATION_TYPES = [
   'file_upload_success',
   'file_infected',
   'admin_accessed_file',
+  'order_paid_buyer',
+  'order_paid_seller',
+  'tier3_deliver_now_seller',
+  'confirm_receipt_reminder_buyer',
+  'payout_released_seller',
+  'dispute_opened_admin',
+  'dispute_opened_seller',
 ] as const;
 
 type NotificationType = typeof NOTIFICATION_TYPES[number];
@@ -1019,6 +1026,160 @@ function buildNotificationEmail(
         ].join('')),
       };
     }
+
+    // ── ORDER PAID — BUYER ──
+    case 'order_paid_buyer': {
+      const tier = data.tier || 'tier1';
+      const title = data.productTitle || 'your product';
+      const orderId = data.orderId || '';
+      const tierLine =
+        tier === 'tier1' ? 'Your download is available immediately in your purchase history.' :
+        tier === 'tier2' ? 'Your protected download will unlock as soon as you click "Confirm & unlock" on the order page. If you do nothing, it auto-releases in 7 days.' :
+                           'The seller has been notified to deliver directly. Once you receive it, click "Confirm receipt" on the order page. If you do nothing, the order auto-releases in 14 days.';
+      return {
+        subject: `Payment received — ${title}`,
+        html: wrapEmail([
+          h('Payment received'),
+          p(`Thank you for your purchase on ${link('DK AI Marketplace')}.`),
+          br(),
+          infoBox([
+            infoRow('Product', title),
+            infoRow('Order', orderId),
+            infoRow('Delivery tier', tier.toUpperCase()),
+          ].join('')),
+          br(),
+          p(tierLine),
+          br(),
+          btn(`${baseUrl}/purchase-history`, 'Open my orders'),
+          br(),
+          ft('— The DK AI team'),
+        ].join('')),
+      };
+    }
+
+    // ── ORDER PAID — SELLER ──
+    case 'order_paid_seller': {
+      const tier = data.tier || 'tier1';
+      const title = data.productTitle || 'your product';
+      const price = Number(data.price) || 0;
+      const platformFee = price * 0.05;
+      const earnings = price - platformFee;
+      const tierLine =
+        tier === 'tier1' ? 'Funds payout on your standard Stripe schedule.' :
+        tier === 'tier2' ? 'Payout is held until the buyer confirms receipt or up to 7 days (auto-release).' :
+                           'Payout is held in escrow. Deliver directly to the buyer; payout releases on buyer confirmation or up to 14 days (auto-release).';
+      return {
+        subject: `New sale — ${title} (CHF ${price.toFixed(2)})`,
+        html: wrapEmail([
+          h('You have a new sale'),
+          infoBox([
+            infoRow('Product', title),
+            infoRow('Order', data.orderId || ''),
+            infoRow('Delivery tier', tier.toUpperCase()),
+            infoRow('Buyer paid', `CHF ${price.toFixed(2)}`),
+            infoRow('Platform fee (5%)', `CHF ${platformFee.toFixed(2)}`),
+            infoRow('Your earnings', `CHF ${earnings.toFixed(2)}`),
+          ].join('')),
+          br(),
+          p(tierLine),
+          br(),
+          btn(`${baseUrl}/seller/orders`, 'Open seller orders'),
+          br(),
+          ft('— The DK AI team'),
+        ].join('')),
+      };
+    }
+
+    // ── TIER3 SELLER: DELIVER NOW ──
+    case 'tier3_deliver_now_seller': {
+      const title = data.productTitle || 'your product';
+      return {
+        subject: `Action required — deliver ${title}`,
+        html: wrapEmail([
+          h('Deliver directly to the buyer'),
+          p(`This is a tier 3 (direct delivery) sale. Please deliver the product/service to the buyer using the contact details on the order page, then mark it as delivered.`),
+          br(),
+          infoBox([
+            infoRow('Product', title),
+            infoRow('Order', data.orderId || ''),
+          ].join('')),
+          br(),
+          btn(`${baseUrl}/seller/orders`, 'Open order'),
+          br(),
+          ft('The buyer has 14 days to confirm receipt or open a dispute.'),
+        ].join('')),
+      };
+    }
+
+    // ── CONFIRM RECEIPT REMINDER — BUYER ──
+    case 'confirm_receipt_reminder_buyer': {
+      return {
+        subject: 'Reminder: confirm receipt of your order',
+        html: wrapEmail([
+          h('Please confirm receipt'),
+          p(`Your order ${data.orderId || ''} is awaiting your confirmation. Once you confirm, the seller is paid out. If you do nothing, the order auto-releases on ${data.autoReleaseAt || 'the scheduled date'}.`),
+          br(),
+          btn(`${baseUrl}/purchase-history`, 'Open my orders'),
+          br(),
+          ft('— The DK AI team'),
+        ].join('')),
+      };
+    }
+
+    // ── PAYOUT RELEASED — SELLER ──
+    case 'payout_released_seller': {
+      const amt = Number(data.amount) || 0;
+      const auto = data.auto ? ' (auto-released)' : '';
+      return {
+        subject: `Payout released — CHF ${amt.toFixed(2)}${auto}`,
+        html: wrapEmail([
+          h('Payout released'),
+          p(`Your held payout for order ${data.orderId || ''} has been released${auto}.`),
+          br(),
+          infoBox([
+            infoRow('Amount', `CHF ${amt.toFixed(2)}`),
+            infoRow('Tier', String(data.tier || '').toUpperCase()),
+          ].join('')),
+          br(),
+          btn(`${baseUrl}/seller/balances`, 'View balances'),
+        ].join('')),
+      };
+    }
+
+    // ── DISPUTE OPENED — SELLER ──
+    case 'dispute_opened_seller': {
+      return {
+        subject: `Dispute opened on order ${data.orderId || ''}`,
+        html: wrapEmail([
+          h('A buyer opened a dispute'),
+          p(`The buyer has opened a dispute on order ${data.orderId || ''}. Your payout is frozen until an admin resolves the case.`),
+          br(),
+          quoteBlock('Buyer reason', String(data.reason || '')),
+          br(),
+          btn(`${baseUrl}/disputes`, 'Open disputes'),
+        ].join('')),
+      };
+    }
+
+    // ── DISPUTE OPENED — ADMIN ──
+    case 'dispute_opened_admin': {
+      return {
+        subject: `[Admin] Dispute opened on order ${data.orderId || ''}`,
+        html: wrapEmail([
+          h('Dispute opened — admin action required'),
+          infoBox([
+            infoRow('Order', data.orderId || ''),
+            infoRow('Tier', String(data.tier || '').toUpperCase()),
+            infoRow('Buyer', data.buyerId || ''),
+          ].join('')),
+          br(),
+          quoteBlock('Buyer reason', String(data.reason || '')),
+          br(),
+          btn(`${baseUrl}/admin/disputes`, 'Open admin disputes'),
+        ].join('')),
+      };
+    }
   }
 }
+
 

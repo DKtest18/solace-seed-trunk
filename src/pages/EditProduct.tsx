@@ -479,26 +479,28 @@ export default function EditProduct() {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Switch
-                id="publish-toggle"
-                checked={formData.is_published}
-                onCheckedChange={handleTogglePublish}
-              />
-              <Label htmlFor="publish-toggle" className="flex items-center gap-2 cursor-pointer">
-                {formData.is_published ? (
-                  <>
-                    <Eye className="h-4 w-4" />
-                    Published
-                  </>
-                ) : (
-                  <>
-                    <EyeOff className="h-4 w-4" />
-                    Unpublished
-                  </>
-                )}
-              </Label>
-            </div>
+            {reviewStatus === 'approved' && (
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="publish-toggle"
+                  checked={formData.is_published}
+                  onCheckedChange={handleTogglePublish}
+                />
+                <Label htmlFor="publish-toggle" className="flex items-center gap-2 cursor-pointer">
+                  {formData.is_published ? (
+                    <>
+                      <Eye className="h-4 w-4" />
+                      Visible
+                    </>
+                  ) : (
+                    <>
+                      <EyeOff className="h-4 w-4" />
+                      Hidden
+                    </>
+                  )}
+                </Label>
+              </div>
+            )}
             <Button
               variant="destructive"
               size="sm"

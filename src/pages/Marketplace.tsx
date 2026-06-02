@@ -70,7 +70,8 @@ export default function Marketplace() {
       const { data, error } = await db
         .from('dkai_products')
         .select('tags')
-        .eq('is_published', true);
+        .eq('is_published', true)
+        .eq('review_status', 'approved');
       if (error) throw error;
       const tags = new Set<string>();
       data?.forEach((product) => {

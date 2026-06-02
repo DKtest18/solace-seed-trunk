@@ -98,7 +98,7 @@ export default function PublicProfile() {
         .select('id, title, price, image_url, is_published, moderation_status, product_type, description')
         .eq('seller_id', profileData.id)
         .eq('is_published', true)
-        .eq('moderation_status', 'approved');
+        .eq('review_status', 'approved');
 
       const list = (productsData || []) as Product[];
       setProducts(list);

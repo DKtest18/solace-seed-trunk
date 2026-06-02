@@ -24,8 +24,7 @@ export function FeaturedProducts() {
         .from('dkai_products')
         .select('*')
         .eq('is_published', true)
-        .eq('is_published', true)
-        .eq('approval_status', 'approved')
+        .eq('review_status', 'approved')
         .order('trending_score', { ascending: false, nullsFirst: false })
         .limit(8);
 

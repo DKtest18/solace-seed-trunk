@@ -439,6 +439,22 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
+                  <ExternalLink className="h-5 w-5 text-primary" />
+                  Product Review Queue
+                </CardTitle>
+                <CardDescription>
+                  Approve, request changes, or reject submitted products. Log time-limited access for high-risk reviews.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Link to="/admin/product-review">
+                  <Button className="w-full">Open Review Queue</Button>
+                </Link>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5 text-primary" />
                   Payment Settings
                 </CardTitle>

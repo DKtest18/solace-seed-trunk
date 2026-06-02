@@ -327,6 +327,13 @@ export default function EditProduct() {
       return;
     }
 
+    // Down-tier acknowledgement gate
+    const rank = (t: DeliveryTier) => (t === 'tier3' ? 3 : t === 'tier2' ? 2 : 1);
+    if (rank(deliveryTier) < rank(deliveryRecommended) && !overrideAck) {
+      toast.error('Please acknowledge that you are choosing less protection than recommended.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -384,10 +391,31 @@ export default function EditProduct() {
           payment_methods: formData.payment_methods,
           faqs: formData.faqs,
           is_published: formData.is_published,
+          delivery_tier: deliveryTier,
+          delivery_tier_recommended: deliveryRecommended,
+          delivery_tier_overridden: deliveryTier !== deliveryRecommended,
+          max_sales: maxSales,
+          delivery_method_note: deliveryTier === 'tier3' ? deliveryNote : null,
         })
         .eq('id', id);
 
       if (error) throw error;
+
+      // Server-side recompute & enforcement (best-effort; non-blocking for save)
+      try {
+        await supabase.functions.invoke('compute-delivery-recommendation', {
+          body: {
+            product_id: id,
+            delivery_tier: deliveryTier,
+            override_acknowledged: overrideAck,
+            delivery_method_note: deliveryNote,
+            max_sales: maxSales,
+            publish: formData.is_published,
+          },
+        });
+      } catch (e) {
+        console.warn('compute-delivery-recommendation failed (non-blocking)', e);
+      }
 
       toast.success('Product updated successfully!');
       navigate('/seller-dashboard');

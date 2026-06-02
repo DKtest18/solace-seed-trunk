@@ -6,6 +6,7 @@ const platformLinks = [
   { to: '/sellers', label: 'For Sellers' },
   { to: '/buyers', label: 'For Buyers' },
   { to: '/pricing', label: 'Pricing' },
+  { to: '/seller-guidelines', label: 'Seller Guidelines' },
 ];
 
 const companyLinks = [

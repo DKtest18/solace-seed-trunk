@@ -105,23 +105,76 @@ async function handleEvent(admin: Admin, event: Stripe.Event) {
       ? object.payment_intent
       : (event.type === 'payment_intent.succeeded' ? String(object.id) : null);
 
-    // Settle the order and move escrow pending -> held.
+    // Load tier (set at checkout) to decide payout_status + auto_release_at.
+    const { data: ord } = await admin
+      .from('dkai_orders')
+      .select('id, delivery_tier, payout_status, auto_release_at, seller_id, price')
+      .eq('id', orderId)
+      .single();
+    if (!ord) return;
+    const tier = (ord.delivery_tier as string) || 'tier1';
+
+    // Compute auto-release if missing (defensive)
+    let autoReleaseAt = ord.auto_release_at as string | null;
+    if (!autoReleaseAt && tier !== 'tier1') {
+      const days = tier === 'tier3' ? 14 : 7;
+      autoReleaseAt = new Date(Date.now() + days * 24 * 3600 * 1000).toISOString();
+    }
+
+    const payoutStatus = tier === 'tier1' ? 'pending' : 'held';
+
     await admin
       .from('dkai_orders')
       .update({
         status: 'paid',
-        escrow_status: 'held',
+        escrow_status: tier === 'tier1' ? 'released' : 'held',
+        payout_status: payoutStatus,
+        auto_release_at: autoReleaseAt,
         ...(paymentIntentId ? { stripe_payment_intent_id: paymentIntentId } : {}),
         updated_at: new Date().toISOString(),
       })
       .eq('id', orderId)
-      .eq('escrow_status', 'pending');
+      .eq('status', 'pending_payment');
+
+    // Tier-aware notifications (fire-and-forget)
+    notify(admin, orderId, tier).catch(() => {});
   } else if (event.type === 'payment_intent.payment_failed') {
-    // Mark the order failed, but never override an already-paid order.
     await admin
       .from('dkai_orders')
       .update({ status: 'failed', updated_at: new Date().toISOString() })
       .eq('id', orderId)
       .neq('status', 'paid');
+  }
+}
+
+async function notify(admin: Admin, orderId: string, tier: string) {
+  const { data: o } = await admin
+    .from('dkai_orders')
+    .select('id, buyer_id, seller_id, price, dkai_products(title)')
+    .eq('id', orderId)
+    .single();
+  if (!o) return;
+  const url = Deno.env.get('SUPABASE_URL');
+  const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!url || !key) return;
+  const send = (body: any) => fetch(`${url}/functions/v1/send-notification-email`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+    body: JSON.stringify(body),
+  }).catch(() => {});
+
+  const { data: buyer } = await admin.from('dkai_profiles').select('email').eq('id', o.buyer_id).single();
+  const { data: seller } = await admin.from('dkai_profiles').select('email').eq('id', o.seller_id).single();
+  const productTitle = (o as any).dkai_products?.title ?? 'your product';
+
+  if (buyer?.email) send({ type: 'order_paid_buyer', recipientEmail: buyer.email,
+    data: { orderId, tier, productTitle, price: o.price } });
+  if (seller?.email) {
+    send({ type: 'order_paid_seller', recipientEmail: seller.email,
+      data: { orderId, tier, productTitle, price: o.price } });
+    if (tier === 'tier3') {
+      send({ type: 'tier3_deliver_now_seller', recipientEmail: seller.email,
+        data: { orderId, productTitle, price: o.price } });
+    }
   }
 }

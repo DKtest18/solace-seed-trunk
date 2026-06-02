@@ -171,6 +171,9 @@ export default function EditProduct() {
             : null
         );
         setFileSizeBytes(Number(product.file_size_bytes) || 0);
+        setReviewStatus((product.review_status as ReviewStatus) || 'draft');
+        setReviewNotes(product.review_notes || null);
+        setRequiresAccessReview(!!product.requires_access_review);
 
         setProductLoading(false);
       } catch (error: any) {
@@ -181,7 +184,7 @@ export default function EditProduct() {
     };
 
     loadProduct();
-  }, [id, user, isAdmin, navigate]);
+  }, [id, user, isAdmin, navigate, reviewRefreshKey]);
 
   const handleChange = (field: string, value: any) => {
     if (field.endsWith('Error')) {

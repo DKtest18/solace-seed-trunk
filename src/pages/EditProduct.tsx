@@ -12,6 +12,7 @@ import { BasicInfoStep } from '@/components/product-creation/BasicInfoStep';
 import { ImagesStep } from '@/components/product-creation/ImagesStep';
 import { ProductDeliveryFilesManager } from '@/components/ProductDeliveryFilesManager';
 import { DeliveryTierSelector } from '@/components/DeliveryTierSelector';
+import { ProductReviewStatusCard, type ReviewStatus } from '@/components/ProductReviewStatusCard';
 import type { DeliveryTier } from '@/lib/deliveryRecommendation';
 import { PricingStep } from '@/components/product-creation/PricingStep';
 import { FeaturesTagsStep } from '@/components/product-creation/FeaturesTagsStep';
@@ -95,6 +96,13 @@ export default function EditProduct() {
   const [maxSales, setMaxSales] = useState<number | null>(null);
   const [fileSizeBytes, setFileSizeBytes] = useState<number>(0);
 
+  // Review status state
+  const [reviewStatus, setReviewStatus] = useState<ReviewStatus>('draft');
+  const [reviewNotes, setReviewNotes] = useState<string | null>(null);
+  const [requiresAccessReview, setRequiresAccessReview] = useState(false);
+  const [reviewRefreshKey, setReviewRefreshKey] = useState(0);
+
+
   // Load product data
   useEffect(() => {
     if (!id || !user) return;
@@ -163,6 +171,9 @@ export default function EditProduct() {
             : null
         );
         setFileSizeBytes(Number(product.file_size_bytes) || 0);
+        setReviewStatus((product.review_status as ReviewStatus) || 'draft');
+        setReviewNotes(product.review_notes || null);
+        setRequiresAccessReview(!!product.requires_access_review);
 
         setProductLoading(false);
       } catch (error: any) {
@@ -173,7 +184,7 @@ export default function EditProduct() {
     };
 
     loadProduct();
-  }, [id, user, isAdmin, navigate]);
+  }, [id, user, isAdmin, navigate, reviewRefreshKey]);
 
   const handleChange = (field: string, value: any) => {
     if (field.endsWith('Error')) {
@@ -468,26 +479,28 @@ export default function EditProduct() {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Switch
-                id="publish-toggle"
-                checked={formData.is_published}
-                onCheckedChange={handleTogglePublish}
-              />
-              <Label htmlFor="publish-toggle" className="flex items-center gap-2 cursor-pointer">
-                {formData.is_published ? (
-                  <>
-                    <Eye className="h-4 w-4" />
-                    Published
-                  </>
-                ) : (
-                  <>
-                    <EyeOff className="h-4 w-4" />
-                    Unpublished
-                  </>
-                )}
-              </Label>
-            </div>
+            {reviewStatus === 'approved' && (
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="publish-toggle"
+                  checked={formData.is_published}
+                  onCheckedChange={handleTogglePublish}
+                />
+                <Label htmlFor="publish-toggle" className="flex items-center gap-2 cursor-pointer">
+                  {formData.is_published ? (
+                    <>
+                      <Eye className="h-4 w-4" />
+                      Visible
+                    </>
+                  ) : (
+                    <>
+                      <EyeOff className="h-4 w-4" />
+                      Hidden
+                    </>
+                  )}
+                </Label>
+              </div>
+            )}
             <Button
               variant="destructive"
               size="sm"
@@ -642,6 +655,30 @@ export default function EditProduct() {
             </CardContent>
           </Card>
         )}
+
+        {id && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Review &amp; Publish</CardTitle>
+              <CardDescription>
+                Every product is reviewed by our team before going live. Save your changes first,
+                then submit for review.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProductReviewStatusCard
+                productId={id}
+                reviewStatus={reviewStatus}
+                requiresAccessReview={requiresAccessReview}
+                reviewNotes={reviewNotes}
+                deliveryTier={deliveryTier}
+                onSubmitted={() => setReviewRefreshKey((k) => k + 1)}
+              />
+            </CardContent>
+          </Card>
+        )}
+
+
 
 
         <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

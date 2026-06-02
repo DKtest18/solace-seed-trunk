@@ -69,7 +69,7 @@ export default function TopProducts() {
           )
         `)
         .eq('is_published', true)
-        .eq('approval_status', 'approved');
+        .eq('review_status', 'approved');
 
       // Apply sorting
       switch (sortBy) {

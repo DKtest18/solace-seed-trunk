@@ -13,6 +13,9 @@ const NOTIFICATION_TYPES = [
   'payout_processed',
   'product_approved',
   'product_rejected',
+  'product_submitted_for_review',
+  'product_changes_requested',
+  'product_review_access_logged',
   'account_suspension',
   'account_ban',
   'account_warning',
@@ -563,6 +566,71 @@ function buildNotificationEmail(
         ].join('')),
       };
     }
+
+    // ── PRODUCT SUBMITTED FOR REVIEW ──
+    case 'product_submitted_for_review': {
+      const productTitle = data.productTitle || 'Your product';
+      const productId = data.productId || '';
+      const requiresAccess = !!data.requiresAccessReview;
+      return {
+        subject: `Submitted for review: ${productTitle} – DK AI Marketplace`,
+        html: wrapEmail([
+          h('Your product is under review'),
+          p(`Thanks — <strong>${productTitle}</strong> has been submitted to the ${link('DK AI Marketplace')} review team.`),
+          p('Every product is reviewed before going live, usually within 48 hours.'),
+          requiresAccess
+            ? p('Because of the product\'s price, size, or category, a reviewer may request a confidential sample or temporary access to verify it. Any such access is strictly confidential, time-limited, and used only for review.')
+            : '',
+          br(),
+          btn(`${baseUrl}/edit-product/${productId}`, 'View Product'),
+          br(),
+          ft('You will be notified by email once a decision has been made.'),
+        ].join('')),
+      };
+    }
+
+    // ── PRODUCT CHANGES REQUESTED ──
+    case 'product_changes_requested': {
+      const productTitle = data.productTitle || 'Your product';
+      const productId = data.productId || '';
+      const notes = data.notes || 'Please review your product details and resubmit.';
+      return {
+        subject: `Changes requested: ${productTitle} – DK AI Marketplace`,
+        html: wrapEmail([
+          h('Changes requested'),
+          p(`Our review team has requested changes to <strong>${productTitle}</strong> before it can go live.`),
+          br(),
+          infoBox(infoRow('Reviewer notes', notes)),
+          br(),
+          p('Make the requested changes and resubmit from your seller dashboard.'),
+          br(),
+          btn(`${baseUrl}/edit-product/${productId}`, 'Update Product'),
+        ].join('')),
+      };
+    }
+
+    // ── PRODUCT REVIEW ACCESS LOGGED (transparency) ──
+    case 'product_review_access_logged': {
+      const productTitle = data.productTitle || 'Your product';
+      const productId = data.productId || '';
+      const when = data.accessedAt ? new Date(data.accessedAt).toLocaleString() : 'today';
+      const expires = data.expiresAt ? new Date(data.expiresAt).toLocaleString() : 'shortly';
+      return {
+        subject: `Reviewer access logged: ${productTitle} – DK AI Marketplace`,
+        html: wrapEmail([
+          h('Reviewer access logged'),
+          p(`For transparency: a member of our review team accessed your product <strong>${productTitle}</strong> on ${when} to verify it as part of the mandatory pre-publish review.`),
+          br(),
+          infoBox(infoRow('Access expires', expires) + infoRow('Purpose', 'Pre-publish review only')),
+          br(),
+          p('This access is strictly confidential, time-limited, and logged in our audit trail. It is used only to verify your product complies with our content policy.'),
+          br(),
+          btn(`${baseUrl}/edit-product/${productId}`, 'View Product'),
+        ].join('')),
+      };
+    }
+
+
 
     // ── ACCOUNT BAN (permanent) ──
     case 'account_ban': {

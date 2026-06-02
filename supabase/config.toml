@@ -139,3 +139,12 @@ verify_jwt = false
 
 [functions.compute-delivery-recommendation]
 verify_jwt = false
+
+[functions.submit-product-for-review]
+verify_jwt = false
+
+[functions.decide-product-review]
+verify_jwt = false
+
+[functions.log-product-review-access]
+verify_jwt = false

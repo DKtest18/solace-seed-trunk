@@ -85,7 +85,7 @@ export default function Statistics() {
         .from('dkai_products')
         .select('id, product_type, title, total_sales, trending_score, recent_7day_sales, average_rating, category_id, product_categories(name)')
         .eq('is_published', true)
-        .eq('approval_status', 'approved');
+        .eq('review_status', 'approved');
 
       if (productsError) throw productsError;
 

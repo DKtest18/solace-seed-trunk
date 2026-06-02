@@ -35,7 +35,7 @@ export default function SellerProfile() {
         .select('*')
         .eq('seller_id', sellerId)
         .eq('is_published', true)
-        .eq('moderation_status', 'approved')
+        .eq('review_status', 'approved')
         .order('created_at', { ascending: false });
 
       if (error) throw error;

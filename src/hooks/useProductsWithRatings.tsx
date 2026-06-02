@@ -9,7 +9,7 @@ export function useProductsWithRatings() {
         .from('dkai_products')
         .select('*')
         .eq('is_published', true)
-        .eq('approval_status', 'approved')
+        .eq('review_status', 'approved')
         .order('created_at', { ascending: false });
 
       if (productsError) throw productsError;

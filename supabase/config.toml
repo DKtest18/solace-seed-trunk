@@ -136,3 +136,6 @@ verify_jwt = false
 
 [functions.admin-access-file]
 verify_jwt = false
+
+[functions.compute-delivery-recommendation]
+verify_jwt = false

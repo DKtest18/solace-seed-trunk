@@ -86,6 +86,15 @@ export default function EditProduct() {
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Delivery tier state
+  const [deliveryTier, setDeliveryTier] = useState<DeliveryTier>('tier1');
+  const [deliveryRecommended, setDeliveryRecommended] = useState<DeliveryTier>('tier1');
+  const [deliveryOverridden, setDeliveryOverridden] = useState(false);
+  const [overrideAck, setOverrideAck] = useState(false);
+  const [deliveryNote, setDeliveryNote] = useState('');
+  const [maxSales, setMaxSales] = useState<number | null>(null);
+  const [fileSizeBytes, setFileSizeBytes] = useState<number>(0);
+
   // Load product data
   useEffect(() => {
     if (!id || !user) return;
@@ -138,6 +147,22 @@ export default function EditProduct() {
         if (product.image_url) {
           setExistingImageUrl(product.image_url);
         }
+
+        // Delivery tier + related fields
+        if (product.delivery_tier) setDeliveryTier(product.delivery_tier as DeliveryTier);
+        if (product.delivery_tier_recommended)
+          setDeliveryRecommended(product.delivery_tier_recommended as DeliveryTier);
+        setDeliveryOverridden(!!product.delivery_tier_overridden);
+        setOverrideAck(!!product.delivery_tier_overridden); // already saved => assume previously acknowledged
+        setDeliveryNote(product.delivery_method_note || '');
+        setMaxSales(
+          product.max_sales != null
+            ? Number(product.max_sales)
+            : product.available_quantity != null
+            ? Number(product.available_quantity)
+            : null
+        );
+        setFileSizeBytes(Number(product.file_size_bytes) || 0);
 
         setProductLoading(false);
       } catch (error: any) {

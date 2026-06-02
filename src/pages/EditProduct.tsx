@@ -96,6 +96,13 @@ export default function EditProduct() {
   const [maxSales, setMaxSales] = useState<number | null>(null);
   const [fileSizeBytes, setFileSizeBytes] = useState<number>(0);
 
+  // Review status state
+  const [reviewStatus, setReviewStatus] = useState<ReviewStatus>('draft');
+  const [reviewNotes, setReviewNotes] = useState<string | null>(null);
+  const [requiresAccessReview, setRequiresAccessReview] = useState(false);
+  const [reviewRefreshKey, setReviewRefreshKey] = useState(0);
+
+
   // Load product data
   useEffect(() => {
     if (!id || !user) return;

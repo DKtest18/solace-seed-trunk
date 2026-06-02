@@ -656,6 +656,30 @@ export default function EditProduct() {
           </Card>
         )}
 
+        {id && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Review &amp; Publish</CardTitle>
+              <CardDescription>
+                Every product is reviewed by our team before going live. Save your changes first,
+                then submit for review.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProductReviewStatusCard
+                productId={id}
+                reviewStatus={reviewStatus}
+                requiresAccessReview={requiresAccessReview}
+                reviewNotes={reviewNotes}
+                deliveryTier={deliveryTier}
+                onSubmitted={() => setReviewRefreshKey((k) => k + 1)}
+              />
+            </CardContent>
+          </Card>
+        )}
+
+
+
 
         <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <AlertDialogContent>

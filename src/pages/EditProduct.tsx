@@ -11,6 +11,8 @@ import { Progress } from '@/components/ui/progress';
 import { BasicInfoStep } from '@/components/product-creation/BasicInfoStep';
 import { ImagesStep } from '@/components/product-creation/ImagesStep';
 import { ProductDeliveryFilesManager } from '@/components/ProductDeliveryFilesManager';
+import { DeliveryTierSelector } from '@/components/DeliveryTierSelector';
+import type { DeliveryTier } from '@/lib/deliveryRecommendation';
 import { PricingStep } from '@/components/product-creation/PricingStep';
 import { FeaturesTagsStep } from '@/components/product-creation/FeaturesTagsStep';
 import { PurposeAudienceStep } from '@/components/product-creation/PurposeAudienceStep';
@@ -84,6 +86,15 @@ export default function EditProduct() {
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Delivery tier state
+  const [deliveryTier, setDeliveryTier] = useState<DeliveryTier>('tier1');
+  const [deliveryRecommended, setDeliveryRecommended] = useState<DeliveryTier>('tier1');
+  const [deliveryOverridden, setDeliveryOverridden] = useState(false);
+  const [overrideAck, setOverrideAck] = useState(false);
+  const [deliveryNote, setDeliveryNote] = useState('');
+  const [maxSales, setMaxSales] = useState<number | null>(null);
+  const [fileSizeBytes, setFileSizeBytes] = useState<number>(0);
+
   // Load product data
   useEffect(() => {
     if (!id || !user) return;
@@ -136,6 +147,22 @@ export default function EditProduct() {
         if (product.image_url) {
           setExistingImageUrl(product.image_url);
         }
+
+        // Delivery tier + related fields
+        if (product.delivery_tier) setDeliveryTier(product.delivery_tier as DeliveryTier);
+        if (product.delivery_tier_recommended)
+          setDeliveryRecommended(product.delivery_tier_recommended as DeliveryTier);
+        setDeliveryOverridden(!!product.delivery_tier_overridden);
+        setOverrideAck(!!product.delivery_tier_overridden); // already saved => assume previously acknowledged
+        setDeliveryNote(product.delivery_method_note || '');
+        setMaxSales(
+          product.max_sales != null
+            ? Number(product.max_sales)
+            : product.available_quantity != null
+            ? Number(product.available_quantity)
+            : null
+        );
+        setFileSizeBytes(Number(product.file_size_bytes) || 0);
 
         setProductLoading(false);
       } catch (error: any) {
@@ -300,6 +327,13 @@ export default function EditProduct() {
       return;
     }
 
+    // Down-tier acknowledgement gate
+    const rank = (t: DeliveryTier) => (t === 'tier3' ? 3 : t === 'tier2' ? 2 : 1);
+    if (rank(deliveryTier) < rank(deliveryRecommended) && !overrideAck) {
+      toast.error('Please acknowledge that you are choosing less protection than recommended.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -357,10 +391,31 @@ export default function EditProduct() {
           payment_methods: formData.payment_methods,
           faqs: formData.faqs,
           is_published: formData.is_published,
+          delivery_tier: deliveryTier,
+          delivery_tier_recommended: deliveryRecommended,
+          delivery_tier_overridden: deliveryTier !== deliveryRecommended,
+          max_sales: maxSales,
+          delivery_method_note: deliveryTier === 'tier3' ? deliveryNote : null,
         })
         .eq('id', id);
 
       if (error) throw error;
+
+      // Server-side recompute & enforcement (best-effort; non-blocking for save)
+      try {
+        await supabase.functions.invoke('compute-delivery-recommendation', {
+          body: {
+            product_id: id,
+            delivery_tier: deliveryTier,
+            override_acknowledged: overrideAck,
+            delivery_method_note: deliveryNote,
+            max_sales: maxSales,
+            publish: formData.is_published,
+          },
+        });
+      } catch (e) {
+        console.warn('compute-delivery-recommendation failed (non-blocking)', e);
+      }
 
       toast.success('Product updated successfully!');
       navigate('/seller-dashboard');
@@ -549,13 +604,41 @@ export default function EditProduct() {
         {id && (
           <Card className="mt-6">
             <CardHeader>
-              <CardTitle>Delivery Files</CardTitle>
+              <CardTitle>Delivery Mode</CardTitle>
               <CardDescription>
-                Private files buyers download after purchase. Virus-scanned automatically.
+                Choose how this product is delivered to buyers. We recommend a mode based on
+                price, scarcity, and file size — you can override it.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ProductDeliveryFilesManager productId={id} />
+            <CardContent className="space-y-6">
+              <DeliveryTierSelector
+                price={parseFloat(formData.price) || 0}
+                maxSales={maxSales}
+                fileSizeBytes={fileSizeBytes}
+                value={deliveryTier}
+                overrideAcknowledged={overrideAck}
+                deliveryNote={deliveryNote}
+                onChange={(next) => {
+                  setDeliveryTier(next.delivery_tier);
+                  setDeliveryRecommended(next.delivery_tier_recommended);
+                  setDeliveryOverridden(next.delivery_tier_overridden);
+                  setOverrideAck(next.override_acknowledged);
+                  if (typeof next.delivery_method_note === 'string') {
+                    setDeliveryNote(next.delivery_method_note);
+                  }
+                }}
+              />
+
+              {deliveryTier !== 'tier3' && (
+                <div className="border-t pt-6">
+                  <h3 className="text-base font-semibold mb-1">Delivery Files</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Private files buyers download after purchase. Virus-scanned automatically.
+                    {' '}A clean delivery file is required before this product can be published.
+                  </p>
+                  <ProductDeliveryFilesManager productId={id} />
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

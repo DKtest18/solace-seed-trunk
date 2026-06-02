@@ -604,13 +604,41 @@ export default function EditProduct() {
         {id && (
           <Card className="mt-6">
             <CardHeader>
-              <CardTitle>Delivery Files</CardTitle>
+              <CardTitle>Delivery Mode</CardTitle>
               <CardDescription>
-                Private files buyers download after purchase. Virus-scanned automatically.
+                Choose how this product is delivered to buyers. We recommend a mode based on
+                price, scarcity, and file size — you can override it.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ProductDeliveryFilesManager productId={id} />
+            <CardContent className="space-y-6">
+              <DeliveryTierSelector
+                price={parseFloat(formData.price) || 0}
+                maxSales={maxSales}
+                fileSizeBytes={fileSizeBytes}
+                value={deliveryTier}
+                overrideAcknowledged={overrideAck}
+                deliveryNote={deliveryNote}
+                onChange={(next) => {
+                  setDeliveryTier(next.delivery_tier);
+                  setDeliveryRecommended(next.delivery_tier_recommended);
+                  setDeliveryOverridden(next.delivery_tier_overridden);
+                  setOverrideAck(next.override_acknowledged);
+                  if (typeof next.delivery_method_note === 'string') {
+                    setDeliveryNote(next.delivery_method_note);
+                  }
+                }}
+              />
+
+              {deliveryTier !== 'tier3' && (
+                <div className="border-t pt-6">
+                  <h3 className="text-base font-semibold mb-1">Delivery Files</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Private files buyers download after purchase. Virus-scanned automatically.
+                    {' '}A clean delivery file is required before this product can be published.
+                  </p>
+                  <ProductDeliveryFilesManager productId={id} />
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

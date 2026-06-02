@@ -12,6 +12,7 @@ import { BasicInfoStep } from '@/components/product-creation/BasicInfoStep';
 import { ImagesStep } from '@/components/product-creation/ImagesStep';
 import { ProductDeliveryFilesManager } from '@/components/ProductDeliveryFilesManager';
 import { DeliveryTierSelector } from '@/components/DeliveryTierSelector';
+import { ProductReviewStatusCard, type ReviewStatus } from '@/components/ProductReviewStatusCard';
 import type { DeliveryTier } from '@/lib/deliveryRecommendation';
 import { PricingStep } from '@/components/product-creation/PricingStep';
 import { FeaturesTagsStep } from '@/components/product-creation/FeaturesTagsStep';

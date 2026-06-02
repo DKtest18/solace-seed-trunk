@@ -34,6 +34,13 @@ const NOTIFICATION_TYPES = [
   'file_upload_success',
   'file_infected',
   'admin_accessed_file',
+  'order_paid_buyer',
+  'order_paid_seller',
+  'tier3_deliver_now_seller',
+  'confirm_receipt_reminder_buyer',
+  'payout_released_seller',
+  'dispute_opened_admin',
+  'dispute_opened_seller',
 ] as const;
 
 type NotificationType = typeof NOTIFICATION_TYPES[number];

@@ -23,6 +23,7 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [reasonForJoining, setReasonForJoining] = useState('');
+  const [acceptedGuidelines, setAcceptedGuidelines] = useState(false);
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<SignupStep>('details');
   const [signupUserId, setSignupUserId] = useState<string | null>(null);
@@ -135,6 +136,10 @@ export default function Signup() {
     e.preventDefault();
     setLoading(true);
     try {
+      if (!acceptedGuidelines) {
+        toast.error('Please accept the Seller Guidelines, Content Policy, and Terms of Service.');
+        return;
+      }
       const sanitizedEmail = sanitizeEmail(email);
       const sanitizedFullName = sanitizeText(fullName);
 
@@ -433,6 +438,31 @@ export default function Signup() {
                 </p>
               </div>
 
+              <label className="flex items-start gap-2.5 text-sm text-gray-700 mt-4 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={acceptedGuidelines}
+                  onChange={(e) => setAcceptedGuidelines(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  required
+                />
+                <span>
+                  I have read and agree to the{' '}
+                  <Link to="/seller-guidelines" target="_blank" className="text-primary hover:underline">
+                    Seller Guidelines
+                  </Link>
+                  ,{' '}
+                  <Link to="/content-policy" target="_blank" className="text-primary hover:underline">
+                    Content Policy
+                  </Link>
+                  , and{' '}
+                  <Link to="/terms" target="_blank" className="text-primary hover:underline">
+                    Terms of Service
+                  </Link>
+                  .
+                </span>
+              </label>
+
               <Button
                 type="submit"
                 variant="hero"
@@ -440,6 +470,7 @@ export default function Signup() {
                 disabled={
                   loading ||
                   !email ||
+                  !acceptedGuidelines ||
                   emailCheck.status === 'checking' ||
                   emailCheck.status === 'taken' ||
                   emailCheck.status === 'invalid'

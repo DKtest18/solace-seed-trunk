@@ -11,6 +11,8 @@ import { Progress } from '@/components/ui/progress';
 import { BasicInfoStep } from '@/components/product-creation/BasicInfoStep';
 import { ImagesStep } from '@/components/product-creation/ImagesStep';
 import { ProductDeliveryFilesManager } from '@/components/ProductDeliveryFilesManager';
+import { DeliveryTierSelector } from '@/components/DeliveryTierSelector';
+import type { DeliveryTier } from '@/lib/deliveryRecommendation';
 import { PricingStep } from '@/components/product-creation/PricingStep';
 import { FeaturesTagsStep } from '@/components/product-creation/FeaturesTagsStep';
 import { PurposeAudienceStep } from '@/components/product-creation/PurposeAudienceStep';

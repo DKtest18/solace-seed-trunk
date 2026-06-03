@@ -66,18 +66,27 @@ Deno.serve(async (req) => {
       .eq('id', row.user_id);
     if (profErr) console.error('profile activate error', profErr);
 
-    // Send approval email (best-effort)
+    // Send approval email (best-effort — never block approval on email failure)
     try {
-      await admin.functions.invoke('send-notification-email', {
-        body: {
+      const emailRes = await fetch(`${supabaseUrl}/functions/v1/send-notification-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${serviceKey}`,
+          apikey: serviceKey,
+        },
+        body: JSON.stringify({
           type: 'waitlist_approved',
           recipientEmail: row.email,
           data: {
             name: row.full_name || row.email,
             actionUrl: 'https://dkaimarketplace.com',
           },
-        },
+        }),
       });
+      if (!emailRes.ok) {
+        console.error('approval email non-2xx', emailRes.status, await emailRes.text().catch(() => ''));
+      }
     } catch (e) {
       console.error('approval email failed', e);
     }

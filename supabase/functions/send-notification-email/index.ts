@@ -64,8 +64,8 @@ Deno.serve(async (req) => {
       return errorResponse('Unauthorized', 401);
     }
 
-    const resendKey = Deno.env.get('RESEND_API_KEY');
-    if (!resendKey) return errorResponse('Email service not configured', 500);
+    const brevoKey = Deno.env.get('BREVO_API_KEY');
+    if (!brevoKey) return errorResponse('Email service not configured', 500);
 
     const body: NotificationEmailRequest = await req.json();
     const { type, recipientEmail, data } = body;
@@ -78,23 +78,23 @@ Deno.serve(async (req) => {
 
     const { subject, html } = buildNotificationEmail(type, data);
 
-    const resendRes = await fetch('https://api.resend.com/emails', {
+    const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${resendKey}`,
+        'api-key': brevoKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'DK AI Marketplace <noreply@dkaimarketplace.com>',
-        to: recipientEmail,
+        sender: { name: 'DK AI Marketplace', email: 'noreply@dkaimarketplace.com' },
+        to: [{ email: recipientEmail }],
         subject,
-        html,
+        htmlContent: html,
       }),
     });
 
-    if (!resendRes.ok) {
-      const err = await resendRes.text();
-      console.error('Resend error:', err);
+    if (!brevoRes.ok) {
+      const err = await brevoRes.text();
+      console.error('Brevo error:', err);
       return errorResponse('Failed to send email', 500);
     }
 

@@ -63,16 +63,25 @@ Deno.serve(async (req) => {
     await admin.from('dkai_profiles').update({ is_active: false }).eq('id', row.user_id);
 
     try {
-      await admin.functions.invoke('send-notification-email', {
-        body: {
+      const emailRes = await fetch(`${supabaseUrl}/functions/v1/send-notification-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${serviceKey}`,
+          apikey: serviceKey,
+        },
+        body: JSON.stringify({
           type: 'waitlist_declined',
           recipientEmail: row.email,
           data: {
             name: row.full_name || row.email,
             reason,
           },
-        },
+        }),
       });
+      if (!emailRes.ok) {
+        console.error('decline email non-2xx', emailRes.status, await emailRes.text().catch(() => ''));
+      }
     } catch (e) {
       console.error('decline email failed', e);
     }

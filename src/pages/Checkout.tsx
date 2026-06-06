@@ -80,10 +80,9 @@ export default function Checkout() {
   const handleCheckout = async () => {
     setProcessing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("create-product-checkout", {
+      const { data, error } = await supabase.functions.invoke("create-checkout-session", {
         body: {
           productId: product.id,
-          quantity: 1,
         },
       });
 

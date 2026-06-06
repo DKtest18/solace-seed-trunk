@@ -14,7 +14,8 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
-const PLATFORM_FEE_RATE = 0.05;
+// Fallback fee if seller profile has no platform_fee_percent set.
+const DEFAULT_PLATFORM_FEE_PERCENT = 5;
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -53,8 +54,19 @@ Deno.serve(async (req) => {
     const stripeKey = Deno.env.get('DKAIM_STRIPE_SECRET_KEY');
     if (!stripeKey) return errorResponse('Stripe not configured', 500);
 
+    // Read per-seller platform fee from dkai_profiles (dynamic, not hardcoded).
+    const { data: sellerProfile } = await admin
+      .from('dkai_profiles')
+      .select('platform_fee_percent, seller_type')
+      .eq('id', product.seller_id)
+      .single();
+    const feePercent = Number(
+      sellerProfile?.platform_fee_percent ?? DEFAULT_PLATFORM_FEE_PERCENT
+    );
+    const feeRate = Math.max(0, Math.min(100, feePercent)) / 100;
+
     const priceCents = Math.round(Number(product.price) * 100);
-    const appFeeCents = Math.round(priceCents * PLATFORM_FEE_RATE);
+    const appFeeCents = Math.round(priceCents * feeRate);
     const sellerEarnings = (priceCents - appFeeCents) / 100;
     const appFee = appFeeCents / 100;
 

@@ -14,7 +14,8 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
-const PLATFORM_FEE_RATE = 0.05;
+// Fallback fee if seller profile has no platform_fee_percent set.
+const DEFAULT_PLATFORM_FEE_PERCENT = 5;
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);

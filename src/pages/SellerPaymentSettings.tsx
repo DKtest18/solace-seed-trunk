@@ -37,6 +37,7 @@ export default function SellerPaymentSettings() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { hasRole: isSeller, isLoading: roleLoading } = useHasRole("seller");
+  const { feePct, sellerPct } = usePlatformFee();
   
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);

@@ -430,7 +430,7 @@ export default function SellerOnboardingPayment() {
                   </div>
                    <h3 className="text-lg font-semibold mb-2">Set Up Stripe Payments</h3>
                    <p className="text-muted-foreground max-w-md mx-auto">
-                     Create a new Stripe Express account or connect an existing one. You'll receive 90% of each sale directly to your bank account.
+                     Create a new Stripe Express account or connect an existing one. You'll receive {sellerPct}% of each sale directly to your bank account.
                    </p>
                 </div>
 

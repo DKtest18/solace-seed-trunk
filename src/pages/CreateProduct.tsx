@@ -57,6 +57,7 @@ export default function CreateProduct() {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [draftId, setDraftId] = useState<string | null>(null);
   const [draftLoaded, setDraftLoaded] = useState(false);
+  const [showSubmittedDialog, setShowSubmittedDialog] = useState(false);
   const [showSellerRules, setShowSellerRules] = useState(false);
 
   // Sync step from URL param

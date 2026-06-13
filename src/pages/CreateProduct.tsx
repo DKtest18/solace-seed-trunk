@@ -491,8 +491,7 @@ export default function CreateProduct() {
       const { error } = await db.from('dkai_products').update(submitPayload).eq('id', id);
       if (error) throw error;
 
-      toast.success('Product submitted! Awaiting admin approval.');
-      navigate('/seller-dashboard');
+      setShowSubmittedDialog(true);
     } catch (error: any) {
       console.error('Error submitting product:', error);
       toast.error(error.message || 'Failed to submit product');

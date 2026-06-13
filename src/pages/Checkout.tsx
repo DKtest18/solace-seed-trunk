@@ -152,7 +152,7 @@ export default function Checkout() {
                   <span className="font-medium text-sm">Secure Payment</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  All payments are processed securely via Stripe. 90% goes to the seller, 10% platform fee.
+                  All payments are processed securely via Stripe. 95% goes to the seller, 5% platform fee.
                 </p>
               </div>
             </div>
@@ -187,8 +187,8 @@ export default function Checkout() {
                     <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
                       <p>✓ Secure Stripe Checkout</p>
                       <p>✓ No card data stored on this website</p>
-                      <p>✓ 90% goes directly to seller's Stripe account</p>
-                      <p>✓ 10% platform fee</p>
+                      <p>✓ 95% goes directly to seller's Stripe account</p>
+                      <p>✓ 5% platform fee</p>
                       <p>✓ Instant payment confirmation</p>
                     </div>
                   </>

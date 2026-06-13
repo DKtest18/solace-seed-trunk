@@ -238,7 +238,7 @@ export function FileUploadStep({ data, onChange, errors, onFileSelect, uploadedF
           <p><strong>⚠️ Payment & Delivery Rules:</strong></p>
           <ul className="list-disc list-inside space-y-1 text-xs">
             <li>All payments are held on Stripe until the buyer confirms receipt.</li>
-            <li><strong>90% seller / 10% platform fee</strong> — released only after buyer confirmation AND return window expiry.</li>
+            <li><strong>{sellerPct}% seller / {feePct}% platform fee</strong> — released only after buyer confirmation AND return window expiry.</li>
             <li>You <strong>cannot refuse</strong> to deliver a purchased product. The product must match the description.</li>
             <li>Buyers have a <strong>minimum 24-hour return window</strong> (cannot be waived).</li>
             <li>If a buyer returns within the window, they get <strong>100% refund</strong> to their original payment method.</li>

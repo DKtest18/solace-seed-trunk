@@ -884,7 +884,7 @@ function MeetingTypeDialog({
                 <AlertTitle>Stripe Required</AlertTitle>
                 <AlertDescription>
                   You must connect your Stripe account in Payment Settings before you can accept paid meetings.
-                  90% goes to you, 10% is the platform fee.
+                  {sellerPct}% goes to you, {feePct}% is the platform fee.
                 </AlertDescription>
               </Alert>
             )}

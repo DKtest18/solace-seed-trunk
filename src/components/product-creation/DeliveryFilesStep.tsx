@@ -46,6 +46,7 @@ const SUGGESTED_FILES = [
 ];
 
 export function DeliveryFilesStep({ deliveryFiles, onAddFile, onRemoveFile, errors }: DeliveryFilesStepProps) {
+  const { feePct, sellerPct } = usePlatformFee();
   const [dragActive, setDragActive] = useState(false);
 
   const handleDrag = (e: React.DragEvent) => {

@@ -37,6 +37,7 @@ const ALLOWED_TYPES = [
 const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5GB
 
 export function FileUploadStep({ data, onChange, errors, onFileSelect, uploadedFile, uploadStatus }: FileUploadStepProps) {
+  const { feePct, sellerPct } = usePlatformFee();
   const [dragActive, setDragActive] = useState(false);
 
   const handleDrag = (e: React.DragEvent) => {

@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -16,6 +18,8 @@ interface RulesAcceptanceStepProps {
 
 export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = false }: RulesAcceptanceStepProps) {
   const [accepted, setAccepted] = useState(false);
+  const [scrolledToEnd, setScrolledToEnd] = useState(false);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
 
   const { data: rulesData, isLoading } = useQuery({
     queryKey: ['platform-rules', ruleType],
@@ -34,7 +38,13 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
     },
   });
 
-  const rules = rulesData?.rules as string[] || [];
+  // Prefer markdown `body` column, fall back to legacy `rules` text[] joined as a numbered list
+  const body: string =
+    (rulesData?.body && String(rulesData.body).trim()) ||
+    (Array.isArray(rulesData?.rules)
+      ? (rulesData!.rules as string[]).map((r, i) => `${i + 1}. ${r}`).join('\n\n')
+      : '');
+
   const titleMap: Record<string, string> = {
     user: 'Platform Usage Rules',
     seller: 'Seller Obligations & Compliance',
@@ -42,6 +52,12 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
     community: 'Community-Richtlinien',
   };
   const title = rulesData?.title || titleMap[ruleType] || 'Rules';
+  const effectiveDate = rulesData?.updated_at || rulesData?.created_at || new Date().toISOString();
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 24) setScrolledToEnd(true);
+  };
 
   if (isLoading) {
     return (
@@ -68,19 +84,22 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 pt-0">
-        <div className="bg-muted/50 rounded-lg border">
-          <ScrollArea className="h-[220px] p-3">
-            <div className="space-y-2 pr-3">
-              {rules.map((rule, index) => (
-                <div key={index} className="flex gap-2">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary text-[10px] font-medium flex items-center justify-center">
-                    {index + 1}
-                  </span>
-                  <p className="text-xs text-foreground leading-relaxed">{rule}</p>
-                </div>
-              ))}
-              <p className="text-[10px] text-muted-foreground italic pt-2 border-t">
-                Version {rulesData?.version || 1} • Effective {(rulesData?.updated_at || rulesData?.created_at) ? new Date(rulesData.updated_at || rulesData.created_at).toLocaleDateString() : new Date().toLocaleDateString()}
+        <div className="bg-muted/30 rounded-lg border">
+          <ScrollArea className="h-[360px]">
+            <div
+              ref={viewportRef}
+              onScroll={handleScroll}
+              className="h-[360px] overflow-y-auto p-5"
+            >
+              <article className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-semibold prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-p:leading-relaxed prose-li:my-0.5">
+                {body ? (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
+                ) : (
+                  <p className="text-muted-foreground italic">No rules content available.</p>
+                )}
+              </article>
+              <p className="text-[10px] text-muted-foreground italic pt-4 mt-4 border-t">
+                Version {rulesData?.version || 1} • Effective {new Date(effectiveDate).toLocaleDateString()}
               </p>
             </div>
           </ScrollArea>
@@ -93,13 +112,13 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
             onCheckedChange={(checked) => setAccepted(checked === true)}
             className="mt-0.5"
           />
-          <label 
-            htmlFor="accept-rules" 
-            className="text-sm font-medium cursor-pointer"
-          >
+          <label htmlFor="accept-rules" className="text-sm font-medium cursor-pointer">
             I have read, understood, and agree to all {ruleType === 'user' ? 'platform' : ruleType === 'seller' ? 'seller' : ruleType === 'meeting' ? 'meeting' : 'community'} rules.
           </label>
         </div>
+        {!scrolledToEnd && body && (
+          <p className="text-[11px] text-muted-foreground text-center">Scroll to the end of the rules to enable the Accept button.</p>
+        )}
       </CardContent>
       <CardFooter className="flex gap-2 pt-0">
         {onBack && (
@@ -107,9 +126,9 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
             Back
           </Button>
         )}
-        <Button 
-          onClick={onAccept} 
-          disabled={!accepted || loading}
+        <Button
+          onClick={onAccept}
+          disabled={!accepted || !scrolledToEnd || loading}
           className="flex-1"
         >
           {loading ? (

@@ -37,11 +37,11 @@ export default {
           soft: "#eff6ff",
           foreground: "hsl(var(--primary-foreground))",
         },
-        muted: {
-          DEFAULT: "#64748b",
-          dim: "#94a3b8",
-          foreground: "hsl(var(--muted-foreground))",
-        },
+      muted: {
+        DEFAULT: "hsl(var(--muted))",
+        dim: "#94a3b8",
+        foreground: "hsl(var(--muted-foreground))",
+      },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",

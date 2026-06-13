@@ -180,7 +180,7 @@ export function DeliveryFilesStep({ deliveryFiles, onAddFile, onRemoveFile, erro
             <li>Once a buyer purchases your product, you <strong>cannot refuse</strong> to deliver it.</li>
             <li>The product <strong>must be exactly as described</strong> in your listing.</li>
             <li><strong>You will NOT receive any payment</strong> until the buyer confirms they received the product.</li>
-            <li>All payments are held securely on Stripe: <strong>90% goes to you</strong>, <strong>10% platform fee</strong> — only after the buyer confirms receipt AND the return window expires.</li>
+            <li>All payments are held securely on Stripe: <strong>{sellerPct}% goes to you</strong>, <strong>{feePct}% platform fee</strong> — only after the buyer confirms receipt AND the return window expires.</li>
             <li>If you fail to deliver, the buyer gets a <strong>full refund</strong> and your account may be suspended.</li>
           </ul>
           <p className="text-xs mt-2">

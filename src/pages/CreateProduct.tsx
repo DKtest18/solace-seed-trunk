@@ -672,27 +672,38 @@ export default function CreateProduct() {
               )}
             </div>
 
-            <div className="flex justify-between mt-8">
+            <div className="flex justify-between items-center mt-8 gap-2 flex-wrap">
               <Button
                 variant="outline"
                 onClick={handleBack}
-                disabled={currentStep === 1 || isSubmitting}
+                disabled={currentStep === 1 || isSubmitting || isSavingDraft}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
 
-              {currentStep < STEPS.length ? (
-                <Button onClick={handleNext} disabled={isSubmitting}>
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4" />
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={handleSaveAndExit}
+                  disabled={isSubmitting || isSavingDraft}
+                >
+                  {isSavingDraft && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save draft & exit
                 </Button>
-              ) : (
-                <Button onClick={handleSubmit} disabled={isSubmitting}>
-                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Submit for Approval
-                </Button>
-              )}
+
+                {currentStep < STEPS.length ? (
+                  <Button onClick={handleNext} disabled={isSubmitting || isSavingDraft}>
+                    Next
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button onClick={handleSubmit} disabled={isSubmitting || isSavingDraft}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Submit for Approval
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

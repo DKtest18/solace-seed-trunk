@@ -567,11 +567,19 @@ export default function CreateProduct() {
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-3xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Create New Product</h1>
-          <p className="text-muted-foreground">
-            Complete all steps to list your product for sale
-          </p>
+        <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Create New Product</h1>
+            <p className="text-muted-foreground">
+              Required fields are marked with <span className="text-destructive">*</span>. Optional fields are labeled "(Optional)".
+              Your progress is saved as a draft after each step — you can leave and come back anytime.
+            </p>
+          </div>
+          {draftId && (
+            <span className="text-xs px-2 py-1 rounded bg-muted text-muted-foreground self-start">
+              Draft saved
+            </span>
+          )}
         </div>
 
         <Card className="mb-6">

@@ -149,6 +149,7 @@ const App = () => (
             <Route path="/create-product" element={<Seller2FAGuard><CreateProduct /></Seller2FAGuard>} />
             <Route path="/edit-product/:id" element={<Seller2FAGuard><EditProduct /></Seller2FAGuard>} />
             <Route path="/seller-dashboard/products" element={<Seller2FAGuard><MyProducts /></Seller2FAGuard>} />
+            <Route path="/seller-products" element={<Seller2FAGuard><SellerProducts /></Seller2FAGuard>} />
             <Route path="/seller-dashboard" element={<Seller2FAGuard><SellerDashboard /></Seller2FAGuard>} />
             <Route path="/seller-orders" element={<Seller2FAGuard><SellerOrders /></Seller2FAGuard>} />
             <Route path="/seller-dashboard/analytics" element={<Seller2FAGuard><SellerAnalytics /></Seller2FAGuard>} />

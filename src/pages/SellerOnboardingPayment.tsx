@@ -412,7 +412,7 @@ export default function SellerOnboardingPayment() {
                           <span className="text-sm font-medium">Card payments are active</span>
                         </div>
                         <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                          90% goes to your Stripe account, 10% platform fee
+                          {sellerPct}% goes to your Stripe account, {feePct}% platform fee
                         </p>
                       </div>
                     )}

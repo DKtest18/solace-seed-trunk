@@ -708,6 +708,38 @@ export default function CreateProduct() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog
+        open={showSubmittedDialog}
+        onOpenChange={(open) => {
+          setShowSubmittedDialog(open);
+          if (!open) navigate('/seller-products?tab=in_review');
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Product submitted for review
+            </DialogTitle>
+            <DialogDescription className="pt-2 text-base">
+              Your product has been submitted for review. Our team will inspect it and,
+              if approved, it will be published within <strong>0–24 hours</strong>.
+              You'll be notified by email.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setShowSubmittedDialog(false);
+                navigate('/seller-products?tab=in_review');
+              }}
+            >
+              Go to In Review
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -14,6 +14,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Badge } from '@/components/ui/badge';
 import { IOSToggle } from '@/components/ui/ios-toggle';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 interface StripeConnectStatus {
   connected: boolean;

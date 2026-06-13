@@ -99,7 +99,7 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
                 <Badge variant="default" className="text-xs">Active</Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                Visa, Mastercard, Amex, and more. 90% goes to you, 10% platform fee.
+                Visa, Mastercard, Amex, and more. {sellerPct}% goes to you, {feePct}% platform fee.
               </p>
             </div>
             <CheckCircle className="h-5 w-5 text-green-500" />

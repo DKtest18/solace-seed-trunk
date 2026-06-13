@@ -80,7 +80,7 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
                 </div>
               ))}
               <p className="text-[10px] text-muted-foreground italic pt-2 border-t">
-                Version {rulesData?.version || 1} • {rulesData?.updated_at ? new Date(rulesData.updated_at).toLocaleDateString() : 'N/A'}
+                Version {rulesData?.version || 1} • Effective {(rulesData?.updated_at || rulesData?.created_at) ? new Date(rulesData.updated_at || rulesData.created_at).toLocaleDateString() : new Date().toLocaleDateString()}
               </p>
             </div>
           </ScrollArea>

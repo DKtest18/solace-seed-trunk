@@ -367,12 +367,18 @@ export default function CreateProduct() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep((prev) => Math.min(prev + 1, STEPS.length));
-    } else {
+  const handleNext = async () => {
+    if (!validateStep(currentStep)) {
       toast.error('Please fix the errors before continuing');
+      return;
     }
+    try {
+      await persistDraft();
+    } catch (e: any) {
+      toast.error(e.message || 'Could not save progress');
+      return;
+    }
+    setCurrentStep((prev) => Math.min(prev + 1, STEPS.length));
   };
 
   const handleBack = () => {

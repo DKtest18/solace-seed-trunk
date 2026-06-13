@@ -12,6 +12,7 @@ import { Loader2, CreditCard, CheckCircle, XCircle, ExternalLink, Shield, Refres
 import { useHasRole } from "@/hooks/useUserRole";
 import { IOSToggle } from "@/components/ui/ios-toggle";
 import { Badge } from "@/components/ui/badge";
+import { usePlatformFee } from "@/hooks/usePlatformFee";
 
 interface StripeConnectStatus {
   connected: boolean;

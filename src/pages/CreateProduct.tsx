@@ -429,15 +429,19 @@ export default function CreateProduct() {
   };
 
   const handleSubmit = async () => {
-    if (!validateStep(currentStep)) {
-      toast.error('Please fix the errors before submitting');
-      return;
+    // Re-validate every required step before submitting
+    for (let s = 1; s <= STEPS.length; s++) {
+      if (!validateStep(s)) {
+        setCurrentStep(s);
+        toast.error(`Please complete step ${s} before submitting`);
+        return;
+      }
     }
 
     setIsSubmitting(true);
 
     try {
-      let imageUrl = null;
+      let imageUrl: string | null = null;
 
       if (images.length > 0) {
         const firstImage = images[0];
@@ -466,63 +470,32 @@ export default function CreateProduct() {
         if (formData.iban) {
           profileUpdates.iban_for_withdrawal = formData.iban;
         }
-
         if (Object.keys(profileUpdates).length > 0) {
-          await db
-            .from('dkai_profiles')
-            .update(profileUpdates)
-            .eq('id', user!.id);
+          await db.from('dkai_profiles').update(profileUpdates).eq('id', user!.id);
         }
       }
 
-      const { error } = await db
-        .from('dkai_products')
-        .insert({
-          seller_id: user!.id,
-          title: formData.title,
-          description: formData.description,
-          product_type: formData.product_type,
-          demo_url: formData.demo_url || null,
-          price: parseFloat(formData.price),
-          pricing_model: formData.pricing_model,
-          features: formData.features,
-          tags: formData.tags,
-          purpose: formData.purpose,
-          target_audience: formData.target_audience,
-          value_proposition: formData.value_proposition,
-          problem_solved: formData.problem_solved,
-          product_version: formData.product_version || null,
-          access_details: formData.access_details || null,
-          estimated_delivery: formData.estimated_delivery || null,
-          production_cost: formData.production_cost ? parseFloat(formData.production_cost) : null,
-          available_quantity: formData.available_quantity ? parseInt(formData.available_quantity) : null,
-          refund_policy: formData.refund_policy || null,
-          video_url: formData.video_url || null,
-          image_url: imageUrl,
-          payment_methods: formData.payment_methods,
-          faqs: formData.faqs,
-          delivery_mode: formData.delivery_mode,
-          file_storage_key: uploadedFile?.path || null,
-          file_size_bytes: uploadedFile?.size || null,
-          file_scan_status: uploadedFile?.scanStatus || null,
-          seller_accepted_terms: formData.seller_accepted_terms,
-          return_allowed: formData.return_allowed,
-          return_window_days: formData.return_allowed ? formData.return_window_days : 1,
-          return_fee_enabled: formData.return_fee_enabled,
-          return_fee_percentage: formData.return_fee_enabled ? formData.return_fee_percentage : 0,
-          return_conditions: formData.return_conditions || null,
-          is_published: false,
-          moderation_status: 'pending',
-          approval_status: 'pending',
-        });
+      // Ensure a draft row exists, then promote it to 'pending'
+      const id = draftId ?? (await persistDraft());
+      if (!id) throw new Error('Could not create product draft');
 
+      const submitPayload: any = {
+        ...buildDraftPayload(),
+        status: 'pending',
+        is_published: false,
+        moderation_status: 'pending',
+        approval_status: 'pending',
+      };
+      if (imageUrl) submitPayload.image_url = imageUrl;
+
+      const { error } = await db.from('dkai_products').update(submitPayload).eq('id', id);
       if (error) throw error;
 
-      toast.success('Product created! Awaiting admin approval.');
+      toast.success('Product submitted! Awaiting admin approval.');
       navigate('/seller-dashboard');
     } catch (error: any) {
-      console.error('Error creating product:', error);
-      toast.error(error.message || 'Failed to create product');
+      console.error('Error submitting product:', error);
+      toast.error(error.message || 'Failed to submit product');
     } finally {
       setIsSubmitting(false);
     }

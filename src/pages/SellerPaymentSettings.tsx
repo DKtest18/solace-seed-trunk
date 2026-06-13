@@ -467,7 +467,7 @@ export default function SellerPaymentSettings() {
                           <span className="text-sm font-medium">Card payments are active</span>
                         </div>
                         <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                          90% goes directly to your Stripe account, 10% platform fee
+                          {sellerPct}% goes directly to your Stripe account, {feePct}% platform fee
                         </p>
                       </div>
                     )}
@@ -558,7 +558,7 @@ export default function SellerPaymentSettings() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">3</div>
                 <div>
                   <p className="font-medium">Receive payments automatically</p>
-                  <p className="text-sm text-muted-foreground">90% goes directly to your bank, 10% platform fee</p>
+                  <p className="text-sm text-muted-foreground">{sellerPct}% goes directly to your bank, {feePct}% platform fee</p>
                 </div>
               </div>
             </div>

@@ -118,6 +118,145 @@ export default function CreateProduct() {
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'scanning' | 'clean' | 'infected'>('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Load existing draft (latest 'draft' row for this seller) on mount
+  useEffect(() => {
+    if (!user || draftLoaded) return;
+    (async () => {
+      try {
+        const { data, error } = await db
+          .from('dkai_products')
+          .select('*')
+          .eq('seller_id', user.id)
+          .eq('status', 'draft')
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (error) throw error;
+        if (data) {
+          setDraftId(data.id);
+          setFormData((prev) => ({
+            ...prev,
+            title: data.title ?? '',
+            description: data.description ?? '',
+            product_type: data.product_type ?? prev.product_type,
+            demo_url: data.demo_url ?? '',
+            price: data.price != null ? String(data.price) : '',
+            pricing_model: data.pricing_model ?? prev.pricing_model,
+            features: data.features ?? [],
+            tags: data.tags ?? [],
+            purpose: data.purpose ?? '',
+            target_audience: data.target_audience ?? '',
+            value_proposition: data.value_proposition ?? '',
+            problem_solved: data.problem_solved ?? '',
+            product_version: data.product_version ?? '',
+            access_details: data.access_details ?? '',
+            estimated_delivery: data.estimated_delivery ?? '',
+            production_cost: data.production_cost != null ? String(data.production_cost) : '',
+            available_quantity: data.available_quantity != null ? String(data.available_quantity) : '',
+            refund_policy: data.refund_policy ?? '',
+            video_url: data.video_url ?? '',
+            payment_methods: data.payment_methods ?? prev.payment_methods,
+            faqs: data.faqs ?? [],
+            delivery_mode: data.delivery_mode ?? prev.delivery_mode,
+            seller_accepted_terms: !!data.seller_accepted_terms,
+            return_allowed: !!data.return_allowed,
+            return_window_days: data.return_window_days ?? 1,
+            return_fee_enabled: !!data.return_fee_enabled,
+            return_fee_percentage: data.return_fee_percentage ?? 0,
+            return_conditions: data.return_conditions ?? '',
+          }));
+          if (data.file_storage_key) {
+            setUploadedFile({
+              path: data.file_storage_key,
+              name: data.file_storage_key.split('/').pop() ?? 'file',
+              size: data.file_size_bytes ?? 0,
+              scanStatus: data.file_scan_status ?? 'clean',
+            });
+            setUploadStatus(data.file_scan_status ?? 'clean');
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load draft', e);
+      } finally {
+        setDraftLoaded(true);
+      }
+    })();
+  }, [user, draftLoaded]);
+
+  const buildDraftPayload = () => ({
+    seller_id: user!.id,
+    title: formData.title || 'Untitled draft',
+    description: formData.description || '',
+    product_type: formData.product_type,
+    demo_url: formData.demo_url || null,
+    price: formData.price ? parseFloat(formData.price) : 0,
+    pricing_model: formData.pricing_model,
+    features: formData.features,
+    tags: formData.tags,
+    purpose: formData.purpose || null,
+    target_audience: formData.target_audience || null,
+    value_proposition: formData.value_proposition || null,
+    problem_solved: formData.problem_solved || null,
+    product_version: formData.product_version || null,
+    access_details: formData.access_details || null,
+    estimated_delivery: formData.estimated_delivery || null,
+    production_cost: formData.production_cost ? parseFloat(formData.production_cost) : null,
+    available_quantity: formData.available_quantity ? parseInt(formData.available_quantity) : null,
+    refund_policy: formData.refund_policy || null,
+    video_url: formData.video_url || null,
+    payment_methods: formData.payment_methods,
+    faqs: formData.faqs,
+    delivery_mode: formData.delivery_mode,
+    file_storage_key: uploadedFile?.path || null,
+    file_size_bytes: uploadedFile?.size || null,
+    file_scan_status: uploadedFile?.scanStatus || null,
+    seller_accepted_terms: formData.seller_accepted_terms,
+    return_allowed: formData.return_allowed,
+    return_window_days: formData.return_allowed ? formData.return_window_days : 1,
+    return_fee_enabled: formData.return_fee_enabled,
+    return_fee_percentage: formData.return_fee_enabled ? formData.return_fee_percentage : 0,
+    return_conditions: formData.return_conditions || null,
+    status: 'draft',
+    is_published: false,
+  });
+
+  const persistDraft = async (): Promise<string | null> => {
+    if (!user) return null;
+    const payload = buildDraftPayload();
+    try {
+      if (draftId) {
+        const { error } = await db.from('dkai_products').update(payload).eq('id', draftId);
+        if (error) throw error;
+        return draftId;
+      } else {
+        const { data, error } = await db
+          .from('dkai_products')
+          .insert(payload)
+          .select('id')
+          .single();
+        if (error) throw error;
+        setDraftId(data.id);
+        return data.id;
+      }
+    } catch (e: any) {
+      console.error('Draft save failed', e);
+      throw e;
+    }
+  };
+
+  const handleSaveAndExit = async () => {
+    setIsSavingDraft(true);
+    try {
+      await persistDraft();
+      toast.success('Draft saved. You can resume anytime.');
+      navigate('/seller-dashboard');
+    } catch (e: any) {
+      toast.error(e.message || 'Could not save draft');
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
   const handleChange = (field: string, value: any) => {
     if (field.endsWith('Error')) {
       setErrors((prev) => ({ ...prev, [field]: value }));

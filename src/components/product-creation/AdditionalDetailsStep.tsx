@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Info } from 'lucide-react';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 interface AdditionalDetailsStepProps {
   data: {
@@ -19,6 +20,7 @@ interface AdditionalDetailsStepProps {
 }
 
 export function AdditionalDetailsStep({ data, onChange, errors }: AdditionalDetailsStepProps) {
+  const { feePct, sellerPct } = usePlatformFee();
   return (
     <div className="space-y-6">
       <div>
@@ -115,7 +117,7 @@ export function AdditionalDetailsStep({ data, onChange, errors }: AdditionalDeta
       <Alert className="border-primary/30 bg-primary/5">
         <Info className="h-4 w-4 text-primary" />
         <AlertDescription className="text-xs">
-          <strong>Reminder:</strong> All payments are held on Stripe until the buyer confirms receipt and the return window expires. 90% goes to your Stripe account, 10% platform fee. 
+          <strong>Reminder:</strong> All payments are held on Stripe until the buyer confirms receipt and the return window expires. {sellerPct}% goes to your Stripe account, {feePct}% platform fee. 
           For support: <strong>support@dkaimarketplace.com</strong>
         </AlertDescription>
       </Alert>

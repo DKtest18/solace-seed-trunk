@@ -13,7 +13,7 @@ interface BuyerPolicyAcceptanceProps {
 const BUYER_POLICIES = [
   "No refunds without valid reason - you must provide evidence if claiming product issues",
   "No abuse of the dispute system - false claims may result in account suspension",
-  "Payment is held in escrow (on Stripe) until you confirm receipt of the product. 90% goes to the seller and 10% to the platform only after the return window expires.",
+  "Payment is held in escrow (on Stripe) until you confirm receipt of the product. 95% goes to the seller and 5% to the platform only after the return window expires.",
   "You must treat sellers fairly within the platform",
   "You must provide evidence (screenshots, logs) when claiming a product is defective",
   "The return window is set by the seller (minimum 24 hours, maximum 90 days). You can return the product within this period and receive a 100% refund to your original payment method.",
@@ -74,8 +74,8 @@ export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAccept
               <h4 className="font-semibold mb-2">Escrow Protection & Payment</h4>
               <p className="text-sm text-muted-foreground">
                 Your payment is protected through Stripe escrow. Funds are held securely 
-                and only released after the return window expires. The seller receives 90% and 
-                10% goes to the platform. If you return within the valid window, you receive 
+                and only released after the return window expires. The seller receives 95% and 
+                5% goes to the platform. If you return within the valid window, you receive 
                 a 100% refund to your original payment method.
               </p>
             </div>

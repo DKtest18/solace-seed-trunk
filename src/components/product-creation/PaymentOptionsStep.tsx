@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { useNavigate } from 'react-router-dom';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 interface PaymentOptionsStepProps {
   data: {
@@ -18,6 +19,7 @@ interface PaymentOptionsStepProps {
 export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsStepProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { feePct, sellerPct } = usePlatformFee();
 
   // Fetch seller's Stripe Connect status
   const { data: stripeConfig, isLoading } = useQuery({
@@ -97,7 +99,7 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
                 <Badge variant="default" className="text-xs">Active</Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                Visa, Mastercard, Amex, and more. 90% goes to you, 10% platform fee.
+                Visa, Mastercard, Amex, and more. {sellerPct}% goes to you, {feePct}% platform fee.
               </p>
             </div>
             <CheckCircle className="h-5 w-5 text-green-500" />

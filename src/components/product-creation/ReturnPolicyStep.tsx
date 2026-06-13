@@ -5,6 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertCircle, Info, ShieldCheck, Clock, DollarSign } from 'lucide-react';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 interface ReturnPolicyStepProps {
   data: {
@@ -29,6 +30,7 @@ const RETURN_WINDOW_OPTIONS = [
 ];
 
 export function ReturnPolicyStep({ data, onChange, errors }: ReturnPolicyStepProps) {
+  const { feePct, sellerPct } = usePlatformFee();
   return (
     <div className="space-y-6">
       <div>
@@ -161,7 +163,7 @@ export function ReturnPolicyStep({ data, onChange, errors }: ReturnPolicyStepPro
             <ul className="list-disc list-inside space-y-0.5">
               <li>You will <strong>NOT receive any payment</strong> until the return window has fully expired.</li>
               <li>Even if you have costs, plan ahead — factor the return window into your pricing.</li>
-              <li>After the return window expires: <strong>90% to your Stripe account</strong>, 10% platform fee.</li>
+              <li>After the return window expires: <strong>{sellerPct}% to your Stripe account</strong>, {feePct}% platform fee.</li>
               <li>If a buyer returns within the window, you receive nothing.</li>
               <li>You cannot reject a valid return within the return window.</li>
             </ul>

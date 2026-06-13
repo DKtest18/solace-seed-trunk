@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Clock, DollarSign, Globe, Plus, Save, Trash2, Users, Video, CalendarDays, MessageSquareText, AlertTriangle, CreditCard } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 const DAYS_OF_WEEK = [
   { value: 0, label: 'Sunday' },
@@ -85,6 +86,7 @@ interface MeetingType {
 }
 
 export function SellerMeetingsSettings() {
+  const { feePct, sellerPct } = usePlatformFee();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [config, setConfig] = useState<MeetingConfig | null>(null);
@@ -773,6 +775,7 @@ function MeetingTypeDialog({
   isLoading: boolean;
 }) {
   const { user } = useAuth();
+  const { feePct, sellerPct } = usePlatformFee();
   const [type, setType] = useState<MeetingType>(() => meetingType || {
     seller_id: user?.id || '',
     name: '',
@@ -882,7 +885,7 @@ function MeetingTypeDialog({
                 <AlertTitle>Stripe Required</AlertTitle>
                 <AlertDescription>
                   You must connect your Stripe account in Payment Settings before you can accept paid meetings.
-                  90% goes to you, 10% is the platform fee.
+                  {sellerPct}% goes to you, {feePct}% is the platform fee.
                 </AlertDescription>
               </Alert>
             )}

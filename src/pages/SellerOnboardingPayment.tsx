@@ -14,6 +14,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Badge } from '@/components/ui/badge';
 import { IOSToggle } from '@/components/ui/ios-toggle';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 interface StripeConnectStatus {
   connected: boolean;
@@ -35,6 +36,7 @@ interface StripeConnectStatus {
 
 export default function SellerOnboardingPayment() {
   const { user } = useAuth();
+  const { feePct, sellerPct } = usePlatformFee();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
@@ -260,7 +262,7 @@ export default function SellerOnboardingPayment() {
               🎉 Stripe Successfully Connected!
             </h3>
             <p className="text-green-600 dark:text-green-400">
-              Your account is fully set up. You can now receive card payments — 90% of each sale goes directly to your bank!
+              Your account is fully set up. You can now receive card payments — {sellerPct}% of each sale goes directly to your bank!
             </p>
           </div>
         )}
@@ -268,7 +270,7 @@ export default function SellerOnboardingPayment() {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">Stripe Payment Settings</h1>
           <p className="text-muted-foreground">
-            Connect your Stripe account to receive payments. All transactions are processed exclusively via Stripe. 90% goes to you, 10% platform fee.
+            Connect your Stripe account to receive payments. All transactions are processed exclusively via Stripe. {sellerPct}% goes to you, {feePct}% platform fee.
           </p>
         </div>
 
@@ -410,7 +412,7 @@ export default function SellerOnboardingPayment() {
                           <span className="text-sm font-medium">Card payments are active</span>
                         </div>
                         <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                          90% goes to your Stripe account, 10% platform fee
+                          {sellerPct}% goes to your Stripe account, {feePct}% platform fee
                         </p>
                       </div>
                     )}
@@ -428,7 +430,7 @@ export default function SellerOnboardingPayment() {
                   </div>
                    <h3 className="text-lg font-semibold mb-2">Set Up Stripe Payments</h3>
                    <p className="text-muted-foreground max-w-md mx-auto">
-                     Create a new Stripe Express account or connect an existing one. You'll receive 90% of each sale directly to your bank account.
+                     Create a new Stripe Express account or connect an existing one. You'll receive {sellerPct}% of each sale directly to your bank account.
                    </p>
                 </div>
 

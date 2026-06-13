@@ -173,7 +173,7 @@ export default function AdminPaymentSettings() {
         <Alert className="mb-6">
           <Shield className="h-4 w-4" />
           <AlertDescription>
-            Admin IBAN is encrypted and stored securely. 10% platform fee is sent to this IBAN.
+            Admin IBAN is encrypted and stored securely. The platform fee (default 5%) is sent to this IBAN.
             If no admin IBAN is set, sellers receive 100% of payments.
           </AlertDescription>
         </Alert>
@@ -183,7 +183,7 @@ export default function AdminPaymentSettings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building className="h-5 w-5" />
-              Platform Fee Account (10%)
+              Platform Fee Account
             </CardTitle>
             <CardDescription>
               Configure the bank account for collecting platform fees
@@ -210,7 +210,7 @@ export default function AdminPaymentSettings() {
                   </Button>
                 </div>
                 <p className="text-sm text-green-600 dark:text-green-400">
-                  ✓ 10% of all card payments will be sent to this account
+                  ✓ The platform fee (default 5%) of card payments is sent to this account
                 </p>
               </div>
             ) : (
@@ -232,7 +232,7 @@ export default function AdminPaymentSettings() {
           <CardHeader>
             <CardTitle>{settings?.admin_iban_masked ? "Update Admin IBAN" : "Add Admin IBAN"}</CardTitle>
             <CardDescription>
-              Set the bank account for collecting 10% platform fees
+              Set the bank account for collecting platform fees
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

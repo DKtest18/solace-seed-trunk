@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { BasicInfoStep } from '@/components/product-creation/BasicInfoStep';
 import { ImagesStep } from '@/components/product-creation/ImagesStep';
@@ -57,6 +58,7 @@ export default function CreateProduct() {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [draftId, setDraftId] = useState<string | null>(null);
   const [draftLoaded, setDraftLoaded] = useState(false);
+  const [showSubmittedDialog, setShowSubmittedDialog] = useState(false);
   const [showSellerRules, setShowSellerRules] = useState(false);
 
   // Sync step from URL param
@@ -491,8 +493,7 @@ export default function CreateProduct() {
       const { error } = await db.from('dkai_products').update(submitPayload).eq('id', id);
       if (error) throw error;
 
-      toast.success('Product submitted! Awaiting admin approval.');
-      navigate('/seller-dashboard');
+      setShowSubmittedDialog(true);
     } catch (error: any) {
       console.error('Error submitting product:', error);
       toast.error(error.message || 'Failed to submit product');
@@ -708,6 +709,38 @@ export default function CreateProduct() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog
+        open={showSubmittedDialog}
+        onOpenChange={(open) => {
+          setShowSubmittedDialog(open);
+          if (!open) navigate('/seller-products?tab=in_review');
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Product submitted for review
+            </DialogTitle>
+            <DialogDescription className="pt-2 text-base">
+              Your product has been submitted for review. Our team will inspect it and,
+              if approved, it will be published within <strong>0–24 hours</strong>.
+              You'll be notified by email.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setShowSubmittedDialog(false);
+                navigate('/seller-products?tab=in_review');
+              }}
+            >
+              Go to In Review
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

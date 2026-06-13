@@ -338,7 +338,7 @@ export default function EscrowManagement() {
                         </div>
                         <div>
                           <p className="text-muted-foreground">Platform Fee</p>
-                          <p className="font-medium text-blue-600">${(selectedOrder.platform_fee || selectedOrder.price * 0.1).toFixed(2)}</p>
+                          <p className="font-medium text-blue-600">${(selectedOrder.platform_fee || selectedOrder.price * 0.05).toFixed(2)}</p>
                         </div>
                       </div>
 

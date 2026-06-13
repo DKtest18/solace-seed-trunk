@@ -262,7 +262,7 @@ export default function SellerOnboardingPayment() {
               🎉 Stripe Successfully Connected!
             </h3>
             <p className="text-green-600 dark:text-green-400">
-              Your account is fully set up. You can now receive card payments — 90% of each sale goes directly to your bank!
+              Your account is fully set up. You can now receive card payments — {sellerPct}% of each sale goes directly to your bank!
             </p>
           </div>
         )}

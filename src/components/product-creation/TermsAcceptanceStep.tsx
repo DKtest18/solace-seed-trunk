@@ -82,7 +82,7 @@ export function TermsAcceptanceStep({ data, onChange, errors }: TermsAcceptanceS
             <ul className="text-xs text-muted-foreground list-disc list-inside space-y-1 ml-4">
               <li>Platform holds all sale proceeds on Stripe until buyer confirms delivery</li>
               <li>Money is only released after the return window has fully expired</li>
-              <li>10% platform fee on all sales (90% to seller via Stripe Connect)</li>
+              <li>{feePct}% platform fee on all sales ({sellerPct}% to seller via Stripe Connect)</li>
               <li>Buyers have a <strong>minimum 24-hour return window</strong> — this cannot be waived</li>
               <li>If buyer returns within the window, they receive 100% refund to original payment method</li>
               <li>You cannot refuse to deliver a purchased product — the product must match the listing</li>

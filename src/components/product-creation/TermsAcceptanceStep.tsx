@@ -12,7 +12,8 @@ interface TermsAcceptanceStepProps {
   onChange: (field: string, value: any) => void;
   errors: Record<string, string>;
 }
-
+  const { feePct, sellerPct } = usePlatformFee();
+  
 export function TermsAcceptanceStep({ data, onChange, errors }: TermsAcceptanceStepProps) {
   const { data: terms, isLoading } = useQuery({
     queryKey: ['seller-terms'],

@@ -11,7 +11,7 @@ function useRuleAcceptance(ruleType: RuleType) {
     queryKey: ['rules-acceptance', user?.id, ruleType],
     queryFn: async () => {
       if (!user?.id) return false;
-      const { data: acceptance, error } = await db.from('dkai_user_rules_acceptance').select('rules_version').eq('user_id', user.id).eq('rule_type', ruleType).maybeSingle();
+      const { data: acceptance, error } = await db.from('dkai_rules_acceptance').select('rules_version').eq('user_id', user.id).eq('rule_type', ruleType).maybeSingle();
       if (error || !acceptance) return false;
       const { data: rules } = await db.from('dkai_platform_rules').select('version').eq('rule_type', ruleType).eq('is_active', true).order('version', { ascending: false }).limit(1).maybeSingle();
       return !!rules && acceptance.rules_version >= rules.version;
@@ -34,7 +34,7 @@ export function useRulesAcceptance() {
       if (!user?.id) throw new Error('Not authenticated');
       const { data: rules, error: rulesError } = await db.from('dkai_platform_rules').select('version').eq('rule_type', ruleType).eq('is_active', true).order('version', { ascending: false }).limit(1).single();
       if (rulesError) throw rulesError;
-      const { error } = await db.from('dkai_user_rules_acceptance').upsert({ user_id: user.id, rule_type: ruleType, rules_version: rules.version, accepted_at: new Date().toISOString() }, { onConflict: 'user_id,rule_type' });
+      const { error } = await db.from('dkai_rules_acceptance').upsert({ user_id: user.id, rule_type: ruleType, rules_version: rules.version, accepted_at: new Date().toISOString() }, { onConflict: 'user_id,rule_type' });
       if (error) throw error;
       return true;
     },

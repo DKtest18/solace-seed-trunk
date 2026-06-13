@@ -20,6 +20,7 @@ interface AdditionalDetailsStepProps {
 }
 
 export function AdditionalDetailsStep({ data, onChange, errors }: AdditionalDetailsStepProps) {
+  const { feePct, sellerPct } = usePlatformFee();
   return (
     <div className="space-y-6">
       <div>

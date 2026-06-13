@@ -54,6 +54,9 @@ export default function CreateProduct() {
     return stepParam ? Math.min(Math.max(parseInt(stepParam, 10) || 1, 1), STEPS.length) : 1;
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const [draftLoaded, setDraftLoaded] = useState(false);
   const [showSellerRules, setShowSellerRules] = useState(false);
 
   // Sync step from URL param
@@ -114,6 +117,145 @@ export default function CreateProduct() {
   const [uploadedFile, setUploadedFile] = useState<any>(null);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'scanning' | 'clean' | 'infected'>('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Load existing draft (latest 'draft' row for this seller) on mount
+  useEffect(() => {
+    if (!user || draftLoaded) return;
+    (async () => {
+      try {
+        const { data, error } = await db
+          .from('dkai_products')
+          .select('*')
+          .eq('seller_id', user.id)
+          .eq('status', 'draft')
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (error) throw error;
+        if (data) {
+          setDraftId(data.id);
+          setFormData((prev) => ({
+            ...prev,
+            title: data.title ?? '',
+            description: data.description ?? '',
+            product_type: data.product_type ?? prev.product_type,
+            demo_url: data.demo_url ?? '',
+            price: data.price != null ? String(data.price) : '',
+            pricing_model: data.pricing_model ?? prev.pricing_model,
+            features: data.features ?? [],
+            tags: data.tags ?? [],
+            purpose: data.purpose ?? '',
+            target_audience: data.target_audience ?? '',
+            value_proposition: data.value_proposition ?? '',
+            problem_solved: data.problem_solved ?? '',
+            product_version: data.product_version ?? '',
+            access_details: data.access_details ?? '',
+            estimated_delivery: data.estimated_delivery ?? '',
+            production_cost: data.production_cost != null ? String(data.production_cost) : '',
+            available_quantity: data.available_quantity != null ? String(data.available_quantity) : '',
+            refund_policy: data.refund_policy ?? '',
+            video_url: data.video_url ?? '',
+            payment_methods: data.payment_methods ?? prev.payment_methods,
+            faqs: data.faqs ?? [],
+            delivery_mode: data.delivery_mode ?? prev.delivery_mode,
+            seller_accepted_terms: !!data.seller_accepted_terms,
+            return_allowed: !!data.return_allowed,
+            return_window_days: data.return_window_days ?? 1,
+            return_fee_enabled: !!data.return_fee_enabled,
+            return_fee_percentage: data.return_fee_percentage ?? 0,
+            return_conditions: data.return_conditions ?? '',
+          }));
+          if (data.file_storage_key) {
+            setUploadedFile({
+              path: data.file_storage_key,
+              name: data.file_storage_key.split('/').pop() ?? 'file',
+              size: data.file_size_bytes ?? 0,
+              scanStatus: data.file_scan_status ?? 'clean',
+            });
+            setUploadStatus(data.file_scan_status ?? 'clean');
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load draft', e);
+      } finally {
+        setDraftLoaded(true);
+      }
+    })();
+  }, [user, draftLoaded]);
+
+  const buildDraftPayload = () => ({
+    seller_id: user!.id,
+    title: formData.title || 'Untitled draft',
+    description: formData.description || '',
+    product_type: formData.product_type,
+    demo_url: formData.demo_url || null,
+    price: formData.price ? parseFloat(formData.price) : 0,
+    pricing_model: formData.pricing_model,
+    features: formData.features,
+    tags: formData.tags,
+    purpose: formData.purpose || null,
+    target_audience: formData.target_audience || null,
+    value_proposition: formData.value_proposition || null,
+    problem_solved: formData.problem_solved || null,
+    product_version: formData.product_version || null,
+    access_details: formData.access_details || null,
+    estimated_delivery: formData.estimated_delivery || null,
+    production_cost: formData.production_cost ? parseFloat(formData.production_cost) : null,
+    available_quantity: formData.available_quantity ? parseInt(formData.available_quantity) : null,
+    refund_policy: formData.refund_policy || null,
+    video_url: formData.video_url || null,
+    payment_methods: formData.payment_methods,
+    faqs: formData.faqs,
+    delivery_mode: formData.delivery_mode,
+    file_storage_key: uploadedFile?.path || null,
+    file_size_bytes: uploadedFile?.size || null,
+    file_scan_status: uploadedFile?.scanStatus || null,
+    seller_accepted_terms: formData.seller_accepted_terms,
+    return_allowed: formData.return_allowed,
+    return_window_days: formData.return_allowed ? formData.return_window_days : 1,
+    return_fee_enabled: formData.return_fee_enabled,
+    return_fee_percentage: formData.return_fee_enabled ? formData.return_fee_percentage : 0,
+    return_conditions: formData.return_conditions || null,
+    status: 'draft',
+    is_published: false,
+  });
+
+  const persistDraft = async (): Promise<string | null> => {
+    if (!user) return null;
+    const payload = buildDraftPayload();
+    try {
+      if (draftId) {
+        const { error } = await db.from('dkai_products').update(payload).eq('id', draftId);
+        if (error) throw error;
+        return draftId;
+      } else {
+        const { data, error } = await db
+          .from('dkai_products')
+          .insert(payload)
+          .select('id')
+          .single();
+        if (error) throw error;
+        setDraftId(data.id);
+        return data.id;
+      }
+    } catch (e: any) {
+      console.error('Draft save failed', e);
+      throw e;
+    }
+  };
+
+  const handleSaveAndExit = async () => {
+    setIsSavingDraft(true);
+    try {
+      await persistDraft();
+      toast.success('Draft saved. You can resume anytime.');
+      navigate('/seller-dashboard');
+    } catch (e: any) {
+      toast.error(e.message || 'Could not save draft');
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
 
   const handleChange = (field: string, value: any) => {
     if (field.endsWith('Error')) {
@@ -225,12 +367,18 @@ export default function CreateProduct() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep((prev) => Math.min(prev + 1, STEPS.length));
-    } else {
+  const handleNext = async () => {
+    if (!validateStep(currentStep)) {
       toast.error('Please fix the errors before continuing');
+      return;
     }
+    try {
+      await persistDraft();
+    } catch (e: any) {
+      toast.error(e.message || 'Could not save progress');
+      return;
+    }
+    setCurrentStep((prev) => Math.min(prev + 1, STEPS.length));
   };
 
   const handleBack = () => {
@@ -281,15 +429,19 @@ export default function CreateProduct() {
   };
 
   const handleSubmit = async () => {
-    if (!validateStep(currentStep)) {
-      toast.error('Please fix the errors before submitting');
-      return;
+    // Re-validate every required step before submitting
+    for (let s = 1; s <= STEPS.length; s++) {
+      if (!validateStep(s)) {
+        setCurrentStep(s);
+        toast.error(`Please complete step ${s} before submitting`);
+        return;
+      }
     }
 
     setIsSubmitting(true);
 
     try {
-      let imageUrl = null;
+      let imageUrl: string | null = null;
 
       if (images.length > 0) {
         const firstImage = images[0];
@@ -318,63 +470,32 @@ export default function CreateProduct() {
         if (formData.iban) {
           profileUpdates.iban_for_withdrawal = formData.iban;
         }
-
         if (Object.keys(profileUpdates).length > 0) {
-          await db
-            .from('dkai_profiles')
-            .update(profileUpdates)
-            .eq('id', user!.id);
+          await db.from('dkai_profiles').update(profileUpdates).eq('id', user!.id);
         }
       }
 
-      const { error } = await db
-        .from('dkai_products')
-        .insert({
-          seller_id: user!.id,
-          title: formData.title,
-          description: formData.description,
-          product_type: formData.product_type,
-          demo_url: formData.demo_url || null,
-          price: parseFloat(formData.price),
-          pricing_model: formData.pricing_model,
-          features: formData.features,
-          tags: formData.tags,
-          purpose: formData.purpose,
-          target_audience: formData.target_audience,
-          value_proposition: formData.value_proposition,
-          problem_solved: formData.problem_solved,
-          product_version: formData.product_version || null,
-          access_details: formData.access_details || null,
-          estimated_delivery: formData.estimated_delivery || null,
-          production_cost: formData.production_cost ? parseFloat(formData.production_cost) : null,
-          available_quantity: formData.available_quantity ? parseInt(formData.available_quantity) : null,
-          refund_policy: formData.refund_policy || null,
-          video_url: formData.video_url || null,
-          image_url: imageUrl,
-          payment_methods: formData.payment_methods,
-          faqs: formData.faqs,
-          delivery_mode: formData.delivery_mode,
-          file_storage_key: uploadedFile?.path || null,
-          file_size_bytes: uploadedFile?.size || null,
-          file_scan_status: uploadedFile?.scanStatus || null,
-          seller_accepted_terms: formData.seller_accepted_terms,
-          return_allowed: formData.return_allowed,
-          return_window_days: formData.return_allowed ? formData.return_window_days : 1,
-          return_fee_enabled: formData.return_fee_enabled,
-          return_fee_percentage: formData.return_fee_enabled ? formData.return_fee_percentage : 0,
-          return_conditions: formData.return_conditions || null,
-          is_published: false,
-          moderation_status: 'pending',
-          approval_status: 'pending',
-        });
+      // Ensure a draft row exists, then promote it to 'pending'
+      const id = draftId ?? (await persistDraft());
+      if (!id) throw new Error('Could not create product draft');
 
+      const submitPayload: any = {
+        ...buildDraftPayload(),
+        status: 'pending',
+        is_published: false,
+        moderation_status: 'pending',
+        approval_status: 'pending',
+      };
+      if (imageUrl) submitPayload.image_url = imageUrl;
+
+      const { error } = await db.from('dkai_products').update(submitPayload).eq('id', id);
       if (error) throw error;
 
-      toast.success('Product created! Awaiting admin approval.');
+      toast.success('Product submitted! Awaiting admin approval.');
       navigate('/seller-dashboard');
     } catch (error: any) {
-      console.error('Error creating product:', error);
-      toast.error(error.message || 'Failed to create product');
+      console.error('Error submitting product:', error);
+      toast.error(error.message || 'Failed to submit product');
     } finally {
       setIsSubmitting(false);
     }
@@ -446,11 +567,19 @@ export default function CreateProduct() {
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-3xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Create New Product</h1>
-          <p className="text-muted-foreground">
-            Complete all steps to list your product for sale
-          </p>
+        <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Create New Product</h1>
+            <p className="text-muted-foreground">
+              Required fields are marked with <span className="text-destructive">*</span>. Optional fields are labeled "(Optional)".
+              Your progress is saved as a draft after each step — you can leave and come back anytime.
+            </p>
+          </div>
+          {draftId && (
+            <span className="text-xs px-2 py-1 rounded bg-muted text-muted-foreground self-start">
+              Draft saved
+            </span>
+          )}
         </div>
 
         <Card className="mb-6">
@@ -543,27 +672,38 @@ export default function CreateProduct() {
               )}
             </div>
 
-            <div className="flex justify-between mt-8">
+            <div className="flex justify-between items-center mt-8 gap-2 flex-wrap">
               <Button
                 variant="outline"
                 onClick={handleBack}
-                disabled={currentStep === 1 || isSubmitting}
+                disabled={currentStep === 1 || isSubmitting || isSavingDraft}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
 
-              {currentStep < STEPS.length ? (
-                <Button onClick={handleNext} disabled={isSubmitting}>
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4" />
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={handleSaveAndExit}
+                  disabled={isSubmitting || isSavingDraft}
+                >
+                  {isSavingDraft && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save draft & exit
                 </Button>
-              ) : (
-                <Button onClick={handleSubmit} disabled={isSubmitting}>
-                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Submit for Approval
-                </Button>
-              )}
+
+                {currentStep < STEPS.length ? (
+                  <Button onClick={handleNext} disabled={isSubmitting || isSavingDraft}>
+                    Next
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button onClick={handleSubmit} disabled={isSubmitting || isSavingDraft}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Submit for Approval
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

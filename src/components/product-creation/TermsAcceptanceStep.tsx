@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Loader2, FileText } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 interface TermsAcceptanceStepProps {
   data: any;

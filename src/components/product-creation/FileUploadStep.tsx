@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, File, CheckCircle, AlertCircle, Loader2, X } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 interface FileUploadStepProps {
   data: any;

@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Clock, DollarSign, Globe, Plus, Save, Trash2, Users, Video, CalendarDays, MessageSquareText, AlertTriangle, CreditCard } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 const DAYS_OF_WEEK = [
   { value: 0, label: 'Sunday' },

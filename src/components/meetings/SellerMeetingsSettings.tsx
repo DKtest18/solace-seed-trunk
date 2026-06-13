@@ -775,6 +775,7 @@ function MeetingTypeDialog({
   isLoading: boolean;
 }) {
   const { user } = useAuth();
+  const { feePct, sellerPct } = usePlatformFee();
   const [type, setType] = useState<MeetingType>(() => meetingType || {
     seller_id: user?.id || '',
     name: '',

@@ -22,12 +22,6 @@ import Feed from "./pages/Feed";
 import CreateProduct from "./pages/CreateProduct";
 import EditProduct from "./pages/EditProduct";
 import MyProducts from "./pages/MyProducts";
-import ProductCreationChecklist from "./pages/ProductCreationChecklist";
-import ProductCreationBasic from "./pages/ProductCreationSteps/BasicInfoStep";
-import ProductCreationImages from "./pages/ProductCreationSteps/ImagesStep";
-import ProductCreationPricing from "./pages/ProductCreationSteps/PricingStep";
-import ProductCreationPayment from "./pages/ProductCreationSteps/PaymentStep";
-import ProductCreationReview from "./pages/ProductCreationSteps/ReviewStep";
 import SellerDashboard from "./pages/SellerDashboard";
 import SellerOrders from "./pages/SellerOrders";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -151,14 +145,7 @@ const App = () => (
             <Route path="/top-sellers" element={<WaitlistGuard><TopSellers /></WaitlistGuard>} />
             <Route path="/statistics" element={<WaitlistGuard><Statistics /></WaitlistGuard>} />
             <Route path="/admin/waitlist" element={<AdminRouteGuard><AdminWaitlist /></AdminRouteGuard>} />
-            <Route path="/create-product" element={<Seller2FAGuard><ProductCreationChecklist /></Seller2FAGuard>} />
-            <Route path="/create-product/basic" element={<Seller2FAGuard><ProductCreationBasic /></Seller2FAGuard>} />
-            <Route path="/create-product/images" element={<Seller2FAGuard><ProductCreationImages /></Seller2FAGuard>} />
-            <Route path="/create-product/pricing" element={<Seller2FAGuard><ProductCreationPricing /></Seller2FAGuard>} />
-            <Route path="/create-product/payment" element={<Seller2FAGuard><ProductCreationPayment /></Seller2FAGuard>} />
-            <Route path="/create-product/features" element={<Seller2FAGuard><CreateProduct /></Seller2FAGuard>} />
-            <Route path="/create-product/details" element={<Seller2FAGuard><CreateProduct /></Seller2FAGuard>} />
-            <Route path="/create-product/review" element={<Seller2FAGuard><ProductCreationReview /></Seller2FAGuard>} />
+            <Route path="/create-product" element={<Seller2FAGuard><CreateProduct /></Seller2FAGuard>} />
             <Route path="/edit-product/:id" element={<Seller2FAGuard><EditProduct /></Seller2FAGuard>} />
             <Route path="/seller-dashboard/products" element={<Seller2FAGuard><MyProducts /></Seller2FAGuard>} />
             <Route path="/seller-dashboard" element={<Seller2FAGuard><SellerDashboard /></Seller2FAGuard>} />

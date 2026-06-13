@@ -54,6 +54,9 @@ export default function CreateProduct() {
     return stepParam ? Math.min(Math.max(parseInt(stepParam, 10) || 1, 1), STEPS.length) : 1;
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const [draftLoaded, setDraftLoaded] = useState(false);
   const [showSellerRules, setShowSellerRules] = useState(false);
 
   // Sync step from URL param

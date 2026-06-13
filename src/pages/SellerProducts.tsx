@@ -88,7 +88,11 @@ export default function SellerProducts() {
   const { data: products, isLoading, refetch } = useSellerProducts(user?.id);
   const { data: analytics } = useAllProductsAnalytics(user?.id);
 
-  const [tab, setTab] = useState<Bucket>('draft');
+  const [searchParams] = useSearchParams();
+  const initialTab = (searchParams.get('tab') as Bucket) || 'draft';
+  const [tab, setTab] = useState<Bucket>(
+    (['draft', 'in_review', 'published', 'rejected'] as Bucket[]).includes(initialTab) ? initialTab : 'draft'
+  );
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showDelete, setShowDelete] = useState(false);
 

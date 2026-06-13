@@ -30,6 +30,7 @@ const RETURN_WINDOW_OPTIONS = [
 ];
 
 export function ReturnPolicyStep({ data, onChange, errors }: ReturnPolicyStepProps) {
+  const { feePct, sellerPct } = usePlatformFee();
   return (
     <div className="space-y-6">
       <div>

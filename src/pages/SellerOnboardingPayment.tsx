@@ -270,7 +270,7 @@ export default function SellerOnboardingPayment() {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">Stripe Payment Settings</h1>
           <p className="text-muted-foreground">
-            Connect your Stripe account to receive payments. All transactions are processed exclusively via Stripe. 90% goes to you, 10% platform fee.
+            Connect your Stripe account to receive payments. All transactions are processed exclusively via Stripe. {sellerPct}% goes to you, {feePct}% platform fee.
           </p>
         </div>
 

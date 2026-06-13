@@ -3,6 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, File, X, AlertCircle, Info, BookOpen, FileText, CheckSquare } from 'lucide-react';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 interface DeliveryFile {
   file: File;

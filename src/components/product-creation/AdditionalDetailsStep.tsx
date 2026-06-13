@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Info } from 'lucide-react';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 interface AdditionalDetailsStepProps {
   data: {

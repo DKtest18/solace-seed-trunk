@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { useNavigate } from 'react-router-dom';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 interface PaymentOptionsStepProps {
   data: {

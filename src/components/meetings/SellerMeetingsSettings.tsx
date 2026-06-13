@@ -86,6 +86,7 @@ interface MeetingType {
 }
 
 export function SellerMeetingsSettings() {
+  const { feePct, sellerPct } = usePlatformFee();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [config, setConfig] = useState<MeetingConfig | null>(null);

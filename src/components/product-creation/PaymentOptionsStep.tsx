@@ -19,6 +19,7 @@ interface PaymentOptionsStepProps {
 export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsStepProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { feePct, sellerPct } = usePlatformFee();
 
   // Fetch seller's Stripe Connect status
   const { data: stripeConfig, isLoading } = useQuery({

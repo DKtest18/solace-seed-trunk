@@ -20,6 +20,7 @@ import { useLocation } from 'react-router-dom';
 const sellerMenuItems = [
   { title: 'Dashboard', url: '/seller-dashboard', icon: LayoutDashboard, end: true },
   { title: 'Orders', url: '/seller-orders', icon: Package },
+  { title: 'Products', url: '/seller-products', icon: Boxes },
   { title: 'Create Product', url: '/create-product', icon: Plus },
   { title: 'Meetings', url: '/seller-dashboard/meetings', icon: Calendar },
   { title: 'Portfolio', url: '/seller-dashboard/portfolio', icon: Briefcase },

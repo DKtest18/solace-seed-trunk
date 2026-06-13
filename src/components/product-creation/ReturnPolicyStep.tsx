@@ -5,6 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertCircle, Info, ShieldCheck, Clock, DollarSign } from 'lucide-react';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 interface ReturnPolicyStepProps {
   data: {

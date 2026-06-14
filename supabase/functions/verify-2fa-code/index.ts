@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
 
     const admin = getServiceClient();
 
-    // --- Rate Limiting: check recent failed attempts ---
+
     const windowStart = new Date(Date.now() - LOCKOUT_MINUTES * 60 * 1000).toISOString();
     const { count: failCount } = await admin
       .from('dkai_rate_limits')

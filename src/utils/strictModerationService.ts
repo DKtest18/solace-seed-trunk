@@ -32,7 +32,7 @@ export interface ModerationResult {
   content_hash?: string;
 }
 
-// ============ PATTERN DEFINITIONS ============
+
 
 // CRITICAL: Sexual content involving minors - instant ban
 const MINOR_SAFETY_PATTERNS = [
@@ -296,7 +296,7 @@ const ILLEGAL_PATTERNS = [
   /\bblackmail/gi,
 ];
 
-// ============ MULTILINGUAL PATTERNS ============
+
 
 // German/Swiss-German profanity and threats
 const GERMAN_PATTERNS = [
@@ -397,7 +397,7 @@ const ITALIAN_PATTERNS = [
   /\bcoglione\b/gi,
 ];
 
-// ============ MODERATION FUNCTION ============
+
 
 interface ModerationContext {
   type: 'message' | 'post' | 'comment' | 'review' | 'listing';

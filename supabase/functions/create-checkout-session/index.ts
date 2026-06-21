@@ -16,6 +16,7 @@ import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
 // Fallback fee if seller profile has no platform_fee_percent set.
 const DEFAULT_PLATFORM_FEE_PERCENT = 5;
+const LAUNCH_PROMO_SALES_LIMIT = 20;
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);

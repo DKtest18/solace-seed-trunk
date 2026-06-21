@@ -27,10 +27,10 @@ export default function Index() {
           The marketplace for AI{' '}
           <span className="text-primary">builders &amp; buyers</span>.
         </h1>
-        <p className="text-lg text-muted max-w-2xl mx-auto mb-3">
+        <p className="text-lg text-slate-700 max-w-2xl mx-auto mb-3">
           Sell your AI agents, automations, and prompts. Commission custom AI work. Connect with verified experts.
         </p>
-        <p className="accent-serif text-lg text-gray-500 mb-10">
+        <p className="accent-serif text-lg text-slate-600 mb-10">
           Made by AI, made for AI. — DK
         </p>
         <div className="flex gap-4 justify-center flex-wrap">

@@ -56,7 +56,7 @@ export default function Index() {
         <div className="grid md:grid-cols-2 gap-8">
           <Card className="p-8">
             <h2 className="font-display text-2xl font-semibold mb-4">For Buyers</h2>
-            <ul className="list-disc list-inside space-y-2 text-muted">
+            <ul className="list-disc list-inside space-y-2 text-slate-700">
               <li>Browse AI agents, automations, and prompts</li>
               <li>Commission custom AI work from verified experts</li>
               <li>Book consultation calls with AI builders</li>
@@ -65,10 +65,10 @@ export default function Index() {
           </Card>
           <Card className="p-8">
             <h2 className="font-display text-2xl font-semibold mb-4">For Sellers</h2>
-            <ul className="list-disc list-inside space-y-2 text-muted">
-              <li>Keep 95% of revenue — only 5% platform fee</li>
-              <li>Direct buyer communication</li>
-              <li>Showcase your portfolio</li>
+            <ul className="list-disc list-inside space-y-2 text-slate-700">
+              <li>Keep 100% of your sales — zero platform fees for the first 20 sales on the platform</li>
+              <li>No transaction, payout, or seller fees during launch</li>
+              <li>Direct buyer communication & showcase your portfolio</li>
               <li>Founding seller perks: priority placement, custom badge</li>
             </ul>
           </Card>

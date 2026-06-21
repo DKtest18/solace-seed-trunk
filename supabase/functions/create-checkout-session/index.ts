@@ -61,9 +61,20 @@ Deno.serve(async (req) => {
       .select('platform_fee_percent, seller_type')
       .eq('id', product.seller_id)
       .single();
-    const feePercent = Number(
+    const sellerFeePercent = Number(
       sellerProfile?.platform_fee_percent ?? DEFAULT_PLATFORM_FEE_PERCENT
     );
+
+    // LAUNCH PROMO: while the platform has < 20 completed sales TOTAL across
+    // all sellers, application_fee_amount = 0 (sellers keep 100%). After 20
+    // completed platform sales, the per-seller platform_fee_percent kicks in.
+    const { count: platformSalesCount } = await admin
+      .from('dkai_orders')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['completed', 'delivered', 'released']);
+    const launchPromoActive =
+      (platformSalesCount ?? 0) < LAUNCH_PROMO_SALES_LIMIT;
+    const feePercent = launchPromoActive ? 0 : sellerFeePercent;
     const feeRate = Math.max(0, Math.min(100, feePercent)) / 100;
 
     const priceCents = Math.round(Number(product.price) * 100);

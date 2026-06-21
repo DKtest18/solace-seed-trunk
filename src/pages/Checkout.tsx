@@ -11,6 +11,7 @@ import { Loader2, CreditCard, ExternalLink, Shield } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BuyerPolicyAcceptance } from "@/components/BuyerPolicyAcceptance";
 import { useBuyerPolicy } from "@/hooks/useBuyerPolicy";
+import { usePlatformFee } from "@/hooks/usePlatformFee";
 
 export default function Checkout() {
   const [searchParams] = useSearchParams();

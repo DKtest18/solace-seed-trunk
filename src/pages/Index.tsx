@@ -145,8 +145,8 @@ export default function Index() {
         <h2 className="text-3xl font-display font-semibold mb-4">
           Be one of the first 10 founding sellers.
         </h2>
-        <p className="text-muted mb-8">
-          We&apos;re pre-launch. Founding sellers keep their 95% revenue share for life and get a permanent badge on their profile.
+        <p className="text-slate-700 mb-8">
+          We&apos;re pre-launch. The first 20 sales on the whole platform are 100% fee-free for sellers, and founding sellers get a permanent badge on their profile.
         </p>
         <Button asChild variant="hero">
           <Link to="/signup">Apply as Founding Seller</Link>

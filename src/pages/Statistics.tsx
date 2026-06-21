@@ -394,7 +394,7 @@ export default function Statistics() {
                 <div className="text-2xl font-bold" style={{ color: CHART_COLORS.profit }}>
                   ${stats?.totalProfit?.toFixed(2) || '0.00'}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">{t('stats.platformFees') || '5% platform fees'}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('stats.platformFees') || 'Platform fees collected'}</p>
               </CardContent>
             </Card>
 

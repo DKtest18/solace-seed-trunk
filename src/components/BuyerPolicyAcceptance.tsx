@@ -29,6 +29,8 @@ export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAccept
   const [accepted, setAccepted] = useState(false);
   const [withdrawalWaiver, setWithdrawalWaiver] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { feePct, sellerPct, launchPromoActive, promoBanner } = usePlatformFee();
+  const BUYER_POLICIES = buildPolicies(sellerPct, feePct);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;

@@ -189,8 +189,8 @@ export default function Checkout() {
                     <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
                       <p>✓ Secure Stripe Checkout</p>
                       <p>✓ No card data stored on this website</p>
-                      <p>✓ 95% goes directly to seller's Stripe account</p>
-                      <p>✓ 5% platform fee</p>
+                      <p>✓ {sellerPct}% goes directly to seller's Stripe account</p>
+                      <p>✓ {feePct}% platform fee{launchPromoActive ? ' (launch promo: 0% for first 20 platform sales)' : ''}</p>
                       <p>✓ Instant payment confirmation</p>
                     </div>
                   </>

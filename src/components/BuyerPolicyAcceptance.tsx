@@ -4,16 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Shield, AlertTriangle, Info } from 'lucide-react';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 interface BuyerPolicyAcceptanceProps {
   onAccept: () => void;
   isLoading?: boolean;
 }
 
-const BUYER_POLICIES = [
+const buildPolicies = (sellerPct: number, feePct: number) => [
   "No refunds without valid reason - you must provide evidence if claiming product issues",
   "No abuse of the dispute system - false claims may result in account suspension",
-  "Payment is held in escrow (on Stripe) until you confirm receipt of the product. 95% goes to the seller and 5% to the platform only after the return window expires.",
+  `Payment is held in escrow (on Stripe) until you confirm receipt of the product. ${sellerPct}% goes to the seller and ${feePct}% to the platform only after the return window expires.`,
   "You must treat sellers fairly within the platform",
   "You must provide evidence (screenshots, logs) when claiming a product is defective",
   "The return window is set by the seller (minimum 24 hours, maximum 90 days). You can return the product within this period and receive a 100% refund to your original payment method.",

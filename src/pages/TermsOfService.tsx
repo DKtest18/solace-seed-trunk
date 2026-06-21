@@ -228,9 +228,9 @@ export default function TermsOfService() {
                 9. Plattformgebuehr / Platform Fee
               </h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>5% Plattformgebuehr auf jede Transaktion</li>
-                <li>Verkaeufer erhaelt 95%</li>
-                <li>Founding Sellers (erste 10) behalten 95% lebenslang</li>
+                <li>Launch-Promo: 0% Plattformgebuehr fuer die ersten 20 Verkaeufe auf der Plattform — Verkaeufer erhalten 100%</li>
+                <li>Danach: Plattformgebuehr (Standard 5%) pro Transaktion</li>
+                <li>Founding Sellers (erste 10) behalten ihre Sonderkondition lebenslang</li>
                 <li>Stripe-Gebuehren separat (~1.5% + EUR 0.25)</li>
               </ul>
             </section>

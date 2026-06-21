@@ -77,8 +77,8 @@ export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAccept
               <h4 className="font-semibold mb-2">Escrow Protection & Payment</h4>
               <p className="text-sm text-muted-foreground">
                 Your payment is protected through Stripe escrow. Funds are held securely 
-                and only released after the return window expires. The seller receives 95% and 
-                5% goes to the platform. If you return within the valid window, you receive 
+                and only released after the return window expires. The seller receives {sellerPct}% and 
+                {feePct}% goes to the platform.{launchPromoActive ? ` ${promoBanner}` : ''} If you return within the valid window, you receive 
                 a 100% refund to your original payment method.
               </p>
             </div>

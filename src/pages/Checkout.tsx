@@ -25,6 +25,7 @@ export default function Checkout() {
   const [showPayment, setShowPayment] = useState(false);
 
   const { hasAccepted: hasBuyerPolicyAccepted, isLoading: loadingPolicy, acceptPolicy, isAccepting } = useBuyerPolicy();
+  const { feePct, sellerPct, launchPromoActive, promoBanner } = usePlatformFee();
   const productId = searchParams.get("productId");
 
   useEffect(() => {

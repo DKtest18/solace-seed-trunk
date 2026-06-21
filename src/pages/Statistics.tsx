@@ -407,7 +407,7 @@ export default function Statistics() {
                 <div className="text-2xl font-bold" style={{ color: CHART_COLORS.costs }}>
                   ${stats?.totalCosts?.toFixed(2) || '0.00'}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">{t('stats.paidToSellers') || '95% paid to sellers'}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('stats.paidToSellers') || 'Paid out to sellers'}</p>
               </CardContent>
             </Card>
 

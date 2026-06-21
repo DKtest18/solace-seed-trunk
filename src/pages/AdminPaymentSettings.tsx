@@ -173,7 +173,7 @@ export default function AdminPaymentSettings() {
         <Alert className="mb-6">
           <Shield className="h-4 w-4" />
           <AlertDescription>
-            Admin IBAN is encrypted and stored securely. The platform fee (default 5%) is sent to this IBAN.
+            Admin IBAN is encrypted and stored securely. The platform fee (dynamic, currently 0% during the first 20 platform sales) is sent to this IBAN.
             If no admin IBAN is set, sellers receive 100% of payments.
           </AlertDescription>
         </Alert>
@@ -210,7 +210,7 @@ export default function AdminPaymentSettings() {
                   </Button>
                 </div>
                 <p className="text-sm text-green-600 dark:text-green-400">
-                  ✓ The platform fee (default 5%) of card payments is sent to this account
+                  ✓ The platform fee (dynamic, currently 0% during the first 20 platform sales) of card payments is sent to this account
                 </p>
               </div>
             ) : (

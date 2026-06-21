@@ -56,9 +56,9 @@ export default function SellerGuidelines() {
             <p>
               DK AI Marketplace is operated from Switzerland. We connect AI builders —
               companies and individuals — with buyers across the DACH region and beyond.
-              As a seller, you keep <strong>95% of every sale</strong>; we charge a
-              <strong> 5% platform fee</strong> only when you actually make a sale.
-              Listing is free.
+              As a launch promo, sellers <strong>keep 100% of every sale — zero platform fees
+              for the first 20 sales on the platform</strong>. After that, a small platform
+              fee (default 5%) applies only when you actually make a sale. Listing is always free.
             </p>
           </section>
 

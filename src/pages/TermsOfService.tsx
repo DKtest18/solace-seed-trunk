@@ -65,9 +65,10 @@ export default function TermsOfService() {
             <div className="bg-primary/10 border border-primary/30 p-6 mb-8 rounded-lg">
               <p className="text-base leading-relaxed text-foreground">
                 <strong>Quick summary:</strong> These are the rules for using DK AI Marketplace.
-                By signing up, you agree to them. The most important: we charge 5% on transactions,
-                sellers keep 95%, Swiss law applies, and we are a marketplace (not a party to your
-                transactions). Full details below.
+                By signing up, you agree to them. Launch promo: sellers keep 100% of every sale —
+                zero platform fees for the first 20 sales on the platform. After that, a small
+                platform fee (default 5%) applies. Swiss law applies, and we are a marketplace
+                (not a party to your transactions). Full details below.
               </p>
             </div>
 
@@ -227,9 +228,9 @@ export default function TermsOfService() {
                 9. Plattformgebuehr / Platform Fee
               </h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>5% Plattformgebuehr auf jede Transaktion</li>
-                <li>Verkaeufer erhaelt 95%</li>
-                <li>Founding Sellers (erste 10) behalten 95% lebenslang</li>
+                <li>Launch-Promo: 0% Plattformgebuehr fuer die ersten 20 Verkaeufe auf der Plattform — Verkaeufer erhalten 100%</li>
+                <li>Danach: Plattformgebuehr (Standard 5%) pro Transaktion</li>
+                <li>Founding Sellers (erste 10) behalten ihre Sonderkondition lebenslang</li>
                 <li>Stripe-Gebuehren separat (~1.5% + EUR 0.25)</li>
               </ul>
             </section>

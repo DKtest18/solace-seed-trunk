@@ -11,6 +11,7 @@ import { Loader2, CreditCard, ExternalLink, Shield } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BuyerPolicyAcceptance } from "@/components/BuyerPolicyAcceptance";
 import { useBuyerPolicy } from "@/hooks/useBuyerPolicy";
+import { usePlatformFee } from "@/hooks/usePlatformFee";
 
 export default function Checkout() {
   const [searchParams] = useSearchParams();
@@ -24,6 +25,7 @@ export default function Checkout() {
   const [showPayment, setShowPayment] = useState(false);
 
   const { hasAccepted: hasBuyerPolicyAccepted, isLoading: loadingPolicy, acceptPolicy, isAccepting } = useBuyerPolicy();
+  const { feePct, sellerPct, launchPromoActive, promoBanner } = usePlatformFee();
   const productId = searchParams.get("productId");
 
   useEffect(() => {
@@ -152,7 +154,7 @@ export default function Checkout() {
                   <span className="font-medium text-sm">Secure Payment</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  All payments are processed securely via Stripe. 95% goes to the seller, 5% platform fee.
+                  All payments are processed securely via Stripe. {sellerPct}% goes to the seller, {feePct}% platform fee.{launchPromoActive ? ` ${promoBanner}` : ''}
                 </p>
               </div>
             </div>
@@ -187,8 +189,8 @@ export default function Checkout() {
                     <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
                       <p>✓ Secure Stripe Checkout</p>
                       <p>✓ No card data stored on this website</p>
-                      <p>✓ 95% goes directly to seller's Stripe account</p>
-                      <p>✓ 5% platform fee</p>
+                      <p>✓ {sellerPct}% goes directly to seller's Stripe account</p>
+                      <p>✓ {feePct}% platform fee{launchPromoActive ? ' (launch promo: 0% for first 20 platform sales)' : ''}</p>
                       <p>✓ Instant payment confirmation</p>
                     </div>
                   </>

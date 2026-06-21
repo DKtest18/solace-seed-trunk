@@ -4,16 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Shield, AlertTriangle, Info } from 'lucide-react';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 interface BuyerPolicyAcceptanceProps {
   onAccept: () => void;
   isLoading?: boolean;
 }
 
-const BUYER_POLICIES = [
+const buildPolicies = (sellerPct: number, feePct: number) => [
   "No refunds without valid reason - you must provide evidence if claiming product issues",
   "No abuse of the dispute system - false claims may result in account suspension",
-  "Payment is held in escrow (on Stripe) until you confirm receipt of the product. 95% goes to the seller and 5% to the platform only after the return window expires.",
+  `Payment is held in escrow (on Stripe) until you confirm receipt of the product. ${sellerPct}% goes to the seller and ${feePct}% to the platform only after the return window expires.`,
   "You must treat sellers fairly within the platform",
   "You must provide evidence (screenshots, logs) when claiming a product is defective",
   "The return window is set by the seller (minimum 24 hours, maximum 90 days). You can return the product within this period and receive a 100% refund to your original payment method.",
@@ -28,6 +29,8 @@ export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAccept
   const [accepted, setAccepted] = useState(false);
   const [withdrawalWaiver, setWithdrawalWaiver] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { feePct, sellerPct, launchPromoActive, promoBanner } = usePlatformFee();
+  const BUYER_POLICIES = buildPolicies(sellerPct, feePct);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
@@ -74,8 +77,8 @@ export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAccept
               <h4 className="font-semibold mb-2">Escrow Protection & Payment</h4>
               <p className="text-sm text-muted-foreground">
                 Your payment is protected through Stripe escrow. Funds are held securely 
-                and only released after the return window expires. The seller receives 95% and 
-                5% goes to the platform. If you return within the valid window, you receive 
+                and only released after the return window expires. The seller receives {sellerPct}% and 
+                {feePct}% goes to the platform.{launchPromoActive ? ` ${promoBanner}` : ''} If you return within the valid window, you receive 
                 a 100% refund to your original payment method.
               </p>
             </div>

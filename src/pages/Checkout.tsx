@@ -154,7 +154,7 @@ export default function Checkout() {
                   <span className="font-medium text-sm">Secure Payment</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  All payments are processed securely via Stripe. 95% goes to the seller, 5% platform fee.
+                  All payments are processed securely via Stripe. {sellerPct}% goes to the seller, {feePct}% platform fee.{launchPromoActive ? ` ${promoBanner}` : ''}
                 </p>
               </div>
             </div>

@@ -2,6 +2,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Switch } from '@/components/ui/switch';
 import { AlertCircle, Info } from 'lucide-react';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
 
@@ -14,8 +15,11 @@ interface AdditionalDetailsStepProps {
     available_quantity: string;
     refund_policy: string;
     video_url: string;
+    sample_preview_url?: string;
+    sample_output_text?: string;
+    sample_is_watermarked?: boolean;
   };
-  onChange: (field: string, value: string) => void;
+  onChange: (field: string, value: any) => void;
   errors: Record<string, string>;
 }
 

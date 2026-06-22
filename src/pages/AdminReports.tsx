@@ -38,8 +38,7 @@ export default function AdminReports() {
   const { data: reports, isLoading, refetch } = useQuery({
     queryKey: ["admin-reports", statusFilter],
     queryFn: async () => {
-      let query = supabase
-        .from("reports")
+      let query = (supabase.from as any)("dkai_reports")
         .select("*")
         .order("created_at", { ascending: false });
 
@@ -49,14 +48,13 @@ export default function AdminReports() {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 
   const handleResolve = async (reportId: string, action: "resolved" | "dismissed") => {
     try {
-      const { error } = await supabase
-        .from("reports")
+      const { error } = await (supabase.from as any)("dkai_reports")
         .update({
           status: action,
           admin_notes: adminNotes,
@@ -146,7 +144,7 @@ export default function AdminReports() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Reports</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="open">Open</SelectItem>
               <SelectItem value="reviewing">Under Review</SelectItem>
               <SelectItem value="resolved">Resolved</SelectItem>
               <SelectItem value="dismissed">Dismissed</SelectItem>
@@ -168,13 +166,14 @@ export default function AdminReports() {
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant={
-                        report.status === "pending" ? "default" :
+                        report.status === "open" ? "default" :
                         report.status === "reviewing" ? "secondary" :
                         report.status === "resolved" ? "outline" : "destructive"
                       }>
                         {report.status}
                       </Badge>
                       <Badge>{report.reason}</Badge>
+                      <Badge variant="outline">{report.report_type}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Reported {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
@@ -213,12 +212,12 @@ export default function AdminReports() {
                         <X className="w-4 h-4 mr-1" />
                         Dismiss
                       </Button>
-                      {report.target_user_id && (
+                      {report.reported_user_id && (
                         <>
                           <Button
                             size="sm"
                             variant="secondary"
-                            onClick={() => openSanctionModal(report.target_user_id, "warn")}
+                            onClick={() => openSanctionModal(report.reported_user_id, "warn")}
                           >
                             <AlertTriangle className="w-4 h-4 mr-1" />
                             Warn
@@ -226,7 +225,7 @@ export default function AdminReports() {
                           <Button
                             size="sm"
                             variant="secondary"
-                            onClick={() => openSanctionModal(report.target_user_id, "suspend")}
+                            onClick={() => openSanctionModal(report.reported_user_id, "suspend")}
                           >
                             <Clock className="w-4 h-4 mr-1" />
                             Temp Ban
@@ -234,7 +233,7 @@ export default function AdminReports() {
                           <Button
                             size="sm"
                             variant="destructive"
-                            onClick={() => openSanctionModal(report.target_user_id, "ban")}
+                            onClick={() => openSanctionModal(report.reported_user_id, "ban")}
                           >
                             <Ban className="w-4 h-4 mr-1" />
                             Perm Ban
@@ -242,7 +241,7 @@ export default function AdminReports() {
                           <Button
                             size="sm"
                             variant="destructive"
-                            onClick={() => openSanctionModal(report.target_user_id, "delete")}
+                            onClick={() => openSanctionModal(report.reported_user_id, "delete")}
                           >
                             <Trash2 className="w-4 h-4 mr-1" />
                             Delete
@@ -258,7 +257,7 @@ export default function AdminReports() {
                       </Button>
                     </div>
                   </div>
-                ) : report.status === "pending" && (
+                ) : report.status === "open" && (
                   <Button
                     size="sm"
                     variant="outline"

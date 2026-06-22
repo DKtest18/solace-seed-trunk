@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Plus, MessageSquare, DollarSign, Settings, BarChart3, Bell, Wallet, Trophy, Calendar, Briefcase, Boxes } from 'lucide-react';
+import { LayoutDashboard, Package, Plus, MessageSquare, DollarSign, Settings, BarChart3, Bell, Wallet, Trophy, Calendar, Briefcase, Boxes, Tag, Palette } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -30,6 +30,8 @@ const sellerMenuItems = [
   { title: 'Earnings', url: '/earnings', icon: DollarSign },
   { title: 'Payouts', url: '/payouts', icon: Wallet },
   { title: 'Analytics', url: '/seller-dashboard/analytics', icon: BarChart3 },
+  { title: 'Coupons', url: '/seller-dashboard/coupons', icon: Tag },
+  { title: 'Storefront', url: '/seller-dashboard/storefront', icon: Palette },
   { title: 'Payment Settings', url: '/seller-onboarding/payment', icon: Settings },
 ];
 

@@ -1,15 +1,37 @@
-import { CheckCircle2 } from "lucide-react";
+import { BadgeCheck, Sparkles } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-interface VerifiedBadgeProps {
-  className?: string;
-}
+type Props = {
+  verified?: boolean;
+  founding?: boolean;
+  size?: "sm" | "md";
+};
 
-export function VerifiedBadge({ className = "" }: VerifiedBadgeProps) {
+/**
+ * VerifiedBadge - shows trust signals on profiles & product cards.
+ * - `verified`: seller has completed KYC / Stripe onboarding.
+ * - `founding`: dkai_profiles.seller_type === 'founding'.
+ */
+export function VerifiedBadge({ verified, founding, size = "sm" }: Props) {
+  const iconSize = size === "sm" ? "h-4 w-4" : "h-5 w-5";
   return (
-    <span className="inline-flex items-center" title="Verified Email">
-      <CheckCircle2 
-        className={`h-4 w-4 text-primary ${className}`}
-      />
+    <span className="inline-flex items-center gap-1 align-middle">
+      {verified && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <BadgeCheck className={`${iconSize} text-blue-600`} aria-label="Verified seller" />
+          </TooltipTrigger>
+          <TooltipContent>Verified seller — identity & payout account confirmed</TooltipContent>
+        </Tooltip>
+      )}
+      {founding && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Sparkles className={`${iconSize} text-amber-500`} aria-label="Founding seller" />
+          </TooltipTrigger>
+          <TooltipContent>Founding seller — one of the first on DK AI Marketplace</TooltipContent>
+        </Tooltip>
+      )}
     </span>
   );
 }

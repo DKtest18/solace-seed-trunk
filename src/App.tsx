@@ -81,6 +81,8 @@ import JoinMeetingByCode from "./pages/JoinMeetingByCode";
 import PublicBookingPage from "./pages/PublicBookingPage";
 import MeetingInviteResponse from "./pages/MeetingInviteResponse";
 import SellerAnalytics from "./pages/SellerAnalytics";
+import SellerCoupons from "./pages/SellerCoupons";
+import SellerStorefrontSettings from "./pages/SellerStorefrontSettings";
 import { Seller2FAGuard } from "@/components/Seller2FAGuard";
 import { AdminRouteGuard } from "@/components/AdminRouteGuard";
 import { WaitlistGuard } from "@/components/WaitlistGuard";
@@ -153,6 +155,8 @@ const App = () => (
             <Route path="/seller-dashboard" element={<Seller2FAGuard><SellerDashboard /></Seller2FAGuard>} />
             <Route path="/seller-orders" element={<Seller2FAGuard><SellerOrders /></Seller2FAGuard>} />
             <Route path="/seller-dashboard/analytics" element={<Seller2FAGuard><SellerAnalytics /></Seller2FAGuard>} />
+            <Route path="/seller-dashboard/coupons" element={<Seller2FAGuard><SellerCoupons /></Seller2FAGuard>} />
+            <Route path="/seller-dashboard/storefront" element={<Seller2FAGuard><SellerStorefrontSettings /></Seller2FAGuard>} />
             <Route path="/admin" element={<AdminRouteGuard><AdminDashboard /></AdminRouteGuard>} />
             <Route path="/admin/transactions" element={<AdminRouteGuard><AdminTransactions /></AdminRouteGuard>} />
             <Route path="/purchases" element={<WaitlistGuard><PurchaseHistory /></WaitlistGuard>} />

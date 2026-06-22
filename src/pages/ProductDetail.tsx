@@ -186,7 +186,7 @@ export default function ProductDetail() {
           </Button>
 
           <section className="grid gap-8 lg:grid-cols-2 items-start">
-            {/* Left: Product Image */}
+            {/* Left: Product Image + Sample */}
             <div>
               {product.image_url ? (
                 <div className="aspect-video bg-muted overflow-hidden rounded-lg">
@@ -200,6 +200,31 @@ export default function ProductDetail() {
                 <div className="aspect-video rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
                   No image available
                 </div>
+              )}
+
+              {(product.sample_preview_url || product.sample_output_text) && (
+                <Card className="mt-4">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Preview / Sample</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {product.sample_preview_url && (
+                      <img
+                        src={product.sample_preview_url}
+                        alt="Product sample preview"
+                        className="rounded-md w-full max-h-80 object-contain bg-muted"
+                      />
+                    )}
+                    {product.sample_output_text && (
+                      <pre className="whitespace-pre-wrap text-sm bg-muted/50 p-3 rounded-md max-h-48 overflow-auto">
+                        {product.sample_output_text}
+                      </pre>
+                    )}
+                    {product.sample_is_watermarked && (
+                      <p className="text-xs text-muted-foreground">Watermarked sample — not the full deliverable.</p>
+                    )}
+                  </CardContent>
+                </Card>
               )}
             </div>
 

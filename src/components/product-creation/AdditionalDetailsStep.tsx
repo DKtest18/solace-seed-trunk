@@ -2,6 +2,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Switch } from '@/components/ui/switch';
 import { AlertCircle, Info } from 'lucide-react';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
 
@@ -14,8 +15,11 @@ interface AdditionalDetailsStepProps {
     available_quantity: string;
     refund_policy: string;
     video_url: string;
+    sample_preview_url?: string;
+    sample_output_text?: string;
+    sample_is_watermarked?: boolean;
   };
-  onChange: (field: string, value: string) => void;
+  onChange: (field: string, value: any) => void;
   errors: Record<string, string>;
 }
 
@@ -112,6 +116,42 @@ export function AdditionalDetailsStep({ data, onChange, errors }: AdditionalDeta
           onChange={(e) => onChange('refund_policy', e.target.value)}
           rows={3}
         />
+      </div>
+
+      <div className="space-y-3 border rounded-lg p-4 bg-blue-50/40">
+        <div>
+          <h4 className="font-semibold text-sm">Public sample / preview (optional)</h4>
+          <p className="text-xs text-muted-foreground">Show buyers a small preview before they purchase — image, screenshot, or sample output text. Builds trust and lifts conversion.</p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="sample_preview_url">Preview image URL</Label>
+          <Input
+            id="sample_preview_url"
+            type="url"
+            placeholder="https://..."
+            value={data.sample_preview_url ?? ''}
+            onChange={(e) => onChange('sample_preview_url', e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="sample_output_text">Sample output / excerpt</Label>
+          <Textarea
+            id="sample_output_text"
+            placeholder="Paste a short sample of what your product produces..."
+            value={data.sample_output_text ?? ''}
+            onChange={(e) => onChange('sample_output_text', e.target.value)}
+            rows={3}
+            maxLength={1000}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Switch
+            id="sample_is_watermarked"
+            checked={!!data.sample_is_watermarked}
+            onCheckedChange={(v) => onChange('sample_is_watermarked', v)}
+          />
+          <Label htmlFor="sample_is_watermarked" className="text-sm">Preview is watermarked / safe to share publicly</Label>
+        </div>
       </div>
 
       <Alert className="border-primary/30 bg-primary/5">

@@ -35,6 +35,8 @@ export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [reportOpen, setReportOpen] = useState(false);
+
 
   const {
     data: product,

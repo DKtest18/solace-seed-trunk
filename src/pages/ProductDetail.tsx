@@ -212,11 +212,25 @@ export default function ProductDetail() {
                 </p>
               )}
 
-              <div className="pt-4 flex gap-3">
+              <div className="pt-4 flex flex-wrap gap-3">
                 <Button size="lg" className="flex-1 sm:flex-initial" onClick={handlePurchase}>
                   Buy Now
                 </Button>
+                <Button size="lg" variant="outline" onClick={() => user ? setReportOpen(true) : navigate('/login')} className="gap-2">
+                  <Flag className="h-4 w-4" /> Report
+                </Button>
               </div>
+
+              {product?.id && (
+                <ReportDialog
+                  open={reportOpen}
+                  onOpenChange={setReportOpen}
+                  targetType="product"
+                  targetId={product.id}
+                  targetName={product.title}
+                />
+              )}
+
 
               {/* Seller Profile Card */}
               {sellerProfile && (

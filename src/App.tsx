@@ -81,6 +81,8 @@ import JoinMeetingByCode from "./pages/JoinMeetingByCode";
 import PublicBookingPage from "./pages/PublicBookingPage";
 import MeetingInviteResponse from "./pages/MeetingInviteResponse";
 import SellerAnalytics from "./pages/SellerAnalytics";
+import SellerCoupons from "./pages/SellerCoupons";
+import SellerStorefrontSettings from "./pages/SellerStorefrontSettings";
 import { Seller2FAGuard } from "@/components/Seller2FAGuard";
 import { AdminRouteGuard } from "@/components/AdminRouteGuard";
 import { WaitlistGuard } from "@/components/WaitlistGuard";

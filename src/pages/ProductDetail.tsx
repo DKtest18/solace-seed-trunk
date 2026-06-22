@@ -1,6 +1,6 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { db } from '@/lib/dkaiDb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { ProductReviews } from '@/components/ProductReviews';
 import { RatingDisplay } from '@/components/RatingDisplay';
 import { ReportDialog } from '@/components/ReportDialog';
+import { VerifiedBadge } from '@/components/VerifiedBadge';
 
 // Track product analytics
 const trackProductEvent = async (productId: string, eventType: 'view' | 'click', userId?: string, metadata?: any) => {
@@ -35,7 +36,22 @@ export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [reportOpen, setReportOpen] = useState(false);
+
+  // Capture referral ?ref=<code> for attribution + persist for checkout
+  useEffect(() => {
+    const ref = searchParams.get('ref');
+    if (!ref || !id) return;
+    sessionStorage.setItem(`ref_${id}`, ref);
+    const sessionId = sessionStorage.getItem('session_id') || crypto.randomUUID();
+    sessionStorage.setItem('session_id', sessionId);
+    db.from('dkai_referral_clicks').insert({
+      product_id: id,
+      referral_code: ref,
+      visitor_session: sessionId,
+    }).then(({ error }) => { if (error) console.warn('ref log failed', error); });
+  }, [searchParams, id]);
 
 
   const {
@@ -70,7 +86,7 @@ export default function ProductDetail() {
       
       const { data, error } = await db
         .from('dkai_profiles')
-        .select('id, full_name, avatar_url, username')
+        .select('id, full_name, avatar_url, username, verified, seller_type')
         .eq('id', product.seller_id)
         .single();
 
@@ -246,8 +262,12 @@ export default function ProductDetail() {
                         </Avatar>
                         <div>
                           <p className="text-sm text-muted-foreground">Seller</p>
-                          <p className="font-semibold hover:underline">
+                          <p className="font-semibold hover:underline inline-flex items-center gap-1">
                             {sellerProfile.full_name || sellerProfile.username || 'Unknown'}
+                            <VerifiedBadge
+                              verified={(sellerProfile as any).verified}
+                              founding={(sellerProfile as any).seller_type === 'founding'}
+                            />
                           </p>
                         </div>
                       </Link>

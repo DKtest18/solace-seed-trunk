@@ -30,6 +30,8 @@ const sellerMenuItems = [
   { title: 'Earnings', url: '/earnings', icon: DollarSign },
   { title: 'Payouts', url: '/payouts', icon: Wallet },
   { title: 'Analytics', url: '/seller-dashboard/analytics', icon: BarChart3 },
+  { title: 'Coupons', url: '/seller-dashboard/coupons', icon: Tag },
+  { title: 'Storefront', url: '/seller-dashboard/storefront', icon: Palette },
   { title: 'Payment Settings', url: '/seller-onboarding/payment', icon: Settings },
 ];
 

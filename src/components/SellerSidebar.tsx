@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Plus, MessageSquare, DollarSign, Settings, BarChart3, Bell, Wallet, Trophy, Calendar, Briefcase, Boxes } from 'lucide-react';
+import { LayoutDashboard, Package, Plus, MessageSquare, DollarSign, Settings, BarChart3, Bell, Wallet, Trophy, Calendar, Briefcase, Boxes, Tag, Palette } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { Badge } from '@/components/ui/badge';
 import {

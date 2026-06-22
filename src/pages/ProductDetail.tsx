@@ -186,7 +186,7 @@ export default function ProductDetail() {
           </Button>
 
           <section className="grid gap-8 lg:grid-cols-2 items-start">
-            {/* Left: Product Image */}
+            {/* Left: Product Image + Sample */}
             <div>
               {product.image_url ? (
                 <div className="aspect-video bg-muted overflow-hidden rounded-lg">
@@ -195,6 +195,12 @@ export default function ProductDetail() {
                     alt={product.title}
                     className="w-full h-full object-cover"
                   />
+                </div>
+              ) : (
+                <div className="aspect-video rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+                  No image available
+                </div>
+              )}
 
               {(product.sample_preview_url || product.sample_output_text) && (
                 <Card className="mt-4">
@@ -219,12 +225,6 @@ export default function ProductDetail() {
                     )}
                   </CardContent>
                 </Card>
-              )}
-            </div>
-              ) : (
-                <div className="aspect-video rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
-                  No image available
-                </div>
               )}
             </div>
 

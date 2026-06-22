@@ -24,6 +24,9 @@ export default function Checkout() {
   const [cardPaymentsAvailable, setCardPaymentsAvailable] = useState(false);
   const [checkingCardAvailability, setCheckingCardAvailability] = useState(true);
   const [showPayment, setShowPayment] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount_amount: number; new_total: number } | null>(null);
 
   const { hasAccepted: hasBuyerPolicyAccepted, isLoading: loadingPolicy, acceptPolicy, isAccepting } = useBuyerPolicy();
   const { feePct, sellerPct, launchPromoActive, promoBanner } = usePlatformFee();
@@ -80,12 +83,43 @@ export default function Checkout() {
     }
   };
 
+  const applyCoupon = async () => {
+    if (!couponCode.trim() || !product) return;
+    setCouponLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("validate-coupon", {
+        body: {
+          code: couponCode.trim().toUpperCase(),
+          seller_id: product.seller_id,
+          product_id: product.id,
+          subtotal: Number(product.price),
+        },
+      });
+      if (error) throw error;
+      if (!data?.valid) throw new Error(data?.error || "Invalid coupon");
+      setAppliedCoupon({
+        code: couponCode.trim().toUpperCase(),
+        discount_amount: Number(data.discount_amount),
+        new_total: Number(data.new_total),
+      });
+      toast.success(`Coupon applied: -$${Number(data.discount_amount).toFixed(2)}`);
+    } catch (e: any) {
+      setAppliedCoupon(null);
+      toast.error(e.message || "Could not apply coupon");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
   const handleCheckout = async () => {
     setProcessing(true);
     try {
+      const referralSource = sessionStorage.getItem(`ref_${product.id}`) || undefined;
       const { data, error } = await supabase.functions.invoke("create-checkout-session", {
         body: {
           productId: product.id,
+          couponCode: appliedCoupon?.code,
+          referralSource,
         },
       });
 
@@ -142,11 +176,40 @@ export default function Checkout() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Price</span>
-                <span className="font-medium">${product.price}</span>
+                <span className="font-medium">${Number(product.price).toFixed(2)}</span>
               </div>
+              {appliedCoupon && (
+                <div className="flex justify-between text-green-600">
+                  <span>Coupon ({appliedCoupon.code})</span>
+                  <span>-${appliedCoupon.discount_amount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-lg font-bold pt-4 border-t">
                 <span>Total</span>
-                <span>${product.price}</span>
+                <span>${(appliedCoupon ? appliedCoupon.new_total : Number(product.price)).toFixed(2)}</span>
+              </div>
+
+              <div className="pt-3 border-t space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Tag className="w-4 h-4" /> Have a coupon?
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="ENTER CODE"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    disabled={!!appliedCoupon || couponLoading}
+                  />
+                  {appliedCoupon ? (
+                    <Button variant="outline" onClick={() => { setAppliedCoupon(null); setCouponCode(""); }}>
+                      Remove
+                    </Button>
+                  ) : (
+                    <Button onClick={applyCoupon} disabled={!couponCode.trim() || couponLoading}>
+                      {couponLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Apply"}
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <div className="mt-4 p-3 bg-primary/10 rounded-lg">

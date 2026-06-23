@@ -35,16 +35,16 @@ export function Navbar() {
   const { hasRole: isAdmin } = useHasRole('admin');
   const [unreadCount, setUnreadCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [pendingWaitlist, setPendingWaitlist] = useState(0);
+  const [pendingProducts, setPendingProducts] = useState(0);
 
   useEffect(() => {
     if (!isAdmin) return;
     const loadPending = async () => {
       const { count } = await db
-        .from('dkai_waitlist')
+        .from('dkai_products')
         .select('id', { count: 'exact', head: true })
-        .eq('status', 'pending');
-      setPendingWaitlist(count || 0);
+        .eq('review_status', 'submitted');
+      setPendingProducts(count || 0);
     };
     loadPending();
     const interval = setInterval(loadPending, 60_000);

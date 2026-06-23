@@ -29,9 +29,12 @@ export default function Login() {
     if (prefill) setEmail(prefill);
   }, [searchParams]);
 
+  const redirectTo = searchParams.get('redirect');
+  const safeRedirect = redirectTo && redirectTo.startsWith('/') ? redirectTo : null;
+
   useEffect(() => {
-    if (user) navigate('/', { replace: true });
-  }, [user, navigate]);
+    if (user) navigate(safeRedirect ?? '/', { replace: true });
+  }, [user, navigate, safeRedirect]);
 
   const checkUserRoleAndRedirect = async (userId: string) => {
     const { data: roles } = await supabase
@@ -39,7 +42,7 @@ export default function Login() {
       .select('role')
       .eq('user_id', userId);
     const isAdmin = roles?.some(r => r.role === 'admin');
-    navigate(isAdmin ? '/admin' : '/');
+    navigate(safeRedirect ?? (isAdmin ? '/admin' : '/'));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

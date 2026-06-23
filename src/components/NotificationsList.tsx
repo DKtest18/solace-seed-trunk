@@ -64,8 +64,6 @@ export function NotificationsList() {
       navigate(`/messages`);
     } else if (notification.type === 'payout') {
       navigate(`/balances`);
-    } else if ((notification.type === 'comment' || notification.type === 'reply' || notification.type === 'mention') && notification.reference_id) {
-      navigate(`/community/${notification.reference_id}`);
     } else if ((notification.type === 'meeting_join' || notification.type === 'meeting_reminder') && notification.reference_id) {
       // Navigate to meeting - fetch meeting room info
       navigate(`/my-meetings`);

@@ -26,7 +26,6 @@ const navLinks = [
   { to: '/marketplace', label: 'Marketplace' },
   { to: '/meetings', label: 'Meetings' },
   { to: '/portfolio', label: 'Portfolio' },
-  { to: '/community', label: 'Community' },
 ];
 
 const SUPER_ADMIN_EMAIL = 'dari@dkaisystem.com';

@@ -730,32 +730,6 @@ export default function SellerPortfolio() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['seller-portfolio'] })
   });
 
-  const shareToCommunity = async (product: PortfolioProduct) => {
-    if (!user) return;
-    const body = [
-      `🎨 **${product.title}**`, '', product.description, '',
-      `📁 Category: ${product.category}`,
-      `📅 Completed: ${format(parseISO(product.completed_date), 'MMM d, yyyy')}`,
-    ].filter(Boolean).join('\n');
-    try {
-      const payload = { title: `Portfolio: ${product.title}`, body, is_public: true, seller_id: user.id };
-      const { data, error } = await supabase.functions.invoke('create-community-post', { body: payload });
-      if (error) {
-        const { data: fallbackPost, error: fallbackError } = await db
-          .from('dkai_community_posts')
-          .insert({ title: payload.title, body: payload.body, is_public: payload.is_public, author_id: user.id, seller_id: user.id })
-          .select('id').single();
-        if (fallbackError) throw fallbackError;
-        toast.success('Shared to community!');
-        if (fallbackPost?.id) navigate(`/community/${fallbackPost.id}`);
-        return;
-      }
-      toast.success('Shared to community!');
-      if (data?.id) navigate(`/community/${data.id}`);
-    } catch (err: any) {
-      toast.error('Failed to share', { description: err.message });
-    }
-  };
 
   const resetForm = () => {
     setFormData({
@@ -1138,7 +1112,7 @@ export default function SellerPortfolio() {
                             {product.is_public ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </Button>
                           <Button size="sm" variant="ghost" onClick={() => openEditDialog(product)} title="Edit"><Edit className="h-4 w-4" /></Button>
-                          <Button size="sm" variant="ghost" onClick={() => shareToCommunity(product)} title="Share to Community" className="text-primary hover:text-primary"><Share2 className="h-4 w-4" /></Button>
+                          
                           {product.product_id && <Button size="sm" variant="ghost" asChild title="View Product"><Link to={`/product/${product.product_id}`}><ExternalLink className="h-4 w-4" /></Link></Button>}
                           <AlertDialog>
                             <AlertDialogTrigger asChild><Button size="sm" variant="ghost" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>

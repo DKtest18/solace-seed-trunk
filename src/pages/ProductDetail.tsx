@@ -119,7 +119,8 @@ export default function ProductDetail() {
 
   const handlePurchase = () => {
     if (!user) {
-      navigate('/login');
+      const dest = encodeURIComponent(`/checkout?productId=${id}`);
+      navigate(`/login?redirect=${dest}`);
       return;
     }
 
@@ -132,12 +133,12 @@ export default function ProductDetail() {
   };
 
   const handleContactSeller = () => {
+    if (!product?.seller_id) return;
     if (!user) {
-      navigate('/login');
+      const dest = encodeURIComponent(`/messages?seller=${product.seller_id}`);
+      navigate(`/login?redirect=${dest}`);
       return;
     }
-
-    if (!product?.seller_id) return;
 
     // Track contact seller click
     if (id) {

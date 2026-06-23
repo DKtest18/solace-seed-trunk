@@ -2,14 +2,22 @@ import { useRulesAcceptance } from '@/hooks/useRulesAcceptance';
 import { RulesAcceptanceStep } from '@/components/RulesAcceptanceStep';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CommunityRulesGuardProps {
   children: React.ReactNode;
 }
 
 export function CommunityRulesGuard({ children }: CommunityRulesGuardProps) {
+  const { user } = useAuth();
   const { communityRulesAccepted, loadingCommunityRules, acceptRules, isAccepting } = useRulesAcceptance();
   const { toast } = useToast();
+
+  // Guests can browse the community (read-only). Rules acceptance only
+  // applies to authenticated users who are about to post/comment.
+  if (!user) {
+    return <>{children}</>;
+  }
 
   if (loadingCommunityRules) {
     return (

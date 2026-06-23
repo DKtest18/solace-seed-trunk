@@ -131,8 +131,8 @@ const App = () => (
             <Route path="/admin/product-review" element={<AdminRouteGuard><AdminProductReview /></AdminRouteGuard>} />
             <Route path="/" element={<Index />} />
             <Route path="/waitlist" element={<Waitlist />} />
-            <Route path="/marketplace" element={<WaitlistGuard><Marketplace /></WaitlistGuard>} />
-            <Route path="/product/:id" element={<WaitlistGuard><ProductDetail /></WaitlistGuard>} />
+            <Route path="/marketplace" element={<Marketplace />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/impressum" element={<Impressum />} />
@@ -144,10 +144,10 @@ const App = () => (
             <Route path="/cookie-settings" element={<CookieSettings />} />
                 <Route path="/auth/check-email" element={<CheckEmail />} />
                 <Route path="/auth/verified" element={<EmailVerified />} />
-                <Route path="/feed" element={<WaitlistGuard><Feed /></WaitlistGuard>} />
-            <Route path="/top-products" element={<WaitlistGuard><TopProducts /></WaitlistGuard>} />
-            <Route path="/top-sellers" element={<WaitlistGuard><TopSellers /></WaitlistGuard>} />
-            <Route path="/statistics" element={<WaitlistGuard><Statistics /></WaitlistGuard>} />
+                <Route path="/feed" element={<Feed />} />
+            <Route path="/top-products" element={<TopProducts />} />
+            <Route path="/top-sellers" element={<TopSellers />} />
+            <Route path="/statistics" element={<Statistics />} />
             <Route path="/admin/waitlist" element={<AdminRouteGuard><AdminWaitlist /></AdminRouteGuard>} />
             <Route path="/create-product" element={<Seller2FAGuard><CreateProduct /></Seller2FAGuard>} />
             <Route path="/edit-product/:id" element={<Seller2FAGuard><EditProduct /></Seller2FAGuard>} />
@@ -168,10 +168,10 @@ const App = () => (
             <Route path="/seller-onboarding/payment" element={<Seller2FAGuard><SellerOnboardingPayment /></Seller2FAGuard>} />
             <Route path="/wishlist" element={<WaitlistGuard><Wishlist /></WaitlistGuard>} />
             <Route path="/disputes" element={<WaitlistGuard><Disputes /></WaitlistGuard>} />
-            <Route path="/seller/:sellerId" element={<WaitlistGuard><SellerProfile /></WaitlistGuard>} />
+            <Route path="/seller/:sellerId" element={<SellerProfile />} />
             <Route path="/settings" element={<WaitlistGuard><ProfileSettings /></WaitlistGuard>} />
             <Route path="/profile" element={<WaitlistGuard><Profile /></WaitlistGuard>} />
-            <Route path="/u/:username" element={<WaitlistGuard><PublicProfile /></WaitlistGuard>} />
+            <Route path="/u/:username" element={<PublicProfile />} />
 
             <Route path="/manual-payment" element={<WaitlistGuard><ManualPayment /></WaitlistGuard>} />
             <Route path="/messages" element={<WaitlistGuard><Messages /></WaitlistGuard>} />
@@ -185,9 +185,9 @@ const App = () => (
             <Route path="/seller-dashboard/payment-settings" element={<Seller2FAGuard><SellerPaymentSettings /></Seller2FAGuard>} />
             <Route path="/seller-payment-settings" element={<Seller2FAGuard><SellerPaymentSettings /></Seller2FAGuard>} />
             <Route path="/admin/payment-settings" element={<AdminRouteGuard><AdminPaymentSettings /></AdminRouteGuard>} />
-            <Route path="/community" element={<WaitlistGuard><Community /></WaitlistGuard>} />
-            <Route path="/community/:id" element={<WaitlistGuard><CommunityPost /></WaitlistGuard>} />
-            <Route path="/profile/:username" element={<WaitlistGuard><PublicProfile /></WaitlistGuard>} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/community/:id" element={<CommunityPost />} />
+            <Route path="/profile/:username" element={<PublicProfile />} />
             <Route path="/purchase-history" element={<WaitlistGuard><PurchaseHistory /></WaitlistGuard>} />
             <Route path="/legal" element={<LegalOverview />} />
             <Route path="/legal/imprint" element={<Impressum />} />

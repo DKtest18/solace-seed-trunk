@@ -29,10 +29,13 @@ const navLinks = [
   { to: '/community', label: 'Community' },
 ];
 
+const SUPER_ADMIN_EMAIL = 'dari@dkaisystem.com';
+
 export function Navbar() {
   const { user, signOut } = useAuth();
   const { hasRole: isSeller } = useHasRole('seller');
   const { hasRole: isAdmin } = useHasRole('admin');
+  const isSuperAdmin = user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
   const [unreadCount, setUnreadCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [pendingProducts, setPendingProducts] = useState(0);
@@ -181,6 +184,11 @@ export function Navbar() {
                           )}
                         </Link>
                       </DropdownMenuItem>
+                      {isSuperAdmin && (
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin/users"><User className="w-4 h-4 mr-2" />User Management</Link>
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
                     </>
                   )}
@@ -266,6 +274,11 @@ export function Navbar() {
                               <span className="flex items-center"><User className="w-4 h-4 mr-3" />Product Approvals</span>
                               {pendingProducts > 0 && <Badge variant="destructive" className="rounded-full h-5 px-2 text-xs">{pendingProducts}</Badge>}
                             </Link>
+                            {isSuperAdmin && (
+                              <Link to="/admin/users" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors">
+                                <User className="w-4 h-4 mr-3" />User Management
+                              </Link>
+                            )}
                           </div>
                         </>
                       )}

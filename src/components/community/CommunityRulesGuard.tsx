@@ -2,6 +2,7 @@ import { useRulesAcceptance } from '@/hooks/useRulesAcceptance';
 import { RulesAcceptanceStep } from '@/components/RulesAcceptanceStep';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CommunityRulesGuardProps {
   children: React.ReactNode;

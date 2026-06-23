@@ -200,18 +200,7 @@ export default function Signup() {
         return;
       }
 
-      // Add to waitlist immediately (before email verification)
-      try {
-        await supabase.functions.invoke('join-waitlist', {
-          body: {
-            email: sanitizedEmail,
-            full_name: sanitizedFullName,
-            reason_for_joining: sanitizeText(reasonForJoining).slice(0, 500),
-          },
-        });
-      } catch (e) {
-        console.error('join-waitlist failed (non-blocking)', e);
-      }
+      // User waitlist removed — new signups get access after email verification.
 
       setSignupUserId(data.user.id);
       navigate(`/auth/check-email?email=${encodeURIComponent(sanitizedEmail)}`);

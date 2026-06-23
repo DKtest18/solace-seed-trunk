@@ -131,8 +131,8 @@ const App = () => (
             <Route path="/admin/product-review" element={<AdminRouteGuard><AdminProductReview /></AdminRouteGuard>} />
             <Route path="/" element={<Index />} />
             <Route path="/waitlist" element={<Waitlist />} />
-            <Route path="/marketplace" element={<WaitlistGuard><Marketplace /></WaitlistGuard>} />
-            <Route path="/product/:id" element={<WaitlistGuard><ProductDetail /></WaitlistGuard>} />
+            <Route path="/marketplace" element={<Marketplace />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/impressum" element={<Impressum />} />

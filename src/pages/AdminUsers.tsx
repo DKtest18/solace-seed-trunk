@@ -230,15 +230,15 @@ export default function AdminUsers() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-8"><Loader2 className="animate-spin inline" /></TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-8"><Loader2 className="animate-spin inline" /></TableCell></TableRow>
             ) : users.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No users found</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No users found</TableCell></TableRow>
             ) : users.map((u) => (
               <TableRow key={u.id}>
                 <TableCell className="text-gray-900">{u.email}</TableCell>
                 <TableCell className="text-gray-900">{u.full_name || '—'}</TableCell>
                 <TableCell className="text-gray-700">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</TableCell>
-                <TableCell>{u.is_verified ? <Badge>Yes</Badge> : <Badge variant="outline">No</Badge>}</TableCell>
+                
                 <TableCell className="text-gray-700">{u.seller_type || '—'}</TableCell>
                 <TableCell>{status(u)}</TableCell>
                 <TableCell className="text-gray-700">{u.product_count}</TableCell>

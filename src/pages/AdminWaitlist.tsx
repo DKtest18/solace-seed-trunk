@@ -171,7 +171,7 @@ function AdminWaitlistContent() {
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-8">
         <h1 className="text-3xl font-display font-semibold text-gray-900">Waitlist</h1>
-        <p className="text-muted mt-2">
+        <p className="text-muted-foreground mt-2">
           Review and approve applicants who signed up during pre-launch.
         </p>
       </div>
@@ -181,7 +181,7 @@ function AdminWaitlistContent() {
           <CardTitle className="flex items-center justify-between gap-4">
             <span>Applicants</span>
             <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search name or email"
                 value={search}
@@ -209,10 +209,10 @@ function AdminWaitlistContent() {
               <TabsContent key={status} value={status} className="mt-4">
                 {isLoading ? (
                   <div className="py-16 flex items-center justify-center">
-                    <Loader2 className="h-6 w-6 animate-spin text-muted" />
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                   </div>
                 ) : filtered.length === 0 ? (
-                  <div className="py-16 text-center text-muted">No {status} applicants.</div>
+                  <div className="py-16 text-center text-muted-foreground">No {status} applicants.</div>
                 ) : (
                   <Table>
                     <TableHeader>
@@ -249,14 +249,14 @@ function AdminWaitlistContent() {
                               </Badge>
                             )}
                           </TableCell>
-                          <TableCell className="text-sm text-muted">{fmtDate(row.created_at)}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{fmtDate(row.created_at)}</TableCell>
                           {status === 'pending' && (
                             <TableCell title={row.reason_for_joining || ''} className="max-w-sm">
                               {truncate(row.reason_for_joining)}
                             </TableCell>
                           )}
                           {status === 'approved' && (
-                            <TableCell className="text-sm text-muted">
+                            <TableCell className="text-sm text-muted-foreground">
                               {row.reviewed_at ? fmtDate(row.reviewed_at) : '—'}
                             </TableCell>
                           )}
@@ -292,7 +292,7 @@ function AdminWaitlistContent() {
                 )}
 
                 <div className="flex items-center justify-between mt-4">
-                  <span className="text-sm text-muted">
+                  <span className="text-sm text-muted-foreground">
                     Page {page + 1}
                   </span>
                   <div className="flex gap-2">
@@ -363,7 +363,7 @@ function AdminWaitlistContent() {
             onChange={(e) => setDeclineReason(e.target.value)}
             rows={4}
           />
-          <div className="text-xs text-muted text-right">{declineReason.length}/500</div>
+          <div className="text-xs text-muted-foreground text-right">{declineReason.length}/500</div>
           <DialogFooter>
             <Button
               variant="outline"

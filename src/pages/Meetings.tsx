@@ -260,7 +260,7 @@ export default function Meetings() {
               <h1 className="text-4xl font-display font-semibold text-gray-900 mb-2">
                 Book a call with AI experts
               </h1>
-              <p className="text-muted text-lg max-w-2xl">
+              <p className="text-muted-foreground text-lg max-w-2xl">
                 1-on-1 consultations with verified AI builders. Get help with your specific use case,
                 technical questions, or product strategy.
               </p>
@@ -285,7 +285,7 @@ export default function Meetings() {
             {/* Search */}
             <div className="mb-6 flex gap-3">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search experts..."
                   value={searchQuery}
@@ -361,12 +361,12 @@ export default function Meetings() {
                             {seller.profile.full_name || seller.profile.creator_name || seller.profile.username}
                           </h3>
                         </Link>
-                        <p className="text-sm text-muted text-center mb-3">
+                        <p className="text-sm text-muted-foreground text-center mb-3">
                           @{seller.profile.username}
                         </p>
 
                         {(seller.meeting_pitch || seller.profile.bio) && (
-                          <p className="text-sm text-muted text-center mb-4 line-clamp-2">
+                          <p className="text-sm text-muted-foreground text-center mb-4 line-clamp-2">
                             {seller.meeting_pitch || seller.profile.bio}
                           </p>
                         )}
@@ -384,14 +384,14 @@ export default function Meetings() {
                             </span>
                           ))}
                           {seller.meeting_types.length > 3 && (
-                            <span className="bg-background-soft text-muted text-xs px-2.5 py-1 rounded-full">
+                            <span className="bg-background-soft text-muted-foreground text-xs px-2.5 py-1 rounded-full">
                               +{seller.meeting_types.length - 3}
                             </span>
                           )}
                         </div>
 
                         {/* Trust row */}
-                        <div className="flex items-center justify-center gap-3 text-xs text-muted mb-4">
+                        <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground mb-4">
                           <span className="inline-flex items-center gap-1">
                             <Globe className="h-3 w-3" />
                             {seller.timezone}
@@ -434,11 +434,11 @@ export default function Meetings() {
               </div>
             ) : (
               <div className="text-center py-20">
-                <UsersIcon className="mx-auto mb-4 text-muted" size={48} />
+                <UsersIcon className="mx-auto mb-4 text-muted-foreground" size={48} />
                 <h2 className="font-display text-xl font-semibold text-gray-900 mb-2">
                   No experts match your filters
                 </h2>
-                <p className="text-muted mb-6 max-w-md mx-auto">
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                   Try removing some filters or check back soon — we're pre-launch and onboarding new
                   AI experts daily.
                 </p>

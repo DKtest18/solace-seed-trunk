@@ -171,7 +171,7 @@ export default function PublicProfile() {
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
             <h1 className="font-display text-2xl font-semibold mb-2 text-gray-900">Profile not found</h1>
-            <p className="text-muted mb-4">This user doesn't exist</p>
+            <p className="text-muted-foreground mb-4">This user doesn't exist</p>
             <Button onClick={() => navigate('/')}>Go Home</Button>
           </div>
         </div>
@@ -190,10 +190,10 @@ export default function PublicProfile() {
         className={`text-sm font-medium pb-3 -mb-px transition-colors ${
           active
             ? 'text-primary border-b-2 border-primary'
-            : 'text-muted hover:text-gray-900'
+            : 'text-muted-foreground hover:text-gray-900'
         }`}
       >
-        {label}{typeof count === 'number' && <span className="ml-1.5 text-xs text-muted">({count})</span>}
+        {label}{typeof count === 'number' && <span className="ml-1.5 text-xs text-muted-foreground">({count})</span>}
       </button>
     );
   };
@@ -212,7 +212,7 @@ export default function PublicProfile() {
               <Avatar className="w-24 h-24 ring-4 ring-background-soft">
                 <AvatarImage src={profile.avatar_url || undefined} />
                 <AvatarFallback className="bg-background-soft">
-                  <User className="h-10 w-10 text-muted" />
+                  <User className="h-10 w-10 text-muted-foreground" />
                 </AvatarFallback>
               </Avatar>
             </a>
@@ -226,7 +226,7 @@ export default function PublicProfile() {
                     </h1>
                     <OnlineStatus userId={profile.id} />
                   </div>
-                  <p className="text-muted mb-3">
+                  <p className="text-muted-foreground mb-3">
                     {profile.headline || `@${profile.username || profile.id.slice(0, 8)}`}
                   </p>
                 </div>
@@ -237,7 +237,7 @@ export default function PublicProfile() {
                       <Edit className="h-4 w-4 mr-2" /> Edit profile
                     </Button>
                   ) : userBlockedMe ? (
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-background-soft text-muted text-sm">
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-background-soft text-muted-foreground text-sm">
                       <ShieldX className="h-4 w-4" />
                       You cannot interact with this user
                     </div>
@@ -261,7 +261,7 @@ export default function PublicProfile() {
               {profile.bio ? (
                 <p className="text-gray-700 mb-4 max-w-2xl whitespace-pre-wrap">{profile.bio}</p>
               ) : (
-                <p className="text-muted italic mb-4">No description provided.</p>
+                <p className="text-muted-foreground italic mb-4">No description provided.</p>
               )}
 
               {skills.length > 0 && (
@@ -275,7 +275,7 @@ export default function PublicProfile() {
               )}
 
               <div className="flex flex-wrap gap-4 items-center mt-4 text-sm">
-                <span className="text-muted inline-flex items-center gap-1">
+                <span className="text-muted-foreground inline-flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
                   Member since {format(new Date(profile.created_at), 'MMM yyyy')}
                 </span>
@@ -289,15 +289,15 @@ export default function PublicProfile() {
                     <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> Founding seller
                   </span>
                 )}
-                <span className="inline-flex items-center gap-1 text-muted">
+                <span className="inline-flex items-center gap-1 text-muted-foreground">
                   <Users className="h-4 w-4" />
                   <span className="font-medium text-gray-900">{followersCount}</span> followers
                 </span>
-                <span className="inline-flex items-center gap-1 text-muted">
+                <span className="inline-flex items-center gap-1 text-muted-foreground">
                   <span className="font-medium text-gray-900">{followingCount}</span> following
                 </span>
                 {profile.country && (
-                  <span className="inline-flex items-center gap-1 text-muted">
+                  <span className="inline-flex items-center gap-1 text-muted-foreground">
                     <MapPin className="h-4 w-4" /> {profile.country}
                   </span>
                 )}
@@ -345,7 +345,7 @@ export default function PublicProfile() {
                       )}
                       <h3 className="font-display text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{product.title}</h3>
                       {product.description && (
-                        <p className="text-sm text-muted mb-4 line-clamp-2">{product.description}</p>
+                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{product.description}</p>
                       )}
                       <div className="mt-auto flex items-center justify-between pt-4 border-t border-border">
                         <span className="text-xl font-display font-semibold text-gray-900">${product.price}</span>
@@ -359,9 +359,9 @@ export default function PublicProfile() {
               </div>
             ) : (
               <div className="text-center py-20">
-                <PackageOpen className="mx-auto mb-4 text-muted" size={48} />
+                <PackageOpen className="mx-auto mb-4 text-muted-foreground" size={48} />
                 <h2 className="font-display text-xl font-semibold text-gray-900 mb-2">No products yet</h2>
-                <p className="text-muted max-w-md mx-auto">This seller hasn't listed any products yet.</p>
+                <p className="text-muted-foreground max-w-md mx-auto">This seller hasn't listed any products yet.</p>
               </div>
             )
           )}
@@ -382,7 +382,7 @@ export default function PublicProfile() {
                         <p className="text-sm font-medium text-gray-900">
                           {review.reviewer?.full_name || review.reviewer?.username || 'Anonymous'}
                         </p>
-                        <p className="text-xs text-muted">
+                        <p className="text-xs text-muted-foreground">
                           {format(new Date(review.created_at), 'MMM d, yyyy')}
                         </p>
                       </div>
@@ -403,9 +403,9 @@ export default function PublicProfile() {
               </div>
             ) : (
               <div className="text-center py-20">
-                <MessageSquare className="mx-auto mb-4 text-muted" size={48} />
+                <MessageSquare className="mx-auto mb-4 text-muted-foreground" size={48} />
                 <h2 className="font-display text-xl font-semibold text-gray-900 mb-2">No reviews yet</h2>
-                <p className="text-muted max-w-md mx-auto">
+                <p className="text-muted-foreground max-w-md mx-auto">
                   Be the first to leave one after a purchase or call.
                 </p>
               </div>
@@ -418,7 +418,7 @@ export default function PublicProfile() {
               {profile.bio ? (
                 <p className="whitespace-pre-wrap">{profile.bio}</p>
               ) : (
-                <p className="text-muted italic">No bio provided.</p>
+                <p className="text-muted-foreground italic">No bio provided.</p>
               )}
 
               {skills.length > 0 && (
@@ -437,15 +437,15 @@ export default function PublicProfile() {
               <h2 className="font-display text-xl font-semibold text-gray-900 mt-6">Details</h2>
               <ul className="space-y-2">
                 <li>
-                  <span className="text-muted">Member since:</span>{' '}
+                  <span className="text-muted-foreground">Member since:</span>{' '}
                   {format(new Date(profile.created_at), 'MMMM yyyy')}
                 </li>
                 {profile.country && (
-                  <li><span className="text-muted">Country:</span> {profile.country}</li>
+                  <li><span className="text-muted-foreground">Country:</span> {profile.country}</li>
                 )}
                 {profile.website_url && (
                   <li>
-                    <span className="text-muted">Website:</span>{' '}
+                    <span className="text-muted-foreground">Website:</span>{' '}
                     <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                       {profile.website_url}
                     </a>

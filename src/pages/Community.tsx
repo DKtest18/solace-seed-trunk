@@ -184,7 +184,7 @@ export default function Community() {
         <div className="min-h-screen bg-background">
           <header className="max-w-5xl mx-auto px-6 pt-12 pb-6">
             <h1 className="text-4xl font-display font-semibold text-gray-900 mb-2">Community</h1>
-            <p className="text-muted">
+            <p className="text-muted-foreground">
               Ask questions, share builds, discuss AI tooling with other DK AI Marketplace members.
             </p>
           </header>
@@ -203,7 +203,7 @@ export default function Community() {
                   </Avatar>
                   <button
                     onClick={() => setCreateDialogOpen(true)}
-                    className="flex-1 text-left text-muted bg-background-soft rounded-full px-4 py-2.5 hover:bg-gray-100 transition-colors text-sm"
+                    className="flex-1 text-left text-muted-foreground bg-background-soft rounded-full px-4 py-2.5 hover:bg-gray-100 transition-colors text-sm"
                   >
                     Share something with the community...
                   </button>
@@ -221,7 +221,7 @@ export default function Community() {
                       className={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm transition-colors ${
                         active
                           ? 'bg-gray-900 text-white'
-                          : 'bg-background-soft text-muted hover:bg-gray-100'
+                          : 'bg-background-soft text-muted-foreground hover:bg-gray-100'
                       }`}
                     >
                       {f.label}
@@ -237,12 +237,12 @@ export default function Community() {
                 </div>
               ) : filteredPosts.length === 0 ? (
                 <div className="text-center py-20">
-                  <MessageSquare className="mx-auto mb-4 text-muted" size={48} />
+                  <MessageSquare className="mx-auto mb-4 text-muted-foreground" size={48} />
                   <h2 className="font-display text-xl font-semibold text-gray-900 mb-2">
                     {activeFilter === 'all' ? 'No posts yet' : 'Nothing in this category yet.'}
                   </h2>
                   {activeFilter === 'all' && (
-                    <p className="text-muted">Be the first to start a discussion.</p>
+                    <p className="text-muted-foreground">Be the first to start a discussion.</p>
                   )}
                 </div>
               ) : (
@@ -268,8 +268,8 @@ export default function Community() {
                           >
                             {post.author?.full_name || post.author?.username || 'Anonymous'}
                           </span>
-                          <span className="text-muted text-sm">·</span>
-                          <span className="text-sm text-muted">
+                          <span className="text-muted-foreground text-sm">·</span>
+                          <span className="text-sm text-muted-foreground">
                             {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                           </span>
                           {post.pinned && (
@@ -315,14 +315,14 @@ export default function Community() {
 
                         {/* Attachment indicator */}
                         {post.has_attachment && (
-                          <div className="flex items-center gap-1 text-sm text-muted mb-4">
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
                             <Paperclip className="h-4 w-4" />
                             <span className="truncate">{post.attachment_file_name || 'Attachment'}</span>
                           </div>
                         )}
 
                         {/* Actions */}
-                        <div className="flex items-center gap-5 text-muted text-sm">
+                        <div className="flex items-center gap-5 text-muted-foreground text-sm">
                           <span className="inline-flex items-center gap-1.5">
                             <Eye className="h-4 w-4" />
                             {post.views_count}
@@ -365,7 +365,7 @@ export default function Community() {
                     they're working on and help each other ship better.
                   </p>
                   <div className="flex items-center justify-between text-sm border-t border-border pt-3 mb-3">
-                    <span className="text-muted">Members</span>
+                    <span className="text-muted-foreground">Members</span>
                     <span className="font-medium text-gray-900">
                       {memberCount !== null ? memberCount.toLocaleString() : 'Growing daily'}
                     </span>

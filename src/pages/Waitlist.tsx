@@ -50,7 +50,7 @@ export default function Waitlist() {
           {firstName ? `Thanks for joining, ${firstName}.` : 'Thanks for joining.'}
         </p>
 
-        <p className="text-muted mb-8">
+        <p className="text-muted-foreground mb-8">
           We're reviewing applications in the order we receive them. You'll get
           an email as soon as you're approved.
         </p>
@@ -95,7 +95,7 @@ export default function Waitlist() {
           </Button>
         </div>
 
-        <div className="mt-10 text-sm text-muted">
+        <div className="mt-10 text-sm text-muted-foreground">
           <Link to="/" className="hover:underline">
             ← Back to homepage
           </Link>

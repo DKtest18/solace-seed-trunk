@@ -168,10 +168,10 @@ const App = () => (
             <Route path="/seller-onboarding/payment" element={<Seller2FAGuard><SellerOnboardingPayment /></Seller2FAGuard>} />
             <Route path="/wishlist" element={<WaitlistGuard><Wishlist /></WaitlistGuard>} />
             <Route path="/disputes" element={<WaitlistGuard><Disputes /></WaitlistGuard>} />
-            <Route path="/seller/:sellerId" element={<WaitlistGuard><SellerProfile /></WaitlistGuard>} />
+            <Route path="/seller/:sellerId" element={<SellerProfile />} />
             <Route path="/settings" element={<WaitlistGuard><ProfileSettings /></WaitlistGuard>} />
             <Route path="/profile" element={<WaitlistGuard><Profile /></WaitlistGuard>} />
-            <Route path="/u/:username" element={<WaitlistGuard><PublicProfile /></WaitlistGuard>} />
+            <Route path="/u/:username" element={<PublicProfile />} />
 
             <Route path="/manual-payment" element={<WaitlistGuard><ManualPayment /></WaitlistGuard>} />
             <Route path="/messages" element={<WaitlistGuard><Messages /></WaitlistGuard>} />

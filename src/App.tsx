@@ -185,9 +185,9 @@ const App = () => (
             <Route path="/seller-dashboard/payment-settings" element={<Seller2FAGuard><SellerPaymentSettings /></Seller2FAGuard>} />
             <Route path="/seller-payment-settings" element={<Seller2FAGuard><SellerPaymentSettings /></Seller2FAGuard>} />
             <Route path="/admin/payment-settings" element={<AdminRouteGuard><AdminPaymentSettings /></AdminRouteGuard>} />
-            <Route path="/community" element={<WaitlistGuard><Community /></WaitlistGuard>} />
-            <Route path="/community/:id" element={<WaitlistGuard><CommunityPost /></WaitlistGuard>} />
-            <Route path="/profile/:username" element={<WaitlistGuard><PublicProfile /></WaitlistGuard>} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/community/:id" element={<CommunityPost />} />
+            <Route path="/profile/:username" element={<PublicProfile />} />
             <Route path="/purchase-history" element={<WaitlistGuard><PurchaseHistory /></WaitlistGuard>} />
             <Route path="/legal" element={<LegalOverview />} />
             <Route path="/legal/imprint" element={<Impressum />} />

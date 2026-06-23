@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
+import { db } from '@/lib/dkaiDb';
 import {
   Dialog,
   DialogContent,
@@ -13,12 +14,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Zap, Lock, HardDrive, ShieldCheck } from 'lucide-react';
 
-const STORAGE_KEY = 'dkai_seller_guidelines_ack_v1';
+// Local cache key — only used for instant UX. DB flag is the source of truth.
+const LOCAL_CACHE_KEY = 'dkai_seller_guidelines_ack_v2';
 
 /**
- * One-time summary modal shown to new sellers explaining the 3 delivery
- * modes and the mandatory review policy. Acknowledgement is stored per-user
- * in localStorage.
+ * One-time orientation modal for new sellers. The acknowledgement is
+ * persisted on dkai_profiles.has_seen_seller_orientation so it survives
+ * across devices/browsers. localStorage is only a fast-path cache.
  */
 export function SellerGuidelinesModal() {
   const { user } = useAuth();
@@ -27,17 +29,41 @@ export function SellerGuidelinesModal() {
 
   useEffect(() => {
     if (isLoading || !user || !isSeller) return;
-    const key = `${STORAGE_KEY}:${user.id}`;
-    if (!localStorage.getItem(key)) {
+    let cancelled = false;
+
+    const cacheKey = `${LOCAL_CACHE_KEY}:${user.id}`;
+    if (localStorage.getItem(cacheKey)) return; // already seen on this device
+
+    (async () => {
+      const { data, error } = await db
+        .from('dkai_profiles')
+        .select('has_seen_seller_orientation')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) return;
+      if (data?.has_seen_seller_orientation) {
+        localStorage.setItem(cacheKey, '1');
+        return;
+      }
       setOpen(true);
-    }
+    })();
+
+    return () => { cancelled = true; };
   }, [user, isSeller, isLoading]);
 
-  const handleAck = () => {
-    if (user) {
-      localStorage.setItem(`${STORAGE_KEY}:${user.id}`, new Date().toISOString());
-    }
+  const handleAck = async () => {
     setOpen(false);
+    if (!user) return;
+    localStorage.setItem(`${LOCAL_CACHE_KEY}:${user.id}`, '1');
+    try {
+      await db
+        .from('dkai_profiles')
+        .update({ has_seen_seller_orientation: true })
+        .eq('id', user.id);
+    } catch (e) {
+      console.warn('Failed to persist seller orientation ack', e);
+    }
   };
 
   return (

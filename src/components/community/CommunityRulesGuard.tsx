@@ -9,8 +9,15 @@ interface CommunityRulesGuardProps {
 }
 
 export function CommunityRulesGuard({ children }: CommunityRulesGuardProps) {
+  const { user } = useAuth();
   const { communityRulesAccepted, loadingCommunityRules, acceptRules, isAccepting } = useRulesAcceptance();
   const { toast } = useToast();
+
+  // Guests can browse the community (read-only). Rules acceptance only
+  // applies to authenticated users who are about to post/comment.
+  if (!user) {
+    return <>{children}</>;
+  }
 
   if (loadingCommunityRules) {
     return (

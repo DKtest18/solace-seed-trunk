@@ -144,10 +144,10 @@ const App = () => (
             <Route path="/cookie-settings" element={<CookieSettings />} />
                 <Route path="/auth/check-email" element={<CheckEmail />} />
                 <Route path="/auth/verified" element={<EmailVerified />} />
-                <Route path="/feed" element={<WaitlistGuard><Feed /></WaitlistGuard>} />
-            <Route path="/top-products" element={<WaitlistGuard><TopProducts /></WaitlistGuard>} />
-            <Route path="/top-sellers" element={<WaitlistGuard><TopSellers /></WaitlistGuard>} />
-            <Route path="/statistics" element={<WaitlistGuard><Statistics /></WaitlistGuard>} />
+                <Route path="/feed" element={<Feed />} />
+            <Route path="/top-products" element={<TopProducts />} />
+            <Route path="/top-sellers" element={<TopSellers />} />
+            <Route path="/statistics" element={<Statistics />} />
             <Route path="/admin/waitlist" element={<AdminRouteGuard><AdminWaitlist /></AdminRouteGuard>} />
             <Route path="/create-product" element={<Seller2FAGuard><CreateProduct /></Seller2FAGuard>} />
             <Route path="/edit-product/:id" element={<Seller2FAGuard><EditProduct /></Seller2FAGuard>} />

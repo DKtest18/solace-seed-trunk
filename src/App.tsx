@@ -142,8 +142,9 @@ const App = () => (
             <Route path="/agb" element={<TermsOfService />} />
             <Route path="/cookies" element={<CookiePolicy />} />
             <Route path="/cookie-settings" element={<CookieSettings />} />
-            <Route path="/auth/check-email" element={<CheckEmail />} />
-            <Route path="/feed" element={<WaitlistGuard><Feed /></WaitlistGuard>} />
+                <Route path="/auth/check-email" element={<CheckEmail />} />
+                <Route path="/auth/verified" element={<EmailVerified />} />
+                <Route path="/feed" element={<WaitlistGuard><Feed /></WaitlistGuard>} />
             <Route path="/top-products" element={<WaitlistGuard><TopProducts /></WaitlistGuard>} />
             <Route path="/top-sellers" element={<WaitlistGuard><TopSellers /></WaitlistGuard>} />
             <Route path="/statistics" element={<WaitlistGuard><Statistics /></WaitlistGuard>} />

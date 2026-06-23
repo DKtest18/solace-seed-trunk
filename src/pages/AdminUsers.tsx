@@ -26,7 +26,6 @@ type UserRow = {
   email: string | null;
   full_name: string | null;
   created_at: string | null;
-  is_verified: boolean | null;
   seller_type: string | null;
   is_banned: boolean | null;
   ban_expires_at: string | null;
@@ -71,7 +70,7 @@ export default function AdminUsers() {
     try {
       let q = db
         .from('dkai_profiles')
-        .select('id,email,full_name,created_at,is_verified,seller_type,is_banned,ban_expires_at,ban_reason,is_deleted,can_reregister,deletion_reason', { count: 'exact' })
+        .select('id,email,full_name,created_at,seller_type,is_banned,ban_expires_at,ban_reason,is_deleted,can_reregister,deletion_reason', { count: 'exact' })
         .order('created_at', { ascending: false });
 
       if (search.trim()) {
@@ -223,7 +222,6 @@ export default function AdminUsers() {
               <TableHead>Email</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Joined</TableHead>
-              <TableHead>Verified</TableHead>
               <TableHead>Seller</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Products</TableHead>
@@ -232,15 +230,15 @@ export default function AdminUsers() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-8"><Loader2 className="animate-spin inline" /></TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-8"><Loader2 className="animate-spin inline" /></TableCell></TableRow>
             ) : users.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No users found</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No users found</TableCell></TableRow>
             ) : users.map((u) => (
               <TableRow key={u.id}>
                 <TableCell className="text-gray-900">{u.email}</TableCell>
                 <TableCell className="text-gray-900">{u.full_name || '—'}</TableCell>
                 <TableCell className="text-gray-700">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</TableCell>
-                <TableCell>{u.is_verified ? <Badge>Yes</Badge> : <Badge variant="outline">No</Badge>}</TableCell>
+                
                 <TableCell className="text-gray-700">{u.seller_type || '—'}</TableCell>
                 <TableCell>{status(u)}</TableCell>
                 <TableCell className="text-gray-700">{u.product_count}</TableCell>

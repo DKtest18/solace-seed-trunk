@@ -152,7 +152,7 @@ export default function Marketplace() {
             min="0"
             className="text-sm"
           />
-          <span className="text-muted">-</span>
+          <span className="text-muted-foreground">-</span>
           <Input
             type="number"
             placeholder="Max"
@@ -230,7 +230,7 @@ export default function Marketplace() {
       <div className="min-h-screen bg-background">
         <header className="max-w-7xl mx-auto px-6 pt-12 pb-8">
           <h1 className="text-4xl font-display font-semibold text-gray-900 mb-2">Marketplace</h1>
-          <p className="text-muted text-lg">
+          <p className="text-muted-foreground text-lg">
             AI agents, automations, prompts, and tools — built by verified sellers.
           </p>
         </header>
@@ -246,7 +246,7 @@ export default function Marketplace() {
             {/* Search + sort */}
             <div className="mb-6 flex gap-3">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search products..."
                   value={searchQuery}
@@ -343,7 +343,7 @@ export default function Marketplace() {
                       <h3 className="font-display text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
                         {product.title}
                       </h3>
-                      <p className="text-sm text-muted mb-4 line-clamp-2">
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                         {product.description || 'No description available'}
                       </p>
 
@@ -360,7 +360,7 @@ export default function Marketplace() {
                       <div className="mt-auto flex items-center justify-between pt-4 border-t border-border">
                         <div className="text-xl font-display font-semibold text-gray-900">
                           ${product.price}
-                          <span className="text-xs font-normal text-muted ml-1">
+                          <span className="text-xs font-normal text-muted-foreground ml-1">
                             {product.pricing_model === 'one_time' && 'once'}
                             {product.pricing_model === 'monthly' && '/mo'}
                             {product.pricing_model === 'yearly' && '/yr'}
@@ -379,11 +379,11 @@ export default function Marketplace() {
               </div>
             ) : (
               <div className="text-center py-20">
-                <PackageOpen className="mx-auto mb-4 text-muted" size={48} />
+                <PackageOpen className="mx-auto mb-4 text-muted-foreground" size={48} />
                 <h2 className="font-display text-xl font-semibold text-gray-900 mb-2">
                   No products match your filters
                 </h2>
-                <p className="text-muted mb-6 max-w-md mx-auto">
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                   Try removing some filters or check back soon — we're pre-launch and adding new sellers daily.
                 </p>
                 <Button variant="outline" onClick={clearFilters}>Reset filters</Button>

@@ -154,7 +154,7 @@ export default function Login() {
 
 
   const inputClass =
-    'w-full rounded-lg border border-border bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors';
+    'w-full rounded-lg border border-border bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors';
 
   return (
     <div className="min-h-screen flex">
@@ -177,7 +177,7 @@ export default function Login() {
               <h1 className="text-2xl font-display font-semibold text-gray-900 mb-1">
                 Sign in to your account
               </h1>
-              <p className="text-sm text-muted mb-8">Welcome back to DK AI Marketplace.</p>
+              <p className="text-sm text-muted-foreground mb-8">Welcome back to DK AI Marketplace.</p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -218,7 +218,7 @@ export default function Login() {
                   {loading ? 'Signing in...' : 'Sign in'}
                 </Button>
 
-                <p className="text-sm text-muted text-center mt-6">
+                <p className="text-sm text-muted-foreground text-center mt-6">
                   Don't have an account?{' '}
                   <Link to="/signup" className="text-primary font-medium hover:underline">
                     Sign up
@@ -233,7 +233,7 @@ export default function Login() {
               <h1 className="text-2xl font-display font-semibold text-gray-900 mb-1">
                 Two-factor authentication
               </h1>
-              <p className="text-sm text-muted mb-8">
+              <p className="text-sm text-muted-foreground mb-8">
                 Enter the 6-digit code from your authenticator app.
               </p>
 
@@ -264,7 +264,7 @@ export default function Login() {
               </button>
               <button
                 onClick={() => { setStep('credentials'); setTwoFACode(''); }}
-                className="w-full text-sm text-muted hover:text-gray-900 mt-2"
+                className="w-full text-sm text-muted-foreground hover:text-gray-900 mt-2"
               >
                 Back to login
               </button>
@@ -276,7 +276,7 @@ export default function Login() {
               <h1 className="text-2xl font-display font-semibold text-gray-900 mb-1">
                 Use backup code
               </h1>
-              <p className="text-sm text-muted mb-8">
+              <p className="text-sm text-muted-foreground mb-8">
                 Enter one of your 8-digit backup codes.
               </p>
 
@@ -305,7 +305,7 @@ export default function Login() {
               </button>
               <button
                 onClick={() => { setStep('credentials'); setBackupCode(''); setTwoFACode(''); }}
-                className="w-full text-sm text-muted hover:text-gray-900 mt-2"
+                className="w-full text-sm text-muted-foreground hover:text-gray-900 mt-2"
               >
                 Back to login
               </button>

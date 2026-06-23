@@ -16,7 +16,7 @@ import dkLogo from '@/assets/dk-ai-logo.png';
 type SignupStep = 'details' | 'verify-email' | 'accept-rules' | 'offer-2fa' | 'setup-2fa';
 
 const inputClass =
-  'w-full rounded-lg border border-border bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors';
+  'w-full rounded-lg border border-border bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
@@ -339,7 +339,7 @@ export default function Signup() {
           <h1 className="text-2xl font-display font-semibold text-gray-900 mb-1">
             {headings[step].h1}
           </h1>
-          <p className="text-sm text-muted mb-8">{headings[step].sub}</p>
+          <p className="text-sm text-muted-foreground mb-8">{headings[step].sub}</p>
 
           {step === 'details' && (
             <form onSubmit={handleSubmitDetails} className="space-y-4">
@@ -375,7 +375,7 @@ export default function Signup() {
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
                     {emailCheck.status === 'checking' && (
-                      <Loader2 className="h-4 w-4 animate-spin text-muted" />
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                     )}
                     {emailCheck.status === 'available' && (
                       <Check className="h-4 w-4 text-green-600" />
@@ -415,14 +415,14 @@ export default function Signup() {
                   className={inputClass}
                 />
                 <PasswordStrengthIndicator password={password} />
-                <p className="text-xs text-muted mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Must be 8+ characters with uppercase, lowercase, number, and special character.
                 </p>
               </div>
 
               <div>
                 <label htmlFor="reasonForJoining" className="text-sm font-medium text-gray-900 mb-1.5 block">
-                  Why do you want to join DK AI Marketplace? <span className="text-muted font-normal">(optional)</span>
+                  Why do you want to join DK AI Marketplace? <span className="text-muted-foreground font-normal">(optional)</span>
                 </label>
                 <textarea
                   id="reasonForJoining"
@@ -433,7 +433,7 @@ export default function Signup() {
                   maxLength={500}
                   className={`${inputClass} resize-none`}
                 />
-                <p className="text-xs text-muted mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   This helps us prioritize founding members. {reasonForJoining.length}/500
                 </p>
               </div>
@@ -479,7 +479,7 @@ export default function Signup() {
                 {loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account...</>) : 'Create account'}
               </Button>
 
-              <p className="text-sm text-muted text-center mt-6">
+              <p className="text-sm text-muted-foreground text-center mt-6">
                 Already have an account?{' '}
                 <Link to="/login" className="text-primary font-medium hover:underline">
                   Sign in
@@ -495,9 +495,9 @@ export default function Signup() {
                   <Mail className="h-8 w-8 text-primary" />
                 </div>
                 <div className="text-center space-y-2">
-                  <p className="text-sm text-muted">We've sent a verification link to</p>
+                  <p className="text-sm text-muted-foreground">We've sent a verification link to</p>
                   <p className="font-medium text-gray-900">{email}</p>
-                  <p className="text-sm text-muted">
+                  <p className="text-sm text-muted-foreground">
                     Click the link in your email to verify your account and continue with signup.
                   </p>
                 </div>
@@ -510,7 +510,7 @@ export default function Signup() {
               >
                 {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend verification email'}
               </Button>
-              <p className="text-xs text-muted text-center mt-3">
+              <p className="text-xs text-muted-foreground text-center mt-3">
                 Didn't receive the email? Check your spam folder or try resending.
               </p>
             </>
@@ -528,7 +528,7 @@ export default function Signup() {
                 </div>
                 <div className="text-center space-y-2">
                   <p className="font-medium text-gray-900">Welcome to DK AI Marketplace!</p>
-                  <p className="text-sm text-muted">
+                  <p className="text-sm text-muted-foreground">
                     Your account is now active. Would you like to add two-factor authentication for extra security? (Required for sellers)
                   </p>
                 </div>
@@ -538,7 +538,7 @@ export default function Signup() {
               </Button>
               <button
                 onClick={handleSkip2FA}
-                className="w-full text-sm text-muted hover:text-gray-900 mt-3"
+                className="w-full text-sm text-muted-foreground hover:text-gray-900 mt-3"
               >
                 Skip for now
               </button>
@@ -556,10 +556,10 @@ export default function Signup() {
                     Scan with Google Authenticator, Authy, or any compatible app
                   </p>
                   <div className="bg-background-soft p-3 rounded-md">
-                    <p className="text-xs text-muted text-center mb-1">Manual entry key:</p>
+                    <p className="text-xs text-muted-foreground text-center mb-1">Manual entry key:</p>
                     <p className="text-sm font-mono text-center break-all text-gray-900">{twoFASecret}</p>
                   </div>
-                  <p className="text-xs text-muted text-center">
+                  <p className="text-xs text-muted-foreground text-center">
                     Your recovery key has been downloaded. Keep it safe!
                   </p>
                 </div>
@@ -586,7 +586,7 @@ export default function Signup() {
               <button
                 type="button"
                 onClick={handleSkip2FA}
-                className="w-full text-sm text-muted hover:text-gray-900"
+                className="w-full text-sm text-muted-foreground hover:text-gray-900"
               >
                 Skip for now
               </button>

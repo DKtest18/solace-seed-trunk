@@ -142,7 +142,7 @@ export default function Portfolio() {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
             <div>
               <h1 className="text-4xl font-display font-semibold text-gray-900 mb-2">Portfolio Showcase</h1>
-              <p className="text-muted text-lg max-w-2xl">
+              <p className="text-muted-foreground text-lg max-w-2xl">
                 Real projects delivered by verified sellers — browse work, see results, and find the right builder for your next idea.
               </p>
             </div>
@@ -155,7 +155,7 @@ export default function Portfolio() {
 
           <div className="flex flex-col md:flex-row gap-3 mb-8">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search portfolio items..."
                 value={searchQuery}
@@ -185,9 +185,9 @@ export default function Portfolio() {
             </div>
           ) : filteredItems?.length === 0 ? (
             <div className="text-center py-20">
-              <Briefcase className="h-12 w-12 mx-auto text-muted mb-4" />
+              <Briefcase className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="font-display text-xl font-semibold text-gray-900 mb-2">No portfolio items match your filters</h3>
-              <p className="text-muted mb-6 max-w-md mx-auto">
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                 {searchQuery || categoryFilter !== 'All Categories'
                   ? 'Try removing some filters or search terms.'
                   : "We're pre-launch — sellers are uploading their work daily. Check back soon."}
@@ -228,8 +228,8 @@ export default function Portfolio() {
                       <span className="inline-flex self-start bg-primary-soft text-primary text-xs font-medium px-2.5 py-1 rounded-full mb-3">{item.category}</span>
                       <h3 className="font-display text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{item.title}</h3>
                       {rating > 0 && <div className="mb-3"><RatingDisplay rating={rating} count={reviewCount} size="sm" showCount /></div>}
-                      <p className="text-sm text-muted line-clamp-3 mb-4">{item.description}</p>
-                      <div className="flex flex-wrap gap-3 text-xs text-muted mb-4">
+                      <p className="text-sm text-muted-foreground line-clamp-3 mb-4">{item.description}</p>
+                      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-4">
                         <div className="flex items-center gap-1"><User className="h-3 w-3" />{item.customer_anonymous ? 'Anonymous' : (item.customer_name || 'Anonymous')}</div>
                         <div className="flex items-center gap-1"><Calendar className="h-3 w-3" />{format(parseISO(item.completed_date), 'MMM yyyy')}</div>
                         {renderPrice(item)}

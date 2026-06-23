@@ -68,40 +68,25 @@ export default function AdminUsers() {
   const load = async () => {
     setLoading(true);
     try {
-      let q = db
-        .from('dkai_profiles')
-        .select('id,email,full_name,created_at,seller_type,is_banned,ban_expires_at,ban_reason,is_deleted,can_reregister,deletion_reason', { count: 'exact' })
-        .order('created_at', { ascending: false });
-
-      if (search.trim()) {
-        const s = `%${search.trim()}%`;
-        q = q.or(`email.ilike.${s},full_name.ilike.${s}`);
-      }
-      q = q.range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
-
-      const { data, count, error } = await q;
+      const { data, error } = await supabase.functions.invoke('admin-list-users', {
+        body: {
+          page,
+          page_size: PAGE_SIZE,
+          search: search.trim() || null,
+        },
+      });
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      const ids = (data || []).map((u: any) => u.id);
-      const counts: Record<string, number> = {};
-      if (ids.length) {
-        const { data: prods } = await db
-          .from('dkai_products')
-          .select('seller_id')
-          .in('seller_id', ids);
-        (prods || []).forEach((p: any) => {
-          counts[p.seller_id] = (counts[p.seller_id] || 0) + 1;
-        });
-      }
-
-      setUsers((data || []).map((u: any) => ({ ...u, product_count: counts[u.id] || 0 })));
-      setTotal(count || 0);
+      setUsers(data?.users || []);
+      setTotal(data?.total || 0);
     } catch (e: any) {
       toast({ title: 'Failed to load users', description: e.message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     if (isSuperAdmin) load();

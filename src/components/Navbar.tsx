@@ -175,9 +175,9 @@ export function Navbar() {
                       <DropdownMenuItem asChild><Link to="/admin"><Settings className="w-4 h-4 mr-2" />Admin Dashboard</Link></DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link to="/admin/waitlist" className="flex items-center justify-between gap-2">
-                          <span className="flex items-center"><User className="w-4 h-4 mr-2" />Waitlist</span>
-                          {pendingWaitlist > 0 && (
-                            <Badge variant="destructive" className="rounded-full h-5 px-2 text-xs">{pendingWaitlist}</Badge>
+                          <span className="flex items-center"><User className="w-4 h-4 mr-2" />Product Approvals</span>
+                          {pendingProducts > 0 && (
+                            <Badge variant="destructive" className="rounded-full h-5 px-2 text-xs">{pendingProducts}</Badge>
                           )}
                         </Link>
                       </DropdownMenuItem>

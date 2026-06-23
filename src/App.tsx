@@ -97,6 +97,7 @@ import CookieSettings from "./pages/CookieSettings";
 import SellerGuidelines from "./pages/SellerGuidelines";
 import AdminDeliveryThresholds from "./pages/AdminDeliveryThresholds";
 import AdminProductReview from "./pages/AdminProductReview";
+import AdminUsers from "./pages/AdminUsers";
 import { SellerGuidelinesModal } from "@/components/SellerGuidelinesModal";
 
 const queryClient = new QueryClient({
@@ -129,6 +130,7 @@ const App = () => (
             <Route path="/seller-guidelines" element={<SellerGuidelines />} />
             <Route path="/admin/delivery-thresholds" element={<AdminRouteGuard><AdminDeliveryThresholds /></AdminRouteGuard>} />
             <Route path="/admin/product-review" element={<AdminRouteGuard><AdminProductReview /></AdminRouteGuard>} />
+            <Route path="/admin/users" element={<AdminRouteGuard><AdminUsers /></AdminRouteGuard>} />
             <Route path="/" element={<Index />} />
             <Route path="/waitlist" element={<Waitlist />} />
             <Route path="/marketplace" element={<Marketplace />} />

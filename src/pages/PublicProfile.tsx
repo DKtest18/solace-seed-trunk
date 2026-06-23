@@ -12,8 +12,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AppLayout } from '@/components/AppLayout';
 import { ReportUserModal } from '@/components/ReportUserModal';
 import { toast } from 'sonner';
-import { FollowButton } from '@/components/FollowButton';
-import { useFollowers } from '@/hooks/useFollowers';
 import { OnlineStatus } from '@/components/OnlineStatus';
 import { BlockUserButton } from '@/components/BlockUserButton';
 import { useUserBlocks } from '@/hooks/useUserBlocks';
@@ -73,7 +71,7 @@ export default function PublicProfile() {
   const [loading, setLoading] = useState(true);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>('products');
-  const { followersCount, followingCount } = useFollowers(profile?.id);
+  
   const { isBlocked, isBlockedByUser, hasBlockRelationship } = useUserBlocks();
 
   useEffect(() => {
@@ -248,7 +246,7 @@ export default function PublicProfile() {
                           <MessageCircle className="h-4 w-4 mr-2" /> Message
                         </Button>
                       )}
-                      <FollowButton userId={profile.id} size="sm" />
+                      
                       <BlockUserButton userId={profile.id} userName={profile.full_name || profile.username || undefined} size="sm" />
                       <Button variant="outline" size="sm" onClick={handleReportUser}>
                         <Flag className="h-4 w-4 mr-2" /> Report
@@ -289,13 +287,6 @@ export default function PublicProfile() {
                     <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> Founding seller
                   </span>
                 )}
-                <span className="inline-flex items-center gap-1 text-muted-foreground">
-                  <Users className="h-4 w-4" />
-                  <span className="font-medium text-gray-900">{followersCount}</span> followers
-                </span>
-                <span className="inline-flex items-center gap-1 text-muted-foreground">
-                  <span className="font-medium text-gray-900">{followingCount}</span> following
-                </span>
                 {profile.country && (
                   <span className="inline-flex items-center gap-1 text-muted-foreground">
                     <MapPin className="h-4 w-4" /> {profile.country}

@@ -18,7 +18,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import CheckEmail from "./pages/CheckEmail";
 import EmailVerified from "./pages/EmailVerified";
-import Feed from "./pages/Feed";
+
 import CreateProduct from "./pages/CreateProduct";
 import EditProduct from "./pages/EditProduct";
 import MyProducts from "./pages/MyProducts";
@@ -54,8 +54,6 @@ import Checkout from "./pages/Checkout";
 import Achievements from "./pages/Achievements";
 import SellerPaymentSettings from "./pages/SellerPaymentSettings";
 import AdminPaymentSettings from "./pages/AdminPaymentSettings";
-import Community from "./pages/Community";
-import CommunityPost from "./pages/CommunityPost";
 import NotFound from "./pages/NotFound";
 import Legal from "./pages/Legal";
 import LegalOverview from "./pages/LegalOverview";
@@ -146,7 +144,7 @@ const App = () => (
             <Route path="/cookie-settings" element={<CookieSettings />} />
                 <Route path="/auth/check-email" element={<CheckEmail />} />
                 <Route path="/auth/verified" element={<EmailVerified />} />
-                <Route path="/feed" element={<Feed />} />
+                
             <Route path="/top-products" element={<TopProducts />} />
             <Route path="/top-sellers" element={<TopSellers />} />
             <Route path="/statistics" element={<Statistics />} />
@@ -187,8 +185,6 @@ const App = () => (
             <Route path="/seller-dashboard/payment-settings" element={<Seller2FAGuard><SellerPaymentSettings /></Seller2FAGuard>} />
             <Route path="/seller-payment-settings" element={<Seller2FAGuard><SellerPaymentSettings /></Seller2FAGuard>} />
             <Route path="/admin/payment-settings" element={<AdminRouteGuard><AdminPaymentSettings /></AdminRouteGuard>} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/community/:id" element={<CommunityPost />} />
             <Route path="/profile/:username" element={<PublicProfile />} />
             <Route path="/purchase-history" element={<WaitlistGuard><PurchaseHistory /></WaitlistGuard>} />
             <Route path="/legal" element={<LegalOverview />} />

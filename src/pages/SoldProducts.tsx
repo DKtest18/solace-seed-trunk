@@ -219,9 +219,9 @@ export default function SoldProducts() {
 
                 <CardFooter className="pt-0">
                   <Button className="w-full" asChild>
-                    <Link to={`/meetings?seller=${product.seller_id}`}>
+                    <Link to={`/seller/${product.seller_id}`}>
                       <ShoppingBag className="h-4 w-4 mr-2" />
-                      Buy Similar Service
+                      View Seller
                     </Link>
                   </Button>
                 </CardFooter>

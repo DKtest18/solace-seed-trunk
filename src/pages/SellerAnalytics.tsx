@@ -110,26 +110,6 @@ export default function SellerAnalytics() {
     enabled: !!user?.id,
   });
 
-  // Meetings analytics
-  const { data: meetingsData, isLoading: meetingsLoading } = useQuery({
-    queryKey: ['deep-meetings-analytics', user?.id, timeRange],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data: meetings } = await supabase.from('meetings')
-        .select('id, status, meeting_date, duration_minutes, created_at')
-        .eq('seller_id', user.id).gte('created_at', start.toISOString());
-
-      const all = meetings || [];
-      const scheduled = all.filter((m: any) => m.status === 'scheduled').length;
-      const completed = all.filter((m: any) => m.status === 'completed').length;
-      const canceled = all.filter((m: any) => m.status === 'canceled').length;
-      const totalMinutes = all.filter((m: any) => m.status === 'completed')
-        .reduce((s: number, m: any) => s + (m.duration_minutes || 0), 0);
-
-      return { total: all.length, scheduled, completed, canceled, totalMinutes, avgDuration: completed > 0 ? totalMinutes / completed : 0 };
-    },
-    enabled: !!user?.id,
-  });
 
   // Daily trend for revenue
   const { data: dailyTrend, isLoading: trendLoading } = useQuery({
@@ -158,7 +138,7 @@ export default function SellerAnalytics() {
     return <div className="container mx-auto py-8"><p className="text-muted-foreground">Please log in.</p></div>;
   }
 
-  const isLoading = salesLoading || reviewsLoading || meetingsLoading || trendLoading;
+  const isLoading = salesLoading || reviewsLoading || trendLoading;
 
   return (
     <SidebarProvider>
@@ -175,7 +155,7 @@ export default function SellerAnalytics() {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                   <h1 className="text-3xl font-bold">Seller Analytics</h1>
-                  <p className="text-muted-foreground">Detailed breakdown of products, reviews, and meetings</p>
+                  <p className="text-muted-foreground">Detailed breakdown of products, reviews, and revenue</p>
                 </div>
                 <Select value={timeRange} onValueChange={(v) => setTimeRange(v as TimeRange)}>
                   <SelectTrigger className="w-[160px]">
@@ -200,7 +180,7 @@ export default function SellerAnalytics() {
                   <TabsList>
                     <TabsTrigger value="products">Products & Sales</TabsTrigger>
                     <TabsTrigger value="reviews">Reviews</TabsTrigger>
-                    <TabsTrigger value="meetings">Meetings</TabsTrigger>
+                    
                     <TabsTrigger value="revenue">Revenue</TabsTrigger>
                   </TabsList>
 
@@ -355,73 +335,6 @@ export default function SellerAnalytics() {
                     </div>
                   </TabsContent>
 
-                  {/* Meetings Tab */}
-                  <TabsContent value="meetings" className="space-y-6">
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      <Card>
-                        <CardContent className="pt-6">
-                          <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                            <Users className="h-4 w-4" />
-                            <span className="text-sm">Total Meetings</span>
-                          </div>
-                          <p className="text-3xl font-bold">{meetingsData?.total || 0}</p>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="pt-6">
-                          <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                            <span className="text-sm">Completed</span>
-                          </div>
-                          <p className="text-3xl font-bold text-green-600">{meetingsData?.completed || 0}</p>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="pt-6">
-                          <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                            <Calendar className="h-4 w-4 text-blue-500" />
-                            <span className="text-sm">Scheduled</span>
-                          </div>
-                          <p className="text-3xl font-bold">{meetingsData?.scheduled || 0}</p>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="pt-6">
-                          <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                            <Percent className="h-4 w-4" />
-                            <span className="text-sm">Avg Duration</span>
-                          </div>
-                          <p className="text-3xl font-bold">{Math.round(meetingsData?.avgDuration || 0)}m</p>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Meeting Summary</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <PieChart>
-                            <Pie
-                              data={[
-                                { name: 'Completed', value: meetingsData?.completed || 0 },
-                                { name: 'Scheduled', value: meetingsData?.scheduled || 0 },
-                                { name: 'Canceled', value: meetingsData?.canceled || 0 },
-                              ].filter(d => d.value > 0)}
-                              cx="50%" cy="50%" outerRadius={100} dataKey="value" label
-                            >
-                              {[0, 1, 2].map(i => <Cell key={i} fill={CHART_COLORS[i]} />)}
-                            </Pie>
-                            <Tooltip />
-                          </PieChart>
-                        </ResponsiveContainer>
-                        <p className="text-center text-sm text-muted-foreground mt-2">
-                          Total meeting time: <strong>{meetingsData?.totalMinutes || 0} minutes</strong>
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
 
                   {/* Revenue Tab */}
                   <TabsContent value="revenue" className="space-y-6">

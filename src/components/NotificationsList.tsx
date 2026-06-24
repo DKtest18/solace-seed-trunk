@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Package, MessageSquare, DollarSign, Bell, Video, Calendar } from 'lucide-react';
+import { Loader2, Package, MessageSquare, DollarSign, Bell } from 'lucide-react';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useNavigate } from 'react-router-dom';
 
@@ -43,10 +43,6 @@ export function NotificationsList() {
         return <MessageSquare className="w-4 h-4" />;
       case 'mention':
         return <Bell className="w-4 h-4 text-primary" />;
-      case 'meeting_join':
-        return <Video className="w-4 h-4 text-primary" />;
-      case 'meeting_reminder':
-        return <Calendar className="w-4 h-4" />;
       default:
         return <Bell className="w-4 h-4" />;
     }
@@ -64,9 +60,6 @@ export function NotificationsList() {
       navigate(`/messages`);
     } else if (notification.type === 'payout') {
       navigate(`/balances`);
-    } else if ((notification.type === 'meeting_join' || notification.type === 'meeting_reminder') && notification.reference_id) {
-      // Navigate to meeting - fetch meeting room info
-      navigate(`/my-meetings`);
     }
   };
 

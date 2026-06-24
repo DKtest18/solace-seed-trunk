@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Plus, MessageSquare, DollarSign, Settings, BarChart3, Bell, Wallet, Trophy, Calendar, Briefcase, Boxes, Tag, Palette } from 'lucide-react';
+import { LayoutDashboard, Package, Plus, MessageSquare, DollarSign, Settings, BarChart3, Bell, Wallet, Trophy, Briefcase, Boxes, Tag, Palette } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -22,7 +22,7 @@ const sellerMenuItems = [
   { title: 'Orders', url: '/seller-orders', icon: Package },
   { title: 'Products', url: '/seller-products', icon: Boxes },
   { title: 'Create Product', url: '/create-product', icon: Plus },
-  { title: 'Meetings', url: '/seller-dashboard/meetings', icon: Calendar },
+  
   { title: 'Portfolio', url: '/seller-dashboard/portfolio', icon: Briefcase },
   { title: 'Product Q&A', url: '/seller-dashboard/qa', icon: MessageSquare, showBadge: true },
   { title: 'Notifications', url: '/notifications', icon: Bell, showBadge: true },

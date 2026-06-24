@@ -110,7 +110,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <UserSettingsProvider>
-            <MeetingInfoModalProvider>
+            <>
               <Navbar />
               {/* AI Assistant deaktiviert – zum Aktivieren: <Chatbot /> einkommentieren */}
               {/* <Chatbot /> */}
@@ -194,22 +194,15 @@ const App = () => (
             <Route path="/admin/featured" element={<AdminRouteGuard><AdminFeaturedProducts /></AdminRouteGuard>} />
             <Route path="/admin/dispute-management" element={<AdminRouteGuard><AdminDisputeManagement /></AdminRouteGuard>} />
             <Route path="/dispute/:id" element={<WaitlistGuard><DisputeDetail /></WaitlistGuard>} />
-            <Route path="/meetings" element={<WaitlistGuard><Meetings /></WaitlistGuard>} />
-            <Route path="/meetings/join/:joinSlug" element={<WaitlistGuard><JoinMeetingPage /></WaitlistGuard>} />
-            <Route path="/join-meeting" element={<WaitlistGuard><JoinMeetingByCode /></WaitlistGuard>} />
-            <Route path="/my-meetings" element={<WaitlistGuard><MyMeetings /></WaitlistGuard>} />
-            <Route path="/meeting-room/:roomCode" element={<WaitlistGuard><MeetingRoomPage /></WaitlistGuard>} />
-            <Route path="/meeting-invite/:token" element={<MeetingInviteResponse />} />
-            <Route path="/book/:username" element={<PublicBookingPage />} />
             <Route path="/sold-products" element={<Seller2FAGuard><SoldProducts /></Seller2FAGuard>} />
             <Route path="/portfolio" element={<Seller2FAGuard><Portfolio /></Seller2FAGuard>} />
-            <Route path="/seller-dashboard/meetings" element={<Seller2FAGuard><SellerMeetings /></Seller2FAGuard>} />
             <Route path="/seller-dashboard/portfolio" element={<Seller2FAGuard><SellerPortfolio /></Seller2FAGuard>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
               </Routes>
               <Footer />
-            </MeetingInfoModalProvider>
+            </>
+
           </UserSettingsProvider>
         </AuthProvider>
       </BrowserRouter>

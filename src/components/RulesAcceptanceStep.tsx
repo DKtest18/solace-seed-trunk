@@ -10,7 +10,7 @@ import { db } from '@/lib/dkaiDb';
 import { useQuery } from '@tanstack/react-query';
 
 interface RulesAcceptanceStepProps {
-  ruleType: 'user' | 'seller' | 'meeting' | 'community';
+  ruleType: 'user' | 'seller';
   onAccept: () => void;
   onBack?: () => void;
   loading?: boolean;
@@ -48,8 +48,6 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
   const titleMap: Record<string, string> = {
     user: 'Platform Usage Rules',
     seller: 'Seller Obligations & Compliance',
-    meeting: 'Meeting-Richtlinien',
-    community: 'Community-Richtlinien',
   };
   const title = rulesData?.title || titleMap[ruleType] || 'Rules';
   const effectiveDate = rulesData?.updated_at || rulesData?.created_at || new Date().toISOString();
@@ -79,8 +77,6 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
         <CardDescription className="text-xs">
           {ruleType === 'user' && 'Read and accept all platform rules to continue.'}
           {ruleType === 'seller' && 'Read and accept all seller obligations to publish products.'}
-          {ruleType === 'meeting' && 'Lesen und akzeptieren Sie die Meeting-Richtlinien, um teilnehmen zu können.'}
-          {ruleType === 'community' && 'Lesen und akzeptieren Sie die Community-Richtlinien, um Beiträge zu verfassen.'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 pt-0">
@@ -113,7 +109,7 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
             className="mt-0.5"
           />
           <label htmlFor="accept-rules" className="text-sm font-medium cursor-pointer">
-            I have read, understood, and agree to all {ruleType === 'user' ? 'platform' : ruleType === 'seller' ? 'seller' : ruleType === 'meeting' ? 'meeting' : 'community'} rules.
+            I have read, understood, and agree to all {ruleType === 'user' ? 'platform' : 'seller'} rules.
           </label>
         </div>
         {!scrolledToEnd && body && (

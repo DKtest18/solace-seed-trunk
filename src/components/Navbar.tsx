@@ -24,7 +24,6 @@ import { NotificationCenter } from '@/components/NotificationCenter';
 const navLinks = [
   { to: '/', label: 'Home', end: true },
   { to: '/marketplace', label: 'Marketplace' },
-  { to: '/meetings', label: 'Meetings' },
   { to: '/portfolio', label: 'Portfolio' },
 ];
 

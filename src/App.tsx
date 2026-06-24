@@ -51,7 +51,7 @@ import AdminRefundDisputes from "./pages/AdminRefundDisputes";
 import AdminDisputes from "./pages/AdminDisputes";
 import PayoutRequests from "./pages/PayoutRequests";
 import Checkout from "./pages/Checkout";
-import Achievements from "./pages/Achievements";
+
 import SellerPaymentSettings from "./pages/SellerPaymentSettings";
 import AdminPaymentSettings from "./pages/AdminPaymentSettings";
 import NotFound from "./pages/NotFound";
@@ -172,7 +172,7 @@ const App = () => (
             <Route path="/admin/disputes" element={<AdminRouteGuard><AdminDisputes /></AdminRouteGuard>} />
             <Route path="/payouts" element={<WaitlistGuard><PayoutRequests /></WaitlistGuard>} />
             <Route path="/checkout" element={<WaitlistGuard><Checkout /></WaitlistGuard>} />
-            <Route path="/achievements" element={<WaitlistGuard><Achievements /></WaitlistGuard>} />
+            
             <Route path="/seller-dashboard/payment-settings" element={<Seller2FAGuard><SellerPaymentSettings /></Seller2FAGuard>} />
             <Route path="/seller-payment-settings" element={<Seller2FAGuard><SellerPaymentSettings /></Seller2FAGuard>} />
             <Route path="/seller-dashboard/qa" element={<Seller2FAGuard><SellerProductQA /></Seller2FAGuard>} />

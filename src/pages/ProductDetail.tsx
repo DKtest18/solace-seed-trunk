@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ProductReviews } from '@/components/ProductReviews';
+import { ProductQA } from '@/components/ProductQA';
 import { RatingDisplay } from '@/components/RatingDisplay';
 import { ReportDialog } from '@/components/ReportDialog';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
@@ -133,19 +134,11 @@ export default function ProductDetail() {
   };
 
   const handleContactSeller = () => {
-    if (!product?.seller_id) return;
-    if (!user) {
-      const dest = encodeURIComponent(`/messages?seller=${product.seller_id}`);
-      navigate(`/login?redirect=${dest}`);
-      return;
-    }
-
-    // Track contact seller click
-    if (id) {
+    if (id && user) {
       trackProductEvent(id, 'click', user.id, { action: 'contact_seller' });
     }
-
-    navigate(`/messages?seller=${product.seller_id}`);
+    const el = document.getElementById('product-qa');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   if (isLoading) {
@@ -304,7 +297,7 @@ export default function ProductDetail() {
                         className="gap-2"
                       >
                         <MessageCircle className="h-4 w-4" />
-                        Message
+                        Ask a question
                       </Button>
                     </div>
                   </CardContent>
@@ -338,6 +331,8 @@ export default function ProductDetail() {
               </CardContent>
             </Card>
           )}
+
+          <ProductQA productId={product.id} sellerId={product.seller_id} />
 
           {/* Reviews Section */}
           <div className="mt-8">

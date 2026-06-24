@@ -38,7 +38,7 @@ import { Loader2, Eye, MousePointer, ShoppingCart, DollarSign, TrendingUp, Packa
 import { Link, useNavigate } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { SellerSidebar } from '@/components/SellerSidebar';
-import { MessagesSidebar } from '@/components/MessagesSidebar';
+
 
 export default function SellerDashboard() {
   const { user } = useAuth();
@@ -415,9 +415,6 @@ export default function SellerDashboard() {
               )}
             </div>
           </main>
-        </div>
-        <div className="hidden xl:flex w-80 flex-shrink-0 border-l bg-card">
-          <MessagesSidebar />
         </div>
       </div>
     </SidebarProvider>

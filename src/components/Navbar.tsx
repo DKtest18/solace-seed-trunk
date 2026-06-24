@@ -54,37 +54,9 @@ export function Navbar() {
   }, [isAdmin]);
 
 
+  // Messaging removed in favor of Product Q&A
   useEffect(() => {
-    if (!user) return;
-
-    const loadUnreadCount = async () => {
-      const { count } = await db
-        .from('dkai_messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('recipient_id', user.id)
-        .eq('is_read', false);
-
-      setUnreadCount(count || 0);
-    };
-
-    loadUnreadCount();
-
-    const channel = db
-      .channel('navbar-messages')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'dkai_messages',
-        },
-        () => loadUnreadCount()
-      )
-      .subscribe();
-
-    return () => {
-      db.removeChannel(channel);
-    };
+    setUnreadCount(0);
   }, [user]);
 
   return (
@@ -157,12 +129,6 @@ export function Navbar() {
                   <DropdownMenuItem asChild><Link to="/purchases"><ShoppingBag className="w-4 h-4 mr-2" />Purchase History</Link></DropdownMenuItem>
                   <DropdownMenuItem asChild><Link to="/wishlist"><Heart className="w-4 h-4 mr-2" />Wishlist</Link></DropdownMenuItem>
                   <DropdownMenuItem asChild><Link to="/disputes"><MessageSquare className="w-4 h-4 mr-2" />Disputes</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/messages" className="flex items-center justify-between">
-                      <div className="flex items-center"><MessageSquare className="w-4 h-4 mr-2" />Messages</div>
-                      {unreadCount > 0 && <Badge variant="default" className="ml-2 rounded-full h-5 px-2">{unreadCount}</Badge>}
-                    </Link>
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   {isSeller && (
                     <>
@@ -245,10 +211,6 @@ export function Navbar() {
 
                       <div className="px-2 space-y-1">
                         <Link to="/profile" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors"><User className="w-4 h-4 mr-3" />Profile</Link>
-                        <Link to="/messages" onClick={() => setMobileOpen(false)} className="flex items-center justify-between px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors">
-                          <span className="flex items-center"><MessageSquare className="w-4 h-4 mr-3" />Messages</span>
-                          {unreadCount > 0 && <Badge variant="default" className="rounded-full h-5 px-2 text-xs">{unreadCount}</Badge>}
-                        </Link>
                         <Link to="/purchases" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors"><ShoppingBag className="w-4 h-4 mr-3" />Purchases</Link>
                         <Link to="/wishlist" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors"><Heart className="w-4 h-4 mr-3" />Wishlist</Link>
                         <Link to="/settings" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors"><Settings className="w-4 h-4 mr-3" />Settings</Link>

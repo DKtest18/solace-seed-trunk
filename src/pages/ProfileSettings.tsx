@@ -16,7 +16,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { useHasRole } from '@/hooks/useUserRole';
 import { AppearanceSettings } from '@/components/settings/AppearanceSettings';
 import { SidebarLayoutSettings } from '@/components/settings/SidebarLayoutSettings';
-import { MessagePrivacySettings } from '@/components/settings/MessagePrivacySettings';
+
 import { BlockedUsersSettings } from '@/components/settings/BlockedUsersSettings';
 import { AccountDeletionSettings } from '@/components/settings/AccountDeletionSettings';
 import { PrivacyDataSettings } from '@/components/settings/PrivacyDataSettings';
@@ -536,7 +536,6 @@ export default function ProfileSettings() {
           </TabsContent>
 
           <TabsContent value="privacy" className="mt-0 space-y-6">
-            <MessagePrivacySettings />
             <SidebarLayoutSettings />
           </TabsContent>
 

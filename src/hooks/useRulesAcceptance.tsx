@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 
-type RuleType = 'user' | 'seller' | 'meeting' | 'community';
+type RuleType = 'user' | 'seller';
 
 function useRuleAcceptance(ruleType: RuleType) {
   const { user } = useAuth();
@@ -26,8 +26,6 @@ export function useRulesAcceptance() {
 
   const { data: userRulesAccepted, isLoading: loadingUserRules } = useRuleAcceptance('user');
   const { data: sellerRulesAccepted, isLoading: loadingSellerRules } = useRuleAcceptance('seller');
-  const { data: meetingRulesAccepted, isLoading: loadingMeetingRules } = useRuleAcceptance('meeting');
-  const { data: communityRulesAccepted, isLoading: loadingCommunityRules } = useRuleAcceptance('community');
 
   const acceptRulesMutation = useMutation({
     mutationFn: async ({ ruleType }: { ruleType: RuleType }) => {
@@ -46,12 +44,12 @@ export function useRulesAcceptance() {
   return {
     userRulesAccepted: !!userRulesAccepted,
     sellerRulesAccepted: !!sellerRulesAccepted,
-    meetingRulesAccepted: !!meetingRulesAccepted,
-    communityRulesAccepted: !!communityRulesAccepted,
+    meetingRulesAccepted: true,
+    communityRulesAccepted: true,
     loadingUserRules,
     loadingSellerRules,
-    loadingMeetingRules,
-    loadingCommunityRules,
+    loadingMeetingRules: false,
+    loadingCommunityRules: false,
     acceptRules: acceptRulesMutation.mutateAsync,
     isAccepting: acceptRulesMutation.isPending,
   };

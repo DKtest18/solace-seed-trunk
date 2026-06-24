@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { UserSettingsProvider } from "@/contexts/UserSettingsContext";
-import { MeetingInfoModalProvider } from "@/contexts/MeetingInfoModalContext";
+
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Chatbot } from "@/components/Chatbot";
@@ -67,17 +67,9 @@ import EscrowManagement from "./pages/EscrowManagement";
 import AdminFeaturedProducts from "./pages/AdminFeaturedProducts";
 import AdminDisputeManagement from "./pages/AdminDisputeManagement";
 import DisputeDetail from "./pages/DisputeDetail";
-import Meetings from "./pages/Meetings";
-import MyMeetings from "./pages/MyMeetings";
 import SoldProducts from "./pages/SoldProducts";
-import SellerMeetings from "./pages/SellerMeetings";
 import SellerPortfolio from "./pages/SellerPortfolio";
 import Portfolio from "./pages/Portfolio";
-import MeetingRoomPage from "./pages/MeetingRoomPage";
-import JoinMeetingPage from "./pages/JoinMeetingPage";
-import JoinMeetingByCode from "./pages/JoinMeetingByCode";
-import PublicBookingPage from "./pages/PublicBookingPage";
-import MeetingInviteResponse from "./pages/MeetingInviteResponse";
 import SellerAnalytics from "./pages/SellerAnalytics";
 import SellerCoupons from "./pages/SellerCoupons";
 import SellerStorefrontSettings from "./pages/SellerStorefrontSettings";
@@ -118,7 +110,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <UserSettingsProvider>
-            <MeetingInfoModalProvider>
+            <>
               <Navbar />
               {/* AI Assistant deaktiviert – zum Aktivieren: <Chatbot /> einkommentieren */}
               {/* <Chatbot /> */}
@@ -202,22 +194,15 @@ const App = () => (
             <Route path="/admin/featured" element={<AdminRouteGuard><AdminFeaturedProducts /></AdminRouteGuard>} />
             <Route path="/admin/dispute-management" element={<AdminRouteGuard><AdminDisputeManagement /></AdminRouteGuard>} />
             <Route path="/dispute/:id" element={<WaitlistGuard><DisputeDetail /></WaitlistGuard>} />
-            <Route path="/meetings" element={<WaitlistGuard><Meetings /></WaitlistGuard>} />
-            <Route path="/meetings/join/:joinSlug" element={<WaitlistGuard><JoinMeetingPage /></WaitlistGuard>} />
-            <Route path="/join-meeting" element={<WaitlistGuard><JoinMeetingByCode /></WaitlistGuard>} />
-            <Route path="/my-meetings" element={<WaitlistGuard><MyMeetings /></WaitlistGuard>} />
-            <Route path="/meeting-room/:roomCode" element={<WaitlistGuard><MeetingRoomPage /></WaitlistGuard>} />
-            <Route path="/meeting-invite/:token" element={<MeetingInviteResponse />} />
-            <Route path="/book/:username" element={<PublicBookingPage />} />
             <Route path="/sold-products" element={<Seller2FAGuard><SoldProducts /></Seller2FAGuard>} />
             <Route path="/portfolio" element={<Seller2FAGuard><Portfolio /></Seller2FAGuard>} />
-            <Route path="/seller-dashboard/meetings" element={<Seller2FAGuard><SellerMeetings /></Seller2FAGuard>} />
             <Route path="/seller-dashboard/portfolio" element={<Seller2FAGuard><SellerPortfolio /></Seller2FAGuard>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
               </Routes>
               <Footer />
-            </MeetingInfoModalProvider>
+            </>
+
           </UserSettingsProvider>
         </AuthProvider>
       </BrowserRouter>

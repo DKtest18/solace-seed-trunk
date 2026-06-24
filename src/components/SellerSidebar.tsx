@@ -24,7 +24,7 @@ const sellerMenuItems = [
   { title: 'Create Product', url: '/create-product', icon: Plus },
   { title: 'Meetings', url: '/seller-dashboard/meetings', icon: Calendar },
   { title: 'Portfolio', url: '/seller-dashboard/portfolio', icon: Briefcase },
-  { title: 'Messages', url: '/messages', icon: MessageSquare, showBadge: true },
+  { title: 'Product Q&A', url: '/seller-dashboard/qa', icon: MessageSquare, showBadge: true },
   { title: 'Notifications', url: '/notifications', icon: Bell, showBadge: true },
   { title: 'Achievements', url: '/achievements', icon: Trophy },
   { title: 'Earnings', url: '/earnings', icon: DollarSign },
@@ -43,34 +43,18 @@ export function SellerSidebar() {
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   
-  const isMessagesPage = location.pathname === '/messages';
-
   useEffect(() => {
     if (!user) return;
-
     const loadCounts = async () => {
-      const { count: msgCount } = await db
-        .from('dkai_messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('recipient_id', user.id)
-        .eq('is_read', false);
-
-      setUnreadMessages(msgCount || 0);
-      
-      // Simplified notification count (messages + recent orders)
-      setUnreadNotifications((msgCount || 0));
+      const { count } = await db
+        .from('dkai_product_questions')
+        .select('id', { count: 'exact', head: true })
+        .eq('seller_id', user.id)
+        .is('answer', null);
+      setUnreadMessages(count || 0);
+      setUnreadNotifications(count || 0);
     };
-
     loadCounts();
-
-    const channel = db
-      .channel('sidebar-updates')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'dkai_messages' }, () => loadCounts())
-      .subscribe();
-
-    return () => {
-      db.removeChannel(channel);
-    };
   }, [user]);
 
   return (
@@ -97,7 +81,7 @@ export function SellerSidebar() {
                           {item.title}
                           {item.showBadge && (
                             <>
-                              {item.title === 'Messages' && unreadMessages > 0 && (
+                              {item.title === 'Product Q&A' && unreadMessages > 0 && (
                                 <Badge variant="default" className="ml-auto rounded-full h-5 px-2">
                                   {unreadMessages > 9 ? '9+' : unreadMessages}
                                 </Badge>

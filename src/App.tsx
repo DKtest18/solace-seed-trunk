@@ -44,7 +44,7 @@ import TopSellers from "./pages/TopSellers";
 import Statistics from "./pages/Statistics";
 
 import ManualPayment from "./pages/ManualPayment";
-import Messages from "./pages/Messages";
+
 import Notifications from "./pages/Notifications";
 import AdminPaymentConfirmations from "./pages/AdminPaymentConfirmations";
 import AdminRefundDisputes from "./pages/AdminRefundDisputes";
@@ -174,7 +174,7 @@ const App = () => (
             <Route path="/u/:username" element={<PublicProfile />} />
 
             <Route path="/manual-payment" element={<WaitlistGuard><ManualPayment /></WaitlistGuard>} />
-            <Route path="/messages" element={<WaitlistGuard><Messages /></WaitlistGuard>} />
+            
             <Route path="/notifications" element={<WaitlistGuard><Notifications /></WaitlistGuard>} />
             <Route path="/admin/payment-confirmations" element={<AdminRouteGuard><AdminPaymentConfirmations /></AdminRouteGuard>} />
             <Route path="/admin/refund-disputes" element={<AdminRouteGuard><AdminRefundDisputes /></AdminRouteGuard>} />

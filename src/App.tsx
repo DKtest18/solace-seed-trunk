@@ -68,8 +68,6 @@ import AdminFeaturedProducts from "./pages/AdminFeaturedProducts";
 import AdminDisputeManagement from "./pages/AdminDisputeManagement";
 import DisputeDetail from "./pages/DisputeDetail";
 import SoldProducts from "./pages/SoldProducts";
-import SellerPortfolio from "./pages/SellerPortfolio";
-import Portfolio from "./pages/Portfolio";
 import SellerAnalytics from "./pages/SellerAnalytics";
 import SellerCoupons from "./pages/SellerCoupons";
 import SellerStorefrontSettings from "./pages/SellerStorefrontSettings";
@@ -195,8 +193,6 @@ const App = () => (
             <Route path="/admin/dispute-management" element={<AdminRouteGuard><AdminDisputeManagement /></AdminRouteGuard>} />
             <Route path="/dispute/:id" element={<WaitlistGuard><DisputeDetail /></WaitlistGuard>} />
             <Route path="/sold-products" element={<Seller2FAGuard><SoldProducts /></Seller2FAGuard>} />
-            <Route path="/portfolio" element={<Seller2FAGuard><Portfolio /></Seller2FAGuard>} />
-            <Route path="/seller-dashboard/portfolio" element={<Seller2FAGuard><SellerPortfolio /></Seller2FAGuard>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
               </Routes>

@@ -22,8 +22,6 @@ const sellerMenuItems = [
   { title: 'Orders', url: '/seller-orders', icon: Package },
   { title: 'Products', url: '/seller-products', icon: Boxes },
   { title: 'Create Product', url: '/create-product', icon: Plus },
-  
-  { title: 'Portfolio', url: '/seller-dashboard/portfolio', icon: Briefcase },
   { title: 'Product Q&A', url: '/seller-dashboard/qa', icon: MessageSquare, showBadge: true },
   { title: 'Notifications', url: '/notifications', icon: Bell, showBadge: true },
   { title: 'Achievements', url: '/achievements', icon: Trophy },

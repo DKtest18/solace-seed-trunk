@@ -24,7 +24,7 @@ const sellerMenuItems = [
   { title: 'Create Product', url: '/create-product', icon: Plus },
   { title: 'Product Q&A', url: '/seller-dashboard/qa', icon: MessageSquare, showBadge: true },
   { title: 'Notifications', url: '/notifications', icon: Bell, showBadge: true },
-  { title: 'Achievements', url: '/achievements', icon: Trophy },
+  
   { title: 'Earnings', url: '/earnings', icon: DollarSign },
   { title: 'Payouts', url: '/payouts', icon: Wallet },
   { title: 'Analytics', url: '/seller-dashboard/analytics', icon: BarChart3 },

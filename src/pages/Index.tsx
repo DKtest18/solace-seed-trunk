@@ -68,7 +68,7 @@ export default function Index() {
             <ul className="list-disc list-inside space-y-2 text-slate-700">
               <li>Keep 100% of your sales — zero platform fees for the first 20 sales on the platform</li>
               <li>No transaction, payout, or seller fees during launch</li>
-              <li>Direct buyer communication & showcase your portfolio</li>
+              <li>Direct buyer communication for your products</li>
               <li>Founding seller perks: priority placement, custom badge</li>
             </ul>
           </Card>

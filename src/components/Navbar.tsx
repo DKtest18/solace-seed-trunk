@@ -24,7 +24,7 @@ import { NotificationCenter } from '@/components/NotificationCenter';
 const navLinks = [
   { to: '/', label: 'Home', end: true },
   { to: '/marketplace', label: 'Marketplace' },
-  { to: '/portfolio', label: 'Portfolio' },
+  
 ];
 
 const SUPER_ADMIN_EMAIL = 'dari@dkaisystem.com';

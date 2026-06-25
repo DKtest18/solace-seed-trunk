@@ -88,6 +88,7 @@ import AdminDeliveryThresholds from "./pages/AdminDeliveryThresholds";
 import AdminProductReview from "./pages/AdminProductReview";
 import AdminUsers from "./pages/AdminUsers";
 import { SellerGuidelinesModal } from "@/components/SellerGuidelinesModal";
+import { SellerLayout } from "@/components/SellerLayout";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -140,8 +141,9 @@ const App = () => (
             <Route path="/top-sellers" element={<TopSellers />} />
             <Route path="/statistics" element={<Statistics />} />
             <Route path="/admin/waitlist" element={<AdminRouteGuard><AdminWaitlist /></AdminRouteGuard>} />
-            <Route path="/create-product" element={<Seller2FAGuard><CreateProduct /></Seller2FAGuard>} />
-            <Route path="/edit-product/:id" element={<Seller2FAGuard><EditProduct /></Seller2FAGuard>} />
+            <Route path="/create-product" element={<Seller2FAGuard><SellerLayout title="Create Product"><CreateProduct /></SellerLayout></Seller2FAGuard>} />
+            <Route path="/edit-product/:id" element={<Seller2FAGuard><SellerLayout title="Edit Product"><EditProduct /></SellerLayout></Seller2FAGuard>} />
+
             <Route path="/seller-dashboard/products" element={<Seller2FAGuard><MyProducts /></Seller2FAGuard>} />
             <Route path="/seller-products" element={<Seller2FAGuard><SellerProducts /></Seller2FAGuard>} />
             <Route path="/seller-dashboard" element={<Seller2FAGuard><SellerDashboard /></Seller2FAGuard>} />
@@ -152,11 +154,12 @@ const App = () => (
             <Route path="/admin" element={<AdminRouteGuard><AdminDashboard /></AdminRouteGuard>} />
             <Route path="/admin/transactions" element={<AdminRouteGuard><AdminTransactions /></AdminRouteGuard>} />
             <Route path="/purchases" element={<WaitlistGuard><PurchaseHistory /></WaitlistGuard>} />
-            <Route path="/earnings" element={<Seller2FAGuard><SellerEarnings /></Seller2FAGuard>} />
-            <Route path="/balances" element={<Seller2FAGuard><SellerBalances /></Seller2FAGuard>} />
-            <Route path="/seller-onboarding" element={<Seller2FAGuard><SellerOnboardingChecklist /></Seller2FAGuard>} />
-            <Route path="/seller-onboarding/identity" element={<Seller2FAGuard><SellerOnboardingIdentity /></Seller2FAGuard>} />
-            <Route path="/seller-onboarding/payment" element={<Seller2FAGuard><SellerOnboardingPayment /></Seller2FAGuard>} />
+            <Route path="/earnings" element={<Seller2FAGuard><SellerLayout title="Earnings"><SellerEarnings /></SellerLayout></Seller2FAGuard>} />
+            <Route path="/balances" element={<Seller2FAGuard><SellerLayout title="Balances"><SellerBalances /></SellerLayout></Seller2FAGuard>} />
+            <Route path="/seller-onboarding" element={<Seller2FAGuard><SellerLayout title="Seller Onboarding"><SellerOnboardingChecklist /></SellerLayout></Seller2FAGuard>} />
+            <Route path="/seller-onboarding/identity" element={<Seller2FAGuard><SellerLayout title="Identity Verification"><SellerOnboardingIdentity /></SellerLayout></Seller2FAGuard>} />
+            <Route path="/seller-onboarding/payment" element={<Seller2FAGuard><SellerLayout title="Payment Setup"><SellerOnboardingPayment /></SellerLayout></Seller2FAGuard>} />
+
             <Route path="/wishlist" element={<WaitlistGuard><Wishlist /></WaitlistGuard>} />
             <Route path="/disputes" element={<WaitlistGuard><Disputes /></WaitlistGuard>} />
             <Route path="/seller/:sellerId" element={<SellerProfile />} />
@@ -170,12 +173,13 @@ const App = () => (
             <Route path="/admin/payment-confirmations" element={<AdminRouteGuard><AdminPaymentConfirmations /></AdminRouteGuard>} />
             <Route path="/admin/refund-disputes" element={<AdminRouteGuard><AdminRefundDisputes /></AdminRouteGuard>} />
             <Route path="/admin/disputes" element={<AdminRouteGuard><AdminDisputes /></AdminRouteGuard>} />
-            <Route path="/payouts" element={<WaitlistGuard><PayoutRequests /></WaitlistGuard>} />
+            <Route path="/payouts" element={<Seller2FAGuard><SellerLayout title="Payouts"><PayoutRequests /></SellerLayout></Seller2FAGuard>} />
             <Route path="/checkout" element={<WaitlistGuard><Checkout /></WaitlistGuard>} />
             
-            <Route path="/seller-dashboard/payment-settings" element={<Seller2FAGuard><SellerPaymentSettings /></Seller2FAGuard>} />
-            <Route path="/seller-payment-settings" element={<Seller2FAGuard><SellerPaymentSettings /></Seller2FAGuard>} />
-            <Route path="/seller-dashboard/qa" element={<Seller2FAGuard><SellerProductQA /></Seller2FAGuard>} />
+            <Route path="/seller-dashboard/payment-settings" element={<Seller2FAGuard><SellerLayout title="Payment Settings"><SellerPaymentSettings /></SellerLayout></Seller2FAGuard>} />
+            <Route path="/seller-payment-settings" element={<Seller2FAGuard><SellerLayout title="Payment Settings"><SellerPaymentSettings /></SellerLayout></Seller2FAGuard>} />
+            <Route path="/seller-dashboard/qa" element={<Seller2FAGuard><SellerLayout title="Product Q&A"><SellerProductQA /></SellerLayout></Seller2FAGuard>} />
+
             <Route path="/admin/payment-settings" element={<AdminRouteGuard><AdminPaymentSettings /></AdminRouteGuard>} />
             <Route path="/profile/:username" element={<PublicProfile />} />
             <Route path="/purchase-history" element={<WaitlistGuard><PurchaseHistory /></WaitlistGuard>} />
@@ -187,12 +191,12 @@ const App = () => (
             <Route path="/invites" element={<WaitlistGuard><Invites /></WaitlistGuard>} />
 
             <Route path="/my-subscriptions" element={<WaitlistGuard><MySubscriptions /></WaitlistGuard>} />
-            <Route path="/seller-subscriptions" element={<Seller2FAGuard><SellerSubscriptions /></Seller2FAGuard>} />
+            <Route path="/seller-subscriptions" element={<Seller2FAGuard><SellerLayout title="My Subscribers"><SellerSubscriptions /></SellerLayout></Seller2FAGuard>} />
             <Route path="/admin/escrow" element={<AdminRouteGuard><EscrowManagement /></AdminRouteGuard>} />
             <Route path="/admin/featured" element={<AdminRouteGuard><AdminFeaturedProducts /></AdminRouteGuard>} />
             <Route path="/admin/dispute-management" element={<AdminRouteGuard><AdminDisputeManagement /></AdminRouteGuard>} />
             <Route path="/dispute/:id" element={<WaitlistGuard><DisputeDetail /></WaitlistGuard>} />
-            <Route path="/sold-products" element={<Seller2FAGuard><SoldProducts /></Seller2FAGuard>} />
+            <Route path="/sold-products" element={<Seller2FAGuard><SellerLayout title="Sold Products"><SoldProducts /></SellerLayout></Seller2FAGuard>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
               </Routes>

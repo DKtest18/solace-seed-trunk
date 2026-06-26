@@ -1,10 +1,15 @@
+import { useRef, useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Switch } from '@/components/ui/switch';
-import { AlertCircle, Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, Info, Upload, Loader2, X } from 'lucide-react';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface AdditionalDetailsStepProps {
   data: {
@@ -16,6 +21,7 @@ interface AdditionalDetailsStepProps {
     refund_policy: string;
     video_url: string;
     sample_preview_url?: string;
+    sample_preview_type?: string;
     sample_output_text?: string;
     sample_is_watermarked?: boolean;
   };
@@ -23,8 +29,55 @@ interface AdditionalDetailsStepProps {
   errors: Record<string, string>;
 }
 
+const SAMPLE_BUCKET = 'product-samples';
+const MAX_SAMPLE_BYTES = 25 * 1024 * 1024; // 25 MB
+const ACCEPTED_SAMPLE = 'image/*,video/*,application/pdf';
+
 export function AdditionalDetailsStep({ data, onChange, errors }: AdditionalDetailsStepProps) {
   const { feePct, sellerPct } = usePlatformFee();
+  const { user } = useAuth();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const detectType = (mime: string) =>
+    mime.startsWith('video/') ? 'video' : mime === 'application/pdf' ? 'pdf' : 'image';
+
+  const handleSampleUpload = async (file: File) => {
+    if (!user) return toast.error('Sign in required');
+    if (file.size > MAX_SAMPLE_BYTES) return toast.error('Sample must be under 25 MB');
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop() || 'bin';
+      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage
+        .from(SAMPLE_BUCKET)
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (error) throw error;
+      const { data: pub } = supabase.storage.from(SAMPLE_BUCKET).getPublicUrl(path);
+      onChange('sample_preview_url', pub.publicUrl);
+      onChange('sample_preview_type', detectType(file.type));
+      toast.success('Sample uploaded');
+    } catch (e: any) {
+      toast.error(e.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  const clearSample = () => {
+    onChange('sample_preview_url', '');
+    onChange('sample_preview_type', '');
+  };
+
+  const sampleType =
+    data.sample_preview_type ||
+    (data.sample_preview_url?.match(/\.(mp4|webm|mov)$/i)
+      ? 'video'
+      : data.sample_preview_url?.match(/\.pdf$/i)
+        ? 'pdf'
+        : 'image');
+
   return (
     <div className="space-y-6">
       <div>
@@ -124,13 +177,59 @@ export function AdditionalDetailsStep({ data, onChange, errors }: AdditionalDeta
           <p className="text-xs text-muted-foreground">Show buyers a small preview before they purchase — image, screenshot, or sample output text. Builds trust and lifts conversion.</p>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="sample_preview_url">Preview image URL</Label>
+          <Label>Preview file (image, short video, or PDF)</Label>
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept={ACCEPTED_SAMPLE}
+              className="hidden"
+              onChange={(e) => e.target.files?.[0] && handleSampleUpload(e.target.files[0])}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+              Upload sample
+            </Button>
+            {data.sample_preview_url && (
+              <Button type="button" variant="ghost" size="sm" onClick={clearSample}>
+                <X className="h-4 w-4 mr-1" /> Remove
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">Up to 25 MB. Stored publicly so unsigned buyers can view it.</p>
+
+          {data.sample_preview_url && (
+            <div className="mt-2 rounded-md border bg-background p-2">
+              {sampleType === 'video' ? (
+                <video src={data.sample_preview_url} controls className="max-h-48 w-full rounded" />
+              ) : sampleType === 'pdf' ? (
+                <a href={data.sample_preview_url} target="_blank" rel="noreferrer" className="text-sm text-primary underline">
+                  View PDF sample
+                </a>
+              ) : (
+                <img src={data.sample_preview_url} alt="Sample preview" className="max-h-48 rounded object-contain" />
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="sample_preview_url">…or paste a preview URL</Label>
           <Input
             id="sample_preview_url"
             type="url"
             placeholder="https://..."
             value={data.sample_preview_url ?? ''}
-            onChange={(e) => onChange('sample_preview_url', e.target.value)}
+            onChange={(e) => {
+              onChange('sample_preview_url', e.target.value);
+              onChange('sample_preview_type', '');
+            }}
           />
         </div>
         <div className="space-y-2">

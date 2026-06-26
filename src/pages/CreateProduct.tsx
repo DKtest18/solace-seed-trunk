@@ -223,6 +223,7 @@ export default function CreateProduct() {
     refund_policy: formData.refund_policy || null,
     video_url: formData.video_url || null,
     sample_preview_url: formData.sample_preview_url || null,
+    sample_preview_type: formData.sample_preview_type || null,
     sample_output_text: formData.sample_output_text || null,
     sample_is_watermarked: !!formData.sample_is_watermarked,
     payment_methods: formData.payment_methods,

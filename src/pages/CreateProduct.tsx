@@ -83,6 +83,9 @@ export default function CreateProduct() {
     demo_url: '',
     price: '',
     pricing_model: 'one_time',
+    currency: 'usd',
+    billing_interval: 'month',
+    billing_interval_count: 1,
     features: [] as string[],
     tags: [] as string[],
     purpose: '',
@@ -146,6 +149,9 @@ export default function CreateProduct() {
             demo_url: data.demo_url ?? '',
             price: data.price != null ? String(data.price) : '',
             pricing_model: data.pricing_model ?? prev.pricing_model,
+            currency: data.currency ?? prev.currency,
+            billing_interval: data.billing_interval ?? prev.billing_interval,
+            billing_interval_count: data.billing_interval_count ?? prev.billing_interval_count,
             features: data.features ?? [],
             tags: data.tags ?? [],
             purpose: data.purpose ?? '',
@@ -198,6 +204,9 @@ export default function CreateProduct() {
     demo_url: formData.demo_url || null,
     price: formData.price ? parseFloat(formData.price) : 0,
     pricing_model: formData.pricing_model,
+    currency: formData.currency || 'usd',
+    billing_interval: formData.pricing_model === 'recurring' ? formData.billing_interval : null,
+    billing_interval_count: formData.pricing_model === 'recurring' ? formData.billing_interval_count : null,
     features: formData.features,
     tags: formData.tags,
     purpose: formData.purpose || null,
@@ -446,24 +455,42 @@ export default function CreateProduct() {
 
     try {
       let imageUrl: string | null = null;
+      const mediaRows: Array<{
+        storage_path: string;
+        media_type: 'image' | 'video';
+        mime_type: string;
+        size_bytes: number;
+        sort_order: number;
+        is_cover: boolean;
+      }> = [];
 
-      if (images.length > 0) {
-        const firstImage = images[0];
-        const fileExt = firstImage.name.split('.').pop();
-        const filePath = `${user?.id}/${crypto.randomUUID()}.${fileExt}`;
+      for (let i = 0; i < images.length; i++) {
+        const file = images[i];
+        const ext = file.name.split('.').pop();
+        const path = `${user!.id}/${crypto.randomUUID()}.${ext}`;
+        const isVideo = file.type.startsWith('video/');
+        const bucket = isVideo ? 'product-media' : 'product-images';
 
-        const { error: uploadError } = await supabase.storage
-          .from('product-images')
-          .upload(filePath, firstImage);
+        const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, {
+          contentType: file.type,
+          upsert: false,
+        });
+        if (upErr) throw upErr;
 
-        if (uploadError) throw uploadError;
+        if (i === 0 && !isVideo) {
+          imageUrl = supabase.storage.from('product-images').getPublicUrl(path).data.publicUrl;
+        }
 
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from('product-images').getPublicUrl(filePath);
-
-        imageUrl = publicUrl;
+        mediaRows.push({
+          storage_path: `${bucket}/${path}`,
+          media_type: isVideo ? 'video' : 'image',
+          mime_type: file.type,
+          size_bytes: file.size,
+          sort_order: i,
+          is_cover: i === 0,
+        });
       }
+
 
       // Update seller profile with PayPal and IBAN if provided
       if (formData.paypal_email || formData.iban) {
@@ -494,6 +521,13 @@ export default function CreateProduct() {
 
       const { error } = await db.from('dkai_products').update(submitPayload).eq('id', id);
       if (error) throw error;
+
+      if (mediaRows.length > 0) {
+        await db.from('dkai_product_media').insert(
+          mediaRows.map((m) => ({ ...m, product_id: id, seller_id: user!.id })),
+        );
+      }
+
 
       setShowSubmittedDialog(true);
     } catch (error: any) {

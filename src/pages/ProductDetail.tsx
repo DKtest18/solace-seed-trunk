@@ -15,6 +15,7 @@ import { RatingDisplay } from '@/components/RatingDisplay';
 import { ReportDialog } from '@/components/ReportDialog';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { ProductMediaGallery } from '@/components/ProductMediaGallery';
+import { ReturnPolicyDisplay } from '@/components/ReturnPolicyDisplay';
 
 // Track product analytics
 const trackProductEvent = async (productId: string, eventType: 'view' | 'click', userId?: string, metadata?: any) => {
@@ -284,6 +285,8 @@ export default function ProductDetail() {
                 />
               )}
 
+              {/* Refund / Return policy — buyer must see BEFORE buying */}
+              <ReturnPolicyDisplay product={product as any} />
 
               {/* Seller Profile Card */}
               {sellerProfile && (

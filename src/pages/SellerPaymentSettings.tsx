@@ -13,6 +13,7 @@ import { useHasRole } from "@/hooks/useUserRole";
 import { IOSToggle } from "@/components/ui/ios-toggle";
 import { Badge } from "@/components/ui/badge";
 import { usePlatformFee } from "@/hooks/usePlatformFee";
+import { StripePaymentMethodsPanel } from "@/components/seller/StripePaymentMethodsPanel";
 
 interface StripeConnectStatus {
   connected: boolean;
@@ -184,28 +185,48 @@ export default function SellerPaymentSettings() {
   };
 
   const handleToggleCardPayments = async (enabled: boolean) => {
+    if (!user) return;
     if (enabled && stripeStatus.onboardingStatus !== "connected") {
       toast.error("Complete Stripe onboarding first to enable card payments");
       return;
     }
 
     setTogglingCard(true);
+    // Optimistic
+    setStripeStatus(prev => ({ ...prev, cardPaymentsEnabled: enabled }));
     try {
-      // Upsert to handle case where row doesn't exist yet
       const { error } = await db
         .from("dkai_seller_payment_configs")
-        .upsert({ 
-          seller_id: user?.id,
-          card_payments_enabled: enabled,
-          updated_at: new Date().toISOString() 
-        }, { onConflict: 'seller_id' });
+        .upsert(
+          {
+            seller_id: user.id,
+            stripe_account_id: stripeStatus.accountId ?? null,
+            card_payments_enabled: enabled,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "seller_id" },
+        );
 
       if (error) throw error;
 
-      setStripeStatus(prev => ({ ...prev, cardPaymentsEnabled: enabled }));
-      toast.success(enabled ? "Card payments enabled" : "Card payments disabled");
+      // Re-read to confirm persisted state (no silent "saved but reverted" cases).
+      const { data: row } = await db
+        .from("dkai_seller_payment_configs")
+        .select("card_payments_enabled")
+        .eq("seller_id", user.id)
+        .maybeSingle();
+
+      const persisted = !!row?.card_payments_enabled;
+      setStripeStatus(prev => ({ ...prev, cardPaymentsEnabled: persisted }));
+      if (persisted !== enabled) {
+        toast.error("Settings did not save. Please try again.");
+      } else {
+        toast.success(enabled ? "Card payments enabled" : "Card payments disabled");
+      }
     } catch (error: any) {
       console.error("Error toggling card payments:", error);
+      // Revert optimistic
+      setStripeStatus(prev => ({ ...prev, cardPaymentsEnabled: !enabled }));
       toast.error(error.message || "Failed to update settings");
     } finally {
       setTogglingCard(false);
@@ -497,6 +518,13 @@ export default function SellerPaymentSettings() {
                     <p className="text-xs text-muted-foreground">
                       Payouts are sent automatically to your connected bank account via Stripe. To change your payout schedule or bank details, visit your Stripe Dashboard.
                     </p>
+                  </div>
+                )}
+
+                {/* Dynamic payment methods (mirrors Stripe 1:1) */}
+                {isFullyOnboarded && (
+                  <div className="pt-2">
+                    <StripePaymentMethodsPanel />
                   </div>
                 )}
               </>

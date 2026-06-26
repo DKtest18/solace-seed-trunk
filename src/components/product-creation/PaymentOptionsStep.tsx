@@ -4,14 +4,13 @@ import { Button } from '@/components/ui/button';
 import { InfoIcon, CreditCard, CheckCircle, AlertTriangle, Loader2, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
-import { db } from '@/lib/dkaiDb';
+import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 interface PaymentOptionsStepProps {
-  data: {
-    payment_methods?: string[];
-  };
+  data: { payment_methods?: string[] };
   onChange: (field: string, value: any) => void;
   errors?: Record<string, string>;
 }
@@ -21,29 +20,36 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
   const navigate = useNavigate();
   const { feePct, sellerPct } = usePlatformFee();
 
-  // Fetch seller's Stripe Connect status
-  const { data: stripeConfig, isLoading } = useQuery({
-    queryKey: ['seller-stripe-config', user?.id],
+  // SINGLE SOURCE OF TRUTH: query the same edge function the Payment Settings page uses.
+  // It reads live status from Stripe and syncs dkai_seller_payment_configs.
+  const { data: status, isLoading } = useQuery({
+    queryKey: ['stripe-connect-status', user?.id],
     queryFn: async () => {
-      if (!user) return null;
-      const { data, error } = await db
-        .from('dkai_seller_payment_configs')
-        .select('stripe_account_id, stripe_onboarding_status, card_payments_enabled')
-        .eq('seller_id', user.id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      const { data, error } = await supabase.functions.invoke('stripe-connect-status');
+      if (error) throw error;
+      return data as {
+        connected?: boolean;
+        chargesEnabled?: boolean;
+        payoutsEnabled?: boolean;
+        onboardingStatus?: string;
+      };
     },
     enabled: !!user,
+    staleTime: 60_000,
   });
 
-  const isStripeConnected = stripeConfig?.stripe_onboarding_status === 'connected';
+  // Treat as connected if Stripe says charges+payouts are enabled OR onboardingStatus==='connected'.
+  const isStripeConnected =
+    !!status &&
+    (status.onboardingStatus === 'connected' ||
+      (status.chargesEnabled === true && status.payoutsEnabled === true));
 
-  // Auto-set card payment method if Stripe is connected
-  if (isStripeConnected && !data.payment_methods?.includes('card')) {
-    onChange('payment_methods', ['card']);
-  }
+  // Auto-set card payment method once connected (effect avoids state-update during render).
+  useEffect(() => {
+    if (isStripeConnected && !data.payment_methods?.includes('card')) {
+      onChange('payment_methods', ['card']);
+    }
+  }, [isStripeConnected]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) {
     return (
@@ -73,7 +79,7 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
 
         <Button
           onClick={() =>
-            navigate(`/seller-onboarding/payment?from=${encodeURIComponent('/create-product?step=8')}`)
+            navigate(`/seller-payment-settings?from=${encodeURIComponent('/create-product?step=8')}`)
           }
           className="w-full"
         >
@@ -94,7 +100,6 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
       </div>
 
       <div className="space-y-3">
-        {/* Card Payments - always available with Stripe Connect */}
         <div className="border rounded-lg p-4 bg-primary/5 border-primary/20">
           <div className="flex items-center gap-3">
             <CreditCard className="h-5 w-5 text-primary" />
@@ -115,7 +120,8 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
       <Alert>
         <InfoIcon className="h-4 w-4" />
         <AlertDescription>
-          All payments are processed via Stripe Connect. Additional payment methods will be available as Stripe enables them for your account.
+          All payments are processed via Stripe Connect. Manage extra methods (SEPA, iDEAL, Klarna, etc.)
+          on the Payment Settings page.
         </AlertDescription>
       </Alert>
 

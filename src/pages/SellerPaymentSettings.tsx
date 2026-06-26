@@ -520,6 +520,13 @@ export default function SellerPaymentSettings() {
                     </p>
                   </div>
                 )}
+
+                {/* Dynamic payment methods (mirrors Stripe 1:1) */}
+                {isFullyOnboarded && (
+                  <div className="pt-2">
+                    <StripePaymentMethodsPanel />
+                  </div>
+                )}
               </>
             ) : (
               <>

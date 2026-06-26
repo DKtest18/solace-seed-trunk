@@ -1,10 +1,15 @@
+import { useRef, useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Switch } from '@/components/ui/switch';
-import { AlertCircle, Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, Info, Upload, Loader2, X } from 'lucide-react';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface AdditionalDetailsStepProps {
   data: {
@@ -16,6 +21,7 @@ interface AdditionalDetailsStepProps {
     refund_policy: string;
     video_url: string;
     sample_preview_url?: string;
+    sample_preview_type?: string;
     sample_output_text?: string;
     sample_is_watermarked?: boolean;
   };
@@ -23,8 +29,55 @@ interface AdditionalDetailsStepProps {
   errors: Record<string, string>;
 }
 
+const SAMPLE_BUCKET = 'product-samples';
+const MAX_SAMPLE_BYTES = 25 * 1024 * 1024; // 25 MB
+const ACCEPTED_SAMPLE = 'image/*,video/*,application/pdf';
+
 export function AdditionalDetailsStep({ data, onChange, errors }: AdditionalDetailsStepProps) {
   const { feePct, sellerPct } = usePlatformFee();
+  const { user } = useAuth();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const detectType = (mime: string) =>
+    mime.startsWith('video/') ? 'video' : mime === 'application/pdf' ? 'pdf' : 'image';
+
+  const handleSampleUpload = async (file: File) => {
+    if (!user) return toast.error('Sign in required');
+    if (file.size > MAX_SAMPLE_BYTES) return toast.error('Sample must be under 25 MB');
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop() || 'bin';
+      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage
+        .from(SAMPLE_BUCKET)
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (error) throw error;
+      const { data: pub } = supabase.storage.from(SAMPLE_BUCKET).getPublicUrl(path);
+      onChange('sample_preview_url', pub.publicUrl);
+      onChange('sample_preview_type', detectType(file.type));
+      toast.success('Sample uploaded');
+    } catch (e: any) {
+      toast.error(e.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  const clearSample = () => {
+    onChange('sample_preview_url', '');
+    onChange('sample_preview_type', '');
+  };
+
+  const sampleType =
+    data.sample_preview_type ||
+    (data.sample_preview_url?.match(/\.(mp4|webm|mov)$/i)
+      ? 'video'
+      : data.sample_preview_url?.match(/\.pdf$/i)
+        ? 'pdf'
+        : 'image');
+
   return (
     <div className="space-y-6">
       <div>

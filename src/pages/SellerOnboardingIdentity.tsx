@@ -167,9 +167,17 @@ export default function SellerOnboardingIdentity() {
   return (
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
-        <Button variant="ghost" onClick={() => navigate('/seller-onboarding')} className="mb-4">
+        <Button
+          variant="ghost"
+          onClick={() => {
+            const params = new URLSearchParams(window.location.search);
+            const from = params.get('from');
+            navigate(from && from.startsWith('/') ? from : '/seller-onboarding');
+          }}
+          className="mb-4"
+        >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Checklist
+          Back
         </Button>
 
         <div className="space-y-2">

@@ -100,6 +100,7 @@ export default function CreateProduct() {
     refund_policy: '',
     video_url: '',
     sample_preview_url: '',
+    sample_preview_type: '',
     sample_output_text: '',
     sample_is_watermarked: false,
     payment_methods: ['stripe_manual', 'balance'] as string[],

@@ -257,9 +257,10 @@ export default function PurchaseHistory() {
                               </Link>
                             </Button>
 
-                            {/* Download button for instant download products */}
-                            {order.escrow_status === 'released' && order.products?.delivery_mode === 'instant_download' && (
-                              <Button 
+                            {/* Download button — INSTANT delivery (tier1) is available immediately once paid */}
+                            {(order.delivery_tier === 'tier1' || order.products?.delivery_mode === 'instant_download') &&
+                             ['paid', 'completed', 'delivered'].includes(order.status) && (
+                              <Button
                                 variant="outline"
                                 onClick={() => downloadProduct(order.products.id, order.id)}
                               >
@@ -268,8 +269,24 @@ export default function PurchaseHistory() {
                               </Button>
                             )}
 
-                            {/* Confirm Receipt button */}
-                            {(order.escrow_status === 'held' || order.seller_marked_delivered_at) && !order.buyer_confirmed_at && (
+                            {/* Download for non-instant tiers after escrow release */}
+                            {order.delivery_tier !== 'tier1' &&
+                             order.products?.delivery_mode !== 'instant_download' &&
+                             order.escrow_status === 'released' && (
+                              <Button
+                                variant="outline"
+                                onClick={() => downloadProduct(order.products.id, order.id)}
+                              >
+                                <Download className="w-4 h-4 mr-2" />
+                                Download
+                              </Button>
+                            )}
+
+                            {/* Confirm Receipt — NOT for tier1 instant (auto-released on payment) */}
+                            {order.delivery_tier !== 'tier1' &&
+                             order.products?.delivery_mode !== 'instant_download' &&
+                             (order.escrow_status === 'held' || order.seller_marked_delivered_at) &&
+                             !order.buyer_confirmed_at && (
                               <Button
                                 variant="default"
                                 onClick={() => confirmReceipt.mutate(order.id)}
@@ -310,7 +327,7 @@ export default function PurchaseHistory() {
                           </div>
 
                           {/* Secure delivery file downloads (post-purchase) */}
-                          {order.products?.id && (order.escrow_status === 'held' || order.escrow_status === 'delivered' || order.escrow_status === 'released' || order.status === 'completed') && (
+                          {order.products?.id && (['paid', 'completed', 'delivered'].includes(order.status) || ['held', 'delivered', 'released'].includes(order.escrow_status)) && (
                             <div className="mt-6 pt-6 border-t">
                               <BuyerProductDownloads productId={order.products.id} />
                             </div>

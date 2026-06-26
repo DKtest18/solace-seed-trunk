@@ -528,6 +528,24 @@ export default function CreateProduct() {
         );
       }
 
+      // Best-effort: create/update Stripe Price on seller's connected account.
+      // Non-blocking — review submission must succeed even if Stripe is briefly unavailable.
+      try {
+        await supabase.functions.invoke('stripe-create-price', {
+          body: {
+            product_id: id,
+            title: formData.title,
+            description: formData.description,
+            price: parseFloat(formData.price),
+            currency: formData.currency || 'usd',
+            pricing_model: formData.pricing_model,
+            billing_interval: formData.pricing_model === 'recurring' ? formData.billing_interval : undefined,
+            billing_interval_count: formData.pricing_model === 'recurring' ? formData.billing_interval_count : undefined,
+          },
+        });
+      } catch (priceErr) {
+        console.warn('stripe-create-price failed (non-fatal):', priceErr);
+      }
 
       setShowSubmittedDialog(true);
     } catch (error: any) {

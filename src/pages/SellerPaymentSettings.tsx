@@ -13,6 +13,7 @@ import { useHasRole } from "@/hooks/useUserRole";
 import { IOSToggle } from "@/components/ui/ios-toggle";
 import { Badge } from "@/components/ui/badge";
 import { usePlatformFee } from "@/hooks/usePlatformFee";
+import { StripePaymentMethodsPanel } from "@/components/seller/StripePaymentMethodsPanel";
 
 interface StripeConnectStatus {
   connected: boolean;

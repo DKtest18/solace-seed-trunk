@@ -167,6 +167,7 @@ export default function CreateProduct() {
             refund_policy: data.refund_policy ?? '',
             video_url: data.video_url ?? '',
             sample_preview_url: data.sample_preview_url ?? '',
+            sample_preview_type: data.sample_preview_type ?? '',
             sample_output_text: data.sample_output_text ?? '',
             sample_is_watermarked: !!data.sample_is_watermarked,
             payment_methods: data.payment_methods ?? prev.payment_methods,

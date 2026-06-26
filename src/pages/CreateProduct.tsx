@@ -650,16 +650,6 @@ export default function CreateProduct() {
                 <PaymentOptionsStep data={formData} onChange={handleChange} errors={errors} />
               )}
               {currentStep === 9 && (
-                <FileUploadStep
-                  data={formData}
-                  onChange={handleChange}
-                  errors={errors}
-                  onFileSelect={handleFileSelect}
-                  uploadedFile={uploadedFile}
-                  uploadStatus={uploadStatus}
-                />
-              )}
-              {currentStep === 10 && (
                 <DeliveryFilesStep
                   deliveryFiles={deliveryFiles}
                   onAddFile={(df) => setDeliveryFiles([...deliveryFiles, df])}
@@ -667,10 +657,10 @@ export default function CreateProduct() {
                   errors={errors}
                 />
               )}
-              {currentStep === 11 && (
+              {currentStep === 10 && (
                 <ReturnPolicyStep data={formData} onChange={handleChange} errors={errors} />
               )}
-              {currentStep === 12 && (
+              {currentStep === 11 && (
                 <TermsAcceptanceStep data={formData} onChange={handleChange} errors={errors} />
               )}
             </div>

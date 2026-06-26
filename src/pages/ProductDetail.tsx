@@ -182,19 +182,9 @@ export default function ProductDetail() {
           <section className="grid gap-8 lg:grid-cols-2 items-start">
             {/* Left: Product Image + Sample */}
             <div>
-              {product.image_url ? (
-                <div className="aspect-video bg-muted overflow-hidden rounded-lg">
-                  <img
-                    src={product.image_url}
-                    alt={product.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="aspect-video rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
-                  No image available
-                </div>
-              )}
+              <ProductMediaGallery productId={product.id} fallbackImageUrl={product.image_url} />
+
+
 
               {(product.sample_preview_url || product.sample_output_text) && (
                 <Card className="mt-4">

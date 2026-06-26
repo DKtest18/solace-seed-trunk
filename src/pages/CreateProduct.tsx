@@ -350,23 +350,17 @@ export default function CreateProduct() {
         break;
 
       case 9:
-        if (formData.delivery_mode === 'instant_download' && !uploadedFile) {
-          newErrors.fileError = 'Please upload a product file for instant download';
-        }
-        break;
-
-      case 10:
         // Delivery files - optional
         break;
 
-      case 11:
+      case 10:
         // Return policy - return_fee must be answered
         if (formData.return_allowed && formData.return_fee_enabled && (!formData.return_fee_percentage || formData.return_fee_percentage < 1 || formData.return_fee_percentage > 30)) {
           newErrors.returnPolicyError = 'Return fee must be between 1% and 30%';
         }
         break;
 
-      case 12:
+      case 11:
         if (!formData.seller_accepted_terms) {
           newErrors.seller_accepted_termsError = 'You must accept the seller terms to continue';
         }

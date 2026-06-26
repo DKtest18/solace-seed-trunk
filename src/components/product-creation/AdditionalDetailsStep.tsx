@@ -177,13 +177,59 @@ export function AdditionalDetailsStep({ data, onChange, errors }: AdditionalDeta
           <p className="text-xs text-muted-foreground">Show buyers a small preview before they purchase — image, screenshot, or sample output text. Builds trust and lifts conversion.</p>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="sample_preview_url">Preview image URL</Label>
+          <Label>Preview file (image, short video, or PDF)</Label>
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept={ACCEPTED_SAMPLE}
+              className="hidden"
+              onChange={(e) => e.target.files?.[0] && handleSampleUpload(e.target.files[0])}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+              Upload sample
+            </Button>
+            {data.sample_preview_url && (
+              <Button type="button" variant="ghost" size="sm" onClick={clearSample}>
+                <X className="h-4 w-4 mr-1" /> Remove
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">Up to 25 MB. Stored publicly so unsigned buyers can view it.</p>
+
+          {data.sample_preview_url && (
+            <div className="mt-2 rounded-md border bg-background p-2">
+              {sampleType === 'video' ? (
+                <video src={data.sample_preview_url} controls className="max-h-48 w-full rounded" />
+              ) : sampleType === 'pdf' ? (
+                <a href={data.sample_preview_url} target="_blank" rel="noreferrer" className="text-sm text-primary underline">
+                  View PDF sample
+                </a>
+              ) : (
+                <img src={data.sample_preview_url} alt="Sample preview" className="max-h-48 rounded object-contain" />
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="sample_preview_url">…or paste a preview URL</Label>
           <Input
             id="sample_preview_url"
             type="url"
             placeholder="https://..."
             value={data.sample_preview_url ?? ''}
-            onChange={(e) => onChange('sample_preview_url', e.target.value)}
+            onChange={(e) => {
+              onChange('sample_preview_url', e.target.value);
+              onChange('sample_preview_type', '');
+            }}
           />
         </div>
         <div className="space-y-2">

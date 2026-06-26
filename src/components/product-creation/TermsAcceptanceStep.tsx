@@ -48,6 +48,45 @@ export function TermsAcceptanceStep({ data, onChange, errors }: TermsAcceptanceS
         </p>
       </div>
 
+      {/* Allowed / Not allowed product types */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="border rounded-lg p-4 bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900">
+          <h4 className="font-semibold text-emerald-700 dark:text-emerald-300 mb-2">Allowed product types</h4>
+          <ul className="text-xs space-y-1 list-disc list-inside text-foreground/80">
+            <li>AI agents & autonomous workflows</li>
+            <li>Automations (n8n, Make, Zapier, etc.)</li>
+            <li>Prompt packs & prompt libraries</li>
+            <li>Datasets (lawful, properly licensed)</li>
+            <li>Templates (Notion, Figma, code, docs)</li>
+            <li>Digital tools, scripts, SaaS starters</li>
+            <li>Educational material & courses you own</li>
+          </ul>
+        </div>
+        <div className="border rounded-lg p-4 bg-red-50/60 dark:bg-red-950/20 border-red-200 dark:border-red-900">
+          <h4 className="font-semibold text-red-700 dark:text-red-300 mb-2">Not allowed</h4>
+          <ul className="text-xs space-y-1 list-disc list-inside text-foreground/80">
+            <li>Malware, spyware, exploits, credential stealers</li>
+            <li>Illegal content of any kind</li>
+            <li>Stolen, pirated, or infringing material</li>
+            <li>Sexual, adult, or NSFW content</li>
+            <li>Hate, harassment, violent extremism</li>
+            <li>Personal data / scraped PII without consent</li>
+            <li>Anything violating the Seller Rules</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Inspection notice */}
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription className="text-xs">
+          <strong>File inspection notice.</strong> DK AI Marketplace requires access to every
+          uploaded product file and <strong>may open, scan, and inspect</strong> it (including
+          automated malware scanning and manual review) to enforce these rules. Files that
+          violate the rules may be removed and the listing may be rejected or taken down.
+        </AlertDescription>
+      </Alert>
+
       {terms && (
         <div className="border rounded-lg">
           <div className="bg-muted px-4 py-3 border-b flex items-center gap-2">

@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { SellerSidebar } from '@/components/SellerSidebar';
+import { NotificationBell } from '@/components/NotificationBell';
 
 interface SellerLayoutProps {
   children: ReactNode;
@@ -19,7 +20,10 @@ export function SellerLayout({ children, title }: SellerLayoutProps) {
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-14 border-b bg-card/50 backdrop-blur-sm flex items-center px-6 sticky top-0 z-10">
             <SidebarTrigger className="mr-4" />
-            {title && <h1 className="text-xl font-bold">{title}</h1>}
+            {title && <h1 className="text-xl font-bold flex-1">{title}</h1>}
+            <div className="ml-auto">
+              <NotificationBell />
+            </div>
           </header>
           <main className="flex-1 overflow-auto">{children}</main>
         </div>
@@ -27,3 +31,4 @@ export function SellerLayout({ children, title }: SellerLayoutProps) {
     </SidebarProvider>
   );
 }
+

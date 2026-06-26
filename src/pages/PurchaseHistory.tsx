@@ -327,7 +327,7 @@ export default function PurchaseHistory() {
                           </div>
 
                           {/* Secure delivery file downloads (post-purchase) */}
-                          {order.products?.id && (order.escrow_status === 'held' || order.escrow_status === 'delivered' || order.escrow_status === 'released' || order.status === 'completed') && (
+                          {order.products?.id && (['paid', 'completed', 'delivered'].includes(order.status) || ['held', 'delivered', 'released'].includes(order.escrow_status)) && (
                             <div className="mt-6 pt-6 border-t">
                               <BuyerProductDownloads productId={order.products.id} />
                             </div>

@@ -455,24 +455,42 @@ export default function CreateProduct() {
 
     try {
       let imageUrl: string | null = null;
+      const mediaRows: Array<{
+        storage_path: string;
+        media_type: 'image' | 'video';
+        mime_type: string;
+        size_bytes: number;
+        sort_order: number;
+        is_cover: boolean;
+      }> = [];
 
-      if (images.length > 0) {
-        const firstImage = images[0];
-        const fileExt = firstImage.name.split('.').pop();
-        const filePath = `${user?.id}/${crypto.randomUUID()}.${fileExt}`;
+      for (let i = 0; i < images.length; i++) {
+        const file = images[i];
+        const ext = file.name.split('.').pop();
+        const path = `${user!.id}/${crypto.randomUUID()}.${ext}`;
+        const isVideo = file.type.startsWith('video/');
+        const bucket = isVideo ? 'product-media' : 'product-images';
 
-        const { error: uploadError } = await supabase.storage
-          .from('product-images')
-          .upload(filePath, firstImage);
+        const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, {
+          contentType: file.type,
+          upsert: false,
+        });
+        if (upErr) throw upErr;
 
-        if (uploadError) throw uploadError;
+        if (i === 0 && !isVideo) {
+          imageUrl = supabase.storage.from('product-images').getPublicUrl(path).data.publicUrl;
+        }
 
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from('product-images').getPublicUrl(filePath);
-
-        imageUrl = publicUrl;
+        mediaRows.push({
+          storage_path: `${bucket}/${path}`,
+          media_type: isVideo ? 'video' : 'image',
+          mime_type: file.type,
+          size_bytes: file.size,
+          sort_order: i,
+          is_cover: i === 0,
+        });
       }
+
 
       // Update seller profile with PayPal and IBAN if provided
       if (formData.paypal_email || formData.iban) {

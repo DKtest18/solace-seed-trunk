@@ -8,6 +8,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Search, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { NotificationBell } from '@/components/NotificationBell';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -66,6 +67,10 @@ export function AppLayout({ children, showMessagesSidebar = true }: AppLayoutPro
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         <div className="flex-1 flex flex-col min-w-0">
+          {/* Floating notification bell — visible on every authenticated screen */}
+          <div className="fixed top-3 right-3 z-40 rounded-full bg-card/80 backdrop-blur-sm border shadow-sm">
+            <NotificationBell />
+          </div>
           <main className="flex-1 overflow-auto">{children}</main>
           <LegalFooter />
         </div>

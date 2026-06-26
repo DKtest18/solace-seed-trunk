@@ -193,13 +193,40 @@ export default function ProductDetail() {
                     <CardTitle className="text-lg">Preview / Sample</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {product.sample_preview_url && (
-                      <img
-                        src={product.sample_preview_url}
-                        alt="Product sample preview"
-                        className="rounded-md w-full max-h-80 object-contain bg-muted"
-                      />
-                    )}
+                    {product.sample_preview_url && (() => {
+                      const url: string = product.sample_preview_url;
+                      const t =
+                        product.sample_preview_type ||
+                        (url.match(/\.(mp4|webm|mov)$/i) ? 'video' : url.match(/\.pdf$/i) ? 'pdf' : 'image');
+                      if (t === 'video') {
+                        return (
+                          <video
+                            src={url}
+                            controls
+                            className="rounded-md w-full max-h-80 bg-black"
+                          />
+                        );
+                      }
+                      if (t === 'pdf') {
+                        return (
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-sm text-primary underline"
+                          >
+                            View PDF sample
+                          </a>
+                        );
+                      }
+                      return (
+                        <img
+                          src={url}
+                          alt="Product sample preview"
+                          className="rounded-md w-full max-h-80 object-contain bg-muted"
+                        />
+                      );
+                    })()}
                     {product.sample_output_text && (
                       <pre className="whitespace-pre-wrap text-sm bg-muted/50 p-3 rounded-md max-h-48 overflow-auto">
                         {product.sample_output_text}

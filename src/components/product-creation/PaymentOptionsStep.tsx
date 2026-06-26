@@ -71,7 +71,12 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
           </AlertDescription>
         </Alert>
 
-        <Button onClick={() => navigate('/seller-onboarding/payment')} className="w-full">
+        <Button
+          onClick={() =>
+            navigate(`/seller-onboarding/payment?from=${encodeURIComponent('/create-product?step=8')}`)
+          }
+          className="w-full"
+        >
           <ExternalLink className="h-4 w-4 mr-2" />
           Connect Stripe Account
         </Button>

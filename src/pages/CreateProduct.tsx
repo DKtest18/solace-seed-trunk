@@ -522,6 +522,13 @@ export default function CreateProduct() {
       const { error } = await db.from('dkai_products').update(submitPayload).eq('id', id);
       if (error) throw error;
 
+      if (mediaRows.length > 0) {
+        await db.from('dkai_product_media').insert(
+          mediaRows.map((m) => ({ ...m, product_id: id, seller_id: user!.id })),
+        );
+      }
+
+
       setShowSubmittedDialog(true);
     } catch (error: any) {
       console.error('Error submitting product:', error);

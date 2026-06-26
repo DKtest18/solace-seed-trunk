@@ -19,7 +19,7 @@ import { PurposeAudienceStep } from '@/components/product-creation/PurposeAudien
 import { AdditionalDetailsStep } from '@/components/product-creation/AdditionalDetailsStep';
 import { PaymentOptionsStep } from '@/components/product-creation/PaymentOptionsStep';
 import { FAQStep } from '@/components/product-creation/FAQStep';
-import { FileUploadStep } from '@/components/product-creation/FileUploadStep';
+
 import { DeliveryFilesStep } from '@/components/product-creation/DeliveryFilesStep';
 import { ReturnPolicyStep } from '@/components/product-creation/ReturnPolicyStep';
 import { TermsAcceptanceStep } from '@/components/product-creation/TermsAcceptanceStep';

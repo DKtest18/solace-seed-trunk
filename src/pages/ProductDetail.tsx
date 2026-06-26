@@ -14,6 +14,7 @@ import { ProductQA } from '@/components/ProductQA';
 import { RatingDisplay } from '@/components/RatingDisplay';
 import { ReportDialog } from '@/components/ReportDialog';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
+import { ProductMediaGallery } from '@/components/ProductMediaGallery';
 
 // Track product analytics
 const trackProductEvent = async (productId: string, eventType: 'view' | 'click', userId?: string, metadata?: any) => {

@@ -125,7 +125,8 @@ export function TermsAcceptanceStep({ data, onChange, errors }: TermsAcceptanceS
               <li>Buyers have a <strong>minimum 24-hour return window</strong> — this cannot be waived</li>
               <li>If buyer returns within the window, they receive 100% refund to original payment method</li>
               <li>You cannot refuse to deliver a purchased product — the product must match the listing</li>
-              <li>No malware or illegal content in product files</li>
+              <li>No malware, illegal, infringing, sexual, or otherwise prohibited content</li>
+              <li>DK AI Marketplace may open and inspect your uploaded files to enforce these rules</li>
               <li>You must plan ahead: no payouts until return window expires, even if you have costs</li>
             </ul>
           </div>

@@ -241,9 +241,16 @@ export default function SellerPaymentSettings() {
   return (
     <AppLayout>
       <div className="container max-w-3xl mx-auto py-8 px-4">
-        <Button variant="ghost" onClick={() => navigate('/seller-onboarding')} className="mb-4">
+        <Button
+          variant="ghost"
+          onClick={() => {
+            const from = searchParams.get('from');
+            navigate(from && from.startsWith('/') ? from : '/seller-onboarding');
+          }}
+          className="mb-4"
+        >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Checklist
+          Back
         </Button>
 
         <h1 className="text-3xl font-bold mb-2">Payment Settings</h1>

@@ -19,7 +19,7 @@ import { PurposeAudienceStep } from '@/components/product-creation/PurposeAudien
 import { AdditionalDetailsStep } from '@/components/product-creation/AdditionalDetailsStep';
 import { PaymentOptionsStep } from '@/components/product-creation/PaymentOptionsStep';
 import { FAQStep } from '@/components/product-creation/FAQStep';
-import { FileUploadStep } from '@/components/product-creation/FileUploadStep';
+
 import { DeliveryFilesStep } from '@/components/product-creation/DeliveryFilesStep';
 import { ReturnPolicyStep } from '@/components/product-creation/ReturnPolicyStep';
 import { TermsAcceptanceStep } from '@/components/product-creation/TermsAcceptanceStep';
@@ -35,10 +35,9 @@ const STEPS = [
   { id: 6, title: 'Details', description: 'Additional info' },
   { id: 7, title: 'FAQ', description: 'Common questions' },
   { id: 8, title: 'Payment Options', description: 'Payment methods' },
-  { id: 9, title: 'Product File', description: 'Upload product file' },
-  { id: 10, title: 'Delivery Files', description: 'Tutorials & docs' },
-  { id: 11, title: 'Return Policy', description: 'Return rules' },
-  { id: 12, title: 'Terms', description: 'Accept seller terms' },
+  { id: 9, title: 'Delivery Files', description: 'Workflows, tutorials & files' },
+  { id: 10, title: 'Return Policy', description: 'Return rules' },
+  { id: 11, title: 'Terms', description: 'Accept seller terms' },
 ];
 
 export default function CreateProduct() {
@@ -351,23 +350,17 @@ export default function CreateProduct() {
         break;
 
       case 9:
-        if (formData.delivery_mode === 'instant_download' && !uploadedFile) {
-          newErrors.fileError = 'Please upload a product file for instant download';
-        }
-        break;
-
-      case 10:
         // Delivery files - optional
         break;
 
-      case 11:
+      case 10:
         // Return policy - return_fee must be answered
         if (formData.return_allowed && formData.return_fee_enabled && (!formData.return_fee_percentage || formData.return_fee_percentage < 1 || formData.return_fee_percentage > 30)) {
           newErrors.returnPolicyError = 'Return fee must be between 1% and 30%';
         }
         break;
 
-      case 12:
+      case 11:
         if (!formData.seller_accepted_terms) {
           newErrors.seller_accepted_termsError = 'You must accept the seller terms to continue';
         }
@@ -657,16 +650,6 @@ export default function CreateProduct() {
                 <PaymentOptionsStep data={formData} onChange={handleChange} errors={errors} />
               )}
               {currentStep === 9 && (
-                <FileUploadStep
-                  data={formData}
-                  onChange={handleChange}
-                  errors={errors}
-                  onFileSelect={handleFileSelect}
-                  uploadedFile={uploadedFile}
-                  uploadStatus={uploadStatus}
-                />
-              )}
-              {currentStep === 10 && (
                 <DeliveryFilesStep
                   deliveryFiles={deliveryFiles}
                   onAddFile={(df) => setDeliveryFiles([...deliveryFiles, df])}
@@ -674,10 +657,10 @@ export default function CreateProduct() {
                   errors={errors}
                 />
               )}
-              {currentStep === 11 && (
+              {currentStep === 10 && (
                 <ReturnPolicyStep data={formData} onChange={handleChange} errors={errors} />
               )}
-              {currentStep === 12 && (
+              {currentStep === 11 && (
                 <TermsAcceptanceStep data={formData} onChange={handleChange} errors={errors} />
               )}
             </div>

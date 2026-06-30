@@ -671,6 +671,8 @@ export default function CreateProduct() {
           )}
         </div>
 
+        <StripeConnectionNotice />
+
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="mb-8">

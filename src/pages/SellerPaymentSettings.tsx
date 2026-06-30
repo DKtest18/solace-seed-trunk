@@ -187,7 +187,7 @@ export default function SellerPaymentSettings() {
               🎉 Stripe Successfully Connected!
             </h3>
             <p className="text-green-600 dark:text-green-400">
-              Your account is fully set up. You can now receive card payments — 90% of each sale goes directly to your bank!
+              Your account is fully set up. You can now receive payments — {sellerPct}% of each sale goes directly to your bank!
             </p>
           </div>
         )}
@@ -208,7 +208,7 @@ export default function SellerPaymentSettings() {
           <Shield className="h-4 w-4" />
           <AlertDescription>
             We use Stripe Connect to process payments securely. Your bank details are stored only on Stripe, not on our servers.
-            90% of each sale goes directly to your Stripe account, 10% is the platform fee.
+            {sellerPct}% of each sale goes directly to your Stripe account, {feePct}% is the platform fee.
           </AlertDescription>
         </Alert>
 

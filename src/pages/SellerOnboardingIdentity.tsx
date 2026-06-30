@@ -231,22 +231,12 @@ export default function SellerOnboardingIdentity() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="country">Country/Region</Label>
-                <Select
+                <Label htmlFor="country">Country/Region <span className="text-destructive">*</span></Label>
+                <CountryCombobox
+                  id="country"
                   value={formData.country}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <ScrollArea className="h-[200px]">
-                      {COUNTRIES.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                      ))}
-                    </ScrollArea>
-                  </SelectContent>
-                </Select>
+                  onChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
+                />
               </div>
 
               <Separator />

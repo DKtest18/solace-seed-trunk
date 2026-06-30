@@ -513,6 +513,10 @@ export default function CreateProduct() {
         is_published: false,
         moderation_status: 'pending',
         approval_status: 'pending',
+        // CRITICAL: admin queue filters on review_status. Without these the
+        // submission never appears in /admin/waitlist.
+        review_status: 'submitted',
+        submitted_at: new Date().toISOString(),
       };
       if (imageUrl) submitPayload.image_url = imageUrl;
 

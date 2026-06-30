@@ -240,21 +240,11 @@ export default function ProfileEdit() {
                   <MapPin className="h-4 w-4 inline mr-2" />
                   Location
                 </Label>
-                <Select
+                <CountryCombobox
+                  id="country"
                   value={formData.country}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <ScrollArea className="h-[200px]">
-                      {COUNTRIES.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                      ))}
-                    </ScrollArea>
-                  </SelectContent>
-                </Select>
+                  onChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
+                />
               </div>
 
               <div className="flex gap-2">

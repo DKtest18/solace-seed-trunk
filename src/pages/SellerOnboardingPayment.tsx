@@ -14,7 +14,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Badge } from '@/components/ui/badge';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
-import { emptyStripeConnectStatus, fetchStripeConnectStatus, type StripeConnectStatus } from '@/lib/stripeConnectStatus';
+import { emptyStripeConnectStatus, fetchStripeConnectStatus, isStripeConnectedForOnboarding, type StripeConnectStatus } from '@/lib/stripeConnectStatus';
 
 export default function SellerOnboardingPayment() {
   const { user } = useAuth();
@@ -137,7 +137,7 @@ export default function SellerOnboardingPayment() {
   if (!user) return null;
 
   const needsReauth = !isAdmin && !hasValidSession;
-  const isFullyOnboarded = stripeStatus.onboardingStatus === 'connected';
+  const isFullyOnboarded = isStripeConnectedForOnboarding(stripeStatus);
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">

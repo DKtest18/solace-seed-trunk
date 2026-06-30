@@ -12,7 +12,7 @@ import { useHasRole } from "@/hooks/useUserRole";
 import { Badge } from "@/components/ui/badge";
 import { usePlatformFee } from "@/hooks/usePlatformFee";
 import { StripePaymentMethodsPanel } from "@/components/seller/StripePaymentMethodsPanel";
-import { emptyStripeConnectStatus, fetchStripeConnectStatus, type StripeConnectStatus } from "@/lib/stripeConnectStatus";
+import { emptyStripeConnectStatus, fetchStripeConnectStatus, isStripeConnectedForOnboarding, type StripeConnectStatus } from "@/lib/stripeConnectStatus";
 
 export default function SellerPaymentSettings() {
   const { user } = useAuth();
@@ -153,7 +153,7 @@ export default function SellerPaymentSettings() {
     );
   }
 
-  const isFullyOnboarded = stripeStatus.onboardingStatus === "connected";
+  const isFullyOnboarded = isStripeConnectedForOnboarding(stripeStatus);
 
   return (
     <AppLayout>

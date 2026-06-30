@@ -78,45 +78,52 @@ export default function Index() {
       {/* Featured Products Carousel */}
       <FeaturedProducts />
 
-      {/* Become a Seller CTA */}
-      {user && !isSeller && (
+      {/* Seller CTA: role-aware */}
+      {user && (
         <section className="container mx-auto px-4 py-16 bg-background">
           <Card className="max-w-3xl mx-auto rounded-2xl border-2">
             <CardHeader className="text-center">
               <Briefcase className="w-12 h-12 mx-auto mb-4 text-primary" />
-              <CardTitle className="text-3xl">Become a Seller</CardTitle>
+              <CardTitle className="text-3xl">
+                {isSeller ? 'Create a New Listing' : 'Become a Seller'}
+              </CardTitle>
               <CardDescription className="text-lg">
-                Start selling your AI agents and software solutions on our marketplace
+                {isSeller
+                  ? 'List your next AI agent or software product on the marketplace'
+                  : 'Start selling your AI agents and software solutions on our marketplace'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-3 gap-4 text-sm">
-                <div className="text-center">
-                  <CheckCircle2 className="w-6 h-6 mx-auto mb-2 text-green-600" />
-                  <p className="font-semibold">Secure Payments</p>
-                  <p className="text-muted-foreground">Get paid your way</p>
+              {!isSeller && (
+                <div className="grid md:grid-cols-3 gap-4 text-sm">
+                  <div className="text-center">
+                    <CheckCircle2 className="w-6 h-6 mx-auto mb-2 text-green-600" />
+                    <p className="font-semibold">Secure Payments</p>
+                    <p className="text-muted-foreground">Get paid your way</p>
+                  </div>
+                  <div className="text-center">
+                    <CheckCircle2 className="w-6 h-6 mx-auto mb-2 text-green-600" />
+                    <p className="font-semibold">Global Reach</p>
+                    <p className="text-muted-foreground">Sell to customers worldwide</p>
+                  </div>
+                  <div className="text-center">
+                    <CheckCircle2 className="w-6 h-6 mx-auto mb-2 text-green-600" />
+                    <p className="font-semibold">Easy Setup</p>
+                    <p className="text-muted-foreground">Start in minutes</p>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <CheckCircle2 className="w-6 h-6 mx-auto mb-2 text-green-600" />
-                  <p className="font-semibold">Global Reach</p>
-                  <p className="text-muted-foreground">Sell to customers worldwide</p>
-                </div>
-                <div className="text-center">
-                  <CheckCircle2 className="w-6 h-6 mx-auto mb-2 text-green-600" />
-                  <p className="font-semibold">Easy Setup</p>
-                  <p className="text-muted-foreground">Start in minutes</p>
-                </div>
-              </div>
+              )}
               <Button asChild size="lg" className="w-full rounded-full">
-                <Link to="/seller-onboarding">
+                <Link to={isSeller ? '/create-product' : '/seller-onboarding'}>
                   <Briefcase className="mr-2 h-5 w-5" />
-                  Start Selling Today
+                  {isSeller ? 'Create Listing' : 'Start Selling Today'}
                 </Link>
               </Button>
             </CardContent>
           </Card>
         </section>
       )}
+
 
       {/* CTA Section */}
       {!user && (

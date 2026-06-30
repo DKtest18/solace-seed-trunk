@@ -513,7 +513,7 @@ export default function ProfileSettings() {
                         <li>• List and sell your AI agents and software</li>
                         <li>• Manage your products and sales</li>
                         <li>• Track analytics and earnings</li>
-                        <li>• Connect with buyers worldwide</li>
+                        
                       </ul>
                     </div>
                     <div className="flex justify-end">

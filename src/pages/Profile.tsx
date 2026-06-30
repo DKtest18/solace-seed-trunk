@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { CountryCombobox } from '@/components/CountryCombobox';
+
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,28 +19,6 @@ import { useHasRole } from '@/hooks/useUserRole';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { AvatarCropEditor, getAvatarCropStyle } from '@/components/AvatarCropEditor';
 
-const COUNTRIES = [
-  "Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria",
-  "Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan",
-  "Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cabo Verde","Cambodia",
-  "Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo (DRC)","Congo (Republic)",
-  "Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","East Timor",
-  "Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland",
-  "France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea",
-  "Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq",
-  "Ireland","Israel","Italy","Ivory Coast","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati",
-  "Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein",
-  "Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania",
-  "Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar",
-  "Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia",
-  "Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines",
-  "Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines",
-  "Samoa","San Marino","São Tomé and Príncipe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore",
-  "Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan",
-  "Suriname","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Togo","Tonga",
-  "Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom",
-  "United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
-];
 
 export default function Profile() {
   const { user } = useAuth();
@@ -434,43 +412,8 @@ export default function Profile() {
             </Button>
           </div>
         )}
-        {/* Banner Section */}
-        <div className="relative h-48 md:h-64 bg-gradient-to-br from-primary/20 via-primary/10 to-background overflow-hidden group">
-          {bannerUrl && (
-            <img src={bannerUrl} alt="Profile banner" className="w-full h-full object-cover" />
-          )}
-          <div className="absolute top-4 right-4 flex gap-2">
-            <Label htmlFor="banner-upload" className="cursor-pointer">
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                disabled={uploadingBanner}
-                className="bg-background/80 backdrop-blur-sm hover:bg-background/90"
-                asChild
-              >
-                <span>
-                  {uploadingBanner ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <Camera className="h-4 w-4 mr-2" />
-                  )}
-                  Edit Banner
-                </span>
-              </Button>
-            </Label>
-            {bannerUrl !== previousBannerUrl && (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={handleRevertBanner}
-                className="bg-background/80 backdrop-blur-sm hover:bg-background/90"
-              >
-                Revert
-              </Button>
-            )}
-          </div>
+        {/* Avatar (no banner) */}
+        <div className="max-w-3xl mx-auto px-4 pt-8">
           <Input
             id="banner-upload"
             type="file"
@@ -479,10 +422,7 @@ export default function Profile() {
             onChange={handleBannerUpload}
             disabled={uploadingBanner}
           />
-        </div>
 
-        {/* Avatar overlapping banner */}
-        <div className="max-w-3xl mx-auto px-4 -mt-20">
           <div className="flex flex-col items-center">
             <div className="relative group">
               <Avatar className="h-40 w-40 border-4 border-background shadow-xl overflow-hidden">
@@ -616,21 +556,12 @@ export default function Profile() {
                     <Label htmlFor="country" className="text-sm font-medium flex items-center gap-2">
                       <MapPin className="h-4 w-4" /> Location
                     </Label>
-                    <Select
+                    <CountryCombobox
+                      id="country"
                       value={formData.country}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your country" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <ScrollArea className="h-[200px]">
-                          {COUNTRIES.map((c) => (
-                            <SelectItem key={c} value={c}>{c}</SelectItem>
-                          ))}
-                        </ScrollArea>
-                      </SelectContent>
-                    </Select>
+                      onChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
+                    />
+
                   </div>
                 </div>
 

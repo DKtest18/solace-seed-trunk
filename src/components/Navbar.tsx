@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { User, Plus, Settings, LogOut, ShoppingBag, DollarSign, Heart, MessageSquare, LayoutDashboard, Menu } from 'lucide-react';
+import { User, Plus, Settings, LogOut, ShoppingBag, DollarSign, Heart, MessageSquare, LayoutDashboard, Menu, Briefcase } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/dkaiDb';
@@ -95,14 +95,22 @@ export function Navbar() {
           {user ? (
             <>
               <NotificationCenter />
-              {isSeller && (
+              {isSeller ? (
                 <Button asChild size="sm" className="rounded-full hidden lg:flex">
                   <Link to="/create-product">
                     <Plus className="w-4 h-4 mr-2" />
                     Create Listing
                   </Link>
                 </Button>
+              ) : (
+                <Button asChild size="sm" className="rounded-full hidden lg:flex">
+                  <Link to="/seller-onboarding">
+                    <Briefcase className="w-4 h-4 mr-2" />
+                    Become a Seller
+                  </Link>
+                </Button>
               )}
+
 
               {/* Desktop avatar dropdown */}
               <DropdownMenu>

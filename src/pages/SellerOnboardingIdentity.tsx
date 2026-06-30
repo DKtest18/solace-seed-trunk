@@ -71,66 +71,82 @@ export default function SellerOnboardingIdentity() {
     }
   };
 
+  const queryClient = useQueryClient();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+
+    // Derive user id from the verified JWT (not from React state alone).
+    const { data: sessionData } = await supabase.auth.getSession();
+    const uid = sessionData?.session?.user?.id;
+    if (!uid) {
+      toast({ title: 'Not signed in', description: 'Please sign in again.', variant: 'destructive' });
+      return;
+    }
+
+    if (!formData.first_name || !formData.last_name || !formData.creator_name || !formData.country) {
+      toast({ title: 'Missing fields', description: 'Please fill in all required fields.', variant: 'destructive' });
+      return;
+    }
 
     if (!ageConfirmed) {
-      toast({
-        title: 'Age Verification Required',
-        description: 'You must confirm you are 18 years or older.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Age Verification Required', description: 'You must confirm you are 18 years or older.', variant: 'destructive' });
       return;
     }
 
     if (!termsAccepted) {
-      toast({
-        title: 'Terms Required',
-        description: 'You must accept the terms and conditions.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Terms Required', description: 'You must accept the terms and conditions.', variant: 'destructive' });
       return;
     }
 
     setLoading(true);
     try {
-      // Update profile with age verification and terms
+      const nowIso = new Date().toISOString();
+
+      // 1) Profile: age + terms flags (with timestamps).
       const { error: profileError } = await db
         .from('dkai_profiles')
         .update({
           is_age_verified: ageConfirmed,
-          age_verified_at: new Date().toISOString(),
+          age_verified_at: ageConfirmed ? nowIso : null,
           terms_accepted: termsAccepted,
-          terms_accepted_at: new Date().toISOString(),
+          terms_accepted_at: termsAccepted ? nowIso : null,
         })
-        .eq('id', user.id);
-
+        .eq('id', uid);
       if (profileError) throw profileError;
 
-      // Upsert seller application
+      // 2) Seller application: upsert keyed on user_id.
       const { error: appError } = await db
         .from('dkai_seller_applications')
-        .upsert({
-          user_id: user.id,
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          creator_name: formData.creator_name,
-          bio: formData.bio,
-          country: formData.country,
-          status: 'approved',
-          applied_at: new Date().toISOString(),
-        });
-
+        .upsert(
+          {
+            user_id: uid,
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            creator_name: formData.creator_name,
+            bio: formData.bio,
+            country: formData.country,
+            status: 'approved',
+            applied_at: nowIso,
+          },
+          { onConflict: 'user_id' }
+        );
       if (appError) throw appError;
 
-      toast({
-        title: 'Success',
-        description: 'Your seller identity has been saved.',
-      });
+      // 3) Read-back to confirm persistence (console-verifiable).
+      const [{ data: appAfter }, { data: profAfter }] = await Promise.all([
+        db.from('dkai_seller_applications').select('*').eq('user_id', uid).maybeSingle(),
+        db.from('dkai_profiles').select('is_age_verified,age_verified_at,terms_accepted,terms_accepted_at,full_name,username').eq('id', uid).maybeSingle(),
+      ]);
+      console.log('[onboarding/identity] saved seller_application:', appAfter);
+      console.log('[onboarding/identity] saved profile flags:', profAfter);
 
+      await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
+
+      toast({ title: 'Saved', description: 'Your seller identity, terms and age have been saved.' });
       navigate('/seller-onboarding');
     } catch (error: any) {
+      console.error('[onboarding/identity] save error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to save seller identity',

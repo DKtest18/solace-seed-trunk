@@ -53,13 +53,21 @@ function AdminProductQueueContent() {
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ['admin-product-queue', tab],
     queryFn: async () => {
+      const statuses =
+        tab === 'submitted' ? ['submitted', 'in_review']
+        : tab === 'approved' ? ['approved']
+        : ['rejected', 'changes_requested'];
       const { data, error } = await db
         .from('dkai_products')
         .select('id, title, price, category, seller_id, review_status, submitted_at, reviewed_at, review_notes, created_at')
-        .eq('review_status', tab)
+        .in('review_status', statuses)
         .order('submitted_at', { ascending: false, nullsFirst: false })
         .limit(200);
-      if (error) throw error;
+      if (error) {
+        console.error('[AdminWaitlist] query error', error);
+        throw error;
+      }
+      console.log('[AdminWaitlist] tab=', tab, 'statuses=', statuses, 'rows=', data?.length ?? 0);
       return (data || []) as ProductRow[];
     },
     refetchInterval: 30_000,
@@ -68,17 +76,17 @@ function AdminProductQueueContent() {
   const { data: counts } = useQuery({
     queryKey: ['admin-product-queue-counts'],
     queryFn: async () => {
-      const fetchCount = async (status: TabKey) => {
+      const fetchCount = async (statuses: string[]) => {
         const { count } = await db
           .from('dkai_products')
           .select('id', { count: 'exact', head: true })
-          .eq('review_status', status);
+          .in('review_status', statuses);
         return count || 0;
       };
       const [submitted, approved, rejected] = await Promise.all([
-        fetchCount('submitted'),
-        fetchCount('approved'),
-        fetchCount('rejected'),
+        fetchCount(['submitted', 'in_review']),
+        fetchCount(['approved']),
+        fetchCount(['rejected', 'changes_requested']),
       ]);
       return { submitted, approved, rejected };
     },

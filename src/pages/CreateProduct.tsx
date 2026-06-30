@@ -17,7 +17,9 @@ import { PricingStep } from '@/components/product-creation/PricingStep';
 import { FeaturesTagsStep } from '@/components/product-creation/FeaturesTagsStep';
 import { PurposeAudienceStep } from '@/components/product-creation/PurposeAudienceStep';
 import { AdditionalDetailsStep } from '@/components/product-creation/AdditionalDetailsStep';
-import { PaymentOptionsStep } from '@/components/product-creation/PaymentOptionsStep';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { FAQStep } from '@/components/product-creation/FAQStep';
 
 import { DeliveryFilesStep } from '@/components/product-creation/DeliveryFilesStep';
@@ -34,10 +36,9 @@ const STEPS = [
   { id: 5, title: 'Features & Tags', description: 'Highlight benefits' },
   { id: 6, title: 'Details', description: 'Additional info' },
   { id: 7, title: 'FAQ', description: 'Common questions' },
-  { id: 8, title: 'Payment Options', description: 'Payment methods' },
-  { id: 9, title: 'Delivery Files', description: 'Workflows, tutorials & files' },
-  { id: 10, title: 'Return Policy', description: 'Return rules' },
-  { id: 11, title: 'Terms', description: 'Accept seller terms' },
+  { id: 8, title: 'Delivery Files', description: 'Workflows, tutorials & files' },
+  { id: 9, title: 'Return Policy', description: 'Return rules' },
+  { id: 10, title: 'Terms', description: 'Accept seller terms' },
 ];
 
 export default function CreateProduct() {
@@ -356,23 +357,16 @@ export default function CreateProduct() {
         break;
 
       case 8:
-        if (!formData.payment_methods || formData.payment_methods.length === 0) {
-          newErrors.payment_methodsError = 'Please select at least one payment method';
-        }
-        break;
-
-      case 9:
         // Delivery files - optional
         break;
 
-      case 10:
-        // Return policy - return_fee must be answered
+      case 9:
         if (formData.return_allowed && formData.return_fee_enabled && (!formData.return_fee_percentage || formData.return_fee_percentage < 1 || formData.return_fee_percentage > 30)) {
           newErrors.returnPolicyError = 'Return fee must be between 1% and 30%';
         }
         break;
 
-      case 11:
+      case 10:
         if (!formData.seller_accepted_terms) {
           newErrors.seller_accepted_termsError = 'You must accept the seller terms to continue';
         }
@@ -519,6 +513,10 @@ export default function CreateProduct() {
         is_published: false,
         moderation_status: 'pending',
         approval_status: 'pending',
+        // CRITICAL: admin queue filters on review_status. Without these the
+        // submission never appears in /admin/waitlist.
+        review_status: 'submitted',
+        submitted_at: new Date().toISOString(),
       };
       if (imageUrl) submitPayload.image_url = imageUrl;
 
@@ -622,6 +620,39 @@ export default function CreateProduct() {
 
   const progress = (currentStep / STEPS.length) * 100;
 
+  // Inline notice only — Stripe connection lives on the account / Payment Settings page,
+  // it is NOT a step in product creation anymore.
+  const StripeConnectionNotice = () => {
+    const { data: status } = useQuery({
+      queryKey: ['stripe-connect-status', user?.id],
+      queryFn: async () => {
+        const { data, error } = await supabase.functions.invoke('stripe-connect-status');
+        if (error) throw error;
+        return data as { connected?: boolean; chargesEnabled?: boolean; payoutsEnabled?: boolean; onboardingStatus?: string };
+      },
+      enabled: !!user,
+      staleTime: 60_000,
+    });
+    const connected =
+      !!status &&
+      (status.onboardingStatus === 'connected' ||
+        (status.chargesEnabled === true && status.payoutsEnabled === true));
+    if (connected || !status) return null;
+    return (
+      <Alert variant="destructive" className="mb-4">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          Your Stripe account isn't connected yet. You can still save a draft, but the product
+          can only go live once Stripe is connected.{' '}
+          <Link to="/seller-payment-settings" className="underline font-medium">
+            Open Payment Settings
+          </Link>
+          .
+        </AlertDescription>
+      </Alert>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-3xl">
@@ -639,6 +670,8 @@ export default function CreateProduct() {
             </span>
           )}
         </div>
+
+        <StripeConnectionNotice />
 
         <Card className="mb-6">
           <CardContent className="pt-6">
@@ -702,9 +735,6 @@ export default function CreateProduct() {
                 <FAQStep data={formData} onChange={handleChange} errors={errors} />
               )}
               {currentStep === 8 && (
-                <PaymentOptionsStep data={formData} onChange={handleChange} errors={errors} />
-              )}
-              {currentStep === 9 && (
                 <DeliveryFilesStep
                   deliveryFiles={deliveryFiles}
                   onAddFile={(df) => setDeliveryFiles([...deliveryFiles, df])}
@@ -712,10 +742,10 @@ export default function CreateProduct() {
                   errors={errors}
                 />
               )}
-              {currentStep === 10 && (
+              {currentStep === 9 && (
                 <ReturnPolicyStep data={formData} onChange={handleChange} errors={errors} />
               )}
-              {currentStep === 11 && (
+              {currentStep === 10 && (
                 <TermsAcceptanceStep data={formData} onChange={handleChange} errors={errors} />
               )}
             </div>

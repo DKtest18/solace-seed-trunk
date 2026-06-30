@@ -36,10 +36,9 @@ const STEPS = [
   { id: 5, title: 'Features & Tags', description: 'Highlight benefits' },
   { id: 6, title: 'Details', description: 'Additional info' },
   { id: 7, title: 'FAQ', description: 'Common questions' },
-  { id: 8, title: 'Payment Options', description: 'Payment methods' },
-  { id: 9, title: 'Delivery Files', description: 'Workflows, tutorials & files' },
-  { id: 10, title: 'Return Policy', description: 'Return rules' },
-  { id: 11, title: 'Terms', description: 'Accept seller terms' },
+  { id: 8, title: 'Delivery Files', description: 'Workflows, tutorials & files' },
+  { id: 9, title: 'Return Policy', description: 'Return rules' },
+  { id: 10, title: 'Terms', description: 'Accept seller terms' },
 ];
 
 export default function CreateProduct() {

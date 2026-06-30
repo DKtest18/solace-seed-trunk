@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,35 +8,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CountryCombobox } from '@/components/CountryCombobox';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
+import { supabase } from '@/integrations/supabase/client';
 import { Loader2, ArrowLeft, CheckCircle2, FileText } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
-const COUNTRIES = [
-  "Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria",
-  "Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan",
-  "Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cabo Verde","Cambodia",
-  "Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo (DRC)","Congo (Republic)",
-  "Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","East Timor",
-  "Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland",
-  "France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea",
-  "Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq",
-  "Ireland","Israel","Italy","Ivory Coast","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati",
-  "Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein",
-  "Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania",
-  "Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar",
-  "Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia",
-  "Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines",
-  "Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines",
-  "Samoa","San Marino","São Tomé and Príncipe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore",
-  "Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan",
-  "Suriname","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Togo","Tonga",
-  "Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom",
-  "United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
-];
 
 export default function SellerOnboardingIdentity() {
   const { user } = useAuth();
@@ -92,66 +71,82 @@ export default function SellerOnboardingIdentity() {
     }
   };
 
+  const queryClient = useQueryClient();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+
+    // Derive user id from the verified JWT (not from React state alone).
+    const { data: sessionData } = await supabase.auth.getSession();
+    const uid = sessionData?.session?.user?.id;
+    if (!uid) {
+      toast({ title: 'Not signed in', description: 'Please sign in again.', variant: 'destructive' });
+      return;
+    }
+
+    if (!formData.first_name || !formData.last_name || !formData.creator_name || !formData.country) {
+      toast({ title: 'Missing fields', description: 'Please fill in all required fields.', variant: 'destructive' });
+      return;
+    }
 
     if (!ageConfirmed) {
-      toast({
-        title: 'Age Verification Required',
-        description: 'You must confirm you are 18 years or older.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Age Verification Required', description: 'You must confirm you are 18 years or older.', variant: 'destructive' });
       return;
     }
 
     if (!termsAccepted) {
-      toast({
-        title: 'Terms Required',
-        description: 'You must accept the terms and conditions.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Terms Required', description: 'You must accept the terms and conditions.', variant: 'destructive' });
       return;
     }
 
     setLoading(true);
     try {
-      // Update profile with age verification and terms
+      const nowIso = new Date().toISOString();
+
+      // 1) Profile: age + terms flags (with timestamps).
       const { error: profileError } = await db
         .from('dkai_profiles')
         .update({
           is_age_verified: ageConfirmed,
-          age_verified_at: new Date().toISOString(),
+          age_verified_at: ageConfirmed ? nowIso : null,
           terms_accepted: termsAccepted,
-          terms_accepted_at: new Date().toISOString(),
+          terms_accepted_at: termsAccepted ? nowIso : null,
         })
-        .eq('id', user.id);
-
+        .eq('id', uid);
       if (profileError) throw profileError;
 
-      // Upsert seller application
+      // 2) Seller application: upsert keyed on user_id.
       const { error: appError } = await db
         .from('dkai_seller_applications')
-        .upsert({
-          user_id: user.id,
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          creator_name: formData.creator_name,
-          bio: formData.bio,
-          country: formData.country,
-          status: 'approved',
-          applied_at: new Date().toISOString(),
-        });
-
+        .upsert(
+          {
+            user_id: uid,
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            creator_name: formData.creator_name,
+            bio: formData.bio,
+            country: formData.country,
+            status: 'approved',
+            applied_at: nowIso,
+          },
+          { onConflict: 'user_id' }
+        );
       if (appError) throw appError;
 
-      toast({
-        title: 'Success',
-        description: 'Your seller identity has been saved.',
-      });
+      // 3) Read-back to confirm persistence (console-verifiable).
+      const [{ data: appAfter }, { data: profAfter }] = await Promise.all([
+        db.from('dkai_seller_applications').select('*').eq('user_id', uid).maybeSingle(),
+        db.from('dkai_profiles').select('is_age_verified,age_verified_at,terms_accepted,terms_accepted_at,full_name,username').eq('id', uid).maybeSingle(),
+      ]);
+      console.log('[onboarding/identity] saved seller_application:', appAfter);
+      console.log('[onboarding/identity] saved profile flags:', profAfter);
 
+      await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
+
+      toast({ title: 'Saved', description: 'Your seller identity, terms and age have been saved.' });
       navigate('/seller-onboarding');
     } catch (error: any) {
+      console.error('[onboarding/identity] save error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to save seller identity',
@@ -252,22 +247,12 @@ export default function SellerOnboardingIdentity() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="country">Country/Region</Label>
-                <Select
+                <Label htmlFor="country">Country/Region <span className="text-destructive">*</span></Label>
+                <CountryCombobox
+                  id="country"
                   value={formData.country}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <ScrollArea className="h-[200px]">
-                      {COUNTRIES.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                      ))}
-                    </ScrollArea>
-                  </SelectContent>
-                </Select>
+                  onChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
+                />
               </div>
 
               <Separator />

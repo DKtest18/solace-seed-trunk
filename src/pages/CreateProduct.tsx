@@ -357,23 +357,16 @@ export default function CreateProduct() {
         break;
 
       case 8:
-        if (!formData.payment_methods || formData.payment_methods.length === 0) {
-          newErrors.payment_methodsError = 'Please select at least one payment method';
-        }
-        break;
-
-      case 9:
         // Delivery files - optional
         break;
 
-      case 10:
-        // Return policy - return_fee must be answered
+      case 9:
         if (formData.return_allowed && formData.return_fee_enabled && (!formData.return_fee_percentage || formData.return_fee_percentage < 1 || formData.return_fee_percentage > 30)) {
           newErrors.returnPolicyError = 'Return fee must be between 1% and 30%';
         }
         break;
 
-      case 11:
+      case 10:
         if (!formData.seller_accepted_terms) {
           newErrors.seller_accepted_termsError = 'You must accept the seller terms to continue';
         }

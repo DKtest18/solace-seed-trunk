@@ -9,13 +9,11 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { db } from '@/lib/dkaiDb';
-import { Shield, Copy, Download, Store, CheckCircle, Palette, LayoutGrid, Mail, Ban, Globe, User, Bell, Lock, Eye } from 'lucide-react';
+import { Shield, Copy, Download, Store, CheckCircle, Ban, Globe, User, Lock } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import QRCode from 'react-qr-code';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useHasRole } from '@/hooks/useUserRole';
-import { AppearanceSettings } from '@/components/settings/AppearanceSettings';
-import { SidebarLayoutSettings } from '@/components/settings/SidebarLayoutSettings';
 
 import { BlockedUsersSettings } from '@/components/settings/BlockedUsersSettings';
 import { AccountDeletionSettings } from '@/components/settings/AccountDeletionSettings';
@@ -208,8 +206,6 @@ export default function ProfileSettings() {
   const tabs = [
     { value: 'profile', label: 'Profile', icon: User },
     { value: 'security', label: 'Security', icon: Shield },
-    { value: 'appearance', label: 'Appearance', icon: Palette },
-    { value: 'privacy', label: 'Privacy', icon: Eye },
     { value: 'privacy-data', label: 'Privacy & Data', icon: Shield },
     { value: 'blocked', label: 'Blocked users', icon: Ban },
     { value: 'data', label: 'Account', icon: Lock },
@@ -531,13 +527,6 @@ export default function ProfileSettings() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="appearance" className="mt-0">
-            <AppearanceSettings />
-          </TabsContent>
-
-          <TabsContent value="privacy" className="mt-0 space-y-6">
-            <SidebarLayoutSettings />
-          </TabsContent>
 
           <TabsContent value="blocked" className="mt-0">
             <BlockedUsersSettings />

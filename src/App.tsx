@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { UserSettingsProvider } from "@/contexts/UserSettingsContext";
+
 
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -108,7 +108,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <UserSettingsProvider>
+          <>
             <>
               <Navbar />
               {/* AI Assistant deaktiviert – zum Aktivieren: <Chatbot /> einkommentieren */}
@@ -203,7 +203,7 @@ const App = () => (
               <Footer />
             </>
 
-          </UserSettingsProvider>
+          </>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

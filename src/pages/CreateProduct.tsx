@@ -620,6 +620,39 @@ export default function CreateProduct() {
 
   const progress = (currentStep / STEPS.length) * 100;
 
+  // Inline notice only — Stripe connection lives on the account / Payment Settings page,
+  // it is NOT a step in product creation anymore.
+  const StripeConnectionNotice = () => {
+    const { data: status } = useQuery({
+      queryKey: ['stripe-connect-status', user?.id],
+      queryFn: async () => {
+        const { data, error } = await supabase.functions.invoke('stripe-connect-status');
+        if (error) throw error;
+        return data as { connected?: boolean; chargesEnabled?: boolean; payoutsEnabled?: boolean; onboardingStatus?: string };
+      },
+      enabled: !!user,
+      staleTime: 60_000,
+    });
+    const connected =
+      !!status &&
+      (status.onboardingStatus === 'connected' ||
+        (status.chargesEnabled === true && status.payoutsEnabled === true));
+    if (connected || !status) return null;
+    return (
+      <Alert variant="destructive" className="mb-4">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          Your Stripe account isn't connected yet. You can still save a draft, but the product
+          can only go live once Stripe is connected.{' '}
+          <Link to="/seller-payment-settings" className="underline font-medium">
+            Open Payment Settings
+          </Link>
+          .
+        </AlertDescription>
+      </Alert>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-3xl">

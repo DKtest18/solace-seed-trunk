@@ -46,7 +46,8 @@ export default function SellerOnboardingPayment() {
   }, [user, navigate]);
 
   useEffect(() => {
-    if (searchParams.get("onboarding") === "complete") {
+    const isStripeReturn = searchParams.get("onboarding") === "complete" || searchParams.get("return") === "1";
+    if (isStripeReturn) {
       toast({ title: "Success", description: "Stripe onboarding completed! Checking status..." });
       fetchStripeStatus().then(() => {
         // Show success animation if fully connected

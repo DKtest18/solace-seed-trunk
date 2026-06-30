@@ -95,14 +95,22 @@ export function Navbar() {
           {user ? (
             <>
               <NotificationCenter />
-              {isSeller && (
+              {isSeller ? (
                 <Button asChild size="sm" className="rounded-full hidden lg:flex">
                   <Link to="/create-product">
                     <Plus className="w-4 h-4 mr-2" />
                     Create Listing
                   </Link>
                 </Button>
+              ) : (
+                <Button asChild size="sm" className="rounded-full hidden lg:flex">
+                  <Link to="/seller-onboarding">
+                    <Briefcase className="w-4 h-4 mr-2" />
+                    Become a Seller
+                  </Link>
+                </Button>
               )}
+
 
               {/* Desktop avatar dropdown */}
               <DropdownMenu>

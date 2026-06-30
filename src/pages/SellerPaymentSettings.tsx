@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { db } from "@/lib/dkaiDb";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,28 +9,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Loader2, CreditCard, CheckCircle, XCircle, ExternalLink, Shield, RefreshCw, AlertTriangle, PartyPopper, Trash2, ArrowLeft } from "lucide-react";
 import { useHasRole } from "@/hooks/useUserRole";
-import { IOSToggle } from "@/components/ui/ios-toggle";
 import { Badge } from "@/components/ui/badge";
 import { usePlatformFee } from "@/hooks/usePlatformFee";
 import { StripePaymentMethodsPanel } from "@/components/seller/StripePaymentMethodsPanel";
-
-interface StripeConnectStatus {
-  connected: boolean;
-  accountId?: string;
-  maskedAccountId?: string;
-  onboardingStatus: "not_connected" | "onboarding" | "connected" | "needs_info";
-  chargesEnabled: boolean;
-  payoutsEnabled: boolean;
-  detailsSubmitted: boolean;
-  cardPaymentsEnabled: boolean;
-  email?: string;
-  requirements?: {
-    currently_due?: string[];
-    eventually_due?: string[];
-    past_due?: string[];
-  };
-  isTestMode?: boolean;
-}
+import { emptyStripeConnectStatus, fetchStripeConnectStatus, type StripeConnectStatus } from "@/lib/stripeConnectStatus";
 
 export default function SellerPaymentSettings() {
   const { user } = useAuth();
@@ -43,17 +24,9 @@ export default function SellerPaymentSettings() {
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [togglingCard, setTogglingCard] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
-  const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus>({
-    connected: false,
-    onboardingStatus: "not_connected",
-    chargesEnabled: false,
-    payoutsEnabled: false,
-    detailsSubmitted: false,
-    cardPaymentsEnabled: false,
-  });
+  const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus>(emptyStripeConnectStatus);
 
   useEffect(() => {
     if (!user) {
@@ -74,47 +47,26 @@ export default function SellerPaymentSettings() {
 
   // Check for onboarding completion
   useEffect(() => {
-    if (searchParams.get("onboarding") === "complete") {
+    const isStripeReturn = searchParams.get("onboarding") === "complete" || searchParams.get("return") === "1";
+    if (isStripeReturn) {
       toast.success("Stripe onboarding completed! Checking status...");
       fetchStripeStatus().then(() => {
         setShowSuccessAnimation(true);
         setTimeout(() => setShowSuccessAnimation(false), 5000);
       });
-      window.history.replaceState({}, "", "/seller-payment-settings");
+      window.history.replaceState({}, "", "/seller/payment-settings");
     }
     if (searchParams.get("refresh") === "true") {
       toast.info("Refreshing Stripe status...");
       fetchStripeStatus();
-      window.history.replaceState({}, "", "/seller-payment-settings");
+      window.history.replaceState({}, "", "/seller/payment-settings");
     }
   }, [searchParams]);
 
   const fetchStripeStatus = async () => {
     setRefreshing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("stripe-connect-status");
-      if (error) throw error;
-      
-      // Map response — handle both old flat shape and new camelCase shape
-      const mapped: StripeConnectStatus = {
-        connected: data.connected ?? false,
-        accountId: data.accountId || data.account_id,
-        maskedAccountId: data.maskedAccountId,
-        onboardingStatus: data.onboardingStatus || (
-          !data.connected ? 'not_connected' :
-          (data.onboarded || (data.charges_enabled && data.payouts_enabled)) ? 'connected' :
-          'onboarding'
-        ),
-        chargesEnabled: data.chargesEnabled ?? data.charges_enabled ?? false,
-        payoutsEnabled: data.payoutsEnabled ?? data.payouts_enabled ?? false,
-        detailsSubmitted: data.detailsSubmitted ?? data.details_submitted ?? false,
-        cardPaymentsEnabled: data.cardPaymentsEnabled ?? data.card_payments_enabled ?? false,
-        email: data.email,
-        requirements: data.requirements,
-        isTestMode: data.isTestMode ?? data.is_test_mode,
-      };
-      
-      setStripeStatus(mapped);
+      setStripeStatus(await fetchStripeConnectStatus());
     } catch (error) {
       console.error("Error fetching Stripe status:", error);
       toast.error("Failed to fetch Stripe status");
@@ -128,7 +80,7 @@ export default function SellerPaymentSettings() {
     setConnecting(true);
     try {
       const { data, error } = await supabase.functions.invoke("stripe-connect-onboard", {
-        body: { return_path: '/seller-payment-settings' }
+        body: { return_path: '/seller/payment-settings' }
       });
       if (error) throw error;
       if (!data.success || !data.url) throw new Error(data.error || "Failed to create onboarding link");
@@ -168,68 +120,12 @@ export default function SellerPaymentSettings() {
       if (!data.success) throw new Error(data.error || "Failed to disconnect");
 
       toast.success("Stripe account disconnected. You can now connect a different account.");
-      setStripeStatus({
-        connected: false,
-        onboardingStatus: "not_connected",
-        chargesEnabled: false,
-        payoutsEnabled: false,
-        detailsSubmitted: false,
-        cardPaymentsEnabled: false,
-      });
+      setStripeStatus(emptyStripeConnectStatus);
     } catch (error: any) {
       console.error("Error disconnecting Stripe:", error);
       toast.error(error.message || "Failed to disconnect Stripe account");
     } finally {
       setDisconnecting(false);
-    }
-  };
-
-  const handleToggleCardPayments = async (enabled: boolean) => {
-    if (!user) return;
-    if (enabled && stripeStatus.onboardingStatus !== "connected") {
-      toast.error("Complete Stripe onboarding first to enable card payments");
-      return;
-    }
-
-    setTogglingCard(true);
-    // Optimistic
-    setStripeStatus(prev => ({ ...prev, cardPaymentsEnabled: enabled }));
-    try {
-      const { error } = await db
-        .from("dkai_seller_payment_configs")
-        .upsert(
-          {
-            seller_id: user.id,
-            stripe_account_id: stripeStatus.accountId ?? null,
-            card_payments_enabled: enabled,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "seller_id" },
-        );
-
-      if (error) throw error;
-
-      // Re-read to confirm persisted state (no silent "saved but reverted" cases).
-      const { data: row } = await db
-        .from("dkai_seller_payment_configs")
-        .select("card_payments_enabled")
-        .eq("seller_id", user.id)
-        .maybeSingle();
-
-      const persisted = !!row?.card_payments_enabled;
-      setStripeStatus(prev => ({ ...prev, cardPaymentsEnabled: persisted }));
-      if (persisted !== enabled) {
-        toast.error("Settings did not save. Please try again.");
-      } else {
-        toast.success(enabled ? "Card payments enabled" : "Card payments disabled");
-      }
-    } catch (error: any) {
-      console.error("Error toggling card payments:", error);
-      // Revert optimistic
-      setStripeStatus(prev => ({ ...prev, cardPaymentsEnabled: !enabled }));
-      toast.error(error.message || "Failed to update settings");
-    } finally {
-      setTogglingCard(false);
     }
   };
 
@@ -467,58 +363,21 @@ export default function SellerPaymentSettings() {
                   </Button>
                 </div>
 
-                {/* Card Payments Toggle */}
+                {/* Stripe Management Notice */}
                 {isFullyOnboarded && (
-                  <div className="p-4 border rounded-lg space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <CreditCard className="h-5 w-5 text-primary" />
-                        <div>
-                          <p className="font-medium">Card Payments</p>
-                          <p className="text-sm text-muted-foreground">
-                            Accept card payments from buyers
-                          </p>
-                        </div>
-                      </div>
-                      <IOSToggle
-                        checked={stripeStatus.cardPaymentsEnabled}
-                        onCheckedChange={handleToggleCardPayments}
-                        disabled={togglingCard || !isFullyOnboarded}
-                        size="md"
-                      />
-                    </div>
-                    
-                    {stripeStatus.cardPaymentsEnabled && (
-                      <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                        <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
-                          <CheckCircle className="h-4 w-4" />
-                          <span className="text-sm font-medium">Card payments are active</span>
-                        </div>
-                        <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                          {sellerPct}% goes directly to your Stripe account, {feePct}% platform fee
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Stripe Management Notice */}
-                    <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
-                      <CreditCard className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      <AlertDescription className="text-blue-800 dark:text-blue-200">
-                        <strong>Want to change accepted payment methods?</strong> Payment method settings (cards, SEPA, iDEAL, etc.) are managed directly in your Stripe account.
-                        <Button 
-                          variant="link" 
-                          className="p-0 h-auto text-blue-700 dark:text-blue-300 underline ml-1"
-                          onClick={handleOpenDashboard}
-                        >
-                          Open Stripe Dashboard →
-                        </Button>
-                      </AlertDescription>
-                    </Alert>
-
-                    <p className="text-xs text-muted-foreground">
-                      Payouts are sent automatically to your connected bank account via Stripe. To change your payout schedule or bank details, visit your Stripe Dashboard.
-                    </p>
-                  </div>
+                  <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
+                    <CreditCard className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <AlertDescription className="text-blue-800 dark:text-blue-200">
+                      Payment method settings (cards, SEPA, iDEAL, etc.) are managed directly in your Stripe account.
+                      <Button 
+                        variant="link" 
+                        className="p-0 h-auto text-blue-700 dark:text-blue-300 underline ml-1"
+                        onClick={handleOpenDashboard}
+                      >
+                        Open Stripe Dashboard →
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
                 )}
 
                 {/* Dynamic payment methods (mirrors Stripe 1:1) */}
@@ -585,8 +444,8 @@ export default function SellerPaymentSettings() {
               <div className="flex gap-3">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">2</div>
                 <div>
-                  <p className="font-medium">Enable card payments</p>
-                  <p className="text-sm text-muted-foreground">Toggle on card payments for your products</p>
+                  <p className="font-medium">Stripe manages payment methods</p>
+                  <p className="text-sm text-muted-foreground">Cards and local payment methods are controlled in Stripe</p>
                 </div>
               </div>
               <div className="flex gap-3">

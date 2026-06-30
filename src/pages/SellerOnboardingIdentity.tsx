@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,8 +21,10 @@ export default function SellerOnboardingIdentity() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const hasLoadedExisting = useRef(false);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -69,9 +71,72 @@ export default function SellerOnboardingIdentity() {
       setAgeConfirmed(!!profile.is_age_verified);
       setTermsAccepted(!!profile.terms_accepted);
     }
+
+    hasLoadedExisting.current = true;
+    setInitializing(false);
   };
 
   const queryClient = useQueryClient();
+
+  const persistDraft = async () => {
+    if (!user || !hasLoadedExisting.current) return;
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const uid = sessionData?.session?.user?.id;
+    if (!uid) return;
+
+    const nowIso = new Date().toISOString();
+
+    const { error: profileError } = await db
+      .from('dkai_profiles')
+      .update({
+        is_age_verified: ageConfirmed,
+        age_verified_at: ageConfirmed ? nowIso : null,
+        terms_accepted: termsAccepted,
+        terms_accepted_at: termsAccepted ? nowIso : null,
+        updated_at: nowIso,
+      })
+      .eq('id', uid);
+    if (profileError) throw profileError;
+
+    const hasMinimumApplication = !!(
+      formData.first_name.trim() &&
+      formData.last_name.trim() &&
+      formData.creator_name.trim()
+    );
+
+    if (hasMinimumApplication) {
+      const { error: appError } = await db
+        .from('dkai_seller_applications')
+        .upsert(
+          {
+            user_id: uid,
+            first_name: formData.first_name.trim(),
+            last_name: formData.last_name.trim(),
+            creator_name: formData.creator_name.trim(),
+            bio: formData.bio,
+            country: formData.country,
+            status: 'draft',
+            applied_at: nowIso,
+            updated_at: nowIso,
+          },
+          { onConflict: 'user_id' }
+        );
+      if (appError) throw appError;
+    }
+
+    await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
+  };
+
+  useEffect(() => {
+    if (!user || !hasLoadedExisting.current) return;
+
+    const timeout = window.setTimeout(() => {
+      persistDraft().catch((error) => console.error('[onboarding/identity] draft save error:', error));
+    }, 700);
+
+    return () => window.clearTimeout(timeout);
+  }, [user, formData, ageConfirmed, termsAccepted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,36 +166,14 @@ export default function SellerOnboardingIdentity() {
 
     setLoading(true);
     try {
+      await persistDraft();
       const nowIso = new Date().toISOString();
 
-      // 1) Profile: age + terms flags (with timestamps).
-      const { error: profileError } = await db
-        .from('dkai_profiles')
-        .update({
-          is_age_verified: ageConfirmed,
-          age_verified_at: ageConfirmed ? nowIso : null,
-          terms_accepted: termsAccepted,
-          terms_accepted_at: termsAccepted ? nowIso : null,
-        })
-        .eq('id', uid);
-      if (profileError) throw profileError;
-
-      // 2) Seller application: upsert keyed on user_id.
+      // Final submit marks the draft application approved for checklist completion.
       const { error: appError } = await db
         .from('dkai_seller_applications')
-        .upsert(
-          {
-            user_id: uid,
-            first_name: formData.first_name,
-            last_name: formData.last_name,
-            creator_name: formData.creator_name,
-            bio: formData.bio,
-            country: formData.country,
-            status: 'approved',
-            applied_at: nowIso,
-          },
-          { onConflict: 'user_id' }
-        );
+        .update({ status: 'approved', updated_at: nowIso })
+        .eq('user_id', uid);
       if (appError) throw appError;
 
       // 3) Read-back to confirm persistence (console-verifiable).
@@ -158,6 +201,14 @@ export default function SellerOnboardingIdentity() {
   };
 
   if (!user) return null;
+
+  if (initializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">

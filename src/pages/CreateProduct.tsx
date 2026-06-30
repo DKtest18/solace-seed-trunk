@@ -17,7 +17,9 @@ import { PricingStep } from '@/components/product-creation/PricingStep';
 import { FeaturesTagsStep } from '@/components/product-creation/FeaturesTagsStep';
 import { PurposeAudienceStep } from '@/components/product-creation/PurposeAudienceStep';
 import { AdditionalDetailsStep } from '@/components/product-creation/AdditionalDetailsStep';
-import { PaymentOptionsStep } from '@/components/product-creation/PaymentOptionsStep';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { FAQStep } from '@/components/product-creation/FAQStep';
 
 import { DeliveryFilesStep } from '@/components/product-creation/DeliveryFilesStep';

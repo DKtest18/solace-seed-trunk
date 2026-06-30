@@ -13,26 +13,8 @@ import { ReauthModal } from '@/components/ReauthModal';
 import { useQueryClient } from '@tanstack/react-query';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Badge } from '@/components/ui/badge';
-import { IOSToggle } from '@/components/ui/ios-toggle';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
-
-interface StripeConnectStatus {
-  connected: boolean;
-  accountId?: string;
-  maskedAccountId?: string;
-  onboardingStatus: "not_connected" | "onboarding" | "connected" | "needs_info";
-  chargesEnabled: boolean;
-  payoutsEnabled: boolean;
-  detailsSubmitted: boolean;
-  cardPaymentsEnabled: boolean;
-  email?: string;
-  requirements?: {
-    currently_due?: string[];
-    eventually_due?: string[];
-    past_due?: string[];
-  };
-  isTestMode?: boolean;
-}
+import { emptyStripeConnectStatus, fetchStripeConnectStatus, isStripeConnectedForOnboarding, type StripeConnectStatus } from '@/lib/stripeConnectStatus';
 
 export default function SellerOnboardingPayment() {
   const { user } = useAuth();
@@ -51,16 +33,8 @@ export default function SellerOnboardingPayment() {
   const [stripeLoading, setStripeLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [togglingCard, setTogglingCard] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
-  const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus>({
-    connected: false,
-    onboardingStatus: "not_connected",
-    chargesEnabled: false,
-    payoutsEnabled: false,
-    detailsSubmitted: false,
-    cardPaymentsEnabled: false,
-  });
+  const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus>(emptyStripeConnectStatus);
 
   useEffect(() => {
     if (!user) {
@@ -72,7 +46,8 @@ export default function SellerOnboardingPayment() {
   }, [user, navigate]);
 
   useEffect(() => {
-    if (searchParams.get("onboarding") === "complete") {
+    const isStripeReturn = searchParams.get("onboarding") === "complete" || searchParams.get("return") === "1";
+    if (isStripeReturn) {
       toast({ title: "Success", description: "Stripe onboarding completed! Checking status..." });
       fetchStripeStatus().then(() => {
         // Show success animation if fully connected
@@ -90,29 +65,8 @@ export default function SellerOnboardingPayment() {
   const fetchStripeStatus = async () => {
     setRefreshing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("stripe-connect-status");
-      if (error) throw error;
-      
-      // Map response — handle both old flat shape and new camelCase shape
-      const mapped: StripeConnectStatus = {
-        connected: data.connected ?? false,
-        accountId: data.accountId || data.account_id,
-        maskedAccountId: data.maskedAccountId,
-        onboardingStatus: data.onboardingStatus || (
-          !data.connected ? 'not_connected' :
-          (data.onboarded || (data.charges_enabled && data.payouts_enabled)) ? 'connected' :
-          'onboarding'
-        ),
-        chargesEnabled: data.chargesEnabled ?? data.charges_enabled ?? false,
-        payoutsEnabled: data.payoutsEnabled ?? data.payouts_enabled ?? false,
-        detailsSubmitted: data.detailsSubmitted ?? data.details_submitted ?? false,
-        cardPaymentsEnabled: data.cardPaymentsEnabled ?? data.card_payments_enabled ?? false,
-        email: data.email,
-        requirements: data.requirements,
-        isTestMode: data.isTestMode ?? data.is_test_mode,
-      };
-      
-      setStripeStatus(mapped);
+      setStripeStatus(await fetchStripeConnectStatus());
+      await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
     } catch (error) {
       console.error("Error fetching Stripe status:", error);
     } finally {
@@ -161,45 +115,12 @@ export default function SellerOnboardingPayment() {
       if (!data.success) throw new Error(data.error || "Failed to disconnect");
 
       toast({ title: "Success", description: "Stripe account disconnected. You can now connect a different account." });
-      setStripeStatus({
-        connected: false,
-        onboardingStatus: "not_connected",
-        chargesEnabled: false,
-        payoutsEnabled: false,
-        detailsSubmitted: false,
-        cardPaymentsEnabled: false,
-      });
+      setStripeStatus(emptyStripeConnectStatus);
+      await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
     } catch (error: any) {
       toast({ title: "Error", description: error.message || "Failed to disconnect Stripe", variant: "destructive" });
     } finally {
       setDisconnecting(false);
-    }
-  };
-
-  const handleToggleCardPayments = async (enabled: boolean) => {
-    if (enabled && stripeStatus.onboardingStatus !== "connected") {
-      toast({ title: "Not Ready", description: "Complete Stripe onboarding first", variant: "destructive" });
-      return;
-    }
-
-    setTogglingCard(true);
-    try {
-      // Upsert to handle case where row doesn't exist yet
-      const { error } = await db
-        .from("dkai_seller_payment_configs")
-        .upsert({ 
-          seller_id: user?.id,
-          card_payments_enabled: enabled, 
-          updated_at: new Date().toISOString() 
-        }, { onConflict: 'seller_id' });
-
-      if (error) throw error;
-      setStripeStatus(prev => ({ ...prev, cardPaymentsEnabled: enabled }));
-      toast({ title: "Success", description: enabled ? "Card payments enabled" : "Card payments disabled" });
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to update settings", variant: "destructive" });
-    } finally {
-      setTogglingCard(false);
     }
   };
 
@@ -216,7 +137,7 @@ export default function SellerOnboardingPayment() {
   if (!user) return null;
 
   const needsReauth = !isAdmin && !hasValidSession;
-  const isFullyOnboarded = stripeStatus.onboardingStatus === 'connected';
+  const isFullyOnboarded = isStripeConnectedForOnboarding(stripeStatus);
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">
@@ -395,37 +316,6 @@ export default function SellerOnboardingPayment() {
                   </Button>
                 </div>
 
-                {/* Card Payments Toggle - Only if fully connected */}
-                {isFullyOnboarded && (
-                  <div className="p-4 border rounded-lg space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <CreditCard className="h-5 w-5 text-primary" />
-                        <div>
-                          <p className="font-medium">Enable Card Payments</p>
-                          <p className="text-sm text-muted-foreground">Accept card payments from buyers</p>
-                        </div>
-                      </div>
-                      <IOSToggle
-                        checked={stripeStatus.cardPaymentsEnabled}
-                        onCheckedChange={handleToggleCardPayments}
-                        disabled={togglingCard}
-                        size="md"
-                      />
-                    </div>
-                    {stripeStatus.cardPaymentsEnabled && (
-                      <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                        <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
-                          <CheckCircle className="h-4 w-4" />
-                          <span className="text-sm font-medium">Card payments are active</span>
-                        </div>
-                        <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                          {sellerPct}% goes to your Stripe account, {feePct}% platform fee
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
               </>
             ) : (
               /* Not Connected - Show instructions + Connect button */

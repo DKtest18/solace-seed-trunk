@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 
@@ -162,6 +162,8 @@ const App = () => (
 
             <Route path="/wishlist" element={<WaitlistGuard><Wishlist /></WaitlistGuard>} />
             <Route path="/disputes" element={<WaitlistGuard><Disputes /></WaitlistGuard>} />
+            {/* Own seller payment settings must stay above /seller/:sellerId so Stripe return URLs never hit the public seller profile lookup. */}
+            <Route path="/seller/payment-settings" element={<Seller2FAGuard><SellerLayout title="Payment Settings"><SellerPaymentSettings /></SellerLayout></Seller2FAGuard>} />
             <Route path="/seller/:sellerId" element={<SellerProfile />} />
             <Route path="/settings" element={<WaitlistGuard><ProfileSettings /></WaitlistGuard>} />
             <Route path="/profile" element={<WaitlistGuard><Profile /></WaitlistGuard>} />
@@ -177,7 +179,7 @@ const App = () => (
             <Route path="/checkout" element={<WaitlistGuard><Checkout /></WaitlistGuard>} />
             
             <Route path="/seller-dashboard/payment-settings" element={<Seller2FAGuard><SellerLayout title="Payment Settings"><SellerPaymentSettings /></SellerLayout></Seller2FAGuard>} />
-            <Route path="/seller-payment-settings" element={<Seller2FAGuard><SellerLayout title="Payment Settings"><SellerPaymentSettings /></SellerLayout></Seller2FAGuard>} />
+            <Route path="/seller-payment-settings" element={<Navigate to="/seller/payment-settings" replace />} />
             <Route path="/seller-dashboard/qa" element={<Seller2FAGuard><SellerLayout title="Product Q&A"><SellerProductQA /></SellerLayout></Seller2FAGuard>} />
 
             <Route path="/admin/payment-settings" element={<AdminRouteGuard><AdminPaymentSettings /></AdminRouteGuard>} />

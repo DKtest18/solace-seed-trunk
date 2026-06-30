@@ -1,6 +1,27 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
+const STRIPE_USER_TABLES = ['dkaim_user_id', 'dkai_user_id'];
+
+function isMissingTable(error: any) {
+  const message = String(error?.message || '');
+  return error?.code === 'PGRST205' || message.includes('Could not find the table') || message.includes('schema cache') || message.includes('does not exist');
+}
+
+async function findStripeUserRow(admin: any, userId: string, select = 'stripe_account_id, stripe_onboarded') {
+  let existingTable = STRIPE_USER_TABLES[0];
+  for (const table of STRIPE_USER_TABLES) {
+    const { data, error } = await admin.from(table).select(select).eq('id', userId).maybeSingle();
+    if (!error) {
+      existingTable = table;
+      if (data) return { table, row: data };
+      continue;
+    }
+    if (!isMissingTable(error)) throw error;
+  }
+  return { table: existingTable, row: null };
+}
+
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
@@ -14,12 +35,8 @@ Deno.serve(async (req) => {
 
     const admin = getServiceClient();
 
-    // Get seller's Stripe account ID
-    const { data: seller } = await admin
-      .from('dkaim_user_id')
-      .select('stripe_account_id, stripe_onboarded')
-      .eq('id', user.id)
-      .single();
+    // Get seller's Stripe account ID from the real Stripe user table.
+    const { table: stripeUserTable, row: seller } = await findStripeUserRow(admin, user.id);
 
     if (!seller?.stripe_account_id) {
       return jsonResponse({
@@ -28,7 +45,6 @@ Deno.serve(async (req) => {
         chargesEnabled: false,
         payoutsEnabled: false,
         detailsSubmitted: false,
-        cardPaymentsEnabled: false,
       });
     }
 
@@ -46,7 +62,6 @@ Deno.serve(async (req) => {
         chargesEnabled: false,
         payoutsEnabled: false,
         detailsSubmitted: false,
-        cardPaymentsEnabled: false,
       });
     }
 
@@ -67,10 +82,10 @@ Deno.serve(async (req) => {
       onboardingStatus = 'onboarding';
     }
 
-    // Sync dkaim_user_id onboarded flag
+    // Sync onboarded flag on the detected Stripe user table.
     const isOnboarded = onboardingStatus === 'connected';
     if (seller.stripe_onboarded !== isOnboarded) {
-      await admin.from('dkaim_user_id').update({
+      await admin.from(stripeUserTable).update({
         stripe_onboarded: isOnboarded,
       }).eq('id', user.id);
     }
@@ -78,7 +93,7 @@ Deno.serve(async (req) => {
     // Sync dkai_seller_payment_configs
     const { data: paymentConfig } = await admin
       .from('dkai_seller_payment_configs')
-      .select('seller_id, stripe_onboarding_status, charges_enabled, card_payments_enabled')
+      .select('seller_id, stripe_onboarding_status, charges_enabled')
       .eq('seller_id', user.id)
       .maybeSingle();
 
@@ -95,7 +110,6 @@ Deno.serve(async (req) => {
         stripe_account_id: seller.stripe_account_id,
         stripe_onboarding_status: onboardingStatus,
         charges_enabled: chargesEnabled,
-        card_payments_enabled: false,
       });
     }
 
@@ -112,7 +126,6 @@ Deno.serve(async (req) => {
       chargesEnabled,
       payoutsEnabled,
       detailsSubmitted,
-      cardPaymentsEnabled: paymentConfig?.card_payments_enabled || false,
       email: account.email || undefined,
       requirements: account.requirements ? {
         currently_due: account.requirements.currently_due || [],

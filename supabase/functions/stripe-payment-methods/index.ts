@@ -28,6 +28,22 @@ const METHOD_CAPABILITIES: Record<string, string> = {
   affirm: 'affirm_payments',
 };
 
+const STRIPE_USER_TABLES = ['dkaim_user_id', 'dkai_user_id'];
+
+function isMissingTable(error: any) {
+  const message = String(error?.message || '');
+  return error?.code === 'PGRST205' || message.includes('Could not find the table') || message.includes('schema cache') || message.includes('does not exist');
+}
+
+async function findStripeUserRow(admin: any, userId: string) {
+  for (const table of STRIPE_USER_TABLES) {
+    const { data, error } = await admin.from(table).select('stripe_account_id').eq('id', userId).maybeSingle();
+    if (!error && data?.stripe_account_id) return data;
+    if (error && !isMissingTable(error)) throw error;
+  }
+  return null;
+}
+
 const STRIPE_FORM = (body: Record<string, string>) =>
   new URLSearchParams(body).toString();
 
@@ -42,11 +58,7 @@ Deno.serve(async (req) => {
   if (!stripeKey) return errorResponse('Stripe not configured', 500);
 
   const admin = getServiceClient();
-  const { data: seller } = await admin
-    .from('dkaim_user_id')
-    .select('stripe_account_id')
-    .eq('id', user.id)
-    .single();
+  const seller = await findStripeUserRow(admin, user.id);
 
   if (!seller?.stripe_account_id) {
     return errorResponse('No connected Stripe account', 400);

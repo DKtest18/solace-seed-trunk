@@ -644,7 +644,7 @@ export default function CreateProduct() {
         <AlertDescription>
           Your Stripe account isn't connected yet. You can still save a draft, but the product
           can only go live once Stripe is connected.{' '}
-          <Link to="/seller-payment-settings" className="underline font-medium">
+          <Link to="/seller/payment-settings" className="underline font-medium">
             Open Payment Settings
           </Link>
           .

@@ -79,7 +79,7 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
 
         <Button
           onClick={() =>
-            navigate(`/seller-payment-settings?from=${encodeURIComponent('/create-product?step=8')}`)
+            navigate(`/seller/payment-settings?from=${encodeURIComponent('/create-product?step=8')}`)
           }
           className="w-full"
         >

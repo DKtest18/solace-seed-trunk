@@ -1,6 +1,27 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
+const STRIPE_USER_TABLES = ['dkaim_user_id', 'dkai_user_id'];
+
+function isMissingTable(error: any) {
+  const message = String(error?.message || '');
+  return error?.code === 'PGRST205' || message.includes('Could not find the table') || message.includes('schema cache') || message.includes('does not exist');
+}
+
+async function findStripeUserRow(admin: any, userId: string, select = 'stripe_account_id') {
+  let existingTable = STRIPE_USER_TABLES[0];
+  for (const table of STRIPE_USER_TABLES) {
+    const { data, error } = await admin.from(table).select(select).eq('id', userId).maybeSingle();
+    if (!error) {
+      existingTable = table;
+      if (data) return { table, row: data };
+      continue;
+    }
+    if (!isMissingTable(error)) throw error;
+  }
+  return { table: existingTable, row: null };
+}
+
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
@@ -21,12 +42,8 @@ Deno.serve(async (req) => {
 
     const admin = getServiceClient();
 
-    // Check if seller already has a Stripe account
-    const { data: seller } = await admin
-      .from('dkaim_user_id')
-      .select('stripe_account_id')
-      .eq('id', user.id)
-      .single();
+    // Check if seller already has a Stripe account in the real Stripe user table.
+    const { table: stripeUserTable, row: seller } = await findStripeUserRow(admin, user.id);
 
     let accountId = seller?.stripe_account_id;
 
@@ -47,7 +64,7 @@ Deno.serve(async (req) => {
       if (account.error) throw new Error(account.error.message);
       accountId = account.id;
 
-      await admin.from('dkaim_user_id').upsert({
+      await admin.from(stripeUserTable).upsert({
         id: user.id,
         stripe_account_id: accountId,
         stripe_onboarded: false,

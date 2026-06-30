@@ -24,6 +24,7 @@ export default function SellerOnboardingIdentity() {
   const [initializing, setInitializing] = useState(true);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState('draft');
   const hasLoadedExisting = useRef(false);
   const [formData, setFormData] = useState({
     first_name: '',
@@ -58,6 +59,7 @@ export default function SellerOnboardingIdentity() {
         bio: existingApp.bio || '',
         country: existingApp.country || '',
       });
+      setApplicationStatus(existingApp.status || 'draft');
     }
 
     // Check age verification
@@ -116,7 +118,7 @@ export default function SellerOnboardingIdentity() {
             creator_name: formData.creator_name.trim(),
             bio: formData.bio,
             country: formData.country,
-            status: 'draft',
+            status: applicationStatus === 'approved' ? 'approved' : 'draft',
             applied_at: nowIso,
             updated_at: nowIso,
           },
@@ -136,7 +138,7 @@ export default function SellerOnboardingIdentity() {
     }, 700);
 
     return () => window.clearTimeout(timeout);
-  }, [user, formData, ageConfirmed, termsAccepted]);
+  }, [user, formData, ageConfirmed, termsAccepted, applicationStatus]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,6 +177,7 @@ export default function SellerOnboardingIdentity() {
         .update({ status: 'approved', updated_at: nowIso })
         .eq('user_id', uid);
       if (appError) throw appError;
+      setApplicationStatus('approved');
 
       // 3) Read-back to confirm persistence (console-verifiable).
       const [{ data: appAfter }, { data: profAfter }] = await Promise.all([

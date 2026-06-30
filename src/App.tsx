@@ -162,6 +162,7 @@ const App = () => (
 
             <Route path="/wishlist" element={<WaitlistGuard><Wishlist /></WaitlistGuard>} />
             <Route path="/disputes" element={<WaitlistGuard><Disputes /></WaitlistGuard>} />
+            {/* Own seller payment settings must stay above /seller/:sellerId so Stripe return URLs never hit the public seller profile lookup. */}
             <Route path="/seller/payment-settings" element={<Seller2FAGuard><SellerLayout title="Payment Settings"><SellerPaymentSettings /></SellerLayout></Seller2FAGuard>} />
             <Route path="/seller/:sellerId" element={<SellerProfile />} />
             <Route path="/settings" element={<WaitlistGuard><ProfileSettings /></WaitlistGuard>} />

@@ -129,7 +129,7 @@ export function Footer() {
         <div className="border-t border-border my-8" />
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            &copy; 2026 DK AI Marketplace.
+            2026 DK AI Marketplace.
           </p>
           <p className="text-xs text-muted-foreground text-center">
             Built in Switzerland — Compliant with Swiss FADP and EU GDPR.

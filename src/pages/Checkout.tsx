@@ -240,7 +240,11 @@ export default function Checkout() {
                   <span className="font-medium text-sm">Secure Payment</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  All payments are processed securely via Stripe. {sellerPct}% goes to the seller, {feePct}% platform fee.{launchPromoActive ? ` ${promoBanner}` : ''}
+                  Payments are processed by Stripe and go directly to the seller's Stripe account.
+                  {launchPromoActive
+                    ? ` 0% platform fee — launch promo for the first 20 sales on the platform.`
+                    : ` Platform fee: ${feePct}%.`}{' '}
+                  Stripe's standard payment processing fees apply and are borne by the seller.
                 </p>
               </div>
             </div>
@@ -275,9 +279,9 @@ export default function Checkout() {
                     <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
                       <p>✓ Secure Stripe Checkout</p>
                       <p>✓ No card data stored on this website</p>
-                      <p>✓ {sellerPct}% goes directly to seller's Stripe account</p>
-                      <p>✓ {feePct}% platform fee{launchPromoActive ? ' (launch promo: 0% for first 20 platform sales)' : ''}</p>
-                      <p>✓ Instant payment confirmation</p>
+                      <p>✓ Payment goes directly to the seller's Stripe account</p>
+                      <p>✓ {launchPromoActive ? '0% platform fee (launch promo — first 20 platform sales)' : `${feePct}% platform fee`}</p>
+                      <p>✓ Stripe's standard processing fees apply (paid by the seller)</p>
                     </div>
                   </>
                 )}

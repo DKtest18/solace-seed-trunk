@@ -213,7 +213,7 @@ export default function SellerOnboardingPayment() {
               🎉 Stripe Successfully Connected!
             </h3>
             <p className="text-green-600 dark:text-green-400">
-              Your account is fully set up. You can now receive card payments — {sellerPct}% of each sale goes directly to your bank!
+              Your account is fully set up. Payments will now go directly to your Stripe account.
             </p>
           </div>
         )}
@@ -221,7 +221,7 @@ export default function SellerOnboardingPayment() {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">Stripe Payment Settings</h1>
           <p className="text-muted-foreground">
-            Connect your Stripe account to receive payments. All transactions are processed exclusively via Stripe. {sellerPct}% goes to you, {feePct}% platform fee.
+            Connect your Stripe account to receive payments. Payments are processed by Stripe and go directly to your Stripe account. Platform fee: 0% during the launch promo (first 20 platform sales), otherwise {feePct}%. Stripe's standard payment processing fees apply and are borne by you.
           </p>
         </div>
 

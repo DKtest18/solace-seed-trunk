@@ -342,6 +342,11 @@ export default function Profile() {
       setHasUnsavedChanges(false);
 
       toast({ title: 'Success', description: 'Profile saved successfully.' });
+
+      if (fromChecklist) {
+        navigate('/seller-onboarding');
+        return;
+      }
     } catch (error: any) {
       toast({ title: 'Error', description: error.message || 'Failed to update profile', variant: 'destructive' });
       setFormData({

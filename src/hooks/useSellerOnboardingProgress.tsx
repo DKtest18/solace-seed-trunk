@@ -57,17 +57,18 @@ export function useSellerOnboardingProgress() {
         sellerApp?.creator_name &&
         sellerApp?.country
       );
-      const termsAccepted = !!profile?.terms_accepted;
-      const identityComplete = identityFieldsFilled && termsAccepted;
-
       const ageComplete = !!profile?.is_age_verified;
+      const termsAccepted = !!profile?.terms_accepted;
+
+      // Step 1 (identity + age) is complete only when both are persisted.
+      const identityAndAgeComplete = identityFieldsFilled && ageComplete;
 
       const steps: OnboardingStep[] = [
         { id: 'profile', title: 'Profile Information', description: 'Set your Display Name and Username', required: true, completed: profileComplete, route: '/profile?from=checklist' },
         { id: 'email', title: 'Email Verification', description: 'Verify your email address', required: true, completed: !!user.email_confirmed_at, route: '/settings' },
         { id: '2fa', title: '2FA Setup', description: 'Optional: Add two-factor authentication for extra security', required: false, completed: !!profile?.is_2fa_enabled, route: '/settings' },
-        { id: 'seller-identity', title: 'Seller Identity & Basic Info', description: 'Provide your seller details and accept terms', required: true, completed: identityComplete, route: '/seller-onboarding/identity' },
-        { id: 'age-verification', title: 'Age Verification (18+)', description: 'Confirm you are 18 years or older', required: true, completed: ageComplete, route: '/seller-onboarding/identity' },
+        { id: 'seller-identity-age', title: 'Seller Identity & Age Verification', description: 'Provide your seller details and confirm you are 18+', required: true, completed: identityAndAgeComplete, route: '/seller-onboarding/identity' },
+        { id: 'seller-terms', title: 'Seller Terms & Conditions', description: 'Review and accept the seller agreement', required: true, completed: termsAccepted, route: '/seller-onboarding/terms' },
         { id: 'payment', title: 'Payment Preferences (Stripe)', description: 'Connect Stripe to receive card payments', required: true, completed: stripeConnected, route: '/seller-onboarding/payment' },
       ];
 

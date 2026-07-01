@@ -161,10 +161,10 @@ export function ReturnPolicyStep({ data, onChange, errors }: ReturnPolicyStepPro
           <AlertDescription className="text-xs space-y-1">
             <p className="font-semibold text-blue-600">What this means for YOU (Seller):</p>
             <ul className="list-disc list-inside space-y-0.5">
-              <li>You will <strong>NOT receive any payment</strong> until the return window has fully expired.</li>
-              <li>Even if you have costs, plan ahead — factor the return window into your pricing.</li>
-              <li>After the return window expires: <strong>{sellerPct}% to your Stripe account</strong>, {feePct}% platform fee.</li>
-              <li>If a buyer returns within the window, you receive nothing.</li>
+              <li>Payments go directly to your Stripe account.</li>
+              <li>Platform fee: 0% during the launch promo (first 20 platform sales), {feePct}% after.</li>
+              <li>Stripe's standard payment processing fees apply and are borne by you.</li>
+              <li>If a buyer returns within your return window, you refund the full purchase price via Stripe.</li>
               <li>You cannot reject a valid return within the return window.</li>
             </ul>
           </AlertDescription>

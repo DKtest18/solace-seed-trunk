@@ -34,6 +34,7 @@ import SellerEarnings from "./pages/SellerEarnings";
 import SellerBalances from "./pages/SellerBalances";
 import SellerOnboardingChecklist from "./pages/SellerOnboardingChecklist";
 import SellerOnboardingIdentity from "./pages/SellerOnboardingIdentity";
+import SellerOnboardingTerms from "./pages/SellerOnboardingTerms";
 import SellerOnboardingPayment from "./pages/SellerOnboardingPayment";
 import Wishlist from "./pages/Wishlist";
 import Disputes from "./pages/Disputes";
@@ -77,7 +78,7 @@ import SellerProductQA from "./pages/SellerProductQA";
 import { Seller2FAGuard } from "@/components/Seller2FAGuard";
 import { AdminRouteGuard } from "@/components/AdminRouteGuard";
 import { WaitlistGuard } from "@/components/WaitlistGuard";
-import { Optional2FAPrompt } from "@/components/Optional2FAPrompt";
+
 import Waitlist from "./pages/Waitlist";
 import AdminWaitlist from "./pages/AdminWaitlist";
 import Impressum from "./pages/Impressum";
@@ -116,7 +117,7 @@ const App = () => (
               {/* AI Assistant deaktiviert – zum Aktivieren: <Chatbot /> einkommentieren */}
               {/* <Chatbot /> */}
               <CookieBanner />
-              <Optional2FAPrompt />
+              
               <SellerGuidelinesModal />
               <Routes>
             <Route path="/seller-guidelines" element={<SellerGuidelines />} />
@@ -162,6 +163,7 @@ const App = () => (
             <Route path="/balances" element={<Seller2FAGuard><SellerLayout title="Balances"><SellerBalances /></SellerLayout></Seller2FAGuard>} />
             <Route path="/seller-onboarding" element={<Seller2FAGuard><SellerLayout title="Seller Onboarding"><SellerOnboardingChecklist /></SellerLayout></Seller2FAGuard>} />
             <Route path="/seller-onboarding/identity" element={<Seller2FAGuard><SellerLayout title="Identity Verification"><SellerOnboardingIdentity /></SellerLayout></Seller2FAGuard>} />
+            <Route path="/seller-onboarding/terms" element={<Seller2FAGuard><SellerLayout title="Seller Terms & Conditions"><SellerOnboardingTerms /></SellerLayout></Seller2FAGuard>} />
             <Route path="/seller-onboarding/payment" element={<Seller2FAGuard><SellerLayout title="Payment Setup"><SellerOnboardingPayment /></SellerLayout></Seller2FAGuard>} />
 
             <Route path="/wishlist" element={<WaitlistGuard><Wishlist /></WaitlistGuard>} />

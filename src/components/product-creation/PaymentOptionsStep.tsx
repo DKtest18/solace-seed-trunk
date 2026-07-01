@@ -109,7 +109,7 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
                 <Badge variant="default" className="text-xs">Active</Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                Visa, Mastercard, Amex, and more. {sellerPct}% goes to you, {feePct}% platform fee.
+                Visa, Mastercard, Amex, and more. Payments go directly to your Stripe account. Platform fee: 0% during launch promo, {feePct}% after. Stripe's standard processing fees apply and are borne by you.
               </p>
             </div>
             <CheckCircle className="h-5 w-5 text-green-500" />

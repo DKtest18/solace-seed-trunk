@@ -36,26 +36,29 @@ export default function SellerPaymentSettings() {
       navigate("/login");
       return;
     }
-    
-    if (!roleLoading && !isSeller) {
-      toast.error("Only sellers can access payment settings");
-      navigate("/seller-dashboard");
-      return;
-    }
-    
-    if (isSeller) {
+    // A user mid-onboarding must be able to reach their own payment settings.
+    // Do NOT block on missing seller role here — the page is part of onboarding.
+    if (user) {
       fetchStripeStatus();
     }
-  }, [user, isSeller, roleLoading]);
+  }, [user]);
 
   // Check for onboarding completion
   useEffect(() => {
     const isStripeReturn = searchParams.get("onboarding") === "complete" || searchParams.get("return") === "1";
     if (isStripeReturn) {
-      toast.success("Stripe onboarding completed! Checking status...");
       fetchStripeStatus().then(() => {
-        setShowSuccessAnimation(true);
-        setTimeout(() => setShowSuccessAnimation(false), 5000);
+        // Show success only if actually connected after return
+        setStripeStatus((prev) => {
+          if (isStripeConnectedForOnboarding(prev)) {
+            toast.success("Stripe connected — your payment settings are saved");
+            setShowSuccessAnimation(true);
+            setTimeout(() => setShowSuccessAnimation(false), 5000);
+          } else {
+            toast.info("Returned from Stripe. Finish any pending steps to complete setup.");
+          }
+          return prev;
+        });
       });
       window.history.replaceState({}, "", "/seller/payment-settings");
     }

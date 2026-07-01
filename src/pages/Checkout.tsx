@@ -178,7 +178,11 @@ export default function Checkout() {
 
   const handleAcceptPolicy = async () => {
     try {
-      await acceptPolicy();
+      if (user) {
+        await acceptPolicy();
+      } else {
+        setGuestPolicyAccepted(true);
+      }
       setShowPayment(true);
       toast.success('Buyer policy accepted!');
     } catch (error) {

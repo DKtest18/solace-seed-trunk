@@ -43,10 +43,16 @@ verify_jwt = false
 [functions.stripe-connect-onboard]
 verify_jwt = false
 
+[functions.stripe-connect-onboarding]
+verify_jwt = false
+
 [functions.stripe-connect-dashboard]
 verify_jwt = false
 
 [functions.stripe-connect-disconnect]
+verify_jwt = false
+
+[functions.stripe-payment-methods]
 verify_jwt = false
 
 [functions.recalculate-trending]

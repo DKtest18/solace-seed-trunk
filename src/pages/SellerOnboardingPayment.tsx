@@ -15,6 +15,7 @@ import { useHasRole } from '@/hooks/useUserRole';
 import { Badge } from '@/components/ui/badge';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
 import { emptyStripeConnectStatus, fetchStripeConnectStatus, isStripeConnectedForOnboarding, type StripeConnectStatus } from '@/lib/stripeConnectStatus';
+import { buildSupabaseFunctionError, logSupabaseFunctionError } from '@/lib/supabaseFunctionErrors';
 
 export default function SellerOnboardingPayment() {
   const { user } = useAuth();
@@ -69,6 +70,7 @@ export default function SellerOnboardingPayment() {
       await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
     } catch (error) {
       console.error("Error fetching Stripe status:", error);
+      toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to fetch Stripe status", variant: "destructive" });
     } finally {
       setStripeLoading(false);
       setRefreshing(false);
@@ -78,17 +80,23 @@ export default function SellerOnboardingPayment() {
   const handleConnectStripe = async () => {
     setConnecting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("stripe-connect-onboard", {
-        body: { return_path: '/seller-onboarding/payment' }
+      const { data, error } = await supabase.functions.invoke("stripe-connect-onboarding", {
+        body: { origin: window.location.origin }
       });
-      if (error) throw error;
-      if (!data.success || !data.url) throw new Error(data.error || "Failed to create onboarding link");
+      if (error || data?.error || !data?.success || !data?.url) {
+        throw await buildSupabaseFunctionError(
+          "stripe-connect-onboarding",
+          error,
+          data,
+          "Failed to create onboarding link",
+        );
+      }
 
       toast({ title: "Redirecting", description: "Opening Stripe onboarding..." });
       // Same-tab navigation to keep auth session
       window.location.href = data.url;
     } catch (error: any) {
-      console.error("Error connecting Stripe:", error);
+      logSupabaseFunctionError("Error connecting Stripe", error);
       toast({ title: "Error", description: error.message || "Failed to start Stripe onboarding", variant: "destructive" });
       setConnecting(false);
     }
@@ -97,10 +105,17 @@ export default function SellerOnboardingPayment() {
   const handleOpenDashboard = async () => {
     try {
       const { data, error } = await supabase.functions.invoke("stripe-connect-dashboard");
-      if (error) throw error;
-      if (!data.success || !data.url) throw new Error(data.error || "Failed to open dashboard");
+      if (error || data?.error || !data?.success || !data?.url) {
+        throw await buildSupabaseFunctionError(
+          "stripe-connect-dashboard",
+          error,
+          data,
+          "Failed to open Stripe dashboard",
+        );
+      }
       window.location.href = data.url;
     } catch (error: any) {
+      logSupabaseFunctionError("Error opening Stripe dashboard", error);
       toast({ title: "Error", description: error.message || "Failed to open Stripe dashboard", variant: "destructive" });
     }
   };
@@ -111,13 +126,20 @@ export default function SellerOnboardingPayment() {
     setDisconnecting(true);
     try {
       const { data, error } = await supabase.functions.invoke("stripe-connect-disconnect");
-      if (error) throw error;
-      if (!data.success) throw new Error(data.error || "Failed to disconnect");
+      if (error || data?.error || !data?.success) {
+        throw await buildSupabaseFunctionError(
+          "stripe-connect-disconnect",
+          error,
+          data,
+          "Failed to disconnect Stripe",
+        );
+      }
 
       toast({ title: "Success", description: "Stripe account disconnected. You can now connect a different account." });
       setStripeStatus(emptyStripeConnectStatus);
       await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
     } catch (error: any) {
+      logSupabaseFunctionError("Error disconnecting Stripe", error);
       toast({ title: "Error", description: error.message || "Failed to disconnect Stripe", variant: "destructive" });
     } finally {
       setDisconnecting(false);

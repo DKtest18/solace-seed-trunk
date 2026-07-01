@@ -28,18 +28,19 @@ const METHOD_CAPABILITIES: Record<string, string> = {
   affirm: 'affirm_payments',
 };
 
-const STRIPE_USER_TABLES = ['dkaim_user_id', 'dkai_user_id'];
+const STRIPE_ACCOUNT_TABLES = ['dkaim_user_id', 'dkai_user_id', 'dkai_profiles'];
 
-function isMissingTable(error: any) {
-  const message = String(error?.message || '');
-  return error?.code === 'PGRST205' || message.includes('Could not find the table') || message.includes('schema cache') || message.includes('does not exist');
+function isSchemaError(error: any) {
+  const message = String(error?.message || '').toLowerCase();
+  return error?.code === 'PGRST204' || error?.code === 'PGRST205' || message.includes('could not find the table') || message.includes('schema cache') || message.includes('does not exist') || message.includes('column');
 }
 
 async function findStripeUserRow(admin: any, userId: string) {
-  for (const table of STRIPE_USER_TABLES) {
+  for (const table of STRIPE_ACCOUNT_TABLES) {
     const { data, error } = await admin.from(table).select('stripe_account_id').eq('id', userId).maybeSingle();
     if (!error && data?.stripe_account_id) return data;
-    if (error && !isMissingTable(error)) throw error;
+    if (!error) continue;
+    if (error && !isSchemaError(error)) throw error;
   }
   return null;
 }
@@ -93,7 +94,7 @@ Deno.serve(async (req) => {
       }
 
       // Persist intent locally so UI is fast/consistent.
-      await admin.from('dkai_seller_payment_methods').upsert(
+      const persist = await admin.from('dkai_seller_payment_methods').upsert(
         {
           seller_id: user.id,
           method,
@@ -102,6 +103,7 @@ Deno.serve(async (req) => {
         },
         { onConflict: 'seller_id,method' },
       );
+      if (persist.error && !isSchemaError(persist.error)) throw persist.error;
 
       return jsonResponse({ ok: true, capability: json });
     }

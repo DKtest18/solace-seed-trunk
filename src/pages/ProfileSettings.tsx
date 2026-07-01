@@ -15,7 +15,6 @@ import QRCode from 'react-qr-code';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useHasRole } from '@/hooks/useUserRole';
 
-import { BlockedUsersSettings } from '@/components/settings/BlockedUsersSettings';
 import { AccountDeletionSettings } from '@/components/settings/AccountDeletionSettings';
 import { PrivacyDataSettings } from '@/components/settings/PrivacyDataSettings';
 

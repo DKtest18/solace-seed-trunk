@@ -11,38 +11,36 @@ export default function Impressum() {
           <Link to="/"><ArrowLeft className="w-4 h-4 mr-2" />Back</Link>
         </Button>
 
-        <h1 className="font-display text-4xl font-semibold mb-2">Impressum</h1>
+        <h1 className="font-display text-4xl font-semibold mb-2">Legal Notice (Impressum)</h1>
         <p className="text-muted-foreground mb-8">
-          Verantwortlich fuer den Inhalt dieser Website.
+          Responsible for the content of this website.
         </p>
-
-        {/* TODO: Replace placeholders with real data */}
 
         <section>
           <h2 className="font-display text-xl font-semibold mt-8 mb-3 text-foreground">
-            Verantwortlich
+            Operator
           </h2>
           <div className="text-base leading-relaxed text-muted-foreground">
-            <p>DK [LASTNAME]</p>
+            <p>Dari Kastrati</p>
             <p>DK AI Marketplace</p>
-            <p>[STREET]</p>
-            <p>[POSTAL_CODE] [CITY]</p>
-            <p>Schweiz</p>
+            <p>Udligenswilerstrasse 15</p>
+            <p>6043 Adligenswil</p>
+            <p>Switzerland</p>
           </div>
         </section>
 
         <section>
           <h2 className="font-display text-xl font-semibold mt-8 mb-3 text-foreground">
-            Kontakt
+            Contact
           </h2>
           <div className="text-base leading-relaxed text-muted-foreground">
             <p>
-              E-Mail:{" "}
+              E-mail:{" "}
               <a
-                href="mailto:dari@dkaisystem.com"
+                href="mailto:management@dkaimarketplace.com"
                 className="text-primary hover:underline"
               >
-                dari@dkaisystem.com
+                management@dkaimarketplace.com
               </a>
             </p>
           </div>
@@ -50,19 +48,19 @@ export default function Impressum() {
 
         <section>
           <h2 className="font-display text-xl font-semibold mt-8 mb-3 text-foreground">
-            Steuerliche Daten
+            Tax details
           </h2>
           <div className="text-base leading-relaxed text-muted-foreground">
-            <p>Im Aufbau, Anmeldung beim Handelsregister geplant</p>
+            <p>Commercial register entry planned.</p>
           </div>
         </section>
 
         <section>
           <h2 className="font-display text-xl font-semibold mt-8 mb-3 text-foreground">
-            Aufsichtsbehoerde Datenschutz
+            Data protection supervisory authority
           </h2>
           <div className="text-base leading-relaxed text-muted-foreground">
-            <p>Eidgenoessischer Datenschutz- und Oeffentlichkeitsbeauftragter (EDOEB)</p>
+            <p>Federal Data Protection and Information Commissioner (FDPIC)</p>
             <p>Feldeggweg 1, 3003 Bern</p>
             <p>
               Website:{" "}

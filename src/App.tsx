@@ -87,6 +87,7 @@ import TermsOfService from "./pages/TermsOfService";
 import CookiePolicy from "./pages/CookiePolicy";
 import CookieSettings from "./pages/CookieSettings";
 import SellerGuidelines from "./pages/SellerGuidelines";
+import About from "./pages/About";
 import AdminDeliveryThresholds from "./pages/AdminDeliveryThresholds";
 import AdminProductReview from "./pages/AdminProductReview";
 import AdminUsers from "./pages/AdminUsers";
@@ -128,6 +129,8 @@ const App = () => (
             <Route path="/waitlist" element={<Waitlist />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/checkout" element={<Checkout />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -182,7 +185,7 @@ const App = () => (
             <Route path="/admin/refund-disputes" element={<AdminRouteGuard><AdminRefundDisputes /></AdminRouteGuard>} />
             <Route path="/admin/disputes" element={<AdminRouteGuard><AdminDisputes /></AdminRouteGuard>} />
             <Route path="/payouts" element={<Seller2FAGuard><SellerLayout title="Payouts"><PayoutRequests /></SellerLayout></Seller2FAGuard>} />
-            <Route path="/checkout" element={<WaitlistGuard><Checkout /></WaitlistGuard>} />
+            
             
             <Route path="/seller-dashboard/payment-settings" element={<Seller2FAGuard><SellerLayout title="Payment Settings"><SellerPaymentSettings /></SellerLayout></Seller2FAGuard>} />
             <Route path="/seller-payment-settings" element={<Navigate to="/seller/payment-settings" replace />} />

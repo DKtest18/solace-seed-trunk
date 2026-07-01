@@ -3,25 +3,25 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-const LAST_UPDATED = "25. Mai 2026";
+const LAST_UPDATED = "1 July 2026";
 
 const sections = [
-  { id: "verantwortliche", title: "1. Verantwortliche Stelle / Controller" },
-  { id: "geltungsbereich", title: "2. Geltungsbereich / Scope" },
-  { id: "grundlagen", title: "3. Grundlagen / Legal Basis" },
-  { id: "daten", title: "4. Welche Daten wir erheben / Data We Collect" },
-  { id: "zwecke", title: "5. Zwecke der Verarbeitung / Purposes" },
-  { id: "empfaenger", title: "6. Empfaenger / Recipients - Auftragsverarbeiter" },
-  { id: "international", title: "7. Internationale Datenuebermittlung" },
-  { id: "speicherdauer", title: "8. Speicherdauer / Retention" },
-  { id: "rechte", title: "9. Ihre Rechte / Your Rights" },
-  { id: "beschwerde", title: "10. Beschwerderecht / Right to Complain" },
-  { id: "automatisiert", title: "11. Automatisierte Entscheidungsfindung" },
-  { id: "ai", title: "12. AI-Produkte Transparenz / AI Transparency" },
-  { id: "sicherheit", title: "13. Sicherheit / Security" },
-  { id: "breaches", title: "14. Datenschutzverletzungen / Breaches" },
-  { id: "aenderungen", title: "15. Aenderungen / Changes" },
-  { id: "kontakt", title: "16. Kontakt bei Datenschutzfragen" },
+  { id: "controller", title: "1. Controller" },
+  { id: "scope", title: "2. Scope" },
+  { id: "legal-basis", title: "3. Legal Basis" },
+  { id: "data", title: "4. Data We Collect" },
+  { id: "purposes", title: "5. Purposes" },
+  { id: "recipients", title: "6. Recipients / Processors" },
+  { id: "international", title: "7. International Transfers" },
+  { id: "retention", title: "8. Retention" },
+  { id: "rights", title: "9. Your Rights" },
+  { id: "complaint", title: "10. Right to Complain" },
+  { id: "automated", title: "11. Automated Decision-Making" },
+  { id: "ai", title: "12. AI Product Transparency" },
+  { id: "security", title: "13. Security" },
+  { id: "breaches", title: "14. Data Breaches" },
+  { id: "changes", title: "15. Changes" },
+  { id: "contact", title: "16. Contact for Privacy Matters" },
 ];
 
 const Privacy = () => {
@@ -36,10 +36,7 @@ const Privacy = () => {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-8">
           <article className="max-w-3xl">
             <h1 className="font-display text-4xl font-semibold mb-2">Privacy Policy</h1>
-            <p className="font-display text-xl text-muted-foreground mb-2">Datenschutzerklaerung</p>
-            <p className="text-sm text-muted-foreground mb-2">
-              Stand / Last updated: {LAST_UPDATED}
-            </p>
+            <p className="text-sm text-muted-foreground mb-2">Last updated: {LAST_UPDATED}</p>
             <p className="text-sm text-muted-foreground mb-6">Reading time: ~12 minutes</p>
 
             <Button
@@ -71,376 +68,286 @@ const Privacy = () => {
               )}
             </div>
 
-            <section id="verantwortliche">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                1. Verantwortliche Stelle / Controller
-              </h2>
+            <section id="controller">
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">1. Controller</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
                 DK AI Marketplace<br />
-                DK [Nachname]<br />
-                [Adresse], Schweiz<br />
-                E-Mail:{" "}
-                <a href="mailto:dari@dkaisystem.com" className="text-primary hover:underline">
-                  dari@dkaisystem.com
+                Dari Kastrati<br />
+                Udligenswilerstrasse 15, 6043 Adligenswil, Switzerland<br />
+                E-mail:{" "}
+                <a href="mailto:support@dkaimarketplace.com" className="text-primary hover:underline">
+                  support@dkaimarketplace.com
                 </a>
               </p>
             </section>
 
-            <section id="geltungsbereich">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                2. Geltungsbereich / Scope
-              </h2>
+            <section id="scope">
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">2. Scope</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Diese Datenschutzerklaerung gilt fuer die Verarbeitung personenbezogener Daten durch
-                DK AI Marketplace im Rahmen der Nutzung von dkaimarketplace.com sowie verbundener
-                Dienste.
-              </p>
-              <p className="text-base leading-relaxed text-foreground mb-4">
-                This privacy policy applies to all personal data processing by DK AI Marketplace
+                This privacy policy applies to all processing of personal data by DK AI Marketplace
                 through dkaimarketplace.com and connected services.
               </p>
             </section>
 
-            <section id="grundlagen">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                3. Grundlagen / Legal Basis
-              </h2>
+            <section id="legal-basis">
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">3. Legal Basis</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Wir verarbeiten Ihre Daten auf folgenden Rechtsgrundlagen:
+                We process your data on the following legal bases:
               </p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Vertragserfuellung (Art. 31 Abs. 2 lit. a revDSG, Art. 6 Abs. 1 lit. b DSGVO)</li>
-                <li>Rechtliche Verpflichtung (Art. 31 Abs. 1 revDSG, Art. 6 Abs. 1 lit. c DSGVO)</li>
-                <li>Berechtigtes Interesse (Art. 31 Abs. 2 lit. b revDSG, Art. 6 Abs. 1 lit. f DSGVO)</li>
-                <li>Einwilligung (Art. 31 Abs. 1 revDSG, Art. 6 Abs. 1 lit. a DSGVO)</li>
+                <li>Performance of a contract (Art. 31(2)(a) revFADP, Art. 6(1)(b) GDPR)</li>
+                <li>Legal obligation (Art. 31(1) revFADP, Art. 6(1)(c) GDPR)</li>
+                <li>Legitimate interest (Art. 31(2)(b) revFADP, Art. 6(1)(f) GDPR)</li>
+                <li>Consent (Art. 31(1) revFADP, Art. 6(1)(a) GDPR)</li>
               </ul>
             </section>
 
-            <section id="daten">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                4. Welche Daten wir erheben / Data We Collect
-              </h2>
+            <section id="data">
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">4. Data We Collect</h2>
 
-              <h3 className="font-display text-lg font-semibold mt-6 mb-2">Account-Daten</h3>
+              <h3 className="font-display text-lg font-semibold mt-6 mb-2">Account data</h3>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>E-Mail-Adresse</li>
-                <li>Passwort (verschluesselt gespeichert via SHA-256/bcrypt durch Supabase)</li>
-                <li>Vor- und Nachname (optional)</li>
-                <li>Profilbild (optional)</li>
+                <li>E-mail address</li>
+                <li>Password (stored encrypted via bcrypt through Supabase)</li>
+                <li>First and last name (optional)</li>
+                <li>Profile picture (optional)</li>
               </ul>
 
-              <h3 className="font-display text-lg font-semibold mt-6 mb-2">
-                Profildaten (fuer Verkaeufer)
-              </h3>
+              <h3 className="font-display text-lg font-semibold mt-6 mb-2">Seller profile data</h3>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Biografie, Skills, Spezialgebiete</li>
-                <li>Stripe Connect-Account-ID (Zahlungsabwicklung)</li>
-                <li>Bewertungen und Reviews</li>
+                <li>Biography, skills, specialities</li>
+                <li>Stripe Connect account ID (for payments)</li>
+                <li>Ratings and reviews</li>
               </ul>
 
-              <h3 className="font-display text-lg font-semibold mt-6 mb-2">Transaktionsdaten</h3>
+              <h3 className="font-display text-lg font-semibold mt-6 mb-2">Transaction data</h3>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Kauf-/Verkaufshistorie</li>
-                <li>Bestellungen, Status, Betraege</li>
-                <li>Kommunikation zwischen Kaeufern und Verkaeufern</li>
+                <li>Purchase / sales history</li>
+                <li>Orders, status, amounts</li>
+                <li>Communication between buyers and sellers</li>
               </ul>
 
-              <h3 className="font-display text-lg font-semibold mt-6 mb-2">Zahlungsdaten</h3>
+              <h3 className="font-display text-lg font-semibold mt-6 mb-2">Payment data</h3>
               <div className="bg-muted/50 border-l-4 border-primary p-4 my-4">
                 <ul className="list-disc list-inside ml-4 space-y-2">
-                  <li>Werden ausschliesslich von Stripe verarbeitet</li>
-                  <li>Wir speichern KEINE Kreditkartendaten</li>
-                  <li>Wir sehen nur die letzten 4 Ziffern fuer Buchhaltung</li>
+                  <li>Processed exclusively by Stripe</li>
+                  <li>We do NOT store card details</li>
+                  <li>We see only the last 4 digits for accounting purposes</li>
                 </ul>
               </div>
 
-              <h3 className="font-display text-lg font-semibold mt-6 mb-2">Technische Daten</h3>
+              <h3 className="font-display text-lg font-semibold mt-6 mb-2">Technical data</h3>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>IP-Adresse (gekuerzt nach 30 Tagen)</li>
-                <li>Browser-Typ, Betriebssystem</li>
-                <li>Aufgerufene Seiten, Zeitstempel</li>
-                <li>Cookies (siehe Cookie-Richtlinie)</li>
+                <li>IP address (truncated after 30 days)</li>
+                <li>Browser type, operating system</li>
+                <li>Pages visited, timestamps</li>
+                <li>Cookies (see Cookie Policy)</li>
               </ul>
 
-              <h3 className="font-display text-lg font-semibold mt-6 mb-2">Custom Order Daten</h3>
+              <h3 className="font-display text-lg font-semibold mt-6 mb-2">Two-factor authentication data (when enabled)</h3>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Beschreibungen, Anhaenge, Kommunikation</li>
-                <li>Status, Preise, Vereinbarungen</li>
-              </ul>
-
-              <h3 className="font-display text-lg font-semibold mt-6 mb-2">
-                2FA-Daten (wenn aktiviert)
-              </h3>
-              <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>TOTP-Secret (verschluesselt AES-GCM)</li>
-                <li>Backup-Codes (SHA-256 gehasht)</li>
+                <li>TOTP secret (AES-GCM encrypted)</li>
+                <li>Backup codes (SHA-256 hashed)</li>
               </ul>
             </section>
 
-            <section id="zwecke">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                5. Zwecke der Verarbeitung / Purposes
-              </h2>
+            <section id="purposes">
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">5. Purposes</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Bereitstellung des Marketplace-Services</li>
-                <li>Zahlungsabwicklung ueber Stripe</li>
-                <li>Versand transaktionaler E-Mails</li>
-                <li>Schutz vor Betrug und Missbrauch</li>
-                <li>Erfuellung gesetzlicher Aufbewahrungspflichten</li>
-                <li>Verbesserung des Services (anonymisiert)</li>
-                <li>Direkte Kommunikation auf der Plattform</li>
+                <li>Providing the marketplace service</li>
+                <li>Payment processing via Stripe</li>
+                <li>Sending transactional e-mails</li>
+                <li>Protection against fraud and abuse</li>
+                <li>Compliance with legal retention obligations</li>
+                <li>Service improvement (in aggregated / anonymised form)</li>
+                <li>Direct communication on the platform</li>
               </ul>
             </section>
 
-            <section id="empfaenger">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                6. Empfaenger / Recipients - Auftragsverarbeiter
-              </h2>
+            <section id="recipients">
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">6. Recipients / Processors</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Wir nutzen folgende externe Dienstleister:
+                We use the following external service providers:
               </p>
 
               <h3 className="font-display text-lg font-semibold mt-6 mb-2">a) Supabase Inc.</h3>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Zweck: Datenbank, Authentifizierung, Datei-Speicherung<br />
-                Standort: EU (Frankfurt) / US<br />
+                Purpose: database, authentication, file storage<br />
+                Location: EU (Frankfurt) / US<br />
                 DPA:{" "}
-                <a
-                  href="https://supabase.com/legal/dpa"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
+                <a href="https://supabase.com/legal/dpa" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   supabase.com/legal/dpa
                 </a>
                 <br />
-                Datenkategorien: Account, Profile, Transaktionen
+                Data categories: account, profile, transactions
               </p>
 
-              <h3 className="font-display text-lg font-semibold mt-6 mb-2">
-                b) Stripe Payments Europe Ltd.
-              </h3>
+              <h3 className="font-display text-lg font-semibold mt-6 mb-2">b) Stripe Payments Europe Ltd.</h3>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Zweck: Zahlungsabwicklung, Connect-Auszahlungen<br />
-                Standort: Irland (EU), USA<br />
+                Purpose: payment processing, Connect payouts<br />
+                Location: Ireland (EU), USA<br />
                 Privacy:{" "}
-                <a
-                  href="https://stripe.com/privacy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
+                <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   stripe.com/privacy
                 </a>
                 <br />
-                Datenkategorien: Zahlungs-, Transaktions-, Identitaetsdaten
+                Data categories: payment, transaction, identity
               </p>
 
-              <h3 className="font-display text-lg font-semibold mt-6 mb-2">
-                c) Resend / Postmark (Email-Service)
-              </h3>
+              <h3 className="font-display text-lg font-semibold mt-6 mb-2">c) Resend (e-mail service)</h3>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Zweck: Versand transaktionaler E-Mails<br />
-                Standort: USA<br />
-                Datenkategorien: E-Mail, Name, Versanddaten
-              </p>
-
-              <h3 className="font-display text-lg font-semibold mt-6 mb-2">
-                d) Vercel Inc. / Lovable
-              </h3>
-              <p className="text-base leading-relaxed text-foreground mb-4">
-                Zweck: Hosting der Webanwendung<br />
-                Standort: Global (CDN)<br />
-                Datenkategorien: Technische Logs, IP-Adressen
-              </p>
-
-              <h3 className="font-display text-lg font-semibold mt-6 mb-2">e) GitHub (Microsoft)</h3>
-              <p className="text-base leading-relaxed text-foreground mb-4">
-                Zweck: Code-Repository<br />
-                Standort: USA<br />
-                Keine personenbezogenen Daten von Endnutzern
+                Purpose: sending transactional e-mails<br />
+                Location: USA<br />
+                Data categories: e-mail, name, sending metadata
               </p>
             </section>
 
             <section id="international">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                7. Internationale Datenuebermittlung
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">7. International Transfers</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Einige unserer Dienstleister verarbeiten Daten in den USA. Hierfuer bestehen
-                folgende Schutzmechanismen:
+                Some of our processors handle data in the USA. The following safeguards apply:
               </p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
                 <li>EU-US Data Privacy Framework (DPF)</li>
-                <li>EU-Standardvertragsklauseln (SCC)</li>
-                <li>Schweizer Anerkennung des DPF durch EDOEB</li>
-              </ul>
-              <p className="text-base leading-relaxed text-foreground mb-4">
-                Sie koennen auf Anfrage Kopien dieser Schutzmechanismen erhalten.
-              </p>
-            </section>
-
-            <section id="speicherdauer">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                8. Speicherdauer / Retention
-              </h2>
-              <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Account-Daten: bis Kontoloeschung + 30 Tage Grace Period</li>
-                <li>Transaktionsdaten: 10 Jahre (CH-Buchfuehrung, OR Art. 958f)</li>
-                <li>Server-Logs: 90 Tage</li>
-                <li>E-Mail-Logs: 12 Monate</li>
-                <li>Cookies: siehe Cookie-Richtlinie (max. 24 Monate)</li>
-                <li>Bewertungen: dauerhaft (anonymisiert nach Kontoloeschung)</li>
+                <li>EU Standard Contractual Clauses (SCC)</li>
+                <li>Swiss recognition of the DPF by the FDPIC</li>
               </ul>
             </section>
 
-            <section id="rechte">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                9. Ihre Rechte / Your Rights
-              </h2>
+            <section id="retention">
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">8. Retention</h2>
+              <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
+                <li>Account data: until account deletion + 30-day grace period</li>
+                <li>Transaction data: 10 years (Swiss accounting, CO Art. 958f)</li>
+                <li>Server logs: 90 days</li>
+                <li>E-mail logs: 12 months</li>
+                <li>Cookies: see Cookie Policy (max. 24 months)</li>
+                <li>Reviews: permanent (anonymised after account deletion)</li>
+              </ul>
+            </section>
+
+            <section id="rights">
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">9. Your Rights</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Gemaess revDSG und DSGVO haben Sie folgende Rechte:
+                Under revFADP and GDPR you have the following rights:
               </p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Auskunft (Art. 25 revDSG, Art. 15 DSGVO)</li>
-                <li>Berichtigung (Art. 32 Abs. 1 revDSG, Art. 16 DSGVO)</li>
-                <li>Loeschung (Art. 32 Abs. 2 lit. c revDSG, Art. 17 DSGVO)</li>
-                <li>Einschraenkung (Art. 18 DSGVO)</li>
-                <li>Datenuebertragbarkeit (Art. 28 revDSG, Art. 20 DSGVO)</li>
-                <li>Widerspruch (Art. 30 revDSG, Art. 21 DSGVO)</li>
-                <li>Widerruf von Einwilligungen (jederzeit)</li>
+                <li>Access (Art. 25 revFADP, Art. 15 GDPR)</li>
+                <li>Rectification (Art. 32(1) revFADP, Art. 16 GDPR)</li>
+                <li>Erasure (Art. 32(2)(c) revFADP, Art. 17 GDPR)</li>
+                <li>Restriction (Art. 18 GDPR)</li>
+                <li>Data portability (Art. 28 revFADP, Art. 20 GDPR)</li>
+                <li>Objection (Art. 30 revFADP, Art. 21 GDPR)</li>
+                <li>Withdrawal of consent (at any time)</li>
               </ul>
               <div className="bg-muted/50 border-l-4 border-primary p-4 my-4">
                 <p className="text-base leading-relaxed text-foreground mb-2 font-semibold">
-                  So ueben Sie Ihre Rechte aus:
+                  How to exercise your rights:
                 </p>
                 <ul className="list-disc list-inside ml-4 space-y-2">
                   <li>
-                    E-Mail:{" "}
-                    <a href="mailto:dari@dkaisystem.com" className="text-primary hover:underline">
-                      dari@dkaisystem.com
+                    E-mail:{" "}
+                    <a href="mailto:support@dkaimarketplace.com" className="text-primary hover:underline">
+                      support@dkaimarketplace.com
                     </a>{" "}
-                    (Betreff: <span className="font-mono text-sm">Datenschutz-Anfrage</span>)
+                    (subject: <span className="font-mono text-sm">Data protection request</span>)
                   </li>
-                  <li>Self-Service: Einstellungen -&gt; Privatsphaere</li>
-                  <li>Antwortzeit: innerhalb von 30 Tagen</li>
+                  <li>Self-service: Settings &rarr; Privacy</li>
+                  <li>Response time: within 30 days</li>
                 </ul>
               </div>
             </section>
 
-            <section id="beschwerde">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                10. Beschwerderecht / Right to Complain
-              </h2>
-              <h3 className="font-display text-lg font-semibold mt-6 mb-2">Schweiz</h3>
+            <section id="complaint">
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">10. Right to Complain</h2>
+              <h3 className="font-display text-lg font-semibold mt-6 mb-2">Switzerland</h3>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Eidgenoessischer Datenschutz- und Oeffentlichkeitsbeauftragter (EDOEB)<br />
+                Federal Data Protection and Information Commissioner (FDPIC)<br />
                 Feldeggweg 1, 3003 Bern,{" "}
-                <a
-                  href="https://edoeb.admin.ch"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
+                <a href="https://edoeb.admin.ch" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   edoeb.admin.ch
                 </a>
               </p>
               <h3 className="font-display text-lg font-semibold mt-6 mb-2">EU</h3>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Datenschutzbehoerde Ihres Wohnsitzlandes.
+                The data protection authority of your country of residence.
               </p>
             </section>
 
-            <section id="automatisiert">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                11. Automatisierte Entscheidungsfindung
-              </h2>
+            <section id="automated">
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">11. Automated Decision-Making</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Wir treffen keine vollautomatisierten Entscheidungen mit rechtlicher Wirkung (Art.
-                22 DSGVO).
+                We do not make any fully automated decisions with legal effect (Art. 22 GDPR).
               </p>
             </section>
 
             <section id="ai">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                12. AI-Produkte Transparenz / AI Transparency
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">12. AI Product Transparency</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Auf unserer Plattform werden AI-Produkte verkauft. Kaeufer werden klar informiert
-                wenn ein Produkt KI-basiert ist. Verkaeufer sind verpflichtet, Funktionsweise
-                transparent zu beschreiben (EU AI Act).
+                AI products are sold on our platform. Buyers are clearly informed when a product is
+                AI-based. Sellers are required to describe how their products work transparently
+                (EU AI Act).
               </p>
             </section>
 
-            <section id="sicherheit">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                13. Sicherheit / Security
-              </h2>
+            <section id="security">
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">13. Security</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Wir treffen technische und organisatorische Massnahmen:
+                We apply technical and organisational measures:
               </p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>TLS-Verschluesselung</li>
-                <li>Datenbank-Verschluesselung bei Supabase</li>
-                <li>2-Faktor-Authentifizierung verfuegbar</li>
-                <li>Sensible Daten AES-GCM verschluesselt</li>
-                <li>Passwoerter via bcrypt gehasht</li>
-                <li>Regelmaessige Security-Audits</li>
-                <li>Stripe-zertifizierte Zahlungsabwicklung (PCI DSS)</li>
+                <li>TLS encryption</li>
+                <li>Database encryption at Supabase</li>
+                <li>Two-factor authentication available</li>
+                <li>Sensitive data encrypted with AES-GCM</li>
+                <li>Passwords hashed via bcrypt</li>
+                <li>Regular security audits</li>
+                <li>Stripe-certified payment processing (PCI DSS)</li>
               </ul>
             </section>
 
             <section id="breaches">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                14. Datenschutzverletzungen / Breaches
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">14. Data Breaches</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Im Falle einer Datenschutzverletzung benachrichtigen wir:
+                In the event of a data breach we notify:
               </p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Die zustaendige Aufsichtsbehoerde innert 72h</li>
+                <li>The competent supervisory authority within 72 hours</li>
                 <li>
-                  Betroffene Nutzer "unverzueglich" wenn hohes Risiko besteht (Art. 24 revDSG, Art.
-                  34 DSGVO)
+                  Affected users without undue delay when there is a high risk (Art. 24 revFADP,
+                  Art. 34 GDPR)
                 </li>
               </ul>
             </section>
 
-            <section id="aenderungen">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                15. Aenderungen / Changes
-              </h2>
+            <section id="changes">
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">15. Changes</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Wir koennen diese Datenschutzerklaerung anpassen. Wesentliche Aenderungen werden 30
-                Tage im Voraus per E-Mail mitgeteilt. Aktuelle Version stets unter{" "}
+                We may update this privacy policy. Material changes are announced 30 days in advance
+                by e-mail. The current version is always available at{" "}
                 <span className="font-mono text-sm">/privacy</span>.
               </p>
             </section>
 
-            <section id="kontakt">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                16. Kontakt bei Datenschutzfragen
-              </h2>
+            <section id="contact">
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">16. Contact for Privacy Matters</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                E-Mail:{" "}
-                <a href="mailto:dari@dkaisystem.com" className="text-primary hover:underline">
-                  dari@dkaisystem.com
+                E-mail:{" "}
+                <a href="mailto:support@dkaimarketplace.com" className="text-primary hover:underline">
+                  support@dkaimarketplace.com
                 </a>
                 <br />
-                Betreff: <span className="font-mono text-sm">Datenschutz-Anfrage</span>
+                Subject: <span className="font-mono text-sm">Data protection request</span>
               </p>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Wir sind nicht verpflichtet, einen Datenschutzbeauftragten (DSB) zu benennen.
+                We are not required to appoint a Data Protection Officer (DPO).
               </p>
             </section>
 
             <div className="mt-12 bg-muted/50 border-l-4 border-primary p-4 rounded-md">
               <p className="text-base leading-relaxed text-foreground">
                 Have privacy questions? Email{" "}
-                <a
-                  href="mailto:support@dkaimarketplace.com"
-                  className="text-primary hover:underline"
-                >
+                <a href="mailto:support@dkaimarketplace.com" className="text-primary hover:underline">
                   support@dkaimarketplace.com
                 </a>
               </p>
@@ -457,10 +364,7 @@ const Privacy = () => {
               <ul className="space-y-2 text-sm">
                 {sections.map((s) => (
                   <li key={s.id}>
-                    <a
-                      href={`#${s.id}`}
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                    >
+                    <a href={`#${s.id}`} className="text-muted-foreground hover:text-primary transition-colors">
                       {s.title}
                     </a>
                   </li>

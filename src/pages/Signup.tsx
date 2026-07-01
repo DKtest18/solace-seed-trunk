@@ -156,7 +156,7 @@ export default function Signup() {
         .maybeSingle();
 
       if (bannedEmail) {
-        toast.error('This email is banned. Contact dari@dkaisystem.com for support.');
+        toast.error('This email is banned. Contact support@dkaimarketplace.com for support.');
         return;
       }
 
@@ -423,7 +423,7 @@ export default function Signup() {
                   className={`${inputClass} resize-none`}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  This helps us prioritize founding members. {reasonForJoining.length}/500
+                  Helps us understand who is joining. {reasonForJoining.length}/500
                 </p>
               </div>
 

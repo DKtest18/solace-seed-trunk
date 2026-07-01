@@ -27,17 +27,15 @@ export default function Checkout() {
   const [couponCode, setCouponCode] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount_amount: number; new_total: number } | null>(null);
+  const [guestPolicyAccepted, setGuestPolicyAccepted] = useState(false);
 
-  const { hasAccepted: hasBuyerPolicyAccepted, isLoading: loadingPolicy, acceptPolicy, isAccepting } = useBuyerPolicy();
+  const { hasAccepted: hasBuyerPolicyAcceptedUser, isLoading: loadingPolicyUser, acceptPolicy, isAccepting } = useBuyerPolicy();
+  const hasBuyerPolicyAccepted = user ? hasBuyerPolicyAcceptedUser : guestPolicyAccepted;
+  const loadingPolicy = user ? loadingPolicyUser : false;
   const { feePct, sellerPct, launchPromoActive, promoBanner } = usePlatformFee();
   const productId = searchParams.get("productId");
 
   useEffect(() => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
     if (!productId) {
       navigate("/marketplace");
       return;
@@ -45,7 +43,7 @@ export default function Checkout() {
 
     fetchProduct();
     checkCardPaymentsAvailable();
-  }, [user, productId]);
+  }, [productId]);
 
   const checkCardPaymentsAvailable = async () => {
     if (!productId) return;
@@ -56,9 +54,15 @@ export default function Checkout() {
       });
       if (!error) {
         setCardPaymentsAvailable(data || false);
+      } else {
+        // Guests may not have access to the RPC — default to true and let
+        // the checkout function surface the real reason if the seller isn't
+        // connected.
+        setCardPaymentsAvailable(true);
       }
     } catch (error) {
       console.error("Error checking card availability:", error);
+      setCardPaymentsAvailable(true);
     } finally {
       setCheckingCardAvailability(false);
     }
@@ -174,7 +178,11 @@ export default function Checkout() {
 
   const handleAcceptPolicy = async () => {
     try {
-      await acceptPolicy();
+      if (user) {
+        await acceptPolicy();
+      } else {
+        setGuestPolicyAccepted(true);
+      }
       setShowPayment(true);
       toast.success('Buyer policy accepted!');
     } catch (error) {

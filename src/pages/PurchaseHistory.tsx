@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate, Link, useNavigate } from 'react-router-dom';
+import { Navigate, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -113,6 +113,36 @@ export default function PurchaseHistory() {
   };
 
   if (!user) {
+    // Guest checkout success — show a public thank-you instead of redirecting to login.
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true') {
+      return (
+        <AppLayout>
+          <div className="min-h-screen flex items-center justify-center px-4 py-12">
+            <Card className="max-w-lg w-full text-center">
+              <CardHeader>
+                <CheckCircle className="w-12 h-12 mx-auto mb-2 text-green-600" />
+                <CardTitle>Thank you for your purchase!</CardTitle>
+                <CardDescription>
+                  Your payment was processed successfully by Stripe. A receipt has been sent to
+                  the email you provided at checkout.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-left bg-muted rounded-lg p-4 text-sm">
+                  Create an account with the <strong>same email you used at checkout</strong> to
+                  access your purchases, download files, write reviews, and ask questions.
+                </div>
+                <div className="flex gap-2 justify-center">
+                  <Button asChild><Link to="/signup">Create Account</Link></Button>
+                  <Button asChild variant="outline"><Link to="/marketplace">Keep Browsing</Link></Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </AppLayout>
+      );
+    }
     return <Navigate to="/login" replace />;
   }
 

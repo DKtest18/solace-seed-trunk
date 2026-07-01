@@ -1,23 +1,21 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Linkedin } from 'lucide-react';
 
+const LINKEDIN_URL = 'https://www.linkedin.com/company/dk-ai-marketplace';
+
 const platformLinks = [
   { to: '/marketplace', label: 'Marketplace' },
-  { to: '/sellers', label: 'For Sellers' },
-  { to: '/buyers', label: 'For Buyers' },
-  { to: '/pricing', label: 'Pricing' },
   { to: '/seller-guidelines', label: 'Seller Guidelines' },
 ];
 
 const companyLinks = [
   { to: '/about', label: 'About' },
-  { href: 'mailto:dari@dkaisystem.com', label: 'Contact' },
-  { to: '/blog', label: 'Blog' },
-  { href: 'https://www.linkedin.com/company/dk-ai-marketplace', label: 'LinkedIn', external: true },
+  { href: 'mailto:support@dkaimarketplace.com', label: 'Contact' },
+  { href: LINKEDIN_URL, label: 'Follow us on LinkedIn', external: true },
 ];
 
 const legalLinks = [
-  { to: '/impressum', label: 'Impressum' },
+  { to: '/impressum', label: 'Legal Notice (Impressum)' },
   { to: '/privacy', label: 'Privacy Policy' },
   { to: '/terms', label: 'Terms of Service' },
   { to: '/cookies', label: 'Cookie Policy' },
@@ -30,7 +28,6 @@ export function Footer() {
   const isAuthFlow =
     location.pathname === '/login' ||
     location.pathname === '/signup' ||
-    location.pathname === '/waitlist' ||
     location.pathname === '/check-email' ||
     location.pathname.startsWith('/auth/');
 
@@ -50,7 +47,7 @@ export function Footer() {
               &ldquo;Made by AI, made for AI. - DK&rdquo;
             </p>
             <p className="text-sm text-muted-foreground">
-              The marketplace for AI builders and buyers in DACH.
+              The marketplace for AI builders and buyers worldwide.
             </p>
           </div>
 
@@ -99,7 +96,7 @@ export function Footer() {
                 ) : (
                   <li key={link.to}>
                     <Link
-                      to={link.to}
+                      to={link.to!}
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {link.label}
@@ -135,10 +132,10 @@ export function Footer() {
             &copy; 2026 DK AI Marketplace.
           </p>
           <p className="text-xs text-muted-foreground text-center">
-            Built in Switzerland - Compliant with Swiss FADP and EU GDPR.
+            Built in Switzerland — Compliant with Swiss FADP and EU GDPR.
           </p>
           <a
-            href="https://www.linkedin.com/company/dk-ai-marketplace"
+            href={LINKEDIN_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="text-muted-foreground hover:text-foreground transition-colors"

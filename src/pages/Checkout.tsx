@@ -33,11 +33,6 @@ export default function Checkout() {
   const productId = searchParams.get("productId");
 
   useEffect(() => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
     if (!productId) {
       navigate("/marketplace");
       return;
@@ -45,7 +40,7 @@ export default function Checkout() {
 
     fetchProduct();
     checkCardPaymentsAvailable();
-  }, [user, productId]);
+  }, [productId]);
 
   const checkCardPaymentsAvailable = async () => {
     if (!productId) return;
@@ -56,9 +51,15 @@ export default function Checkout() {
       });
       if (!error) {
         setCardPaymentsAvailable(data || false);
+      } else {
+        // Guests may not have access to the RPC — default to true and let
+        // the checkout function surface the real reason if the seller isn't
+        // connected.
+        setCardPaymentsAvailable(true);
       }
     } catch (error) {
       console.error("Error checking card availability:", error);
+      setCardPaymentsAvailable(true);
     } finally {
       setCheckingCardAvailability(false);
     }

@@ -45,7 +45,10 @@ async function findStripeStorage(admin: any, userId: string) {
     if (!isSchemaError(error)) throw error;
   }
 
-  return firstExistingRow ?? { table: firstExistingTable, row: null };
+  return {
+    table: firstExistingTable ?? firstExistingRow?.table ?? null,
+    row: firstExistingRow?.table === firstExistingTable ? firstExistingRow.row : null,
+  };
 }
 
 async function writeStripeAccount(admin: any, userId: string, accountId: string, onboarded: boolean) {

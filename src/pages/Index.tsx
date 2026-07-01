@@ -136,6 +136,16 @@ export default function Index() {
             <Link to="/signup">Create Free Account</Link>
           </Button>
         )}
+        <div className="mt-8">
+          <a
+            href="https://www.linkedin.com/company/dk-ai-marketplace"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+          >
+            Follow us on LinkedIn
+          </a>
+        </div>
       </section>
     </div>
   );

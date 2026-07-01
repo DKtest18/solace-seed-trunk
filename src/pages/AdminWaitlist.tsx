@@ -29,6 +29,7 @@ type ProductRow = {
   reviewed_at: string | null;
   review_notes: string | null;
   created_at: string;
+  is_published: boolean | null;
 };
 
 type TabKey = 'submitted' | 'approved' | 'rejected';
@@ -49,6 +50,8 @@ function AdminProductQueueContent() {
   const [approveTarget, setApproveTarget] = useState<ProductRow | null>(null);
   const [declineTarget, setDeclineTarget] = useState<ProductRow | null>(null);
   const [declineReason, setDeclineReason] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<ProductRow | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ['admin-product-queue', tab],
@@ -59,7 +62,7 @@ function AdminProductQueueContent() {
         : ['rejected', 'changes_requested'];
       const { data, error } = await db
         .from('dkai_products')
-        .select('id, title, price, category, seller_id, review_status, submitted_at, reviewed_at, review_notes, created_at')
+        .select('id, title, price, category, seller_id, review_status, submitted_at, reviewed_at, review_notes, created_at, is_published')
         .in('review_status', statuses)
         .order('submitted_at', { ascending: false, nullsFirst: false })
         .limit(200);
@@ -133,6 +136,36 @@ function AdminProductQueueContent() {
     onError: (e: any) => toast.error(e.message || 'Failed to decline'),
   });
 
+  const togglePublishMutation = useMutation({
+    mutationFn: async (args: { product_id: string; is_published: boolean }) => {
+      const { error } = await db
+        .from('dkai_products')
+        .update({ is_published: args.is_published })
+        .eq('id', args.product_id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      toast.success(vars.is_published ? 'Product reactivated' : 'Product deactivated');
+      queryClient.invalidateQueries({ queryKey: ['admin-product-queue'] });
+    },
+    onError: (e: any) => toast.error(e.message || 'Failed to update product'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (product_id: string) => {
+      const { error } = await db.from('dkai_products').delete().eq('id', product_id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Product deleted');
+      setDeleteTarget(null);
+      setDeleteConfirm('');
+      queryClient.invalidateQueries({ queryKey: ['admin-product-queue'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-product-queue-counts'] });
+    },
+    onError: (e: any) => toast.error(e.message || 'Failed to delete product'),
+  });
+
   const fmtDate = (d: string | null) => {
     if (!d) return '—';
     try { return format(new Date(d), 'PP'); } catch { return d; }
@@ -201,7 +234,14 @@ function AdminProductQueueContent() {
                     <TableBody>
                       {filtered.map((row) => (
                         <TableRow key={row.id}>
-                          <TableCell className="font-medium">{row.title}</TableCell>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              {row.title}
+                              {status === 'approved' && row.is_published === false && (
+                                <Badge variant="secondary">Deactivated</Badge>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell className="text-sm">{row.category || '—'}</TableCell>
                           <TableCell className="text-sm">{row.price != null ? `€${row.price}` : '—'}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">
@@ -213,7 +253,7 @@ function AdminProductQueueContent() {
                             </TableCell>
                           )}
                           <TableCell className="text-right">
-                            <div className="flex gap-2 justify-end">
+                            <div className="flex gap-2 justify-end flex-wrap">
                               <Button asChild size="sm" variant="outline">
                                 <Link to={`/product/${row.id}`} target="_blank">
                                   <ExternalLink className="h-4 w-4 mr-1" /> View
@@ -234,6 +274,40 @@ function AdminProductQueueContent() {
                                     onClick={() => setDeclineTarget(row)}
                                   >
                                     <XCircle className="h-4 w-4 mr-1" /> Decline
+                                  </Button>
+                                </>
+                              )}
+                              {status === 'approved' && (
+                                <>
+                                  {row.is_published === false ? (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={togglePublishMutation.isPending}
+                                      onClick={() => togglePublishMutation.mutate({ product_id: row.id, is_published: true })}
+                                    >
+                                      Reactivate
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={togglePublishMutation.isPending}
+                                      onClick={() => {
+                                        if (confirm(`Deactivate "${row.title}"? It will be hidden from the marketplace but kept for records.`)) {
+                                          togglePublishMutation.mutate({ product_id: row.id, is_published: false });
+                                        }
+                                      }}
+                                    >
+                                      Deactivate
+                                    </Button>
+                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => { setDeleteTarget(row); setDeleteConfirm(''); }}
+                                  >
+                                    Delete
                                   </Button>
                                 </>
                               )}
@@ -311,6 +385,40 @@ function AdminProductQueueContent() {
             >
               {declineMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Decline
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => { if (!o) { setDeleteTarget(null); setDeleteConfirm(''); } }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Permanently delete product</DialogTitle>
+            <DialogDescription>
+              This will permanently delete <strong>{deleteTarget?.title}</strong> along with its media, Q&amp;A, and reviews. This cannot be undone.
+              <br /><br />
+              Type <strong>DELETE</strong> to confirm.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={deleteConfirm}
+            onChange={(e) => setDeleteConfirm(e.target.value)}
+            placeholder="DELETE"
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setDeleteTarget(null); setDeleteConfirm(''); }}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={deleteConfirm !== 'DELETE' || deleteMutation.isPending}
+              onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
+            >
+              {deleteMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Delete permanently
             </Button>
           </DialogFooter>
         </DialogContent>

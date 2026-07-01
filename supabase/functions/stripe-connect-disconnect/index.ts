@@ -1,20 +1,21 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
-const STRIPE_USER_TABLES = ['dkaim_user_id', 'dkai_user_id'];
+const STRIPE_ACCOUNT_TABLES = ['dkaim_user_id', 'dkai_user_id', 'dkai_profiles'];
 
-function isMissingTable(error: any) {
-  const message = String(error?.message || '');
-  return error?.code === 'PGRST205' || message.includes('Could not find the table') || message.includes('schema cache') || message.includes('does not exist');
+function isSchemaError(error: any) {
+  const message = String(error?.message || '').toLowerCase();
+  return error?.code === 'PGRST204' || error?.code === 'PGRST205' || message.includes('could not find the table') || message.includes('schema cache') || message.includes('does not exist') || message.includes('column');
 }
 
 async function findStripeUserRow(admin: any, userId: string) {
-  for (const table of STRIPE_USER_TABLES) {
+  for (const table of STRIPE_ACCOUNT_TABLES) {
     const { data, error } = await admin.from(table).select('stripe_account_id').eq('id', userId).maybeSingle();
     if (!error && data?.stripe_account_id) return { table, row: data };
-    if (error && !isMissingTable(error)) throw error;
+    if (!error) continue;
+    if (error && !isSchemaError(error)) throw error;
   }
-  return { table: STRIPE_USER_TABLES[0], row: null };
+  return { table: STRIPE_ACCOUNT_TABLES[0], row: null };
 }
 
 Deno.serve(async (req) => {
@@ -41,10 +42,18 @@ Deno.serve(async (req) => {
     await res.text();
 
     // Clear the detected Stripe user table
-    await admin.from(stripeUserTable).update({
+    const clearWithOnboarded = await admin.from(stripeUserTable).update({
       stripe_account_id: null,
       stripe_onboarded: false,
     }).eq('id', user.id);
+    if (clearWithOnboarded.error && isSchemaError(clearWithOnboarded.error)) {
+      const clearAccountOnly = await admin.from(stripeUserTable).update({
+        stripe_account_id: null,
+      }).eq('id', user.id);
+      if (clearAccountOnly.error) throw clearAccountOnly.error;
+    } else if (clearWithOnboarded.error) {
+      throw clearWithOnboarded.error;
+    }
 
     // Clear dkai_seller_payment_configs
     await admin.from('dkai_seller_payment_configs').update({

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { buildSupabaseFunctionError, logSupabaseFunctionError } from '@/lib/supabaseFunctionErrors';
 
 type StripeMethod = {
   method: string;
@@ -59,11 +60,18 @@ export function StripePaymentMethodsPanel() {
       const { data, error } = await supabase.functions.invoke('stripe-payment-methods', {
         method: 'GET',
       });
-      if (error) throw error;
+      if (error || data?.error) {
+        throw await buildSupabaseFunctionError(
+          'stripe-payment-methods',
+          error,
+          data,
+          'Failed to load Stripe payment methods',
+        );
+      }
       setMethods(data?.methods ?? []);
       setCountry(data?.country ?? null);
     } catch (e: any) {
-      console.error(e);
+      logSupabaseFunctionError('Error loading Stripe payment methods', e);
       toast.error(e.message || 'Failed to load Stripe payment methods');
     } finally {
       setLoading(false);
@@ -78,14 +86,21 @@ export function StripePaymentMethodsPanel() {
   const toggle = async (m: StripeMethod, next: boolean) => {
     setBusy(m.method);
     try {
-      const { error } = await supabase.functions.invoke('stripe-payment-methods', {
+      const { data, error } = await supabase.functions.invoke('stripe-payment-methods', {
         body: { method: m.method, action: next ? 'request' : 'cancel' },
       });
-      if (error) throw error;
+      if (error || data?.error) {
+        throw await buildSupabaseFunctionError(
+          'stripe-payment-methods',
+          error,
+          data,
+          'Failed to update Stripe payment method',
+        );
+      }
       toast.success(`${LABELS[m.method] || m.method} ${next ? 'requested' : 'disabled'} in Stripe`);
       await load();
     } catch (e: any) {
-      console.error(e);
+      logSupabaseFunctionError('Error updating Stripe payment method', e);
       toast.error(e.message || 'Failed to update Stripe');
     } finally {
       setBusy(null);

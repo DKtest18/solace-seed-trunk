@@ -13,10 +13,13 @@ import { Badge } from "@/components/ui/badge";
 import { usePlatformFee } from "@/hooks/usePlatformFee";
 import { StripePaymentMethodsPanel } from "@/components/seller/StripePaymentMethodsPanel";
 import { emptyStripeConnectStatus, fetchStripeConnectStatus, isStripeConnectedForOnboarding, type StripeConnectStatus } from "@/lib/stripeConnectStatus";
+import { buildSupabaseFunctionError, logSupabaseFunctionError } from "@/lib/supabaseFunctionErrors";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function SellerPaymentSettings() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const { hasRole: isSeller, isLoading: roleLoading } = useHasRole("seller");
   const { feePct, sellerPct } = usePlatformFee();
@@ -67,9 +70,10 @@ export default function SellerPaymentSettings() {
     setRefreshing(true);
     try {
       setStripeStatus(await fetchStripeConnectStatus());
+      await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
     } catch (error) {
       console.error("Error fetching Stripe status:", error);
-      toast.error("Failed to fetch Stripe status");
+      toast.error(error instanceof Error ? error.message : "Failed to fetch Stripe status");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -79,17 +83,23 @@ export default function SellerPaymentSettings() {
   const handleConnectStripe = async () => {
     setConnecting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("stripe-connect-onboard", {
-        body: { return_path: '/seller/payment-settings' }
+      const { data, error } = await supabase.functions.invoke("stripe-connect-onboarding", {
+        body: { origin: window.location.origin }
       });
-      if (error) throw error;
-      if (!data.success || !data.url) throw new Error(data.error || "Failed to create onboarding link");
+      if (error || data?.error || !data?.success || !data?.url) {
+        throw await buildSupabaseFunctionError(
+          "stripe-connect-onboarding",
+          error,
+          data,
+          "Failed to create onboarding link",
+        );
+      }
 
       toast.info("Redirecting to Stripe...");
       // Use same-tab navigation so the return_url brings them back logged in
       window.location.href = data.url;
     } catch (error: any) {
-      console.error("Error connecting Stripe:", error);
+      logSupabaseFunctionError("Error connecting Stripe", error);
       toast.error(error.message || "Failed to start Stripe onboarding");
       setConnecting(false);
     }
@@ -98,12 +108,18 @@ export default function SellerPaymentSettings() {
   const handleOpenDashboard = async () => {
     try {
       const { data, error } = await supabase.functions.invoke("stripe-connect-dashboard");
-      if (error) throw error;
-      if (!data.success || !data.url) throw new Error(data.error || "Failed to open dashboard");
+      if (error || data?.error || !data?.success || !data?.url) {
+        throw await buildSupabaseFunctionError(
+          "stripe-connect-dashboard",
+          error,
+          data,
+          "Failed to open Stripe dashboard",
+        );
+      }
       // Use noopener,noreferrer to avoid ERR_BLOCKED_BY_RESPONSE from Stripe's X-Frame-Options
       window.open(data.url, "_blank", "noopener,noreferrer");
     } catch (error: any) {
-      console.error("Error opening dashboard:", error);
+      logSupabaseFunctionError("Error opening Stripe dashboard", error);
       toast.error(error.message || "Failed to open Stripe dashboard");
     }
   };
@@ -116,13 +132,19 @@ export default function SellerPaymentSettings() {
     setDisconnecting(true);
     try {
       const { data, error } = await supabase.functions.invoke("stripe-connect-disconnect");
-      if (error) throw error;
-      if (!data.success) throw new Error(data.error || "Failed to disconnect");
+      if (error || data?.error || !data?.success) {
+        throw await buildSupabaseFunctionError(
+          "stripe-connect-disconnect",
+          error,
+          data,
+          "Failed to disconnect Stripe account",
+        );
+      }
 
       toast.success("Stripe account disconnected. You can now connect a different account.");
       setStripeStatus(emptyStripeConnectStatus);
     } catch (error: any) {
-      console.error("Error disconnecting Stripe:", error);
+      logSupabaseFunctionError("Error disconnecting Stripe", error);
       toast.error(error.message || "Failed to disconnect Stripe account");
     } finally {
       setDisconnecting(false);

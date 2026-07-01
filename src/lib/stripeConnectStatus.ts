@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { buildSupabaseFunctionError, logSupabaseFunctionError } from '@/lib/supabaseFunctionErrors';
 
 export interface StripeConnectStatus {
   connected: boolean;
@@ -46,7 +47,16 @@ export function mapStripeConnectStatus(data: any): StripeConnectStatus {
 
 export async function fetchStripeConnectStatus(): Promise<StripeConnectStatus> {
   const { data, error } = await supabase.functions.invoke('stripe-connect-status');
-  if (error) throw error;
+  if (error || data?.error) {
+    const detailedError = await buildSupabaseFunctionError(
+      'stripe-connect-status',
+      error,
+      data,
+      'Failed to fetch Stripe connection status',
+    );
+    logSupabaseFunctionError('Stripe status edge-function error', detailedError);
+    throw detailedError;
+  }
   return mapStripeConnectStatus(data);
 }
 

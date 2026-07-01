@@ -1,25 +1,39 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
-const STRIPE_USER_TABLES = ['dkaim_user_id', 'dkai_user_id'];
+const STRIPE_ACCOUNT_TABLES = ['dkaim_user_id', 'dkai_user_id', 'dkai_profiles'];
 
-function isMissingTable(error: any) {
-  const message = String(error?.message || '');
-  return error?.code === 'PGRST205' || message.includes('Could not find the table') || message.includes('schema cache') || message.includes('does not exist');
+function isSchemaError(error: any) {
+  const message = String(error?.message || '').toLowerCase();
+  return error?.code === 'PGRST204' || error?.code === 'PGRST205' || message.includes('could not find the table') || message.includes('schema cache') || message.includes('does not exist') || message.includes('column');
 }
 
-async function findStripeUserRow(admin: any, userId: string, select = 'stripe_account_id, stripe_onboarded') {
-  let existingTable = STRIPE_USER_TABLES[0];
-  for (const table of STRIPE_USER_TABLES) {
-    const { data, error } = await admin.from(table).select(select).eq('id', userId).maybeSingle();
+async function findStripeUserRow(admin: any, userId: string) {
+  let existingTable = STRIPE_ACCOUNT_TABLES[0];
+  let firstRow: { table: string; row: any } | null = null;
+
+  for (const table of STRIPE_ACCOUNT_TABLES) {
+    const { data, error } = await admin.from(table).select('stripe_account_id, stripe_onboarded').eq('id', userId).maybeSingle();
     if (!error) {
       existingTable = table;
-      if (data) return { table, row: data };
+      if (data?.stripe_account_id) return { table, row: data };
+      if (data && !firstRow) firstRow = { table, row: data };
       continue;
     }
-    if (!isMissingTable(error)) throw error;
+    if (isSchemaError(error)) {
+      const fallback = await admin.from(table).select('stripe_account_id').eq('id', userId).maybeSingle();
+      if (!fallback.error) {
+        existingTable = table;
+        if (fallback.data?.stripe_account_id) return { table, row: fallback.data };
+        if (fallback.data && !firstRow) firstRow = { table, row: fallback.data };
+        continue;
+      }
+      if (!isSchemaError(fallback.error)) throw fallback.error;
+      continue;
+    }
+    throw error;
   }
-  return { table: existingTable, row: null };
+  return firstRow ?? { table: existingTable, row: null };
 }
 
 Deno.serve(async (req) => {
@@ -85,32 +99,39 @@ Deno.serve(async (req) => {
     // Sync onboarded flag on the detected Stripe user table.
     const isOnboarded = onboardingStatus === 'connected';
     if (seller.stripe_onboarded !== isOnboarded) {
-      await admin.from(stripeUserTable).update({
+      const onboardedUpdate = await admin.from(stripeUserTable).update({
         stripe_onboarded: isOnboarded,
       }).eq('id', user.id);
+      if (onboardedUpdate.error && !isSchemaError(onboardedUpdate.error)) throw onboardedUpdate.error;
     }
 
     // Sync dkai_seller_payment_configs
-    const { data: paymentConfig } = await admin
+    const { data: paymentConfig, error: paymentConfigError } = await admin
       .from('dkai_seller_payment_configs')
       .select('seller_id, stripe_onboarding_status, charges_enabled')
       .eq('seller_id', user.id)
       .maybeSingle();
 
-    if (paymentConfig) {
-      await admin.from('dkai_seller_payment_configs').update({
-        stripe_account_id: seller.stripe_account_id,
-        stripe_onboarding_status: onboardingStatus,
-        charges_enabled: chargesEnabled,
-        updated_at: new Date().toISOString(),
-      }).eq('seller_id', user.id);
-    } else {
-      await admin.from('dkai_seller_payment_configs').insert({
-        seller_id: user.id,
-        stripe_account_id: seller.stripe_account_id,
-        stripe_onboarding_status: onboardingStatus,
-        charges_enabled: chargesEnabled,
-      });
+    if (!paymentConfigError || !isSchemaError(paymentConfigError)) {
+      if (paymentConfigError) throw paymentConfigError;
+
+      if (paymentConfig) {
+        const syncUpdate = await admin.from('dkai_seller_payment_configs').update({
+          stripe_account_id: seller.stripe_account_id,
+          stripe_onboarding_status: onboardingStatus,
+          charges_enabled: chargesEnabled,
+          updated_at: new Date().toISOString(),
+        }).eq('seller_id', user.id);
+        if (syncUpdate.error && !isSchemaError(syncUpdate.error)) throw syncUpdate.error;
+      } else {
+        const syncInsert = await admin.from('dkai_seller_payment_configs').insert({
+          seller_id: user.id,
+          stripe_account_id: seller.stripe_account_id,
+          stripe_onboarding_status: onboardingStatus,
+          charges_enabled: chargesEnabled,
+        });
+        if (syncInsert.error && !isSchemaError(syncInsert.error)) throw syncInsert.error;
+      }
     }
 
     // Mask account ID for display

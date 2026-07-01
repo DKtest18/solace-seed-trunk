@@ -31,36 +31,37 @@ export default function SellerOnboardingChecklist() {
       return;
     }
 
-    // Check if seller role already exists
-    const { data: existingRoles } = await db
+    // Server-side SECURITY DEFINER validates all 5 requirements and grants the seller role.
+    const { data, error } = await db.rpc('dkai_activate_seller');
+
+    if (error || (data && (data as any).success === false)) {
+      console.error('Seller activation failed:', error, data);
+      toast({
+        title: 'Activation failed',
+        description: (error as any)?.message || (data as any)?.error || 'Could not activate seller account.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Read back to confirm role was written to dkai_user_roles (same table the guards check).
+    const { data: roleCheck } = await db
       .from('dkai_user_roles')
       .select('id')
       .eq('user_id', user.id)
       .eq('role', 'seller')
       .maybeSingle();
 
-    if (!existingRoles) {
-      // Add seller role
-      const { error } = await db
-        .from('dkai_user_roles')
-        .insert({ user_id: user.id, role: 'seller' });
-
-      if (error) {
-        console.error('Error adding seller role:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to complete setup. Please try again.',
-          variant: 'destructive',
-        });
-        return;
-      }
+    if (!roleCheck) {
+      toast({
+        title: 'Activation incomplete',
+        description: 'Seller role could not be verified. Please try again.',
+        variant: 'destructive',
+      });
+      return;
     }
 
-    toast({
-      title: 'Success!',
-      description: 'Your seller account is now active.',
-    });
-
+    toast({ title: 'Success!', description: 'Your seller account is now active.' });
     navigate('/seller-dashboard');
   };
 

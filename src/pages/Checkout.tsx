@@ -117,17 +117,39 @@ export default function Checkout() {
       const referralSource = sessionStorage.getItem(`ref_${product.id}`) || undefined;
       const { data, error } = await supabase.functions.invoke("create-checkout-session", {
         body: {
-          productId: product.id,
+          product_id: product.id,
+          productId: product.id, // backward-compat with deployed function
+          origin: window.location.origin,
           couponCode: appliedCoupon?.code,
           referralSource,
         },
       });
 
-      if (error) throw error;
-      if (!data.url) throw new Error(data.error || "Failed to create checkout session");
+      // Surface the REAL error from the edge function body (not the generic non-2xx)
+      let serverError: string | undefined;
+      const ctx: any = (error as any)?.context;
+      if (ctx && typeof ctx.clone === "function") {
+        try {
+          const body = await ctx.clone().json();
+          serverError = body?.error || body?.message;
+          console.error("create-checkout-session error body:", body);
+        } catch {
+          try { serverError = await ctx.clone().text(); } catch { /* ignore */ }
+        }
+      }
+      if (!serverError && data && (data as any).error) serverError = (data as any).error;
+
+      if (error || !data?.url) {
+        const raw = serverError || (error as any)?.message || "Failed to create checkout session";
+        // Human-friendly translation for known cases
+        const friendly = /stripe|payout|connected|onboard/i.test(raw)
+          ? "This seller has not finished payment setup yet."
+          : raw;
+        throw new Error(friendly);
+      }
 
       toast.success("Redirecting to secure payment page...");
-      window.open(data.url, "_blank");
+      window.location.href = data.url;
     } catch (error: any) {
       console.error("Card checkout error:", error);
       toast.error(error.message || "Failed to initiate card payment");

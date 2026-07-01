@@ -10,7 +10,7 @@ export default function CookiePolicy() {
         <Link to="/"><ArrowLeft className="w-4 h-4 mr-2" />Back</Link>
       </Button>
       <div className="flex items-center justify-between mb-2">
-        <h1 className="font-display text-4xl font-semibold">Cookie-Richtlinie / Cookie Policy</h1>
+        <h1 className="font-display text-4xl font-semibold">Cookie Policy</h1>
         <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">
           <Printer className="h-4 w-4" /> Print
         </Button>
@@ -19,56 +19,56 @@ export default function CookiePolicy() {
 
       <article className="space-y-8 text-foreground leading-relaxed">
         <section>
-          <h2 className="text-2xl font-semibold mb-2">1. Was sind Cookies?</h2>
+          <h2 className="text-2xl font-semibold mb-2">1. What are cookies?</h2>
           <p className="text-muted-foreground">
-            Cookies sind kleine Textdateien, die auf Ihrem Geraet gespeichert werden, wenn Sie eine Website besuchen.
-            Sie ermoeglichen es uns, Ihr Geraet wiederzuerkennen und Ihre Erfahrung zu verbessern.
+            Cookies are small text files stored on your device when you visit a website.
+            They allow us to recognise your device and improve your experience.
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mb-2">2. Welche Cookies wir verwenden</h2>
+          <h2 className="text-2xl font-semibold mb-2">2. Which cookies we use</h2>
 
-          <h3 className="font-semibold mt-4 mb-1">A) Streng notwendige Cookies (keine Einwilligung erforderlich)</h3>
+          <h3 className="font-semibold mt-4 mb-1">A) Strictly necessary cookies (no consent required)</h3>
           <ul className="list-disc pl-6 text-muted-foreground space-y-1">
-            <li><code>supabase-auth-token</code> – Authentifizierung (Session, 1 Jahr)</li>
-            <li><code>supabase-auth-refresh</code> – Token-Aktualisierung (1 Jahr)</li>
-            <li><code>csrf-token</code> – Sicherheit gegen CSRF (Session)</li>
+            <li><code>supabase-auth-token</code> – authentication (session, 1 year)</li>
+            <li><code>supabase-auth-refresh</code> – token refresh (1 year)</li>
+            <li><code>csrf-token</code> – protection against CSRF (session)</li>
           </ul>
 
-          <h3 className="font-semibold mt-4 mb-1">B) Funktionale Cookies (Einwilligung erforderlich)</h3>
+          <h3 className="font-semibold mt-4 mb-1">B) Functional cookies (consent required)</h3>
           <ul className="list-disc pl-6 text-muted-foreground space-y-1">
-            <li><code>language-preference</code> – Sprache (12 Monate)</li>
-            <li><code>theme-preference</code> – Light/Dark Mode (12 Monate)</li>
-            <li><code>cookie-consent-preferences</code> – Ihre Cookie-Wahl (24 Monate)</li>
+            <li><code>language-preference</code> – language (12 months)</li>
+            <li><code>theme-preference</code> – light/dark mode (12 months)</li>
+            <li><code>cookie-consent-preferences</code> – your cookie choices (24 months)</li>
           </ul>
 
-          <h3 className="font-semibold mt-4 mb-1">C) Analytische Cookies (Einwilligung erforderlich)</h3>
-          <p className="text-muted-foreground">Aktuell keine Analytics-Cookies aktiv.</p>
+          <h3 className="font-semibold mt-4 mb-1">C) Analytics cookies (consent required)</h3>
+          <p className="text-muted-foreground">No analytics cookies are currently active.</p>
 
-          <h3 className="font-semibold mt-4 mb-1">D) Marketing-Cookies (Einwilligung erforderlich)</h3>
-          <p className="text-muted-foreground">Aktuell keine Marketing-Cookies aktiv.</p>
+          <h3 className="font-semibold mt-4 mb-1">D) Marketing cookies (consent required)</h3>
+          <p className="text-muted-foreground">No marketing cookies are currently active.</p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mb-2">3. Dritt-Cookies / Third-Party Cookies</h2>
+          <h2 className="text-2xl font-semibold mb-2">3. Third-party cookies</h2>
           <ul className="list-disc pl-6 text-muted-foreground space-y-1">
             <li>
-              Stripe Payment: stripe.com setzt eigene Cookies waehrend des Checkouts (
+              Stripe Payments: stripe.com sets its own cookies during checkout (
               <a href="https://stripe.com/cookies-policy" target="_blank" rel="noreferrer" className="text-primary underline">
                 stripe.com/cookies-policy
               </a>
               )
             </li>
-            <li>KEINE Google Analytics, KEIN Facebook Pixel, KEINE Werbe-Tracker</li>
+            <li>No Google Analytics, no Facebook Pixel, no advertising trackers.</li>
           </ul>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mb-2">4. Ihre Einwilligung</h2>
+          <h2 className="text-2xl font-semibold mb-2">4. Your consent</h2>
           <p className="text-muted-foreground">
-            Beim ersten Besuch erscheint ein Cookie-Banner. Sie koennen alle akzeptieren, nur notwendige akzeptieren,
-            einzeln auswaehlen oder jederzeit aendern unter{" "}
+            A cookie banner appears on your first visit. You can accept all, accept only necessary,
+            choose individually, or change your choice at any time under{" "}
             <Link to="/cookie-settings" className="text-primary underline">
               /cookie-settings
             </Link>.
@@ -76,28 +76,28 @@ export default function CookiePolicy() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mb-2">5. Cookies blockieren</h2>
+          <h2 className="text-2xl font-semibold mb-2">5. Blocking cookies</h2>
           <p className="text-muted-foreground">
-            Sie koennen Cookies in Ihren Browser-Einstellungen blockieren. Konsequenzen: einige Funktionen (Login, Kaeufe) werden nicht funktionieren.
+            You can block cookies in your browser settings. Consequence: some features (sign-in, purchases) will not work.
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mb-2">6. Speicherdauer</h2>
-          <p className="text-muted-foreground">Maximum 24 Monate. Sessions enden mit Browser-Schliessung.</p>
+          <h2 className="text-2xl font-semibold mb-2">6. Retention</h2>
+          <p className="text-muted-foreground">Maximum 24 months. Session cookies end when the browser is closed.</p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mb-2">7. Aenderungen</h2>
+          <h2 className="text-2xl font-semibold mb-2">7. Changes</h2>
           <p className="text-muted-foreground">
-            Diese Richtlinie kann angepasst werden. Bei wesentlichen Aenderungen erscheint das Cookie-Banner erneut.
+            This policy may be updated. On material changes, the cookie banner will appear again.
           </p>
         </section>
 
         <p className="text-sm text-muted-foreground pt-8 border-t border-border">
           Questions? Email{" "}
-          <a href="mailto:dari@dkaisystem.com" className="text-primary underline">
-            dari@dkaisystem.com
+          <a href="mailto:support@dkaimarketplace.com" className="text-primary underline">
+            support@dkaimarketplace.com
           </a>{" "}
           – Read also:{" "}
           <Link to="/privacy" className="text-primary underline">

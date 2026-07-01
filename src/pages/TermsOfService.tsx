@@ -3,33 +3,33 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-const LAST_UPDATED = "25. Mai 2026";
+const LAST_UPDATED = "1 July 2026";
 
 const sections = [
-  { id: "scope", title: "1. Geltungsbereich / Scope" },
-  { id: "definitions", title: "2. Definitionen" },
-  { id: "eligibility", title: "3. Nutzungsvoraussetzungen / Eligibility" },
-  { id: "account", title: "4. Konto-Registrierung / Account" },
-  { id: "role", title: "5. Rolle der Plattform / Our Role" },
-  { id: "seller-obligations", title: "6. Pflichten Verkaeufer / Seller Obligations" },
-  { id: "buyer-obligations", title: "7. Pflichten Kaeufer / Buyer Obligations" },
-  { id: "payments", title: "8. Zahlungsabwicklung / Payments" },
-  { id: "platform-fee", title: "9. Plattformgebuehr / Platform Fee" },
+  { id: "scope", title: "1. Scope" },
+  { id: "definitions", title: "2. Definitions" },
+  { id: "eligibility", title: "3. Eligibility" },
+  { id: "account", title: "4. Account Registration" },
+  { id: "role", title: "5. Our Role" },
+  { id: "seller-obligations", title: "6. Seller Obligations" },
+  { id: "buyer-obligations", title: "7. Buyer Obligations" },
+  { id: "payments", title: "8. Payments" },
+  { id: "platform-fee", title: "9. Platform Fee" },
   { id: "custom-orders", title: "10. Custom Commission Orders" },
-  { id: "refunds", title: "11. Rueckerstattung / Refunds" },
-  { id: "disputes", title: "12. Streitbeilegung / Disputes" },
-  { id: "ip", title: "13. Geistiges Eigentum / IP" },
-  { id: "prohibited", title: "14. Verbotene Inhalte / Prohibited Content" },
-  { id: "moderation", title: "15. Content-Moderation" },
-  { id: "liability", title: "16. Haftungsbeschraenkung / Liability" },
-  { id: "indemnification", title: "17. Freistellung / Indemnification" },
-  { id: "changes", title: "18. Aenderungen der AGB / Changes" },
-  { id: "termination", title: "19. Kuendigung / Termination" },
-  { id: "governing-law", title: "20. Anwendbares Recht / Governing Law" },
-  { id: "jurisdiction", title: "21. Gerichtsstand / Jurisdiction" },
-  { id: "severability", title: "22. Salvatorische Klausel / Severability" },
-  { id: "odr", title: "23. Online-Streitbeilegung / ODR" },
-  { id: "contact", title: "24. Kontakt / Contact" },
+  { id: "refunds", title: "11. Refunds" },
+  { id: "disputes", title: "12. Disputes" },
+  { id: "ip", title: "13. Intellectual Property" },
+  { id: "prohibited", title: "14. Prohibited Content" },
+  { id: "moderation", title: "15. Content Moderation" },
+  { id: "liability", title: "16. Limitation of Liability" },
+  { id: "indemnification", title: "17. Indemnification" },
+  { id: "changes", title: "18. Changes to the Terms" },
+  { id: "termination", title: "19. Termination" },
+  { id: "governing-law", title: "20. Governing Law" },
+  { id: "jurisdiction", title: "21. Jurisdiction" },
+  { id: "severability", title: "22. Severability" },
+  { id: "odr", title: "23. Online Dispute Resolution" },
+  { id: "contact", title: "24. Contact" },
 ];
 
 export default function TermsOfService() {
@@ -43,18 +43,9 @@ export default function TermsOfService() {
         </Button>
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-8">
           <article className="max-w-3xl">
-            <h1 className="font-display text-4xl font-semibold mb-2">
-              Terms of Service
-            </h1>
-            <p className="font-display text-xl text-muted-foreground mb-2">
-              Allgemeine Geschaeftsbedingungen (AGB)
-            </p>
-            <p className="text-sm text-muted-foreground mb-2">
-              Stand / Last updated: {LAST_UPDATED}
-            </p>
-            <p className="text-sm text-muted-foreground mb-6">
-              Reading time: ~15 minutes
-            </p>
+            <h1 className="font-display text-4xl font-semibold mb-2">Terms of Service</h1>
+            <p className="text-sm text-muted-foreground mb-2">Last updated: {LAST_UPDATED}</p>
+            <p className="text-sm text-muted-foreground mb-6">Reading time: ~15 minutes</p>
 
             <Button
               variant="outline"
@@ -68,11 +59,12 @@ export default function TermsOfService() {
             <div className="bg-primary/10 border border-primary/30 p-6 mb-8 rounded-lg">
               <p className="text-base leading-relaxed text-foreground">
                 <strong>Quick summary:</strong> These are the rules for using DK AI Marketplace.
-                By signing up, you agree to them. Launch promo: 0% platform fee for the first 20 sales
-                on the platform. After that, a small platform fee (default 5%) applies. Payments are
-                processed by Stripe and go directly to the seller's Stripe account; Stripe's standard
-                payment processing fees apply and are borne by the seller. Swiss law applies, and we
-                are a marketplace (not a party to your transactions). Full details below.
+                By signing up you agree to them. Launch promo: 0% platform fee for the first 20
+                sales on the platform. After that, a small platform fee (default 5%) applies.
+                Payments are processed by Stripe and go directly to the seller's Stripe account;
+                Stripe's standard payment processing fees apply and are borne by the seller.
+                Swiss law applies, and we are a marketplace (not a party to your transactions).
+                Full details below.
               </p>
             </div>
 
@@ -96,373 +88,284 @@ export default function TermsOfService() {
               )}
             </div>
 
-            {/* Section 1 */}
             <section id="scope">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                1. Geltungsbereich / Scope
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">1. Scope</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Diese Allgemeinen Geschaeftsbedingungen (AGB) regeln die Nutzung des DK AI Marketplace
-                (&quot;Plattform&quot;), betrieben von DK [Nachname], [Adresse], Schweiz
-                (&quot;Betreiberin&quot;, &quot;wir&quot;). Mit der Registrierung akzeptieren Sie diese AGB.
-              </p>
-              <p className="text-base leading-relaxed text-foreground mb-4">
-                These Terms of Service govern the use of the DK AI Marketplace (&quot;Platform&quot;),
-                operated by DK [Lastname], [Address], Switzerland (&quot;Operator&quot;, &quot;we&quot;).
-                By registering, you accept these terms.
+                These Terms of Service govern the use of DK AI Marketplace (&quot;Platform&quot;),
+                operated by Dari Kastrati, Udligenswilerstrasse 15, 6043 Adligenswil, Switzerland
+                (&quot;Operator&quot;, &quot;we&quot;). By registering you accept these terms.
               </p>
             </section>
 
-            {/* Section 2 */}
             <section id="definitions">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                2. Definitionen
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">2. Definitions</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li><strong>&quot;Plattform&quot;</strong> = dkaimarketplace.com inkl. aller Services</li>
-                <li><strong>&quot;Nutzer&quot;</strong> = jede natuerliche oder juristische Person mit Konto</li>
-                <li><strong>&quot;Kaeufer&quot;</strong> = Nutzer, der Produkte erwirbt</li>
-                <li><strong>&quot;Verkaeufer&quot;</strong> = Nutzer, der Produkte anbietet</li>
-                <li><strong>&quot;Produkt&quot;</strong> = digitale AI-Produkte, Agenten, Templates, Workflows</li>
-                <li><strong>&quot;Dienstleistung&quot;</strong> = Custom Commission Orders, Expert Calls</li>
-                <li><strong>&quot;Transaktion&quot;</strong> = abgeschlossener Kauf</li>
+                <li><strong>&quot;Platform&quot;</strong> = dkaimarketplace.com including all services</li>
+                <li><strong>&quot;User&quot;</strong> = any natural or legal person with an account</li>
+                <li><strong>&quot;Buyer&quot;</strong> = user who purchases products</li>
+                <li><strong>&quot;Seller&quot;</strong> = user who offers products</li>
+                <li><strong>&quot;Product&quot;</strong> = digital AI products, agents, templates, workflows</li>
+                <li><strong>&quot;Service&quot;</strong> = custom commission orders, expert calls</li>
+                <li><strong>&quot;Transaction&quot;</strong> = a completed purchase</li>
               </ul>
             </section>
 
-            {/* Section 3 */}
             <section id="eligibility">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                3. Nutzungsvoraussetzungen / Eligibility
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">3. Eligibility</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Mindestalter: 18 Jahre oder gesetzliches Mindestalter</li>
-                <li>Wahrheitsgemaesse Angaben bei Registrierung</li>
-                <li>Pro Person nur ein Konto</li>
+                <li>Minimum age: 18 years, or the applicable local minimum age</li>
+                <li>Truthful information at registration</li>
+                <li>Only one account per person</li>
               </ul>
             </section>
 
-            {/* Section 4 */}
             <section id="account">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                4. Konto-Registrierung / Account
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">4. Account Registration</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>E-Mail-Adresse und sicheres Passwort</li>
-                <li>Sie sind verantwortlich fuer Zugangsdaten</li>
-                <li>Bei Verdacht auf Missbrauch sofort Mitteilung</li>
-                <li>Wir koennen Konten ablehnen oder schliessen</li>
+                <li>E-mail address and secure password</li>
+                <li>You are responsible for your credentials</li>
+                <li>Notify us immediately if you suspect misuse</li>
+                <li>We may refuse or close accounts</li>
               </ul>
             </section>
 
-            {/* Section 5 */}
             <section id="role">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                5. Rolle der Plattform / Our Role
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">5. Our Role</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Wir sind eine <strong>Vermittlungsplattform</strong>. Wir sind NICHT Vertragspartner fuer
-                Kaeufe zwischen Nutzern.
+                We are a <strong>marketplace</strong>. We are NOT a party to purchases between users.
               </p>
-              <p className="text-base leading-relaxed text-foreground mb-2 font-semibold">Wir leisten:</p>
+              <p className="text-base leading-relaxed text-foreground mb-2 font-semibold">We provide:</p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Bereitstellung der Plattform</li>
-                <li>Zahlungsabwicklung ueber Stripe Connect</li>
-                <li>Streitbeilegungssystem</li>
-                <li>Content-Moderation</li>
+                <li>The platform itself</li>
+                <li>Payment processing via Stripe Connect (direct charges to the seller's account)</li>
+                <li>A dispute-handling system</li>
+                <li>Content moderation</li>
               </ul>
-              <p className="text-base leading-relaxed text-foreground mb-2 font-semibold">Wir leisten NICHT:</p>
+              <p className="text-base leading-relaxed text-foreground mb-2 font-semibold">We do NOT provide:</p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Qualitaetsgarantie fuer angebotene Produkte</li>
-                <li>Haftung fuer Inhalte von Verkaeufern</li>
-                <li>Garantie fuer Verfuegbarkeit</li>
+                <li>Any quality guarantee for offered products</li>
+                <li>Liability for seller-supplied content</li>
+                <li>Any uptime or availability guarantee</li>
               </ul>
             </section>
 
-            {/* Section 6 */}
             <section id="seller-obligations">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                6. Pflichten Verkaeufer / Seller Obligations
-              </h2>
-              <p className="text-base leading-relaxed text-foreground mb-2">
-                Verkaeufer verpflichten sich:
-              </p>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">6. Seller Obligations</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Eigenes Stripe-Connect-Konto einzurichten</li>
-                <li>Produkte wahrheitsgemaess zu beschreiben</li>
-                <li>Lieferungen innerhalb Frist auszufuehren</li>
-                <li>Auf Nachrichten innert 72h zu reagieren</li>
-                <li>Nur Produkte anzubieten mit erforderlichen Rechten</li>
-                <li>Gesetzliche Vorschriften einzuhalten (Steuern, etc.)</li>
-                <li>EU AI Act-Transparenz fuer AI-Produkte</li>
+                <li>Set up your own Stripe Connect account</li>
+                <li>Describe products truthfully</li>
+                <li>Deliver within the promised timeframe</li>
+                <li>Respond to messages within 72 hours</li>
+                <li>Only offer products for which you hold the necessary rights</li>
+                <li>Comply with all legal requirements (taxes, etc.)</li>
+                <li>Comply with EU AI Act transparency for AI products</li>
               </ul>
             </section>
 
-            {/* Section 7 */}
             <section id="buyer-obligations">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                7. Pflichten Kaeufer / Buyer Obligations
-              </h2>
-              <p className="text-base leading-relaxed text-foreground mb-2">
-                Kaeufer verpflichten sich:
-              </p>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">7. Buyer Obligations</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Wahrheitsgemaesse Angaben zu machen</li>
-                <li>Eignung von Produkten selbst zu pruefen</li>
-                <li>Zahlungen vollstaendig und puenktlich</li>
-                <li>Custom Order Specs klar zu kommunizieren</li>
+                <li>Provide truthful information</li>
+                <li>Check product suitability yourself</li>
+                <li>Pay in full and on time</li>
+                <li>Communicate custom order specifications clearly</li>
               </ul>
             </section>
 
-            {/* Section 8 */}
             <section id="payments">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                8. Zahlungsabwicklung / Payments
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">8. Payments</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Alle Zahlungen ueber Stripe</li>
-                <li>Wir speichern keine Kreditkartendaten</li>
-                <li>Zahlungen bei Kauf sofort, bei Custom Orders nach Akzeptanz</li>
-                <li>Auszahlungen an Verkaeufer automatisch via Stripe Connect</li>
+                <li>All payments run through Stripe</li>
+                <li>We do not store card details</li>
+                <li>Payments are captured at checkout (custom orders: upon acceptance)</li>
+                <li>Payments go directly to the seller's Stripe account (direct charges)</li>
+                <li>Stripe's standard payment processing fees apply and are borne by the seller</li>
               </ul>
             </section>
 
-            {/* Section 9 */}
             <section id="platform-fee">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                9. Plattformgebuehr / Platform Fee
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">9. Platform Fee</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Launch-Promo: 0% Plattformgebuehr fuer die ersten 20 Verkaeufe auf der Plattform — Verkaeufer erhalten 100%</li>
-                <li>Danach: Plattformgebuehr (Standard 5%) pro Transaktion</li>
-                <li>Founding Sellers (erste 10) behalten ihre Sonderkondition lebenslang</li>
-                <li>Stripe-Gebuehren separat (~1.5% + EUR 0.25)</li>
+                <li>Launch promo: 0% platform fee for the first 20 sales on the platform — sellers keep 100% (minus Stripe processing fees)</li>
+                <li>Afterwards: platform fee (default 5%) per transaction</li>
+                <li>Stripe processing fees always apply separately and are borne by the seller</li>
               </ul>
             </section>
 
-            {/* Section 10 */}
             <section id="custom-orders">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                10. Custom Commission Orders
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">10. Custom Commission Orders</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Kaeufer beschreibt Anforderungen, schlaegt Preis vor</li>
-                <li>Verkaeufer akzeptiert/lehnt innert 7 Tagen ab</li>
-                <li>Bei Akzeptanz: Zahlung wird belastet, Geld treuhaenderisch</li>
-                <li>Verkaeufer liefert gemaess Vereinbarung</li>
-                <li>Kaeufer bestaetigt oder eroeffnet Streitfall</li>
-                <li>Auszahlung nach Bestaetigung oder Ablauf 7 Tage</li>
+                <li>Buyer describes requirements and proposes a price</li>
+                <li>Seller accepts or declines within 7 days</li>
+                <li>On acceptance: payment is captured</li>
+                <li>Seller delivers per the agreement</li>
+                <li>Buyer confirms or opens a dispute</li>
+                <li>Payout after confirmation or lapse of the review period</li>
               </ul>
             </section>
 
-            {/* Section 11 */}
             <section id="refunds">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                11. Rueckerstattung / Refunds
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">11. Refunds</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Da digitale Produkte sofort bereitgestellt werden, gilt kein Widerrufsrecht
-                (Art. 16 lit. m Verbraucher-RL). Kaeufer bestaetigen dies bei Kauf.
+                Because digital products are delivered immediately, the statutory right of
+                withdrawal does not apply (Art. 16 lit. m EU Directive 2011/83/EU). Buyers
+                confirm this at checkout.
               </p>
-              <p className="text-base leading-relaxed text-foreground mb-2 font-semibold">Ausnahmen:</p>
+              <p className="text-base leading-relaxed text-foreground mb-2 font-semibold">Exceptions:</p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Produkt entspricht nicht Beschreibung -&gt; Rueckerstattung</li>
-                <li>Verkaeufer liefert nicht -&gt; automatische Rueckerstattung nach 14 Tagen</li>
-                <li>Berechtigte Beanstandung im Streitsystem</li>
+                <li>Product does not match the description &rarr; refund</li>
+                <li>Seller does not deliver &rarr; automatic refund after 14 days</li>
+                <li>Justified complaint via the dispute system</li>
+                <li>Within the seller's return window (min. 24 hours, max. 90 days): full unconditional refund via Stripe</li>
               </ul>
             </section>
 
-            {/* Section 12 */}
             <section id="disputes">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                12. Streitbeilegung / Disputes
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">12. Disputes</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Streitfaelle zuerst zwischen Kaeufer und Verkaeufer</li>
-                <li>Bei Nichteinigung: Schiedsstelle der Plattform</li>
-                <li>Entscheidungen verbindlich fuer Plattform-Auszahlung</li>
-                <li>Anrufung ordentlicher Gerichte bleibt vorbehalten</li>
+                <li>Disputes are first handled between buyer and seller</li>
+                <li>If unresolved: the platform's dispute team decides</li>
+                <li>Decisions are binding for the payout on the platform</li>
+                <li>Recourse to ordinary courts remains reserved</li>
               </ul>
             </section>
 
-            {/* Section 13 */}
             <section id="ip">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                13. Geistiges Eigentum / IP
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">13. Intellectual Property</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Sie behalten alle Rechte an Ihren Inhalten</li>
-                <li>Sie gewaehren uns nicht-exklusive Lizenz zur Anzeige</li>
-                <li>Sie versichern, alle noetigen Rechte zu haben</li>
-                <li>Verletzung fuehrt zu Account-Sperrung und Schadenersatz</li>
+                <li>You keep all rights to your content</li>
+                <li>You grant us a non-exclusive licence to display it</li>
+                <li>You warrant that you hold all necessary rights</li>
+                <li>Infringement leads to account suspension and damages</li>
               </ul>
             </section>
 
-            {/* Section 14 */}
             <section id="prohibited">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                14. Verbotene Inhalte / Prohibited Content
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">14. Prohibited Content</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Illegale Produkte oder Dienstleistungen</li>
-                <li>AI-Produkte ohne Transparenz (EU AI Act-Verstoss)</li>
-                <li>Malware, Viren, Schadcode</li>
-                <li>Urheberrechtsverletzungen</li>
-                <li>Hassrede, Diskriminierung, Belaestigung</li>
-                <li>Pornografie, Gewaltverherrlichung</li>
-                <li>Personen-ID-Daten Dritter ohne Zustimmung</li>
-                <li>Spam, Massenkommunikation</li>
+                <li>Illegal products or services</li>
+                <li>AI products without transparency (EU AI Act violations)</li>
+                <li>Malware, viruses, malicious code</li>
+                <li>Copyright infringements</li>
+                <li>Hate speech, discrimination, harassment</li>
+                <li>Pornography, glorification of violence</li>
+                <li>Third-party personal data without consent</li>
+                <li>Spam, bulk messaging</li>
               </ul>
             </section>
 
-            {/* Section 15 */}
             <section id="moderation">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                15. Content-Moderation
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">15. Content Moderation</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Wir koennen Inhalte ohne Vorankuendigung entfernen</li>
-                <li>Accounts sperren bei Verstoessen</li>
-                <li>Permanente Sperrung bei wiederholten/schweren Verstoessen</li>
-                <li>Auszahlung ausstehender Betraege im Einzelfall geprueft</li>
+                <li>We may remove content without prior notice</li>
+                <li>We may suspend accounts for violations</li>
+                <li>Permanent bans for repeated or serious violations</li>
+                <li>Outstanding payouts are reviewed on a case-by-case basis</li>
               </ul>
             </section>
 
-            {/* Section 16 */}
             <section id="liability">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                16. Haftungsbeschraenkung / Limitation of Liability
-              </h2>
-              <p className="text-base leading-relaxed text-foreground mb-2">
-                Im gesetzlich zulaessigen Rahmen:
-              </p>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">16. Limitation of Liability</h2>
+              <p className="text-base leading-relaxed text-foreground mb-2">To the extent permitted by law:</p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Wir haften nicht fuer Inhalte oder Handlungen anderer</li>
-                <li>Nicht fuer entgangenen Gewinn oder Folgeschaeden</li>
-                <li>Haftung beschraenkt auf in 12 Monaten gezahlte Gebuehren</li>
-                <li>Bei Vorsatz/grober Fahrlaessigkeit: unbeschraenkt</li>
+                <li>We are not liable for the content or actions of other users</li>
+                <li>No liability for lost profits or consequential damages</li>
+                <li>Liability capped at the fees paid to us in the last 12 months</li>
+                <li>In case of intent or gross negligence: unlimited</li>
               </ul>
             </section>
 
-            {/* Section 17 */}
             <section id="indemnification">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                17. Freistellung / Indemnification
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">17. Indemnification</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Sie stellen uns frei von allen Anspruechen Dritter, die aus Ihrer Nutzung der
-                Plattform resultieren, einschliesslich angemessener Anwaltskosten.
+                You shall indemnify us against all third-party claims arising out of your use of
+                the platform, including reasonable legal fees.
               </p>
             </section>
 
-            {/* Section 18 */}
             <section id="changes">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                18. Aenderungen der AGB / Changes
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">18. Changes to the Terms</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Wir koennen diese AGB anpassen</li>
-                <li>Wesentliche Aenderungen 30 Tage im Voraus per E-Mail</li>
-                <li>Bei Widerspruch innert 30 Tagen: Konto wird gekuendigt</li>
-                <li>Ohne Widerspruch: neue AGB gelten</li>
+                <li>We may update these terms</li>
+                <li>Material changes are announced 30 days in advance by e-mail</li>
+                <li>If you object within 30 days, your account will be terminated</li>
+                <li>Without objection the new terms apply</li>
               </ul>
             </section>
 
-            {/* Section 19 */}
             <section id="termination">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                19. Kuendigung / Termination
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">19. Termination</h2>
               <p className="text-base leading-relaxed text-foreground mb-2">
-                Sie koennen Konto jederzeit loeschen.
+                You may delete your account at any time.
               </p>
-              <p className="text-base leading-relaxed text-foreground mb-2 font-semibold">Wir koennen kuendigen:</p>
+              <p className="text-base leading-relaxed text-foreground mb-2 font-semibold">We may terminate:</p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Bei AGB-Verstoss: sofort und ohne Vorankuendigung</li>
-                <li>Ohne Begruendung: mit 30 Tagen Frist</li>
+                <li>Immediately and without notice for breach of these terms</li>
+                <li>Without reason: with 30 days' notice</li>
               </ul>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Ausstehende Zahlungspflichten ueberdauern Kuendigung.
+                Outstanding payment obligations survive termination.
               </p>
             </section>
 
-            {/* Section 20 */}
             <section id="governing-law">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                20. Anwendbares Recht / Governing Law
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">20. Governing Law</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Schweizer Recht unter Ausschluss der Kollisionsnormen und des UN-Kaufrechts.
-                Zwingende Verbraucherschutzbestimmungen bleiben unberuehrt.
+                Swiss law, excluding conflict-of-law rules and the UN Convention on Contracts for
+                the International Sale of Goods (CISG). Mandatory consumer-protection provisions
+                remain unaffected.
               </p>
             </section>
 
-            {/* Section 21 */}
             <section id="jurisdiction">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                21. Gerichtsstand / Jurisdiction
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">21. Jurisdiction</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Ausschliesslicher Gerichtsstand ist [Ihr Kanton], Schweiz. Wir koennen Verbraucher
-                auch an deren Wohnsitzgericht verklagen.
+                Exclusive place of jurisdiction is the Canton of Lucerne, Switzerland. We may also
+                sue consumers at their place of residence.
               </p>
             </section>
 
-            {/* Section 22 */}
             <section id="severability">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                22. Salvatorische Klausel / Severability
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">22. Severability</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Sollte eine Bestimmung unwirksam sein, bleibt die Wirksamkeit der uebrigen
-                Bestimmungen unberuehrt.
+                If any provision is invalid, the validity of the remaining provisions is not
+                affected.
               </p>
             </section>
 
-            {/* Section 23 */}
             <section id="odr">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                23. Online-Streitbeilegung / ODR
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">23. Online Dispute Resolution</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                EU-Verbraucher koennen die ODR-Plattform der EU-Kommission nutzen:{" "}
-                <a
-                  href="https://ec.europa.eu/consumers/odr"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
+                EU consumers may use the European Commission's ODR platform:{" "}
+                <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   ec.europa.eu/consumers/odr
                 </a>
               </p>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Wir sind nicht verpflichtet, an Verbraucherschlichtungsverfahren teilzunehmen,
-                sind aber bereit dazu.
+                We are not required to participate in consumer arbitration proceedings but are
+                willing to do so.
               </p>
             </section>
 
-            {/* Section 24 */}
             <section id="contact">
-              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">
-                24. Kontakt / Contact
-              </h2>
+              <h2 className="font-display text-2xl font-semibold mt-10 mb-4">24. Contact</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                DK [Nachname]<br />
+                Dari Kastrati<br />
                 DK AI Marketplace<br />
-                [Adresse]<br />
-                [PLZ] [Ort], Schweiz<br />
-                E-Mail:{" "}
-                <a href="mailto:dari@dkaisystem.com" className="text-primary hover:underline">
-                  dari@dkaisystem.com
+                Udligenswilerstrasse 15<br />
+                6043 Adligenswil, Switzerland<br />
+                E-mail:{" "}
+                <a href="mailto:management@dkaimarketplace.com" className="text-primary hover:underline">
+                  management@dkaimarketplace.com
                 </a>
               </p>
             </section>
 
-            {/* Bottom CTA */}
             <div className="mt-12 pt-8 border-t border-border">
               <p className="text-base text-foreground mb-2">
                 Questions? Email{" "}
-                <a href="mailto:dari@dkaisystem.com" className="text-primary hover:underline">
-                  dari@dkaisystem.com
+                <a href="mailto:support@dkaimarketplace.com" className="text-primary hover:underline">
+                  support@dkaimarketplace.com
                 </a>
               </p>
               <p className="text-base text-foreground">
@@ -471,13 +374,10 @@ export default function TermsOfService() {
                   Privacy Policy
                 </Link>
               </p>
-              <p className="text-sm text-muted-foreground mt-4">
-                Last updated: {new Date().toLocaleDateString()}
-              </p>
+              <p className="text-sm text-muted-foreground mt-4">Last updated: {LAST_UPDATED}</p>
             </div>
           </article>
 
-          {/* Sticky TOC on desktop */}
           <aside className="hidden lg:block print:hidden">
             <nav className="sticky top-24">
               <h3 className="font-display text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">

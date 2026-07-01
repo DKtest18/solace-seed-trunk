@@ -25,8 +25,8 @@ export function PrivacyDataSettings() {
   const [confirmText, setConfirmText] = useState('');
   const [password, setPassword] = useState('');
   const [accessSummary, setAccessSummary] = useState<any>(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
   const [pendingDeletion, setPendingDeletion] = useState<{ scheduled_deletion_at: string } | null>(null);
-  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -40,12 +40,23 @@ export function PrivacyDataSettings() {
 
   const handleExport = async () => {
     setIsExporting(true);
-    setDownloadUrl(null);
     try {
-      const { data, error } = await supabase.functions.invoke('export-user-data');
-      if (error) throw error;
-      setDownloadUrl(data.downloadUrl);
-      toast.success('Your data export is ready. Check your email or download below.');
+      const { data, error } = await supabase.functions.invoke('gdpr-data-export', {
+        body: { mode: 'full' },
+      });
+      if (error) throw new Error(error.message || 'Export failed');
+      if (data?.error) throw new Error(data.error);
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'dk-ai-marketplace-data-export.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success('Your data has been downloaded.');
     } catch (e: any) {
       toast.error(e?.message || 'Export failed');
     } finally {
@@ -56,35 +67,21 @@ export function PrivacyDataSettings() {
   const openAccessModal = async () => {
     if (!user) return;
     setShowAccessModal(true);
-    const [profile, products, orders, reviews, messages] = await Promise.all([
-      db.from('dkai_profiles').select('email,created_at,full_name,bio,avatar_url,cookie_preferences').eq('id', user.id).maybeSingle(),
-      db.from('dkai_products').select('id', { count: 'exact', head: true }).eq('seller_id', user.id),
-      db.from('dkai_orders').select('id', { count: 'exact', head: true }).eq('buyer_id', user.id),
-      db.from('dkai_reviews').select('id', { count: 'exact', head: true }).eq('reviewer_id', user.id),
-      db.from('dkai_messages').select('id', { count: 'exact', head: true }).eq('sender_id', user.id),
-    ]);
-    setAccessSummary({
-      account: {
-        email: user.email,
-        created: (profile.data as any)?.created_at,
-        last_sign_in: (user as any).last_sign_in_at,
-      },
-      profile: {
-        name: (profile.data as any)?.full_name,
-        bio: (profile.data as any)?.bio,
-        avatar: (profile.data as any)?.avatar_url ? 'set' : 'none',
-      },
-      activity: {
-        products: (products as any).count || 0,
-        orders: (orders as any).count || 0,
-        reviews: (reviews as any).count || 0,
-        messages: (messages as any).count || 0,
-      },
-      marketing: {
-        cookie_consent: (profile.data as any)?.cookie_preferences || 'not set',
-      },
-      last_updated: new Date().toISOString(),
-    });
+    setLoadingSummary(true);
+    setAccessSummary(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('gdpr-data-export', {
+        body: { mode: 'summary' },
+      });
+      if (error) throw new Error(error.message || 'Failed to load summary');
+      if (data?.error) throw new Error(data.error);
+      setAccessSummary(data);
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to load summary');
+      setShowAccessModal(false);
+    } finally {
+      setLoadingSummary(false);
+    }
   };
 
   const handleDelete = async () => {

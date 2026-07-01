@@ -62,7 +62,7 @@ function AdminProductQueueContent() {
         : ['rejected', 'changes_requested'];
       const { data, error } = await db
         .from('dkai_products')
-        .select('id, title, price, category, seller_id, review_status, submitted_at, reviewed_at, review_notes, created_at')
+        .select('id, title, price, category, seller_id, review_status, submitted_at, reviewed_at, review_notes, created_at, is_published')
         .in('review_status', statuses)
         .order('submitted_at', { ascending: false, nullsFirst: false })
         .limit(200);

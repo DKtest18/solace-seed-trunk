@@ -98,23 +98,26 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
 
   const checkCanReview = async () => {
     if (!user) return;
-    
+
     // Can't review own products
     if (user.id === sellerId) {
       setCanReview(false);
       return;
     }
 
-    // Check if user has purchased this product (must match RLS policy statuses)
+    // Match either by buyer_id (logged-in purchase) or by buyer_email
+    // (guest purchase later linked to this account via matching e-mail).
+    const email = (user.email || '').toLowerCase();
     const { data: orders } = await db
       .from("dkai_orders")
-      .select("id")
+      .select("id, buyer_id, buyer_email")
       .eq("product_id", productId)
-      .eq("buyer_id", user.id)
-      .in("status", ["paid", "completed", "delivered", "payment_confirmed", "invoice_sent"])
-      .limit(1);
+      .in("status", ["paid", "completed", "delivered", "payment_confirmed", "invoice_sent"]);
 
-    setCanReview((orders?.length || 0) > 0);
+    const purchased = (orders || []).some((o: any) =>
+      o.buyer_id === user.id || (o.buyer_email && String(o.buyer_email).toLowerCase() === email)
+    );
+    setCanReview(purchased);
   };
 
   const updateProductRating = async () => {

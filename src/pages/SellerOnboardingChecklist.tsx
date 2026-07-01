@@ -9,11 +9,13 @@ import { CheckCircle2, XCircle, Loader2, ChevronRight, Sparkles } from 'lucide-r
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function SellerOnboardingChecklist() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: onboarding, isLoading } = useSellerOnboardingProgress();
 
   if (!user) {

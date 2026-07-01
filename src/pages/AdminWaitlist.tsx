@@ -234,7 +234,14 @@ function AdminProductQueueContent() {
                     <TableBody>
                       {filtered.map((row) => (
                         <TableRow key={row.id}>
-                          <TableCell className="font-medium">{row.title}</TableCell>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              {row.title}
+                              {status === 'approved' && row.is_published === false && (
+                                <Badge variant="secondary">Deactivated</Badge>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell className="text-sm">{row.category || '—'}</TableCell>
                           <TableCell className="text-sm">{row.price != null ? `€${row.price}` : '—'}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">
@@ -246,7 +253,7 @@ function AdminProductQueueContent() {
                             </TableCell>
                           )}
                           <TableCell className="text-right">
-                            <div className="flex gap-2 justify-end">
+                            <div className="flex gap-2 justify-end flex-wrap">
                               <Button asChild size="sm" variant="outline">
                                 <Link to={`/product/${row.id}`} target="_blank">
                                   <ExternalLink className="h-4 w-4 mr-1" /> View
@@ -267,6 +274,40 @@ function AdminProductQueueContent() {
                                     onClick={() => setDeclineTarget(row)}
                                   >
                                     <XCircle className="h-4 w-4 mr-1" /> Decline
+                                  </Button>
+                                </>
+                              )}
+                              {status === 'approved' && (
+                                <>
+                                  {row.is_published === false ? (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={togglePublishMutation.isPending}
+                                      onClick={() => togglePublishMutation.mutate({ product_id: row.id, is_published: true })}
+                                    >
+                                      Reactivate
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={togglePublishMutation.isPending}
+                                      onClick={() => {
+                                        if (confirm(`Deactivate "${row.title}"? It will be hidden from the marketplace but kept for records.`)) {
+                                          togglePublishMutation.mutate({ product_id: row.id, is_published: false });
+                                        }
+                                      }}
+                                    >
+                                      Deactivate
+                                    </Button>
+                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => { setDeleteTarget(row); setDeleteConfirm(''); }}
+                                  >
+                                    Delete
                                   </Button>
                                 </>
                               )}

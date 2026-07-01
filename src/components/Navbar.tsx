@@ -27,7 +27,7 @@ const navLinks = [
   
 ];
 
-const SUPER_ADMIN_EMAIL = 'dari@dkaisystem.com';
+const SUPER_ADMIN_EMAIL = 'management@dkaimarketplace.com';
 
 export function Navbar() {
   const { user, signOut } = useAuth();

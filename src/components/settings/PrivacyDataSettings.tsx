@@ -193,7 +193,7 @@ export function PrivacyDataSettings() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base"><FileEdit className="h-5 w-5 text-primary" /> Update or correct my data</CardTitle>
-          <CardDescription>You have the right to correct inaccurate data (GDPR Art. 16). Update here or contact dari@dkaisystem.com.</CardDescription>
+          <CardDescription>You have the right to correct inaccurate data (GDPR Art. 16). Update here or contact support@dkaimarketplace.com.</CardDescription>
         </CardHeader>
         <CardContent>
           <Button asChild variant="outline"><Link to="/profile">Edit my profile</Link></Button>
@@ -223,7 +223,7 @@ export function PrivacyDataSettings() {
         </CardHeader>
         <CardContent>
           <Button asChild variant="outline">
-            <a href="mailto:dari@dkaisystem.com?subject=Data%20Protection%20Request">
+            <a href="mailto:support@dkaimarketplace.com?subject=Data%20Protection%20Request">
               <Mail className="mr-2 h-4 w-4" /> Email data protection
             </a>
           </Button>

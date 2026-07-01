@@ -61,15 +61,15 @@ export default function Login() {
 
       if (profile?.is_deleted) {
         await supabase.auth.signOut();
-        throw new Error('This account has been deleted. Contact support at dari@dkaisystem.com');
+        throw new Error('This account has been deleted. Contact support at support@dkaimarketplace.com');
       }
       if (profile?.is_banned) {
         const banExpires = profile.ban_expires_at ? new Date(profile.ban_expires_at) : null;
         if (!banExpires || banExpires > new Date()) {
           await supabase.auth.signOut();
           throw new Error(banExpires
-            ? `Your account is suspended until ${banExpires.toLocaleDateString()}. Contact support at dari@dkaisystem.com`
-            : 'Your account has been banned. Contact support at dari@dkaisystem.com');
+            ? `Your account is suspended until ${banExpires.toLocaleDateString()}. Contact support at support@dkaimarketplace.com`
+            : 'Your account has been banned. Contact support at support@dkaimarketplace.com');
         }
       }
 

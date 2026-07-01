@@ -18,7 +18,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Shield, Ban, Trash2, RotateCcw } from 'lucide-react';
 
-const SUPER_ADMIN_EMAIL = 'dari@dkaisystem.com';
+const SUPER_ADMIN_EMAIL = 'management@dkaimarketplace.com';
 const PAGE_SIZE = 25;
 
 type UserRow = {

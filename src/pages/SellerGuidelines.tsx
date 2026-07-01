@@ -59,7 +59,7 @@ export default function SellerGuidelines() {
             <h2 className="text-2xl font-semibold mb-4">1. Selling on DK AI Marketplace</h2>
             <p>
               DK AI Marketplace is operated from Switzerland. We connect AI builders —
-              companies and individuals — with buyers across the DACH region and beyond.
+              companies and individuals — with buyers worldwide.
               As a launch promo, sellers <strong>keep 100% of every sale — zero platform fees
               for the first 20 sales on the platform</strong>. After that, a small platform
               fee (default 5%) applies only when you actually make a sale. Listing is always free.

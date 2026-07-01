@@ -76,38 +76,7 @@ export function AccountDeletionSettings() {
 
   return (
     <div className="space-y-6">
-      {/* Data Export - DSGVO Art. 20 */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Download className="h-5 w-5 text-primary" />
-            <CardTitle>Export My Data</CardTitle>
-          </div>
-          <CardDescription>
-            Download all your personal data in a machine-readable format (JSON).
-            This is your right under GDPR Art. 20 (Right to Data Portability).
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button 
-            onClick={handleExportData} 
-            disabled={isExporting}
-            variant="outline"
-          >
-            {isExporting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Exporting...
-              </>
-            ) : (
-              <>
-                <Download className="mr-2 h-4 w-4" />
-                Download My Data (JSON)
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
+
 
       {/* Account Deletion - DSGVO Art. 17 */}
       <Card className="border-destructive/50">

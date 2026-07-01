@@ -157,10 +157,11 @@ export default function PayoutRequests() {
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Seller Access Required</CardTitle>
-            <CardDescription>You need a seller account to access payouts.</CardDescription>
+            <CardDescription>You need a seller account to access this area.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button onClick={() => navigate('/')}>Go Home</Button>
+          <CardContent className="flex flex-col sm:flex-row gap-2">
+            <Button onClick={() => navigate('/seller-onboarding')} className="flex-1">Become a Seller</Button>
+            <Button variant="outline" onClick={() => navigate('/')} className="flex-1">Go Home</Button>
           </CardContent>
         </Card>
       </div>

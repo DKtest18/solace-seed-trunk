@@ -277,16 +277,22 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
         {/* Review form for eligible users - visible to all but disabled for non-buyers */}
         {!userReview && !showForm && (
           <div className="space-y-2">
-            <Button 
-              onClick={() => setShowForm(true)} 
+            <Button
+              onClick={() => setShowForm(true)}
               variant="outline"
               disabled={!canReview}
             >
               Write a Review
             </Button>
+            {!user && (
+              <p className="text-sm text-muted-foreground">
+                Sign in with the email you purchased with to write a review.
+              </p>
+            )}
             {!canReview && user && user.id !== sellerId && (
               <p className="text-sm text-muted-foreground">
-                Purchase this product to leave a review
+                Only verified buyers of this product can leave a review. If you bought this as a
+                guest, sign in with the same email you used at checkout.
               </p>
             )}
           </div>

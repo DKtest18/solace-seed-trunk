@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { db } from '@/lib/dkaiDb';
 import { toast } from 'sonner';
-import { Trash2, Download, AlertTriangle, Loader2 } from 'lucide-react';
+import { Trash2, AlertTriangle, Loader2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,49 +24,9 @@ export function AccountDeletionSettings() {
   const { user, signOut } = useAuth();
   const [confirmText, setConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
 
-  const handleExportData = async () => {
-    if (!user) return;
-    setIsExporting(true);
-    try {
-      // Fetch all user data
-      const [profileRes, ordersRes, disputesRes] = await Promise.all([
-        db.from('dkai_profiles').select('*').eq('id', user.id).single(),
-        db.from('dkai_orders').select('*').eq('buyer_id', user.id),
-        db.from('dkai_disputes').select('*').eq('buyer_id', user.id),
-      ]);
 
-      const exportData = {
-        exportDate: new Date().toISOString(),
-        gdprArticle: 'Art. 20 DSGVO - Right to data portability',
-        user: {
-          id: user.id,
-          email: user.email,
-        },
-        profile: profileRes.data || null,
-        orders: ordersRes.data || [],
-        disputes: disputesRes.data || [],
-      };
 
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `dkai-marketplace-data-export-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toast.success('Your data has been exported successfully');
-    } catch (error) {
-      console.error('Data export error:', error);
-      toast.error('Failed to export data. Please try again.');
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
   const handleDeleteAccount = async () => {
     if (!user || confirmText !== 'DELETE') return;

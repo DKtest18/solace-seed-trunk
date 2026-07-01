@@ -29,6 +29,7 @@ type ProductRow = {
   reviewed_at: string | null;
   review_notes: string | null;
   created_at: string;
+  is_published: boolean | null;
 };
 
 type TabKey = 'submitted' | 'approved' | 'rejected';

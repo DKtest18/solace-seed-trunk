@@ -63,6 +63,12 @@ export default function SellerOnboardingChecklist() {
       return;
     }
 
+    // Invalidate & AWAIT the role refetch so guards see the fresh 'seller' role
+    // before we navigate. Prevents the "Seller Access Required" flash.
+    await queryClient.invalidateQueries({ queryKey: ['userRole', user.id] });
+    await queryClient.refetchQueries({ queryKey: ['userRole', user.id] });
+    await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress', user.id] });
+
     toast({ title: 'Success!', description: 'Your seller account is now active.' });
     navigate('/seller-dashboard');
   };

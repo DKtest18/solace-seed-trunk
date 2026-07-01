@@ -27,8 +27,11 @@ export default function Checkout() {
   const [couponCode, setCouponCode] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount_amount: number; new_total: number } | null>(null);
+  const [guestPolicyAccepted, setGuestPolicyAccepted] = useState(false);
 
-  const { hasAccepted: hasBuyerPolicyAccepted, isLoading: loadingPolicy, acceptPolicy, isAccepting } = useBuyerPolicy();
+  const { hasAccepted: hasBuyerPolicyAcceptedUser, isLoading: loadingPolicyUser, acceptPolicy, isAccepting } = useBuyerPolicy();
+  const hasBuyerPolicyAccepted = user ? hasBuyerPolicyAcceptedUser : guestPolicyAccepted;
+  const loadingPolicy = user ? loadingPolicyUser : false;
   const { feePct, sellerPct, launchPromoActive, promoBanner } = usePlatformFee();
   const productId = searchParams.get("productId");
 

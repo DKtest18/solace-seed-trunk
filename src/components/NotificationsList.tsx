@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,58 +9,65 @@ import { Loader2, Package, MessageSquare, DollarSign, Bell } from 'lucide-react'
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useNavigate } from 'react-router-dom';
 
+interface NotificationRow {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  link_url: string | null;
+  read_at: string | null;
+  created_at: string;
+}
+
 export function NotificationsList() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { markAsRead, markAllAsRead } = useRealtimeNotifications();
 
-  const { data: notifications, isLoading } = useQuery({
-    queryKey: ['notifications', user?.id],
+  const { data: notifications, isLoading, refetch } = useQuery({
+    queryKey: ['notifications-page', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('in_app_notifications')
+      const { data, error } = await db
+        .from('dkai_notifications')
         .select('*')
         .eq('user_id', user!.id)
         .order('created_at', { ascending: false })
         .limit(50);
-
       if (error) throw error;
-      return data;
+      return (data as NotificationRow[]) ?? [];
     },
     enabled: !!user,
+    refetchInterval: 30_000,
   });
 
   const getIcon = (type: string) => {
     switch (type) {
       case 'order':
+      case 'sale':
         return <Package className="w-4 h-4" />;
       case 'message':
+      case 'qa_question':
+      case 'qa_answer':
         return <MessageSquare className="w-4 h-4" />;
       case 'payout':
         return <DollarSign className="w-4 h-4" />;
-      case 'comment':
-      case 'reply':
-        return <MessageSquare className="w-4 h-4" />;
-      case 'mention':
-        return <Bell className="w-4 h-4 text-primary" />;
       default:
         return <Bell className="w-4 h-4" />;
     }
   };
 
-  const handleNotificationClick = async (notification: any) => {
-    if (!notification.is_read) {
-      await markAsRead(notification.id);
+  const handleClick = async (n: NotificationRow) => {
+    if (!n.read_at) await markAsRead(n.id);
+    if (n.link_url) {
+      if (n.link_url.startsWith('http')) window.location.href = n.link_url;
+      else navigate(n.link_url);
     }
+  };
 
-    // Navigate based on notification type
-    if (notification.type === 'order' && notification.reference_id) {
-      navigate(`/seller-dashboard`);
-    } else if (notification.type === 'message' && notification.reference_id) {
-      navigate(`/messages`);
-    } else if (notification.type === 'payout') {
-      navigate(`/balances`);
-    }
+  const handleMarkAll = async () => {
+    await markAllAsRead();
+    refetch();
   };
 
   if (isLoading) {
@@ -71,16 +78,16 @@ export function NotificationsList() {
     );
   }
 
-  const unreadNotifications = notifications?.filter(n => !n.is_read) || [];
+  const unread = (notifications ?? []).filter((n) => !n.read_at);
 
   return (
     <div className="space-y-4">
-      {unreadNotifications.length > 0 && (
+      {unread.length > 0 && (
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold">
-            {unreadNotifications.length} unread notification{unreadNotifications.length !== 1 ? 's' : ''}
+            {unread.length} unread notification{unread.length !== 1 ? 's' : ''}
           </p>
-          <Button variant="ghost" size="sm" onClick={markAllAsRead}>
+          <Button variant="ghost" size="sm" onClick={handleMarkAll}>
             Mark all as read
           </Button>
         </div>
@@ -89,29 +96,31 @@ export function NotificationsList() {
       <ScrollArea className="h-[500px]">
         <div className="space-y-2">
           {notifications && notifications.length > 0 ? (
-            notifications.map((notification) => (
+            notifications.map((n) => (
               <Card
-                key={notification.id}
+                key={n.id}
                 className={`cursor-pointer hover:bg-accent transition-colors ${
-                  !notification.is_read ? 'border-primary/50 bg-primary/5' : ''
+                  !n.read_at ? 'border-primary/50 bg-primary/5' : ''
                 }`}
-                onClick={() => handleNotificationClick(notification)}
+                onClick={() => handleClick(n)}
               >
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
-                    <div className={`mt-1 ${!notification.is_read ? 'text-primary' : 'text-muted-foreground'}`}>
-                      {getIcon(notification.type)}
+                    <div className={`mt-1 ${!n.read_at ? 'text-primary' : 'text-muted-foreground'}`}>
+                      {getIcon(n.type)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <p className="font-semibold text-sm">{notification.title}</p>
-                        {!notification.is_read && (
+                        <p className="font-semibold text-sm">{n.title}</p>
+                        {!n.read_at && (
                           <Badge variant="default" className="shrink-0 h-2 w-2 rounded-full p-0" />
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
+                      {n.body && (
+                        <p className="text-sm text-muted-foreground mt-1">{n.body}</p>
+                      )}
                       <p className="text-xs text-muted-foreground mt-2">
-                        {new Date(notification.created_at).toLocaleString()}
+                        {new Date(n.created_at).toLocaleString()}
                       </p>
                     </div>
                   </div>

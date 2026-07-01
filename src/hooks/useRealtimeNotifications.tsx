@@ -4,6 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+/**
+ * Subscribes to the canonical dkai_notifications table (same source as the
+ * NotificationBell) so unread counts stay consistent everywhere.
+ */
 export function useRealtimeNotifications() {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -11,37 +15,29 @@ export function useRealtimeNotifications() {
   useEffect(() => {
     if (!user) return;
 
-    // Load initial unread count
     const loadUnreadCount = async () => {
       const { count } = await db
-        .from('dkai_in_app_notifications')
+        .from('dkai_notifications')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .eq('is_read', false);
-
+        .is('read_at', null);
       setUnreadCount(count || 0);
     };
-
     loadUnreadCount();
 
-    // Subscribe to new notifications
     const channel = supabase
-      .channel('user-notifications')
+      .channel(`user-notifications:${user.id}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'dkai_in_app_notifications',
+          table: 'dkai_notifications',
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          const notification = payload.new as any;
-          
-          toast.info(notification.title, {
-            description: notification.message,
-          });
-
+          const n = payload.new as any;
+          toast(n.title, { description: n.body ?? undefined });
           setUnreadCount((prev) => prev + 1);
         }
       )
@@ -54,32 +50,21 @@ export function useRealtimeNotifications() {
 
   const markAsRead = async (notificationId: string) => {
     const { error } = await db
-      .from('dkai_in_app_notifications')
-      .update({ is_read: true })
+      .from('dkai_notifications')
+      .update({ read_at: new Date().toISOString() })
       .eq('id', notificationId);
-
-    if (!error) {
-      setUnreadCount((prev) => Math.max(0, prev - 1));
-    }
+    if (!error) setUnreadCount((prev) => Math.max(0, prev - 1));
   };
 
   const markAllAsRead = async () => {
     if (!user) return;
-
     const { error } = await db
-      .from('dkai_in_app_notifications')
-      .update({ is_read: true })
+      .from('dkai_notifications')
+      .update({ read_at: new Date().toISOString() })
       .eq('user_id', user.id)
-      .eq('is_read', false);
-
-    if (!error) {
-      setUnreadCount(0);
-    }
+      .is('read_at', null);
+    if (!error) setUnreadCount(0);
   };
 
-  return {
-    unreadCount,
-    markAsRead,
-    markAllAsRead,
-  };
+  return { unreadCount, markAsRead, markAllAsRead };
 }

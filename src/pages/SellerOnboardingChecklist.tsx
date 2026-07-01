@@ -9,11 +9,13 @@ import { CheckCircle2, XCircle, Loader2, ChevronRight, Sparkles } from 'lucide-r
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function SellerOnboardingChecklist() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: onboarding, isLoading } = useSellerOnboardingProgress();
 
   if (!user) {
@@ -60,6 +62,12 @@ export default function SellerOnboardingChecklist() {
       });
       return;
     }
+
+    // Invalidate & AWAIT the role refetch so guards see the fresh 'seller' role
+    // before we navigate. Prevents the "Seller Access Required" flash.
+    await queryClient.invalidateQueries({ queryKey: ['userRole', user.id] });
+    await queryClient.refetchQueries({ queryKey: ['userRole', user.id] });
+    await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress', user.id] });
 
     toast({ title: 'Success!', description: 'Your seller account is now active.' });
     navigate('/seller-dashboard');

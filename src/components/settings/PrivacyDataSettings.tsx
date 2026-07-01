@@ -148,17 +148,12 @@ export function PrivacyDataSettings() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base"><Download className="h-5 w-5 text-primary" /> Download my data</CardTitle>
-          <CardDescription>Right to data portability (GDPR Art. 20 / revDSG Art. 28). Includes profile, products, orders, messages, reviews, custom orders, and waitlist entry as a ZIP of JSON files.</CardDescription>
+          <CardDescription>Right to data portability (GDPR Art. 20 / revDSG Art. 28). Includes profile, products, orders, messages, reviews, notifications, and seller application as a JSON file.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <Button onClick={handleExport} disabled={isExporting} variant="outline">
             {isExporting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Preparing…</> : <><Download className="mr-2 h-4 w-4" /> Download all my data</>}
           </Button>
-          {downloadUrl && (
-            <p className="text-sm">
-              Ready: <a href={downloadUrl} className="text-primary underline" target="_blank" rel="noreferrer">Download ZIP</a> (link valid 7 days, also sent to your email).
-            </p>
-          )}
         </CardContent>
       </Card>
 
@@ -178,21 +173,21 @@ export function PrivacyDataSettings() {
                 <DialogTitle>Data we hold about you</DialogTitle>
                 <DialogDescription>Summary by category.</DialogDescription>
               </DialogHeader>
-              {!accessSummary ? <Loader2 className="h-5 w-5 animate-spin" /> : (
+              {loadingSummary || !accessSummary ? <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading…</div> : (
                 <div className="space-y-4 text-sm max-h-[60vh] overflow-y-auto">
-                  {Object.entries(accessSummary).filter(([k]) => k !== 'last_updated').map(([cat, v]) => (
+                  {Object.entries(accessSummary).filter(([k]) => k !== 'last_updated' && k !== 'generated_at').map(([cat, v]) => (
                     <div key={cat}>
-                      <h4 className="font-semibold capitalize mb-1">{cat}</h4>
+                      <h4 className="font-semibold capitalize mb-1">{String(cat).replace(/_/g, ' ')}</h4>
                       <pre className="bg-muted p-3 rounded text-xs overflow-x-auto">{JSON.stringify(v, null, 2)}</pre>
                     </div>
                   ))}
-                  <p className="text-xs text-muted-foreground">Last updated: {new Date(accessSummary.last_updated).toLocaleString()}</p>
                 </div>
               )}
             </DialogContent>
           </Dialog>
         </CardContent>
       </Card>
+
 
       {/* 4. Update */}
       <Card>
@@ -209,14 +204,16 @@ export function PrivacyDataSettings() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base"><Cookie className="h-5 w-5 text-primary" /> Withdraw consent</CardTitle>
-          <CardDescription>Manage cookie and communication preferences (GDPR Art. 7(3)).</CardDescription>
+          <CardDescription>Manage cookie preferences (GDPR Art. 7(3)).</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
+        <CardContent className="flex flex-wrap gap-2 items-center">
           <Button asChild variant="outline" size="sm"><Link to="/cookie-settings">Cookie preferences</Link></Button>
-          <Button asChild variant="outline" size="sm"><Link to="/settings?tab=privacy">Email preferences</Link></Button>
-          <span className="text-xs text-muted-foreground self-center">To withdraw all data-processing consent, delete your account below.</span>
+          <p className="text-xs text-muted-foreground">
+            We only send transactional emails related to your account and orders. To withdraw all data-processing consent, delete your account below.
+          </p>
         </CardContent>
       </Card>
+
 
       {/* 6. Contact DPO */}
       <Card>

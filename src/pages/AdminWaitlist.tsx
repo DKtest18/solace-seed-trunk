@@ -50,6 +50,8 @@ function AdminProductQueueContent() {
   const [approveTarget, setApproveTarget] = useState<ProductRow | null>(null);
   const [declineTarget, setDeclineTarget] = useState<ProductRow | null>(null);
   const [declineReason, setDeclineReason] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<ProductRow | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ['admin-product-queue', tab],

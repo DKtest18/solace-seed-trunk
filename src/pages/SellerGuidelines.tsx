@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
-import { ShieldCheck, Zap, Lock, HardDrive } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ShieldCheck, Zap, Lock, HardDrive, ArrowLeft } from 'lucide-react';
 
 const LAST_UPDATED = 'June 2, 2026';
 
@@ -19,6 +20,9 @@ export default function SellerGuidelines() {
   return (
     <div className="min-h-screen bg-background py-12 px-6">
       <article className="max-w-3xl mx-auto">
+        <Button variant="ghost" asChild className="mb-4">
+          <Link to="/"><ArrowLeft className="w-4 h-4 mr-2" />Back</Link>
+        </Button>
         <header className="mb-10">
           <p className="text-sm font-medium text-primary mb-2">For Sellers</p>
           <h1 className="text-4xl font-display font-semibold text-foreground mb-3">

@@ -1,11 +1,14 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Printer } from "lucide-react";
+import { Printer, ArrowLeft } from "lucide-react";
 
 export default function CookiePolicy() {
   const today = new Date().toLocaleDateString();
   return (
     <main className="max-w-3xl mx-auto py-12 px-6">
+      <Button variant="ghost" asChild className="mb-4">
+        <Link to="/"><ArrowLeft className="w-4 h-4 mr-2" />Back</Link>
+      </Button>
       <div className="flex items-center justify-between mb-2">
         <h1 className="font-display text-4xl font-semibold">Cookie-Richtlinie / Cookie Policy</h1>
         <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">

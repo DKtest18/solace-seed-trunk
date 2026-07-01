@@ -1,6 +1,7 @@
-import { Printer } from "lucide-react";
+import { Printer, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const LAST_UPDATED = "25. Mai 2026";
 
@@ -29,6 +30,9 @@ const Privacy = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto py-12 px-6">
+        <Button variant="ghost" asChild className="mb-4">
+          <Link to="/"><ArrowLeft className="w-4 h-4 mr-2" />Back</Link>
+        </Button>
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-8">
           <article className="max-w-3xl">
             <h1 className="font-display text-4xl font-semibold mb-2">Privacy Policy</h1>

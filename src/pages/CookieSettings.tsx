@@ -9,6 +9,7 @@ import {
   savePreferences,
 } from "@/components/CookieBanner";
 import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 const DEFAULTS: CookiePreferences = {
   necessary: true,
@@ -38,6 +39,9 @@ export default function CookieSettings() {
 
   return (
     <main className="max-w-3xl mx-auto py-12 px-6">
+      <Button variant="ghost" asChild className="mb-4">
+        <Link to="/"><ArrowLeft className="w-4 h-4 mr-2" />Back</Link>
+      </Button>
       <h1 className="font-display text-4xl font-semibold mb-2">Cookie settings</h1>
       <p className="text-muted-foreground mb-8">
         Manage how DK AI Marketplace uses cookies on your device. See our{" "}

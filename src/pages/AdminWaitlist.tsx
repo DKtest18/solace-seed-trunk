@@ -136,6 +136,36 @@ function AdminProductQueueContent() {
     onError: (e: any) => toast.error(e.message || 'Failed to decline'),
   });
 
+  const togglePublishMutation = useMutation({
+    mutationFn: async (args: { product_id: string; is_published: boolean }) => {
+      const { error } = await db
+        .from('dkai_products')
+        .update({ is_published: args.is_published })
+        .eq('id', args.product_id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      toast.success(vars.is_published ? 'Product reactivated' : 'Product deactivated');
+      queryClient.invalidateQueries({ queryKey: ['admin-product-queue'] });
+    },
+    onError: (e: any) => toast.error(e.message || 'Failed to update product'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (product_id: string) => {
+      const { error } = await db.from('dkai_products').delete().eq('id', product_id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Product deleted');
+      setDeleteTarget(null);
+      setDeleteConfirm('');
+      queryClient.invalidateQueries({ queryKey: ['admin-product-queue'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-product-queue-counts'] });
+    },
+    onError: (e: any) => toast.error(e.message || 'Failed to delete product'),
+  });
+
   const fmtDate = (d: string | null) => {
     if (!d) return '—';
     try { return format(new Date(d), 'PP'); } catch { return d; }

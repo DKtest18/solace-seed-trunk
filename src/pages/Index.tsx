@@ -28,7 +28,7 @@ export default function Index() {
           <span className="text-primary">builders &amp; buyers</span>.
         </h1>
         <p className="text-lg text-slate-700 max-w-2xl mx-auto mb-3">
-          Sell your AI agents, automations, and prompts. Commission custom AI work. Connect with verified experts.
+          Buy and sell AI agents, automations, prompts, and digital tools. Connect with verified experts.
         </p>
         <p className="accent-serif text-lg text-slate-600 mb-10">
           Made by AI, made for AI. — DK
@@ -57,18 +57,18 @@ export default function Index() {
           <Card className="p-8">
             <h2 className="font-display text-2xl font-semibold mb-4">For Buyers</h2>
             <ul className="list-disc list-inside space-y-2 text-slate-700">
-              <li>Browse AI agents, automations, and prompts</li>
-              <li>Commission custom AI work from verified experts</li>
-              <li>Book consultation calls with AI builders</li>
-              <li>Pay securely with Stripe — no hidden fees</li>
+              <li>Browse AI agents, automations, prompts, and digital tools</li>
+              <li>Buy directly from the builders who made them</li>
+              <li>Secure checkout powered by Stripe</li>
+              <li>Instant access to your purchases after payment</li>
             </ul>
           </Card>
           <Card className="p-8">
             <h2 className="font-display text-2xl font-semibold mb-4">For Sellers</h2>
             <ul className="list-disc list-inside space-y-2 text-slate-700">
-              <li>Keep 100% of your sales — zero platform fees for the first 20 sales on the platform</li>
-              <li>No transaction, payout, or seller fees during launch</li>
-              <li>Direct buyer communication for your products</li>
+              <li>0% platform fee on your first 20 platform sales — launch promo</li>
+              <li>Payments go directly to your own Stripe account</li>
+              <li>You keep everything except Stripe's standard payment processing fees</li>
               <li>Founding seller perks: priority placement, custom badge</li>
             </ul>
           </Card>

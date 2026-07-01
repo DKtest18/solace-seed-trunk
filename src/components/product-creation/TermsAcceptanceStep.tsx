@@ -119,15 +119,14 @@ export function TermsAcceptanceStep({ data, onChange, errors }: TermsAcceptanceS
               You must accept the terms to publish your product. By checking this box, you agree to:
             </p>
             <ul className="text-xs text-muted-foreground list-disc list-inside space-y-1 ml-4">
-              <li>Platform holds all sale proceeds on Stripe until buyer confirms delivery</li>
-              <li>Money is only released after the return window has fully expired</li>
-              <li>{feePct}% platform fee on all sales ({sellerPct}% to seller via Stripe Connect)</li>
+              <li>Payments are processed by Stripe and go directly to your Stripe account</li>
+              <li>Platform fee: 0% during the launch promo (first 20 platform sales), {feePct}% after</li>
+              <li>Stripe's standard payment processing fees apply and are borne by you as the seller</li>
               <li>Buyers have a <strong>minimum 24-hour return window</strong> — this cannot be waived</li>
-              <li>If buyer returns within the window, they receive 100% refund to original payment method</li>
+              <li>If a buyer returns within the window, they receive a full refund of the purchase price to their original payment method (issued via Stripe)</li>
               <li>You cannot refuse to deliver a purchased product — the product must match the listing</li>
               <li>No malware, illegal, infringing, sexual, or otherwise prohibited content</li>
               <li>DK AI Marketplace may open and inspect your uploaded files to enforce these rules</li>
-              <li>You must plan ahead: no payouts until return window expires, even if you have costs</li>
             </ul>
           </div>
         </div>

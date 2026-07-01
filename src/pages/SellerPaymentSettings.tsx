@@ -232,8 +232,7 @@ export default function SellerPaymentSettings() {
         <Alert className="mb-6">
           <Shield className="h-4 w-4" />
           <AlertDescription>
-            We use Stripe Connect to process payments securely. Your bank details are stored only on Stripe, not on our servers.
-            {sellerPct}% of each sale goes directly to your Stripe account, {feePct}% is the platform fee.
+            Payments are processed by Stripe and go directly to your Stripe account. Platform fee: 0% during the launch promo (first 20 platform sales), otherwise {feePct}%. Stripe's standard payment processing fees apply and are borne by you as the seller.
           </AlertDescription>
         </Alert>
 
@@ -477,7 +476,7 @@ export default function SellerPaymentSettings() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">3</div>
                 <div>
                   <p className="font-medium">Receive payments automatically</p>
-                  <p className="text-sm text-muted-foreground">{sellerPct}% goes directly to your bank, {feePct}% platform fee</p>
+                  <p className="text-sm text-muted-foreground">Payouts go directly to your Stripe account. Platform fee: 0% during launch promo, {feePct}% after. Stripe's standard processing fees apply and are borne by you.</p>
                 </div>
               </div>
             </div>

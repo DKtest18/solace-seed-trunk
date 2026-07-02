@@ -97,25 +97,11 @@ export default function AdminRefundDisputes() {
       const { error: orderUpdateError } = await db
         .from('dkai_orders')
         .update({
-          status: 'refunded',
-          escrow_status: 'refunded'
+          status: 'refunded'
         })
         .eq('id', orderId);
 
       if (orderUpdateError) throw orderUpdateError;
-
-      // Create refund transaction
-      const { error: refundError } = await db
-        .from('dkai_escrow_transactions')
-        .insert({
-          order_id: orderId,
-          amount: order.held_amount,
-          type: 'refund',
-          performed_by: user?.id,
-          metadata: { dispute_id: disputeId, approved_by: user?.id }
-        });
-
-      if (refundError) throw refundError;
 
       // Notify buyer
       await db.from('dkai_in_app_notifications').insert({

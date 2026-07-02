@@ -16,11 +16,11 @@ import { formatDistanceToNow, format } from 'date-fns';
 interface Order {
   id: string;
   status: string;
-  escrow_status: string;
   price: number;
   buyer_confirmed_at: string | null;
   auto_confirm_deadline: string | null;
   refund_deadline: string | null;
+  seller_marked_delivered_at?: string | null;
   products: { title: string };
 }
 
@@ -81,8 +81,8 @@ export function BuyerOrderConfirmation({ order, onConfirmed }: BuyerOrderConfirm
     );
   }
 
-  // Escrow not held (waiting for payment)
-  if (order.escrow_status !== 'held' && order.escrow_status !== 'delivered') {
+  // Payment not yet received
+  if (!['paid', 'completed', 'delivered', 'awaiting_buyer_confirmation'].includes(order.status)) {
     return (
       <Card className="border-yellow-500/30 bg-yellow-500/5">
         <CardContent className="py-4">

@@ -22,25 +22,19 @@ export default function Disputes() {
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
 
-  // Fetch user's purchases for creating disputes
+  // Fetch user's orders eligible for a dispute
   const { data: purchases } = useQuery({
-    queryKey: ['user-purchases', user?.id],
+    queryKey: ['user-orders-for-dispute', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('purchases')
-        .select(`
-          *,
-          products (
-            id,
-            title
-          )
-        `)
+      const { data, error } = await (supabase as any)
+        .from('dkai_orders')
+        .select('id, seller_id, product_id, status, created_at, dkai_products:product_id (id, title)')
         .eq('buyer_id', user?.id)
-        .eq('status', 'completed')
+        .in('status', ['paid', 'completed', 'delivered'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return (data || []).map((o: any) => ({ ...o, products: o.dkai_products }));
     },
     enabled: !!user,
   });
@@ -49,28 +43,28 @@ export default function Disputes() {
   const { data: disputes, isLoading } = useQuery({
     queryKey: ['disputes', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('disputes')
-        .select(`
-          *,
-          products (
-            id,
-            title
-          ),
-          buyer:profiles!disputes_buyer_id_fkey (
-            full_name,
-            creator_name
-          ),
-          seller:profiles!disputes_seller_id_fkey (
-            full_name,
-            creator_name
-          )
-        `)
+      const { data, error } = await (supabase as any)
+        .from('dkai_disputes')
+        .select('*, dkai_products:product_id (id, title)')
         .or(`buyer_id.eq.${user?.id},seller_id.eq.${user?.id}`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+
+      const rows = (data || []).map((d: any) => ({ ...d, products: d.dkai_products }));
+      const userIds = Array.from(new Set(rows.flatMap((d: any) => [d.buyer_id, d.seller_id]).filter(Boolean)));
+      if (userIds.length) {
+        const { data: profs } = await (supabase as any)
+          .from('dkai_profiles')
+          .select('id, full_name, creator_name')
+          .in('id', userIds);
+        const m = new Map((profs || []).map((p: any) => [p.id, p]));
+        rows.forEach((d: any) => {
+          d.buyer = m.get(d.buyer_id);
+          d.seller = m.get(d.seller_id);
+        });
+      }
+      return rows;
     },
     enabled: !!user,
   });
@@ -105,18 +99,21 @@ export default function Disputes() {
         throw new Error(`Description validation failed: ${descCheck.reason}`);
       }
 
-      const purchase = purchases?.find(p => p.id === selectedPurchase);
-      if (!purchase) throw new Error('Purchase not found');
+      const purchase = purchases?.find((p: any) => p.id === selectedPurchase);
+      if (!purchase) throw new Error('Order not found');
 
-      const { error } = await supabase
-        .from('disputes')
+      const { error } = await (supabase as any)
+        .from('dkai_disputes')
         .insert({
-          purchase_id: selectedPurchase,
+          order_id: selectedPurchase,
           buyer_id: user?.id,
           seller_id: purchase.seller_id,
           product_id: purchase.product_id,
           subject: subject.trim(),
           description: description.trim(),
+          reason: subject.trim(),
+          type: 'general',
+          status: 'open',
         });
 
       if (error) throw error;

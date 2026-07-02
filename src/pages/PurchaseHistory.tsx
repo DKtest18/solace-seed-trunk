@@ -80,22 +80,8 @@ export default function PurchaseHistory() {
     }
   });
 
-  const requestRefund = useMutation({
-    mutationFn: async ({ orderId, reason }: { orderId: string; reason: string }) => {
-      const { data, error } = await db.functions.invoke('request-refund', {
-        body: { orderId, reason }
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['buyer-orders'] });
-      toast.success('Refund requested. An admin will review your request.');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to request refund');
-    }
-  });
+  // Legacy request-refund flow retired — buyers now use /refund-request/:orderId (see Part 5).
+
 
   const downloadProduct = async (productId: string, orderId: string) => {
     try {
@@ -263,21 +249,20 @@ export default function PurchaseHistory() {
                             </div>
                           )}
 
-                          {/* Escrow Status & Actions */}
-                          {order.escrow_status === 'delivered' && order.refund_deadline && (
-                            <Alert className="mb-4">
-                              <Clock className="h-4 w-4" />
-                              <AlertDescription>
-                                {new Date(order.refund_deadline) > new Date() ? (
-                                  <>
-                                    Refund window: {differenceInHours(new Date(order.refund_deadline), new Date())} hours remaining
-                                  </>
-                                ) : (
-                                  'Refund window has closed'
-                                )}
-                              </AlertDescription>
-                            </Alert>
-                          )}
+                          {/* Refund window notice (14 days from purchase) */}
+                          {(() => {
+                            const created = new Date(order.created_at);
+                            const deadline = new Date(created.getTime() + 14 * 24 * 60 * 60 * 1000);
+                            if (deadline < new Date()) return null;
+                            return (
+                              <Alert className="mb-4">
+                                <Clock className="h-4 w-4" />
+                                <AlertDescription>
+                                  Refund window: {differenceInHours(deadline, new Date())} hours remaining
+                                </AlertDescription>
+                              </Alert>
+                            );
+                          })()}
                           
                           <div className="flex flex-wrap gap-2">
                             <Button asChild variant="default">
@@ -287,9 +272,8 @@ export default function PurchaseHistory() {
                               </Link>
                             </Button>
 
-                            {/* Download button — INSTANT delivery (tier1) is available immediately once paid */}
-                            {(order.delivery_tier === 'tier1' || order.products?.delivery_mode === 'instant_download') &&
-                             ['paid', 'completed', 'delivered'].includes(order.status) && (
+                            {/* Download button — available once order is paid/completed */}
+                            {['paid', 'completed', 'delivered'].includes(order.status) && (
                               <Button
                                 variant="outline"
                                 onClick={() => downloadProduct(order.products.id, order.id)}
@@ -299,23 +283,10 @@ export default function PurchaseHistory() {
                               </Button>
                             )}
 
-                            {/* Download for non-instant tiers after escrow release */}
+                            {/* Confirm Receipt — for non-instant deliveries where seller marked delivered */}
                             {order.delivery_tier !== 'tier1' &&
                              order.products?.delivery_mode !== 'instant_download' &&
-                             order.escrow_status === 'released' && (
-                              <Button
-                                variant="outline"
-                                onClick={() => downloadProduct(order.products.id, order.id)}
-                              >
-                                <Download className="w-4 h-4 mr-2" />
-                                Download
-                              </Button>
-                            )}
-
-                            {/* Confirm Receipt — NOT for tier1 instant (auto-released on payment) */}
-                            {order.delivery_tier !== 'tier1' &&
-                             order.products?.delivery_mode !== 'instant_download' &&
-                             (order.escrow_status === 'held' || order.seller_marked_delivered_at) &&
+                             order.seller_marked_delivered_at &&
                              !order.buyer_confirmed_at && (
                               <Button
                                 variant="default"
@@ -350,7 +321,7 @@ export default function PurchaseHistory() {
                           </div>
 
                           {/* Secure delivery file downloads (post-purchase) */}
-                          {order.products?.id && (['paid', 'completed', 'delivered'].includes(order.status) || ['held', 'delivered', 'released'].includes(order.escrow_status)) && (
+                          {order.products?.id && ['paid', 'completed', 'delivered'].includes(order.status) && (
                             <div className="mt-6 pt-6 border-t">
                               <BuyerProductDownloads productId={order.products.id} />
                             </div>

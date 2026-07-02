@@ -171,7 +171,6 @@ export default function SellerOrders() {
                           <TableHead>Product</TableHead>
                           <TableHead>Buyer</TableHead>
                           <TableHead>Amount</TableHead>
-                          <TableHead>Escrow</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Date</TableHead>
                           <TableHead>Actions</TableHead>
@@ -205,11 +204,6 @@ export default function SellerOrders() {
                               </TableCell>
                               <TableCell className="font-semibold">
                                 ${Number(order.price).toFixed(2)}
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant={order.escrow_status === 'held' ? 'secondary' : order.escrow_status === 'released' ? 'default' : 'outline'}>
-                                  {order.escrow_status || 'pending'}
-                                </Badge>
                               </TableCell>
                               <TableCell>
                                 <Badge
@@ -263,9 +257,9 @@ export default function SellerOrders() {
                                       Mark Delivered
                                     </Button>
                                   )}
-                                  {/* Nudge buyer button - shown when awaiting confirmation or escrow held/delivered */}
-                                  {(order.status === 'awaiting_buyer_confirmation' || 
-                                    (order.seller_marked_delivered_at && !order.buyer_confirmed_at && order.escrow_status !== 'released')) && (
+                                  {/* Nudge buyer button - shown when awaiting confirmation */}
+                                  {(order.status === 'awaiting_buyer_confirmation' ||
+                                    (order.seller_marked_delivered_at && !order.buyer_confirmed_at)) && (
                                     <Button
                                       variant="outline"
                                       size="sm"

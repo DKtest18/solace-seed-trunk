@@ -109,7 +109,8 @@ export default function CreateProduct() {
     iban: '',
     iban_later: false,
     faqs: [] as Array<{ question: string; answer: string }>,
-    delivery_mode: 'via_message' as string,
+    delivery_mode: 'instant' as string,
+    delivery_time_hours: null as number | null,
     seller_accepted_terms: false,
     return_allowed: false,
     return_window_days: 1,
@@ -174,6 +175,7 @@ export default function CreateProduct() {
             payment_methods: data.payment_methods ?? prev.payment_methods,
             faqs: data.faqs ?? [],
             delivery_mode: data.delivery_mode ?? prev.delivery_mode,
+            delivery_time_hours: data.delivery_time_hours ?? prev.delivery_time_hours,
             seller_accepted_terms: !!data.seller_accepted_terms,
             return_allowed: !!data.return_allowed,
             return_window_days: data.return_window_days ?? 1,
@@ -230,6 +232,7 @@ export default function CreateProduct() {
     payment_methods: formData.payment_methods,
     faqs: formData.faqs,
     delivery_mode: formData.delivery_mode,
+    delivery_time_hours: formData.delivery_mode === 'manual' ? (formData.delivery_time_hours ?? 24) : null,
     file_storage_key: uploadedFile?.path || null,
     file_size_bytes: uploadedFile?.size || null,
     file_scan_status: uploadedFile?.scanStatus || null,
@@ -357,7 +360,21 @@ export default function CreateProduct() {
         break;
 
       case 8:
-        // Delivery files - optional
+        if (formData.delivery_mode !== 'instant' && formData.delivery_mode !== 'manual') {
+          newErrors.deliveryModeError = 'Choose Instant download or Manual delivery';
+        }
+        if (formData.delivery_mode === 'instant' && deliveryFiles.length === 0 && !uploadedFile) {
+          newErrors.deliveryFilesError = 'Instant download requires at least one uploaded file';
+        }
+        if (formData.delivery_mode === 'manual') {
+          const h = formData.delivery_time_hours ?? 0;
+          if (![12, 24, 48].includes(h)) {
+            newErrors.deliveryModeError = 'Pick 12, 24, or 48 hours (max 48h)';
+          }
+        }
+        if (formData.available_quantity && (parseInt(formData.available_quantity) < 1 || isNaN(parseInt(formData.available_quantity)))) {
+          newErrors.deliveryFilesError = 'Available quantity must be a positive integer or empty';
+        }
         break;
 
       case 9:
@@ -736,6 +753,12 @@ export default function CreateProduct() {
               )}
               {currentStep === 8 && (
                 <DeliveryFilesStep
+                  data={{
+                    delivery_mode: formData.delivery_mode,
+                    delivery_time_hours: formData.delivery_time_hours,
+                    available_quantity: formData.available_quantity,
+                  }}
+                  onChange={handleChange}
                   deliveryFiles={deliveryFiles}
                   onAddFile={(df) => setDeliveryFiles([...deliveryFiles, df])}
                   onRemoveFile={(index) => setDeliveryFiles(deliveryFiles.filter((_, i) => i !== index))}

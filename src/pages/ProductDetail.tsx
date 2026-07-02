@@ -266,14 +266,21 @@ export default function ProductDetail() {
                 </p>
               )}
 
-              <div className="pt-4 flex flex-wrap gap-3">
-                <Button size="lg" className="flex-1 sm:flex-initial" onClick={handlePurchase}>
-                  Buy Now
-                </Button>
-                <Button size="lg" variant="outline" onClick={() => user ? setReportOpen(true) : navigate('/login')} className="gap-2">
-                  <Flag className="h-4 w-4" /> Report
-                </Button>
-              </div>
+              {(() => {
+                const qty = (product as any)?.available_quantity;
+                const sold = (product as any)?.quantity_sold ?? 0;
+                const soldOut = qty != null && sold >= qty;
+                return (
+                  <div className="pt-4 flex flex-wrap gap-3">
+                    <Button size="lg" className="flex-1 sm:flex-initial" onClick={handlePurchase} disabled={soldOut}>
+                      {soldOut ? 'Sold out' : 'Buy Now'}
+                    </Button>
+                    <Button size="lg" variant="outline" onClick={() => user ? setReportOpen(true) : navigate('/login')} className="gap-2">
+                      <Flag className="h-4 w-4" /> Report
+                    </Button>
+                  </div>
+                );
+              })()}
 
               {product?.id && (
                 <ReportDialog

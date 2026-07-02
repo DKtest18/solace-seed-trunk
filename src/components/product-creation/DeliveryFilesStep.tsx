@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, File, X, AlertCircle, Info, BookOpen, FileText, CheckSquare } from 'lucide-react';
+import { Upload, File, X, AlertCircle, Info, BookOpen, FileText, CheckSquare, Zap, Mail } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 interface DeliveryFile {
@@ -11,31 +12,19 @@ interface DeliveryFile {
 }
 
 interface DeliveryFilesStepProps {
+  data: {
+    delivery_mode: string;
+    delivery_time_hours: number | null;
+    available_quantity: string;
+  };
+  onChange: (field: string, value: any) => void;
   deliveryFiles: DeliveryFile[];
   onAddFile: (file: DeliveryFile) => void;
   onRemoveFile: (index: number) => void;
   errors: Record<string, string>;
 }
 
-const ALLOWED_TYPES = [
-  'application/pdf',
-  'application/zip',
-  'application/x-zip-compressed',
-  'application/json',
-  'text/plain',
-  'text/markdown',
-  'text/csv',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'image/png',
-  'image/jpeg',
-  'image/webp',
-  'video/mp4',
-  'video/webm',
-];
-
-const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB per file
+const MAX_FILE_SIZE = 100 * 1024 * 1024;
 const MAX_FILES = 10;
 
 const SUGGESTED_FILES = [
@@ -45,9 +34,13 @@ const SUGGESTED_FILES = [
   { icon: File, label: 'Configuration Templates', description: 'Pre-configured settings files, .env examples, etc.' },
 ];
 
-export function DeliveryFilesStep({ deliveryFiles, onAddFile, onRemoveFile, errors }: DeliveryFilesStepProps) {
+export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, onRemoveFile, errors }: DeliveryFilesStepProps) {
   const { feePct, sellerPct } = usePlatformFee();
   const [dragActive, setDragActive] = useState(false);
+
+  const mode = data.delivery_mode === 'instant' || data.delivery_mode === 'manual'
+    ? data.delivery_mode
+    : 'instant';
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -60,15 +53,11 @@ export function DeliveryFilesStep({ deliveryFiles, onAddFile, onRemoveFile, erro
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    if (e.dataTransfer.files) {
-      Array.from(e.dataTransfer.files).forEach(processFile);
-    }
+    if (e.dataTransfer.files) Array.from(e.dataTransfer.files).forEach(processFile);
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      Array.from(e.target.files).forEach(processFile);
-    }
+    if (e.target.files) Array.from(e.target.files).forEach(processFile);
     e.target.value = '';
   };
 
@@ -87,17 +76,114 @@ export function DeliveryFilesStep({ deliveryFiles, onAddFile, onRemoveFile, erro
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-2">Delivery Files & Documentation</h3>
+        <h3 className="text-lg font-semibold mb-2">Delivery & Inventory</h3>
         <p className="text-sm text-muted-foreground">
-          Upload all files the buyer needs: tutorials, checklists, workflow files, configuration templates, etc.
+          Choose how the buyer receives your product, upload the files, and (optionally) cap available inventory.
         </p>
       </div>
 
-      {/* Advice Alert */}
+      {/* Delivery Mode */}
+      <div>
+        <Label className="mb-2 block">How will you deliver this product?</Label>
+        <RadioGroup
+          value={mode}
+          onValueChange={(v) => {
+            onChange('delivery_mode', v);
+            if (v === 'instant') onChange('delivery_time_hours', null);
+            else if (!data.delivery_time_hours) onChange('delivery_time_hours', 24);
+          }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-3"
+        >
+          <label
+            htmlFor="mode-instant"
+            className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${
+              mode === 'instant' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+            }`}
+          >
+            <RadioGroupItem value="instant" id="mode-instant" className="mt-1" />
+            <div>
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary" />
+                <span className="font-medium">Instant download</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Buyer receives access immediately after payment via short-lived signed URLs. Requires ≥ 1 uploaded file.
+              </p>
+            </div>
+          </label>
+
+          <label
+            htmlFor="mode-manual"
+            className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${
+              mode === 'manual' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+            }`}
+          >
+            <RadioGroupItem value="manual" id="mode-manual" className="mt-1" />
+            <div>
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-primary" />
+                <span className="font-medium">Manual delivery by seller</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                You deliver to the buyer's email within your chosen window. File upload optional.
+              </p>
+            </div>
+          </label>
+        </RadioGroup>
+        {errors.deliveryModeError && (
+          <p className="text-xs text-destructive mt-2">{errors.deliveryModeError}</p>
+        )}
+      </div>
+
+      {/* Manual delivery time */}
+      {mode === 'manual' && (
+        <div>
+          <Label className="mb-2 block">Estimated delivery time (max 48 hours)</Label>
+          <RadioGroup
+            value={String(data.delivery_time_hours ?? 24)}
+            onValueChange={(v) => onChange('delivery_time_hours', parseInt(v))}
+            className="grid grid-cols-3 gap-3"
+          >
+            {[12, 24, 48].map((h) => (
+              <label
+                key={h}
+                htmlFor={`hrs-${h}`}
+                className={`flex items-center justify-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
+                  (data.delivery_time_hours ?? 24) === h ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+                }`}
+              >
+                <RadioGroupItem value={String(h)} id={`hrs-${h}`} />
+                <span className="text-sm font-medium">Within {h}h</span>
+              </label>
+            ))}
+          </RadioGroup>
+        </div>
+      )}
+
+      {/* Available Quantity */}
+      <div>
+        <Label htmlFor="avail-qty" className="mb-2 block">
+          Available quantity <span className="text-muted-foreground font-normal">(leave empty for unlimited)</span>
+        </Label>
+        <input
+          id="avail-qty"
+          type="number"
+          min={1}
+          placeholder="Unlimited"
+          value={data.available_quantity ?? ''}
+          onChange={(e) => onChange('available_quantity', e.target.value)}
+          className="w-full max-w-xs h-10 px-3 rounded-md border bg-background text-sm"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          When the cap is reached, the listing shows "Sold out" and further purchases are blocked automatically.
+        </p>
+      </div>
+
+      {/* Advice */}
       <Alert className="border-primary/30 bg-primary/5">
         <Info className="h-4 w-4 text-primary" />
         <AlertDescription className="text-sm">
-          <strong className="text-primary">Tip for better reviews:</strong> Including a setup tutorial (PDF), a checklist, and any workflow/configuration files greatly improves buyer satisfaction and your product ratings. Buyers who can easily set up your product are more likely to leave 5-star reviews!
+          <strong className="text-primary">Tip:</strong> Including a setup tutorial, checklist, and workflow/configuration files leads to higher ratings.
         </AlertDescription>
       </Alert>
 
@@ -119,7 +205,10 @@ export function DeliveryFilesStep({ deliveryFiles, onAddFile, onRemoveFile, erro
 
       {/* Upload area */}
       <div>
-        <Label className="mb-2 block">Upload Files (max {MAX_FILES}, up to 100MB each)</Label>
+        <Label className="mb-2 block">
+          Upload Files (max {MAX_FILES}, up to 100MB each)
+          {mode === 'instant' && <span className="text-destructive ml-1">*</span>}
+        </Label>
         <div
           className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
             dragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
@@ -132,16 +221,8 @@ export function DeliveryFilesStep({ deliveryFiles, onAddFile, onRemoveFile, erro
         >
           <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
           <p className="text-sm font-medium">Drag & drop files here or click to browse</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            PDF, ZIP, JSON, TXT, DOCX, images, videos, and more
-          </p>
-          <input
-            type="file"
-            id="delivery-files-input"
-            className="hidden"
-            multiple
-            onChange={handleFileInput}
-          />
+          <p className="text-xs text-muted-foreground mt-1">PDF, ZIP, JSON, TXT, DOCX, images, videos, and more</p>
+          <input type="file" id="delivery-files-input" className="hidden" multiple onChange={handleFileInput} />
         </div>
       </div>
 
@@ -175,17 +256,15 @@ export function DeliveryFilesStep({ deliveryFiles, onAddFile, onRemoveFile, erro
       <Alert variant="destructive" className="border-destructive/50">
         <AlertCircle className="h-4 w-4" />
         <AlertDescription className="text-sm space-y-2">
-          <p><strong>⚠️ Important — You MUST deliver the product:</strong></p>
+          <p><strong>Important — You MUST deliver the product:</strong></p>
           <ul className="list-disc list-inside space-y-1 text-xs">
-            <li>Once a buyer purchases your product, you <strong>cannot refuse</strong> to deliver it.</li>
+            <li>Once a buyer purchases, you <strong>cannot refuse</strong> to deliver.</li>
             <li>The product <strong>must be exactly as described</strong> in your listing.</li>
-            <li><strong>You will NOT receive any payment</strong> until the buyer confirms they received the product.</li>
-            <li>All payments are held securely on Stripe: <strong>{sellerPct}% goes to you</strong>, <strong>{feePct}% platform fee</strong> — only after the buyer confirms receipt AND the return window expires.</li>
-            <li>If you fail to deliver, the buyer gets a <strong>full refund</strong> and your account may be suspended.</li>
+            <li><strong>You will NOT receive any payment</strong> until the buyer confirms receipt.</li>
+            <li>Funds held via Stripe: <strong>{sellerPct}% to you</strong>, <strong>{feePct}% platform fee</strong>.</li>
+            <li>Failure to deliver triggers a <strong>full refund</strong> and possible account suspension.</li>
           </ul>
-          <p className="text-xs mt-2">
-            Questions? Contact <strong>support@dkaimarketplace.com</strong>
-          </p>
+          <p className="text-xs mt-2">Questions? <strong>support@dkaimarketplace.com</strong></p>
         </AlertDescription>
       </Alert>
     </div>

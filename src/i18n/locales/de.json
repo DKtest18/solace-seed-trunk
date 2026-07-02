@@ -406,7 +406,7 @@
     "emailLogs": "E-Mail-Protokolle",
     "paymentSettings": "Zahlungseinstellungen",
     "paymentConfirmations": "Zahlungsbestätigungen",
-    "escrowManagement": "Treuhand-Verwaltung",
+    "_escrowManagement_retired": "",
     "disputeManagement": "Streitfall-Verwaltung",
     "featuredProducts": "Empfohlene Produkte",
     "pendingApproval": "Ausstehende Genehmigung",

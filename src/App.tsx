@@ -68,7 +68,7 @@ import Invites from "./pages/Invites";
 
 import MySubscriptions from "./pages/MySubscriptions";
 import SellerSubscriptions from "./pages/SellerSubscriptions";
-import EscrowManagement from "./pages/EscrowManagement";
+// EscrowManagement page retired — escrow flow disabled platform-wide
 import AdminFeaturedProducts from "./pages/AdminFeaturedProducts";
 import AdminDisputeManagement from "./pages/AdminDisputeManagement";
 import DisputeDetail from "./pages/DisputeDetail";

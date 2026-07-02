@@ -256,7 +256,7 @@ export function AdditionalDetailsStep({ data, onChange, errors }: AdditionalDeta
       <Alert className="border-primary/30 bg-primary/5">
         <Info className="h-4 w-4 text-primary" />
         <AlertDescription className="text-xs">
-          <strong>Reminder:</strong> All payments are held on Stripe until the buyer confirms receipt and the return window expires. {sellerPct}% goes to your Stripe account, {feePct}% platform fee. 
+          <strong>Reminder:</strong> Payments are processed by Stripe and go directly to your Stripe account. Platform fee: {feePct}% (0% during the launch promo), {sellerPct}% is yours. Refunds only via DK AI Marketplace support review (product not delivered or not as described) and are debited from your Stripe balance.
           For support: <strong>support@dkaimarketplace.com</strong>
         </AlertDescription>
       </Alert>

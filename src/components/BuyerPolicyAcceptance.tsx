@@ -12,18 +12,18 @@ interface BuyerPolicyAcceptanceProps {
 }
 
 const buildPolicies = (feePct: number, launchPromoActive: boolean) => [
-  "After the seller's return window has expired, refunds are only possible with a valid reason and supporting evidence (e.g. defective or misrepresented product).",
-  "No abuse of the dispute system - false claims may result in account suspension.",
+  "Refunds are only granted through DK AI Marketplace support review, for exactly two reasons: (1) the product was not delivered within the promised delivery time, or (2) the product is materially not as described.",
+  "There are no unconditional returns, no self-service instant refunds, and no seller-set return windows or return fees.",
+  "Refund requests must be filed within 14 days of purchase, with a description and any evidence (screenshots, logs). Approved refunds are for the FULL purchase price and are issued via Stripe to your original payment method, typically within 24–72 hours of approval.",
+  "Abuse of the refund system (false claims, chargeback fraud) may result in account suspension.",
+  "Upon a refund, your license to use the product ends immediately. Any further use, copying, or distribution of the delivered files is a breach of contract and a copyright infringement.",
   "Payments are processed by Stripe and go directly to the seller's Stripe account. " +
     (launchPromoActive
       ? "Platform fee: 0% during the launch promo (first 20 sales on the platform)."
       : `Platform fee: ${feePct}%.`) +
     " Stripe's standard payment processing fees apply and are borne by the seller.",
   "You must treat sellers fairly within the platform.",
-  "You must provide evidence (screenshots, logs) when claiming a product is defective.",
-  "The return window is set by the seller (minimum 24 hours, maximum 90 days). If you return the product within this period, you receive a full refund of the purchase price to your original payment method, issued via Stripe. This is your unconditional contractual return right within the window.",
   "The seller may send you up to 3 reminder notifications (in-app and by email) asking you to confirm receipt and leave a review. By purchasing, you consent to receiving these order-related communications.",
-  "If the product is not as described, you have a mandatory minimum 24-hour return right regardless of the seller's return policy.",
   "For any questions or problems, contact support@dkaimarketplace.com",
 ];
 
@@ -88,13 +88,13 @@ export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAccept
             </div>
 
             <div className="mt-4 pt-4 border-t">
-              <h4 className="font-semibold mb-2">Returns & Refunds</h4>
+              <h4 className="font-semibold mb-2">Refunds</h4>
               <p className="text-sm text-muted-foreground">
-                Each product has a return window set by the seller (minimum 24 hours, maximum
-                90 days). If you return the product within this window, you receive a full refund
-                of the purchase price to your original payment method, issued via Stripe. After
-                the return window has expired, refunds are only possible with a valid reason and
-                supporting evidence.
+                Refunds are only granted through DK AI Marketplace support review, for two
+                reasons: the product was not delivered, or the product is materially not as
+                described. Requests must be filed within 14 days of purchase. Approved refunds
+                are for the full purchase price and are issued via Stripe to your original
+                payment method, typically within 24–72 hours of approval.
               </p>
             </div>
 
@@ -163,9 +163,10 @@ export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAccept
             className={`text-sm cursor-pointer ${!hasScrolledToBottom ? 'text-muted-foreground' : ''}`}
           >
             I have read and agree to all buyer terms and conditions. I understand that payment is
-            processed by Stripe and goes directly to the seller, and that returns within the
-            seller's return window are refunded in full to my original payment method via Stripe.
-            I consent to receiving up to 3 order-related reminder emails from the seller.
+            processed by Stripe and goes directly to the seller, and that refunds are only
+            granted through DK AI Marketplace support review for products that were not
+            delivered or are materially not as described. I consent to receiving up to 3
+            order-related reminder emails from the seller.
           </label>
         </div>
 

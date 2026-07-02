@@ -331,29 +331,22 @@ export default function PurchaseHistory() {
                               </Button>
                             )}
 
-                            {/* Request Refund button */}
-                            {order.escrow_status === 'delivered' && 
-                             order.refund_deadline && 
-                             new Date(order.refund_deadline) > new Date() && 
-                             order.status !== 'pending_refund' && (
-                              <Button
-                                variant="destructive"
-                                onClick={() => {
-                                  const reason = prompt('Please provide a reason for the refund:');
-                                  if (reason) {
-                                    requestRefund.mutate({ orderId: order.id, reason });
-                                  }
-                                }}
-                                disabled={requestRefund.isPending}
-                              >
-                                {requestRefund.isPending ? (
-                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                ) : (
-                                  <AlertCircle className="w-4 h-4 mr-2" />
-                                )}
-                                Request Refund
-                              </Button>
-                            )}
+                            {/* Request Refund — 14 days from purchase, support-reviewed */}
+                            {(() => {
+                              const created = new Date(order.created_at);
+                              const withinWindow =
+                                Date.now() - created.getTime() < 14 * 24 * 60 * 60 * 1000;
+                              if (!withinWindow) return null;
+                              if (['refunded', 'pending_refund'].includes(order.status)) return null;
+                              return (
+                                <Button asChild variant="destructive">
+                                  <Link to={`/refund-request/${order.id}`}>
+                                    <AlertCircle className="w-4 h-4 mr-2" />
+                                    Request Refund
+                                  </Link>
+                                </Button>
+                              );
+                            })()}
                           </div>
 
                           {/* Secure delivery file downloads (post-purchase) */}

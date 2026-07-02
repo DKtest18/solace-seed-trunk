@@ -739,6 +739,12 @@ export default function CreateProduct() {
               )}
               {currentStep === 8 && (
                 <DeliveryFilesStep
+                  data={{
+                    delivery_mode: formData.delivery_mode,
+                    delivery_time_hours: formData.delivery_time_hours,
+                    available_quantity: formData.available_quantity,
+                  }}
+                  onChange={handleChange}
                   deliveryFiles={deliveryFiles}
                   onAddFile={(df) => setDeliveryFiles([...deliveryFiles, df])}
                   onRemoveFile={(index) => setDeliveryFiles(deliveryFiles.filter((_, i) => i !== index))}

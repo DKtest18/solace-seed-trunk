@@ -67,17 +67,21 @@ export default function Marketplace() {
   const { data: allTags } = useQuery({
     queryKey: ['all-tags'],
     queryFn: async () => {
-      const { data, error } = await db
-        .from('dkai_products')
-        .select('tags')
-        .eq('is_published', true)
-        .eq('review_status', 'approved');
-      if (error) throw error;
-      const tags = new Set<string>();
-      data?.forEach((product) => {
-        product.tags?.forEach((tag: string) => tags.add(tag));
-      });
-      return Array.from(tags).sort();
+      try {
+        const { data, error } = await db
+          .from('dkai_products')
+          .select('tags')
+          .eq('is_published', true)
+          .eq('review_status', 'approved');
+        if (error) return [] as string[];
+        const tags = new Set<string>();
+        data?.forEach((product: any) => {
+          product.tags?.forEach((tag: string) => tags.add(tag));
+        });
+        return Array.from(tags).sort();
+      } catch {
+        return [] as string[];
+      }
     },
   });
 

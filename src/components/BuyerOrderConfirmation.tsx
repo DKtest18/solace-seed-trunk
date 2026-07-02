@@ -16,11 +16,11 @@ import { formatDistanceToNow, format } from 'date-fns';
 interface Order {
   id: string;
   status: string;
-  escrow_status: string;
   price: number;
   buyer_confirmed_at: string | null;
   auto_confirm_deadline: string | null;
   refund_deadline: string | null;
+  seller_marked_delivered_at?: string | null;
   products: { title: string };
 }
 

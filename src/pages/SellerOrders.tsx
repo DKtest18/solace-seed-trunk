@@ -206,11 +206,6 @@ export default function SellerOrders() {
                                 ${Number(order.price).toFixed(2)}
                               </TableCell>
                               <TableCell>
-                                <Badge variant={order.escrow_status === 'held' ? 'secondary' : order.escrow_status === 'released' ? 'default' : 'outline'}>
-                                  {order.escrow_status || 'pending'}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
                                 <Badge
                                   variant={
                                     order.status === 'completed'

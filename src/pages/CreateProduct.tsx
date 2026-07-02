@@ -175,6 +175,7 @@ export default function CreateProduct() {
             payment_methods: data.payment_methods ?? prev.payment_methods,
             faqs: data.faqs ?? [],
             delivery_mode: data.delivery_mode ?? prev.delivery_mode,
+            delivery_time_hours: data.delivery_time_hours ?? prev.delivery_time_hours,
             seller_accepted_terms: !!data.seller_accepted_terms,
             return_allowed: !!data.return_allowed,
             return_window_days: data.return_window_days ?? 1,

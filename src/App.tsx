@@ -205,7 +205,7 @@ const App = () => (
 
             <Route path="/my-subscriptions" element={<WaitlistGuard><MySubscriptions /></WaitlistGuard>} />
             <Route path="/seller-subscriptions" element={<Seller2FAGuard><SellerLayout title="My Subscribers"><SellerSubscriptions /></SellerLayout></Seller2FAGuard>} />
-            <Route path="/admin/escrow" element={<AdminRouteGuard><EscrowManagement /></AdminRouteGuard>} />
+            {/* /admin/escrow route retired */}
             <Route path="/admin/featured" element={<AdminRouteGuard><AdminFeaturedProducts /></AdminRouteGuard>} />
             <Route path="/admin/dispute-management" element={<AdminRouteGuard><AdminDisputeManagement /></AdminRouteGuard>} />
             <Route path="/dispute/:id" element={<WaitlistGuard><DisputeDetail /></WaitlistGuard>} />

@@ -80,22 +80,8 @@ export default function PurchaseHistory() {
     }
   });
 
-  const requestRefund = useMutation({
-    mutationFn: async ({ orderId, reason }: { orderId: string; reason: string }) => {
-      const { data, error } = await db.functions.invoke('request-refund', {
-        body: { orderId, reason }
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['buyer-orders'] });
-      toast.success('Refund requested. An admin will review your request.');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to request refund');
-    }
-  });
+  // Legacy request-refund flow retired — buyers now use /refund-request/:orderId (see Part 5).
+
 
   const downloadProduct = async (productId: string, orderId: string) => {
     try {

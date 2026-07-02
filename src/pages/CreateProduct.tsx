@@ -360,7 +360,21 @@ export default function CreateProduct() {
         break;
 
       case 8:
-        // Delivery files - optional
+        if (formData.delivery_mode !== 'instant' && formData.delivery_mode !== 'manual') {
+          newErrors.deliveryModeError = 'Choose Instant download or Manual delivery';
+        }
+        if (formData.delivery_mode === 'instant' && deliveryFiles.length === 0 && !uploadedFile) {
+          newErrors.deliveryFilesError = 'Instant download requires at least one uploaded file';
+        }
+        if (formData.delivery_mode === 'manual') {
+          const h = formData.delivery_time_hours ?? 0;
+          if (![12, 24, 48].includes(h)) {
+            newErrors.deliveryModeError = 'Pick 12, 24, or 48 hours (max 48h)';
+          }
+        }
+        if (formData.available_quantity && (parseInt(formData.available_quantity) < 1 || isNaN(parseInt(formData.available_quantity)))) {
+          newErrors.deliveryFilesError = 'Available quantity must be a positive integer or empty';
+        }
         break;
 
       case 9:

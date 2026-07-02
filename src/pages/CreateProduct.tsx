@@ -232,6 +232,7 @@ export default function CreateProduct() {
     payment_methods: formData.payment_methods,
     faqs: formData.faqs,
     delivery_mode: formData.delivery_mode,
+    delivery_time_hours: formData.delivery_mode === 'manual' ? (formData.delivery_time_hours ?? 24) : null,
     file_storage_key: uploadedFile?.path || null,
     file_size_bytes: uploadedFile?.size || null,
     file_scan_status: uploadedFile?.scanStatus || null,

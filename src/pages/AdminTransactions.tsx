@@ -79,10 +79,10 @@ export default function AdminTransactions() {
     queryKey: ['admin-disputes'],
     queryFn: async () => {
       const { data, error } = await db
-        .from('disputes')
+        .from('dkai_disputes')
         .select(`
           *,
-          products(title)
+          products:product_id(title)
         `)
         .order('created_at', { ascending: false });
 
@@ -92,7 +92,7 @@ export default function AdminTransactions() {
       if (data && data.length > 0) {
         const buyerIds = data.map(d => d.buyer_id);
         const { data: profiles } = await db
-          .from('profiles')
+          .from('dkai_profiles')
           .select('id, full_name')
           .in('id', buyerIds);
         

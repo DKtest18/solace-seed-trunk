@@ -143,8 +143,8 @@ export default function SellerOnboardingTerms() {
                       <p className="text-muted-foreground">Payments are processed by Stripe and go directly to your Stripe account. Platform fee: 0% during the launch promo (first 20 sales on the platform), {feePct}% after. Stripe's standard payment processing fees apply and are borne by you as the seller.</p>
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-1">5. Return Window & Refunds</h4>
-                      <p className="text-muted-foreground">Every product has a return window (minimum 24 hours, maximum 90 days) that you set. If a buyer requests a return within this window, they receive a full refund of the purchase price to their original payment method via Stripe. You cannot refuse a valid return within the window.</p>
+                      <h4 className="font-semibold mb-1">5. Refunds (support-reviewed)</h4>
+                      <p className="text-muted-foreground">Refunds are only granted through DK AI Marketplace support review, for two reasons: the product was not delivered within the promised delivery time, or the product is materially not as described. Requests must be filed within 14 days of purchase. Approved refunds are for the full purchase price, issued via Stripe from your Stripe balance, typically within 24–72 hours of approval. You must respond to support inquiries about refund requests within 48 hours; no response means the case is decided in the buyer&apos;s favor.</p>
                     </div>
                     <div>
                       <h4 className="font-semibold mb-1">6. Delivery Obligations</h4>

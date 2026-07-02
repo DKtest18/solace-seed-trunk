@@ -211,13 +211,14 @@ export default function TermsOfService() {
                 withdrawal does not apply (Art. 16 lit. m EU Directive 2011/83/EU). Buyers
                 confirm this at checkout.
               </p>
-              <p className="text-base leading-relaxed text-foreground mb-2 font-semibold">Exceptions:</p>
+              <p className="text-base leading-relaxed text-foreground mb-2 font-semibold">Refunds are granted only through DK AI Marketplace support review, for:</p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Product does not match the description &rarr; refund</li>
-                <li>Seller does not deliver &rarr; automatic refund after 14 days</li>
-                <li>Justified complaint via the dispute system</li>
-                <li>Within the seller's return window (min. 24 hours, max. 90 days): full unconditional refund via Stripe</li>
+                <li>Product not delivered within the promised delivery time</li>
+                <li>Product materially not as described in the listing</li>
               </ul>
+              <p className="text-base leading-relaxed text-foreground mb-4">
+                Refund requests must be filed within 14 days of purchase. Approved refunds are for the full purchase price and are issued via Stripe to the buyer&apos;s original payment method, typically within 24–72 hours of approval.
+              </p>
             </section>
 
             <section id="disputes">

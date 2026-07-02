@@ -84,6 +84,9 @@ export function TermsAcceptanceStep({ data, onChange, errors }: TermsAcceptanceS
           uploaded product file and <strong>may open, scan, and inspect</strong> it (including
           automated malware scanning and manual review) to enforce these rules. Files that
           violate the rules may be removed and the listing may be rejected or taken down.
+          DK AI Marketplace may also <strong>access, open, run, and test</strong> your uploaded
+          product files to verify they work, are legal, and comply with our rules, so buyers
+          receive what they paid for.
         </AlertDescription>
       </Alert>
 
@@ -122,11 +125,12 @@ export function TermsAcceptanceStep({ data, onChange, errors }: TermsAcceptanceS
               <li>Payments are processed by Stripe and go directly to your Stripe account</li>
               <li>Platform fee: 0% during the launch promo (first 20 platform sales), {feePct}% after</li>
               <li>Stripe's standard payment processing fees apply and are borne by you as the seller</li>
-              <li>Buyers have a <strong>minimum 24-hour return window</strong> — this cannot be waived</li>
-              <li>If a buyer returns within the window, they receive a full refund of the purchase price to their original payment method (issued via Stripe)</li>
+              <li>Refunds are only granted through DK AI Marketplace support review, for two reasons: product not delivered, or product materially not as described</li>
+              <li>Approved refunds are for the full purchase price, debited from your Stripe balance via Stripe, typically within 24–72 hours of approval</li>
+              <li>You must respond to support inquiries about refund requests within 48 hours; no response means the case is decided in the buyer's favor and your listings may be deactivated or your account suspended</li>
               <li>You cannot refuse to deliver a purchased product — the product must match the listing</li>
               <li>No malware, illegal, infringing, sexual, or otherwise prohibited content</li>
-              <li>DK AI Marketplace may open and inspect your uploaded files to enforce these rules</li>
+              <li>DK AI Marketplace may access, open, run, test, and inspect your uploaded product files to verify they work, are legal, and comply with our rules</li>
             </ul>
           </div>
         </div>

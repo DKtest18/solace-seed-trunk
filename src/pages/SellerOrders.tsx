@@ -171,7 +171,6 @@ export default function SellerOrders() {
                           <TableHead>Product</TableHead>
                           <TableHead>Buyer</TableHead>
                           <TableHead>Amount</TableHead>
-                          <TableHead>Escrow</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Date</TableHead>
                           <TableHead>Actions</TableHead>

@@ -257,9 +257,9 @@ export default function SellerOrders() {
                                       Mark Delivered
                                     </Button>
                                   )}
-                                  {/* Nudge buyer button - shown when awaiting confirmation or escrow held/delivered */}
-                                  {(order.status === 'awaiting_buyer_confirmation' || 
-                                    (order.seller_marked_delivered_at && !order.buyer_confirmed_at && order.escrow_status !== 'released')) && (
+                                  {/* Nudge buyer button - shown when awaiting confirmation */}
+                                  {(order.status === 'awaiting_buyer_confirmation' ||
+                                    (order.seller_marked_delivered_at && !order.buyer_confirmed_at)) && (
                                     <Button
                                       variant="outline"
                                       size="sm"

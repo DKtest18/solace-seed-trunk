@@ -99,18 +99,21 @@ export default function Disputes() {
         throw new Error(`Description validation failed: ${descCheck.reason}`);
       }
 
-      const purchase = purchases?.find(p => p.id === selectedPurchase);
-      if (!purchase) throw new Error('Purchase not found');
+      const purchase = purchases?.find((p: any) => p.id === selectedPurchase);
+      if (!purchase) throw new Error('Order not found');
 
-      const { error } = await supabase
-        .from('disputes')
+      const { error } = await (supabase as any)
+        .from('dkai_disputes')
         .insert({
-          purchase_id: selectedPurchase,
+          order_id: selectedPurchase,
           buyer_id: user?.id,
           seller_id: purchase.seller_id,
           product_id: purchase.product_id,
           subject: subject.trim(),
           description: description.trim(),
+          reason: subject.trim(),
+          type: 'general',
+          status: 'open',
         });
 
       if (error) throw error;

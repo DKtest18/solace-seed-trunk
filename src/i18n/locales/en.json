@@ -406,7 +406,7 @@
     "emailLogs": "Email Logs",
     "paymentSettings": "Payment Settings",
     "paymentConfirmations": "Payment Confirmations",
-    "escrowManagement": "Escrow Management",
+    "_escrowManagement_retired": "",
     "disputeManagement": "Dispute Management",
     "featuredProducts": "Featured Products",
     "pendingApproval": "Pending Approval",

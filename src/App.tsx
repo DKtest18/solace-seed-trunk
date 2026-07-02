@@ -51,6 +51,8 @@ import ManualPayment from "./pages/ManualPayment";
 import Notifications from "./pages/Notifications";
 import AdminPaymentConfirmations from "./pages/AdminPaymentConfirmations";
 import AdminRefundDisputes from "./pages/AdminRefundDisputes";
+import AdminRefundRequests from "./pages/AdminRefundRequests";
+import RefundRequest from "./pages/RefundRequest";
 import AdminDisputes from "./pages/AdminDisputes";
 import PayoutRequests from "./pages/PayoutRequests";
 import Checkout from "./pages/Checkout";
@@ -208,6 +210,8 @@ const App = () => (
             <Route path="/admin/dispute-management" element={<AdminRouteGuard><AdminDisputeManagement /></AdminRouteGuard>} />
             <Route path="/dispute/:id" element={<WaitlistGuard><DisputeDetail /></WaitlistGuard>} />
             <Route path="/sold-products" element={<Seller2FAGuard><SellerLayout title="Sold Products"><SoldProducts /></SellerLayout></Seller2FAGuard>} />
+            <Route path="/refund-request/:orderId" element={<RefundRequest />} />
+            <Route path="/admin/refund-requests" element={<AdminRouteGuard><AdminRefundRequests /></AdminRouteGuard>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
               </Routes>

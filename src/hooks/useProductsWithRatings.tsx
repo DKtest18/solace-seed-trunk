@@ -14,36 +14,38 @@ export function useProductsWithRatings() {
 
       if (productsError) throw productsError;
 
-      const { data: reviews, error: reviewsError } = await db
-        .from('dkai_reviews')
-        .select('product_id, rating');
+      // Ratings are best-effort: if anon has no read on dkai_reviews (or the
+      // call fails for any reason) we still render the products with zeroed
+      // ratings instead of blanking the whole marketplace.
+      let ratingsMap = new Map<string, { average: number; count: number }>();
+      try {
+        const { data: reviews, error: reviewsError } = await db
+          .from('dkai_reviews')
+          .select('product_id, rating');
 
-      if (reviewsError) throw reviewsError;
-
-      const ratingsMap = new Map<string, { average: number; count: number }>();
-      
-      reviews?.forEach((review: any) => {
-        const existing = ratingsMap.get(review.product_id) || { sum: 0, count: 0 };
-        ratingsMap.set(review.product_id, {
-          average: 0,
-          count: existing.count + 1,
-          ...existing,
-        });
-      });
-
-      reviews?.forEach((review: any) => {
-        const current = ratingsMap.get(review.product_id)!;
-        const sum = (current.average * (current.count - 1)) + review.rating;
-        ratingsMap.set(review.product_id, {
-          average: sum / current.count,
-          count: current.count,
-        });
-      });
+        if (!reviewsError && reviews) {
+          const agg = new Map<string, { sum: number; count: number }>();
+          reviews.forEach((r: any) => {
+            const cur = agg.get(r.product_id) || { sum: 0, count: 0 };
+            cur.sum += Number(r.rating) || 0;
+            cur.count += 1;
+            agg.set(r.product_id, cur);
+          });
+          agg.forEach((v, k) => {
+            ratingsMap.set(k, {
+              average: v.count ? v.sum / v.count : 0,
+              count: v.count,
+            });
+          });
+        }
+      } catch {
+        // swallow: ratings are optional for guests
+      }
 
       return products?.map((product: any) => ({
         ...product,
         rating: ratingsMap.get(product.id) || { average: 0, count: 0 },
-      }));
+      })) ?? [];
     },
   });
 }

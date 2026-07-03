@@ -355,7 +355,8 @@
     "orderNumber": "Order Number",
     "orderDate": "Order Date",
     "orderStatus": "Order Status",
-    "confirmReceipt": "Confirm Receipt",
+    "confirmReceipt": "",
+
     "confirmDescription": "Did you receive your product? Confirming will start a 24h refund window.",
     "autoConfirm": "Auto-confirm in",
     "sellerPayout": "Seller will receive payout after confirmation + 24h refund window",

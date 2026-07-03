@@ -130,6 +130,9 @@ async function handleEvent(admin: Admin, event: Stripe.Event) {
         escrow_status: tier === 'tier1' ? 'released' : 'held',
         payout_status: payoutStatus,
         auto_release_at: autoReleaseAt,
+        // Capture EU withdrawal waiver at payment success (Path A — moved from confirm-receipt).
+        // Update is gated by status='pending_payment' so this only fires on first success (idempotent).
+        eu_withdrawal_waiver_at: new Date().toISOString(),
         ...(paymentIntentId ? { stripe_payment_intent_id: paymentIntentId } : {}),
         updated_at: new Date().toISOString(),
       })

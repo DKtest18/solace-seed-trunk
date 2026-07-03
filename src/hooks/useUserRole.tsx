@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 
-export type UserRole = 'admin' | 'seller' | 'buyer';
+export type UserRole = 'super_admin' | 'admin' | 'moderator' | 'seller' | 'buyer';
 
 export function useUserRole() {
   const { user } = useAuth();

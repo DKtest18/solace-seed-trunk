@@ -63,22 +63,8 @@ export default function PurchaseHistory() {
     enabled: !!user,
   });
 
-  const confirmReceipt = useMutation({
-    mutationFn: async (orderId: string) => {
-      const { data, error } = await db.functions.invoke('buyer-confirm-receipt', {
-        body: { orderId }
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['buyer-orders'] });
-      toast.success('Receipt confirmed! You have 24 hours to request a refund if needed.');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to confirm receipt');
-    }
-  });
+  // Confirm-receipt flow retired — no-escrow model: funds settle via Stripe directly.
+
 
   // Legacy request-refund flow retired — buyers now use /refund-request/:orderId (see Part 5).
 

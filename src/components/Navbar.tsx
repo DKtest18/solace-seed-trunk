@@ -27,13 +27,14 @@ const navLinks = [
   
 ];
 
-const SUPER_ADMIN_EMAIL = 'management@dkaimarketplace.com';
-
 export function Navbar() {
   const { user, signOut } = useAuth();
   const { hasRole: isSeller } = useHasRole('seller');
   const { hasRole: isAdmin } = useHasRole('admin');
-  const isSuperAdmin = user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
+  // Server-side role check — replaces the old hardcoded email comparison.
+  // The frontend flag is UI-only; every privileged edge function must
+  // re-verify the super_admin role server-side.
+  const { hasRole: isSuperAdmin } = useHasRole('super_admin');
   const [unreadCount, setUnreadCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [pendingProducts, setPendingProducts] = useState(0);

@@ -1048,47 +1048,35 @@ function buildNotificationEmail(
       };
     }
 
-    // ── ORDER PAID — BUYER ──
     case 'order_paid_buyer': {
-      const tier = data.tier || 'tier1';
       const title = data.productTitle || 'your product';
       const orderId = data.orderId || '';
-      const tierLine =
-        tier === 'tier1' ? 'Your download is available immediately in your purchase history.' :
-        tier === 'tier2' ? 'Your protected download will unlock as soon as you click "Confirm & unlock" on the order page. If you do nothing, it auto-releases in 7 days.' :
-                           'The seller has been notified to deliver directly. Once you receive it, click "Confirm receipt" on the order page. If you do nothing, the order auto-releases in 14 days.';
       return {
         subject: `Payment received — ${title}`,
         html: wrapEmail([
           h('Payment received'),
-          p(`Thank you for your purchase on ${link('DK AI Marketplace')}.`),
+          p(`Thank you for your purchase on ${link('DK AI Marketplace')}. Your download and order details are available in your purchase history.`),
           br(),
           infoBox([
             infoRow('Product', title),
             infoRow('Order', orderId),
-            infoRow('Delivery tier', tier.toUpperCase()),
           ].join('')),
           br(),
-          p(tierLine),
-          br(),
           btn(`${baseUrl}/purchase-history`, 'Open my orders'),
+          br(),
+          p(`Not satisfied? You can request a refund within 14 days.`),
+          btn(`${baseUrl}/refund-request/${orderId}`, 'Request a refund'),
           br(),
           ft('— The DK AI team'),
         ].join('')),
       };
     }
 
-    // ── ORDER PAID — SELLER ──
     case 'order_paid_seller': {
-      const tier = data.tier || 'tier1';
       const title = data.productTitle || 'your product';
       const price = Number(data.price) || 0;
       const platformFee = price * 0.05;
       const earnings = price - platformFee;
-      const tierLine =
-        tier === 'tier1' ? 'Funds payout on your standard Stripe schedule.' :
-        tier === 'tier2' ? 'Payout is held until the buyer confirms receipt or up to 7 days (auto-release).' :
-                           'Payout is held in escrow. Deliver directly to the buyer; payout releases on buyer confirmation or up to 14 days (auto-release).';
       return {
         subject: `New sale — ${title} (CHF ${price.toFixed(2)})`,
         html: wrapEmail([
@@ -1096,13 +1084,12 @@ function buildNotificationEmail(
           infoBox([
             infoRow('Product', title),
             infoRow('Order', data.orderId || ''),
-            infoRow('Delivery tier', tier.toUpperCase()),
             infoRow('Buyer paid', `CHF ${price.toFixed(2)}`),
             infoRow('Platform fee (5%)', `CHF ${platformFee.toFixed(2)}`),
             infoRow('Your earnings', `CHF ${earnings.toFixed(2)}`),
           ].join('')),
           br(),
-          p(tierLine),
+          p('Funds settle to your Stripe account on your standard payout schedule.'),
           br(),
           btn(`${baseUrl}/seller/orders`, 'Open seller orders'),
           br(),
@@ -1111,14 +1098,13 @@ function buildNotificationEmail(
       };
     }
 
-    // ── TIER3 SELLER: DELIVER NOW ──
     case 'tier3_deliver_now_seller': {
       const title = data.productTitle || 'your product';
       return {
         subject: `Action required — deliver ${title}`,
         html: wrapEmail([
           h('Deliver directly to the buyer'),
-          p(`This is a tier 3 (direct delivery) sale. Please deliver the product/service to the buyer using the contact details on the order page, then mark it as delivered.`),
+          p(`Please deliver the product/service to the buyer using the contact details on the order page.`),
           br(),
           infoBox([
             infoRow('Product', title),
@@ -1127,25 +1113,19 @@ function buildNotificationEmail(
           br(),
           btn(`${baseUrl}/seller/orders`, 'Open order'),
           br(),
-          ft('The buyer has 14 days to confirm receipt or open a dispute.'),
-        ].join('')),
-      };
-    }
-
-    // ── CONFIRM RECEIPT REMINDER — BUYER ──
-    case 'confirm_receipt_reminder_buyer': {
-      return {
-        subject: 'Reminder: confirm receipt of your order',
-        html: wrapEmail([
-          h('Please confirm receipt'),
-          p(`Your order ${data.orderId || ''} is awaiting your confirmation. Once you confirm, the seller is paid out. If you do nothing, the order auto-releases on ${data.autoReleaseAt || 'the scheduled date'}.`),
-          br(),
-          btn(`${baseUrl}/purchase-history`, 'Open my orders'),
-          br(),
           ft('— The DK AI team'),
         ].join('')),
       };
     }
+
+    // DEPRECATED (Path A). Kept as no-op so any stale caller does not crash.
+    case 'confirm_receipt_reminder_buyer': {
+      return {
+        subject: '(retired) Confirm receipt reminder',
+        html: wrapEmail([p('This notification type has been retired.')].join('')),
+      };
+    }
+
 
     // ── PAYOUT RELEASED — SELLER ──
     case 'payout_released_seller': {

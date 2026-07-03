@@ -10,7 +10,12 @@ Deno.serve(async (req) => {
 
   try {
     const { thread_id, content, attachments } = await req.json();
-    if (!thread_id || !content) return errorResponse('thread_id and content required');
+    if (!thread_id || typeof content !== 'string') return errorResponse('thread_id and content required');
+    // Input validation: cap message length to prevent storage abuse.
+    if (content.trim().length === 0 || content.length > 10000) {
+      return errorResponse('content must be 1–10000 characters', 400);
+    }
+
 
     const admin = getServiceClient();
 

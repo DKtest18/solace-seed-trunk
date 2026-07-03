@@ -1,7 +1,7 @@
 -- ============================================================
 -- DSGVO/nDSG-konforme Legal Pages für DK AI Marketplace
 -- Ausführen im Supabase SQL Editor (Dashboard > SQL Editor)
--- Stand: 2026-03-08
+-- Stand: 2026-07-03
 -- ============================================================
 
 -- Tabelle erstellen (falls nicht vorhanden)
@@ -125,7 +125,7 @@ a) Supabase Inc.
 - Privacy: https://supabase.com/privacy
 
 b) Stripe Inc.
-- Purpose: Payment processing, escrow management, seller payouts (Stripe Connect)
+- Purpose: Payment processing and seller payouts (Stripe Connect, direct charges — no escrow)
 - Data: Payment details, transaction amounts, bank account info (sellers)
 - Location: US (with Standard Contractual Clauses, certified under EU-US Data Privacy Framework)
 - Privacy: https://stripe.com/privacy
@@ -211,7 +211,7 @@ ON CONFLICT (page_type) DO UPDATE SET
 INSERT INTO legal_pages (page_type, title, content)
 VALUES ('terms', 'Terms of Service / Allgemeine Geschaeftsbedingungen',
 'Terms of Service (Allgemeine Geschaeftsbedingungen)
-Last updated: 2026-03-08
+Last updated: 2026-07-03
 
 1. Scope and Provider
 These Terms of Service govern the use of DK AI Marketplace ("Platform"), operated by:
@@ -229,18 +229,10 @@ The Platform is a marketplace for digital products, AI agents, and digital servi
 2.4 We reserve the right to suspend or terminate accounts that violate these terms.
 
 3. Buyer Terms
-3.1 Payment and Escrow
-- All payments are processed through Stripe
-- Payments are held in escrow until the return window expires
-- After the return window, 90% is released to the seller and 10% is retained as platform fee
-- Buyers receive a 100% refund if they return within the valid return window
+3.1 Payments and Refunds
+Payments are processed by Stripe and go directly to the seller''s Stripe account. There is no escrow and no holding of funds. Refunds are only possible for two reasons — the product was not delivered, or it is materially not as described — and only after review by DK AI Marketplace support. Refund requests must be filed within 14 days of purchase. Approved refunds are for the full purchase price, issued via Stripe and debited from the seller''s Stripe balance, typically within 24–72 hours. Sellers must respond to support inquiries about refund requests within 48 hours; no response means the case is decided in the buyer''s favor.
 
-3.2 Return Window
-- Each product has a return window set by the seller (minimum 24 hours, maximum 90 days)
-- The mandatory minimum return period is 24 hours, regardless of seller settings
-- If no action is taken before the return window expires, payment is automatically released to the seller
-
-3.3 EU Right of Withdrawal (Widerrufsrecht)
+3.2 EU Right of Withdrawal (Widerrufsrecht)
 - Under EU Directive 2011/83/EU, consumers have a 14-day right of withdrawal for distance contracts
 - For digital content: This right may be waived at checkout if you expressly consent to immediate delivery and acknowledge the loss of your withdrawal right (Art. 16(m) EU Directive 2011/83/EU)
 - The waiver checkbox is mandatory at checkout for digital goods
@@ -270,9 +262,9 @@ The Platform is a marketplace for digital products, AI agents, and digital servi
 
 4.3 Payouts and Fees
 - Platform fee: 10% of each sale
-- Seller receives: 90% via Stripe Connect
-- Payouts are only processed after the return window has fully expired
-- Sellers must plan ahead as no early payouts are available
+- Seller receives: 90% via Stripe Connect (direct charges to the seller''s Stripe account — no escrow, no holding of funds)
+- Payouts follow the seller''s Stripe Connect payout schedule
+- If a refund is approved by support, the full purchase price is debited from the seller''s Stripe balance
 
 4.4 Obligations
 - Sellers must deliver purchased products promptly
@@ -335,7 +327,7 @@ ON CONFLICT (page_type) DO UPDATE SET
 INSERT INTO legal_pages (page_type, title, content)
 VALUES ('cookies', 'Cookie Policy',
 'Cookie Policy
-Last updated: 2026-03-08
+Last updated: 2026-07-03
 
 1. What Are Cookies?
 Cookies are small text files stored on your device when you visit a website. They help the website function properly and improve your experience.
@@ -385,7 +377,7 @@ ON CONFLICT (page_type) DO UPDATE SET
 INSERT INTO legal_pages (page_type, title, content)
 VALUES ('refund', 'Refund and Return Policy / Widerrufsbelehrung',
 'Refund and Return Policy (Widerrufsbelehrung)
-Last updated: 2026-03-08
+Last updated: 2026-07-03
 
 1. EU Right of Withdrawal (Widerrufsrecht)
 
@@ -429,30 +421,33 @@ This waiver is presented as a mandatory checkbox at checkout (Art. 16(m) EU Dire
 1.5 Effects of Withdrawal
 If you withdraw, we shall reimburse all payments received from you without undue delay and no later than 14 days from the day we are informed of your decision. The reimbursement will be made using the same means of payment as the original transaction.
 
-2. Platform Return Window
+2. Platform Refund Policy
 
-2.1 In addition to the EU withdrawal right, every product on DK AI Marketplace has a return window set by the seller:
-- Minimum: 24 hours
-- Maximum: 90 days
+Payments are processed by Stripe and go directly to the seller''s Stripe account. There is no escrow and no holding of funds.
 
-2.2 Within this return window, you may return the product and receive a 100% refund to your original payment method, regardless of reason.
+2.1 Grounds for a refund
+Refunds are only possible for two reasons:
+- The product was not delivered, OR
+- The product is materially not as described.
 
-2.3 If you take no action (no confirmation, no dispute, no return) before the return window expires, payment is automatically released to the seller.
+2.2 How to request a refund
+Refund requests must be filed within 14 days of purchase through the in-app refund request flow. Each request is reviewed by DK AI Marketplace support.
 
-3. Refund Process
-3.1 Returns within the return window: 100% refund to original payment method via Stripe
-3.2 Disputed products: Reviewed by platform administrators. If the dispute is upheld, a full refund is issued to your platform balance or original payment method.
-3.3 Refund timeline: Refunds are processed within 5-10 business days depending on your payment provider.
+2.3 Approved refunds
+Approved refunds are for the full purchase price, issued via Stripe and debited from the seller''s Stripe balance. Refunds typically arrive within 24–72 hours, subject to the buyer''s bank.
 
-4. When Refunds Are NOT Available
-- After the return window has expired AND the EU withdrawal right has been waived
-- If the product has been found to be used in violation of our Terms of Service
-- If a dispute is found to be fraudulent
+2.4 Seller response window
+Sellers must respond to support inquiries about a refund request within 48 hours. If the seller does not respond within 48 hours, the case is decided in the buyer''s favor.
 
-5. Seller Obligations
-- Sellers cannot refuse a valid return within the return window
+3. When Refunds Are NOT Available
+- Requests filed more than 14 days after purchase
+- Buyer''s remorse or change of mind on a product that was delivered as described
+- Requests found to be fraudulent or abusive
+
+4. Seller Obligations
 - Sellers must deliver products that match their listing description
-- If a product does not match the description, the buyer has a mandatory right to a full refund regardless of the return window
+- Sellers must respond to support inquiries about refund requests within 48 hours
+- If a product is not delivered or is materially not as described, the buyer is entitled to a full refund
 
 6. Contact
 For refund requests or questions:

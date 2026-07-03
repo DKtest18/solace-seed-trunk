@@ -10,7 +10,16 @@ Deno.serve(async (req) => {
 
   try {
     const { product_id, rating, comment } = await req.json();
-    if (!product_id || !rating) return errorResponse('product_id and rating required');
+    if (!product_id || typeof product_id !== 'string') return errorResponse('product_id required');
+    // Input validation: rating range + comment length.
+    const numericRating = Number(rating);
+    if (!Number.isInteger(numericRating) || numericRating < 1 || numericRating > 5) {
+      return errorResponse('rating must be an integer 1–5', 400);
+    }
+    if (comment != null && (typeof comment !== 'string' || comment.length > 5000)) {
+      return errorResponse('comment must be ≤ 5000 characters', 400);
+    }
+
 
     const admin = getServiceClient();
 
@@ -41,11 +50,12 @@ Deno.serve(async (req) => {
       .insert({
         user_id: user.id,
         product_id,
-        rating,
+        rating: numericRating,
         comment: comment || null,
       })
       .select()
       .single();
+
 
     if (reviewError) throw reviewError;
 

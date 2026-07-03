@@ -47,7 +47,42 @@ Deno.serve(async (req) => {
 
     if (!userEmail) return errorResponse('Email address is required', 400);
 
+    // Basic shape validation on caller-provided email.
+    if (typeof userEmail !== 'string' || userEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) {
+      return errorResponse('Invalid email address', 400);
+    }
+
     const admin = getServiceClient();
+
+    // Rate limiting for the unauthenticated types (password_reset, magic_link)
+    // to prevent using this endpoint as an email-spam relay to arbitrary
+    // inboxes. Max 3 requests per (email + type) per 10 minutes and max 10
+    // requests per email per hour, tracked via dkai_email_tokens rows.
+    if (!requiresAuth) {
+      const nowMs = Date.now();
+      const tenMinAgo = new Date(nowMs - 10 * 60 * 1000).toISOString();
+      const oneHourAgo = new Date(nowMs - 60 * 60 * 1000).toISOString();
+
+      const { count: recentPerType } = await admin
+        .from('dkai_email_tokens')
+        .select('token', { count: 'exact', head: true })
+        .eq('email', userEmail)
+        .eq('type', type)
+        .gte('created_at', tenMinAgo);
+      if ((recentPerType ?? 0) >= 3) {
+        return errorResponse('Too many requests. Please try again later.', 429);
+      }
+
+      const { count: recentPerEmail } = await admin
+        .from('dkai_email_tokens')
+        .select('token', { count: 'exact', head: true })
+        .eq('email', userEmail)
+        .gte('created_at', oneHourAgo);
+      if ((recentPerEmail ?? 0) >= 10) {
+        return errorResponse('Too many requests. Please try again later.', 429);
+      }
+    }
+
 
     const code = generateSecureCode();
     const token = crypto.randomUUID();

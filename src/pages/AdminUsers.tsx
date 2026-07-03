@@ -16,9 +16,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useHasRole } from '@/hooks/useUserRole';
 import { Loader2, Shield, Ban, Trash2, RotateCcw } from 'lucide-react';
 
-const SUPER_ADMIN_EMAIL = 'management@dkaimarketplace.com';
 const PAGE_SIZE = 25;
 
 type UserRow = {
@@ -41,7 +41,10 @@ export default function AdminUsers() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const isSuperAdmin = user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
+  // Server-side role check — the previous hardcoded email comparison could be
+  // trivially bypassed client-side. Every admin edge function must ALSO
+  // re-verify the super_admin role server-side; this hook is UI-only.
+  const { hasRole: isSuperAdmin, isLoading: roleLoading } = useHasRole('super_admin');
 
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -62,8 +65,9 @@ export default function AdminUsers() {
   const [banUntil, setBanUntil] = useState('');
 
   useEffect(() => {
-    if (!authLoading && !isSuperAdmin) navigate('/');
-  }, [authLoading, isSuperAdmin, navigate]);
+    if (!authLoading && !roleLoading && !isSuperAdmin) navigate('/');
+  }, [authLoading, roleLoading, isSuperAdmin, navigate]);
+
 
   const load = async () => {
     setLoading(true);

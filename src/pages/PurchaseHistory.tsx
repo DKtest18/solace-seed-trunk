@@ -5,7 +5,7 @@ import { Navigate, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ShoppingBag, ExternalLink, Download, MessageCircle, AlertCircle, Clock } from 'lucide-react';
+import { Loader2, ShoppingBag, ExternalLink, Download, MessageCircle, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow, differenceInHours } from 'date-fns';

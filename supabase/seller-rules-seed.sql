@@ -1,7 +1,7 @@
 -- ============================================================
 -- Seller Rules & Seller Legal Page
 -- Execute in Supabase SQL Editor
--- Stand: 2026-03-20
+-- Stand: 2026-07-03
 -- Legally compliant for Swiss-based marketplace (EU DSA, GDPR, nDSG)
 -- ============================================================
 
@@ -14,7 +14,7 @@ ARRAY[
   'Geistiges Eigentum & Lizenzrecht: Sie garantieren, dass Sie alle erforderlichen Rechte, Lizenzen und Genehmigungen an den von Ihnen angebotenen Produkten besitzen. Urheberrechtsverletzungen, Plagiate oder der Verkauf nicht lizenzierter Inhalte sind strikt untersagt.',
   'Keine illegalen oder schädlichen Inhalte: Das Anbieten von Malware, Spyware, Exploit-Kits, illegalen Inhalten, Hacking-Tools, gestohlenen Daten oder Produkten, die gegen geltende Gesetze verstossen, ist verboten und wird den Behörden gemeldet.',
   'Lieferpflicht: Nach Abschluss eines Kaufvertrags sind Sie verpflichtet, das Produkt exakt wie beschrieben zu liefern. Die Nichtlieferung oder die Lieferung eines wesentlich abweichenden Produkts stellt einen Vertragsbruch dar.',
-  'Treuhandverfahren (Escrow): Alle Verkaufserlöse werden bis zur Bestätigung des Käufers über Stripe treuhänderisch verwahrt. Die Auszahlung erfolgt erst nach Ablauf der vollständigen Rückgabefrist. Sie akzeptieren, dass kein vorzeitiger Zugriff auf Gelder möglich ist.',
+  'Zahlungsabwicklung: Zahlungen werden über Stripe Connect direkt auf Ihr Stripe-Konto ausgezahlt. Es gibt kein Treuhandverfahren (kein Escrow). Rückerstattungen sind nur aus zwei Gründen möglich — Produkt nicht geliefert oder Produkt materiell nicht wie beschrieben — und ausschliesslich nach Prüfung durch den DK AI Marketplace Support. Rückerstattungsanträge müssen innerhalb von 14 Tagen nach dem Kauf gestellt werden. Genehmigte Rückerstattungen erfolgen in voller Höhe des Kaufpreises über Stripe und werden vom Stripe-Guthaben des Verkäufers abgebucht, in der Regel innerhalb von 24–72 Stunden. Verkäufer müssen innerhalb von 48 Stunden auf Support-Anfragen zu Rückerstattungen reagieren; erfolgt keine Reaktion, wird der Fall zugunsten des Käufers entschieden.',
   'Rückgaberecht des Käufers: Käufer haben ein Mindest-Rückgaberecht von 24 Stunden gemäss EU-Richtlinie 2011/83/EU. Innerhalb dieses Zeitraums erhält der Käufer bei Rückgabe eine vollständige Rückerstattung auf das ursprüngliche Zahlungsmittel. Dieses Recht kann nicht ausgeschlossen werden.',
   'Plattformgebühr: DK AI Marketplace erhebt eine Plattformgebühr von 10% auf alle Verkäufe. 90% des Verkaufserlöses werden nach Ablauf der Rückgabefrist über Stripe Connect an Sie ausgezahlt.',
   'Stripe Connect: Als Verkäufer müssen Sie ein verifiziertes Stripe Connect-Konto führen. Auszahlungen erfolgen ausschliesslich über Stripe. Sie sind selbst verantwortlich für die Richtigkeit Ihrer Zahlungsdaten.',
@@ -66,23 +66,23 @@ a) Mit dem Kauf durch einen Käufer kommt ein verbindlicher Kaufvertrag zwischen
 b) Der Verkäufer ist verpflichtet, das Produkt exakt wie beschrieben zu liefern. Die Nichtlieferung oder Lieferung eines wesentlich abweichenden Produkts stellt einen Vertragsbruch dar.
 c) Der Verkäufer kann die Lieferung eines rechtsgültig gekauften Produkts nicht verweigern.
 
-5. Zahlungsabwicklung & Treuhand (Escrow)
-a) Alle Zahlungen werden über Stripe abgewickelt und treuhänderisch verwahrt.
-b) Die Auszahlung an den Verkäufer erfolgt erst, nachdem der Käufer den Erhalt bestätigt hat UND die Rückgabefrist vollständig abgelaufen ist.
-c) Ein vorzeitiger Zugriff auf treuhänderisch verwahrte Gelder ist nicht möglich.
-d) Der Verkäufer muss seine Liquidität entsprechend planen.
+5. Zahlungsabwicklung (kein Escrow)
+a) Zahlungen werden über Stripe Connect direkt auf das Stripe-Konto des Verkäufers ausgezahlt. Es gibt kein Treuhandverfahren (kein Escrow) und keine Zurückhaltung von Geldern.
+b) Auszahlungen folgen dem Auszahlungsplan des Stripe-Connect-Kontos des Verkäufers.
+c) Rückerstattungen sind nur aus zwei Gründen möglich — Produkt nicht geliefert oder Produkt materiell nicht wie beschrieben — und ausschliesslich nach Prüfung durch den DK AI Marketplace Support.
+d) Rückerstattungsanträge müssen innerhalb von 14 Tagen nach dem Kauf gestellt werden. Genehmigte Rückerstattungen erfolgen in voller Höhe des Kaufpreises über Stripe und werden vom Stripe-Guthaben des Verkäufers abgebucht, in der Regel innerhalb von 24–72 Stunden.
+e) Verkäufer müssen innerhalb von 48 Stunden auf Support-Anfragen zu Rückerstattungen reagieren; erfolgt keine Reaktion, wird der Fall zugunsten des Käufers entschieden.
 
 6. Plattformgebühren
 a) DK AI Marketplace erhebt eine Plattformgebühr von 10% auf den Bruttoverkaufspreis.
-b) 90% des Verkaufserlöses werden nach Ablauf der Rückgabefrist über Stripe Connect ausgezahlt.
+b) 90% des Verkaufserlöses werden über Stripe Connect direkt an den Verkäufer ausgezahlt.
 c) Stripe erhebt zusätzlich eigene Transaktionsgebühren gemäss dem jeweiligen Stripe-Tarif.
 
-7. Rückgaberecht & Widerruf
-a) Käufer haben ein gesetzliches Widerrufsrecht gemäss EU-Richtlinie 2011/83/EU.
-b) Die Mindest-Rückgabefrist beträgt 24 Stunden ab Lieferung.
-c) Innerhalb der Rückgabefrist erhält der Käufer eine vollständige Rückerstattung auf das ursprüngliche Zahlungsmittel.
-d) Dieses Recht kann vom Verkäufer nicht ausgeschlossen oder eingeschränkt werden.
-e) Der Verkäufer kann über die Mindest-Rückgabefrist hinaus eine längere Frist anbieten.
+7. Rückerstattungen & EU-Widerrufsrecht
+a) Käufer haben ein gesetzliches Widerrufsrecht gemäss EU-Richtlinie 2011/83/EU. Für digitale Inhalte kann dieses Recht durch ausdrückliche Einwilligung an der Kasse erlöschen (Art. 16(m)).
+b) Unabhängig davon können Käufer innerhalb von 14 Tagen nach dem Kauf eine Rückerstattung beantragen, wenn das Produkt nicht geliefert wurde oder materiell nicht wie beschrieben ist.
+c) Über jeden Rückerstattungsantrag entscheidet der DK AI Marketplace Support nach Prüfung.
+d) Dieses Rückerstattungsrecht kann vom Verkäufer nicht ausgeschlossen oder eingeschränkt werden.
 
 8. Steuerliche Pflichten
 a) Der Verkäufer ist allein verantwortlich für die ordnungsgemässe Deklaration und Abführung aller anfallenden Steuern (Einkommensteuer, Umsatzsteuer/MwSt., Quellensteuer etc.) in seinem Zuständigkeitsgebiet.

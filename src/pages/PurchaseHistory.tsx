@@ -269,24 +269,8 @@ export default function PurchaseHistory() {
                               </Button>
                             )}
 
-                            {/* Confirm Receipt — for non-instant deliveries where seller marked delivered */}
-                            {order.delivery_tier !== 'tier1' &&
-                             order.products?.delivery_mode !== 'instant_download' &&
-                             order.seller_marked_delivered_at &&
-                             !order.buyer_confirmed_at && (
-                              <Button
-                                variant="default"
-                                onClick={() => confirmReceipt.mutate(order.id)}
-                                disabled={confirmReceipt.isPending}
-                              >
-                                {confirmReceipt.isPending ? (
-                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                ) : (
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                )}
-                                I Have Received Product
-                              </Button>
-                            )}
+                            {/* Confirm-receipt button removed — no-escrow model. */}
+
 
                             {/* Request Refund — 14 days from purchase, support-reviewed */}
                             {(() => {

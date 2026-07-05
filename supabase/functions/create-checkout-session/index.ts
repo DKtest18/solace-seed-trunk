@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
     const { data: order, error: oErr } = await admin
       .from('dkai_orders')
       .insert({
-        buyer_id: user.id,
+        buyer_id: user?.id ?? null,
         product_id: productId,
         seller_id: product.seller_id,
         price: product.price,
@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
       .single();
     if (oErr || !order) throw oErr ?? new Error('Failed to create order');
 
-    const origin = req.headers.get('origin') ?? '';
+    const origin = req.headers.get('origin') ?? body.origin ?? '';
 
     const params: Record<string, string> = {
       'mode': 'payment',
@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
       'line_items[0][quantity]': '1',
       'metadata[order_id]': order.id,
       'metadata[product_id]': productId,
-      'metadata[buyer_id]': user.id,
+      'metadata[buyer_id]': user?.id ?? 'guest',
       'metadata[seller_id]': product.seller_id,
       'metadata[delivery_tier]': tier,
       // 5% application fee — ALWAYS at charge time, all tiers.
@@ -149,6 +149,14 @@ Deno.serve(async (req) => {
       'payment_intent_data[metadata][order_id]': order.id,
       'payment_intent_data[metadata][delivery_tier]': tier,
     };
+
+    // Guests: let Stripe Checkout collect the email so the receipt + order
+    // recovery flow still works.
+    if (user?.email) {
+      params['customer_email'] = user.email;
+    } else {
+      params['billing_address_collection'] = 'auto';
+    }
 
     // For tier2/tier3, also set on_behalf_of so the funds settle to the
     // connected account directly; payout to seller is gated by the account's

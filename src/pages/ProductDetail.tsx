@@ -121,17 +121,10 @@ export default function ProductDetail() {
   });
 
   const handlePurchase = () => {
-    if (!user) {
-      const dest = encodeURIComponent(`/checkout?productId=${id}`);
-      navigate(`/login?redirect=${dest}`);
-      return;
-    }
-
-    // Track purchase intent click
-    if (id) {
+    // Guests are allowed to buy — go straight to checkout.
+    if (id && user) {
       trackProductEvent(id, 'click', user.id, { action: 'purchase_intent' });
     }
-
     navigate(`/checkout?productId=${id}`);
   };
 

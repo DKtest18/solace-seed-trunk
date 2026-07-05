@@ -22,11 +22,20 @@ Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
 
-  const { user, error } = await getAuthenticatedUser(req);
-  if (error || !user) return errorResponse('Unauthorized', 401);
+  // Guests allowed — auth is optional. If a Bearer token is present we resolve
+  // the user; otherwise we treat it as a guest checkout (buyer_id = null,
+  // Stripe collects the email at checkout).
+  const authHeader = req.headers.get('Authorization');
+  let user: { id: string; email: string } | null = null;
+  if (authHeader?.startsWith('Bearer ')) {
+    const result = await getAuthenticatedUser(req);
+    if (result.user) user = { id: result.user.id, email: result.user.email };
+  }
 
   try {
-    const { productId, shippingAddress } = await req.json();
+    const body = await req.json();
+    const productId = body.productId ?? body.product_id;
+    const shippingAddress = body.shippingAddress;
     if (!productId) return errorResponse('productId required', 400);
 
     const admin = getServiceClient();

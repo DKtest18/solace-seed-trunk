@@ -35,6 +35,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { db } from '@/lib/dkaiDb';
+import { formatMoney, subscriptionLabel } from '@/lib/money';
 import { toast } from 'sonner';
 
 type Bucket = 'draft' | 'in_review' | 'published' | 'rejected';

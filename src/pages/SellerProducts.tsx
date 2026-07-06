@@ -38,9 +38,10 @@ import { db } from '@/lib/dkaiDb';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
 import { toast } from 'sonner';
 
-type Bucket = 'draft' | 'in_review' | 'published' | 'rejected';
+type Bucket = 'draft' | 'in_review' | 'published' | 'rejected' | 'deleted';
 
 function classifyProduct(p: any): Bucket {
+  if (p.is_active === false || p.deleted_at) return 'deleted';
   const status = (p.status || '').toLowerCase();
   const approval = (p.approval_status || '').toLowerCase();
   if (status === 'draft') return 'draft';
@@ -71,6 +72,12 @@ function statusBadge(bucket: Bucket) {
           <XCircle className="h-3 w-3 mr-1" /> Changes Requested
         </Badge>
       );
+    case 'deleted':
+      return (
+        <Badge variant="outline" className="border-muted-foreground/40 text-muted-foreground bg-muted/40">
+          <Trash2 className="h-3 w-3 mr-1" /> Deleted
+        </Badge>
+      );
   }
 }
 
@@ -92,13 +99,13 @@ export default function SellerProducts() {
   const [searchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') as Bucket) || 'draft';
   const [tab, setTab] = useState<Bucket>(
-    (['draft', 'in_review', 'published', 'rejected'] as Bucket[]).includes(initialTab) ? initialTab : 'draft'
+    (['draft', 'in_review', 'published', 'rejected', 'deleted'] as Bucket[]).includes(initialTab) ? initialTab : 'draft'
   );
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showDelete, setShowDelete] = useState(false);
 
   const grouped = useMemo(() => {
-    const out: Record<Bucket, any[]> = { draft: [], in_review: [], published: [], rejected: [] };
+    const out: Record<Bucket, any[]> = { draft: [], in_review: [], published: [], rejected: [], deleted: [] };
     (products ?? []).forEach((p: any) => out[classifyProduct(p)].push(p));
     return out;
   }, [products]);
@@ -111,7 +118,11 @@ export default function SellerProducts() {
 
   const handleDelete = async () => {
     if (!deletingId) return;
-    const { error } = await db.from('dkai_products').delete().eq('id', deletingId);
+    // Soft delete: mark inactive
+    const { error } = await db
+      .from('dkai_products')
+      .update({ is_active: false, deleted_at: new Date().toISOString(), is_published: false })
+      .eq('id', deletingId);
     if (error) {
       toast.error(error.message || 'Failed to delete product');
     } else {
@@ -256,12 +267,32 @@ export default function SellerProducts() {
                   <Trash2 className="h-4 w-4 mr-1" /> Delete
                 </Button>
               )}
+              {bucket === 'deleted' && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    const { error } = await db
+                      .from('dkai_products')
+                      .update({ is_active: true, deleted_at: null })
+                      .eq('id', p.id);
+                    if (error) toast.error(error.message);
+                    else {
+                      toast.success('Product restored');
+                      refetch();
+                    }
+                  }}
+                >
+                  Restore
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
     );
   };
+
 
   const renderBucket = (bucket: Bucket, emptyText: string) => {
     const list = grouped[bucket];
@@ -287,6 +318,7 @@ export default function SellerProducts() {
     in_review: grouped.in_review.length,
     published: grouped.published.length,
     rejected: grouped.rejected.length,
+    deleted: grouped.deleted.length,
   };
 
   return (
@@ -311,11 +343,12 @@ export default function SellerProducts() {
             </div>
 
             <Tabs value={tab} onValueChange={(v) => setTab(v as Bucket)}>
-              <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-4">
+              <TabsList className="grid grid-cols-2 md:grid-cols-5 mb-4">
                 <TabsTrigger value="draft">Drafts ({counts.draft})</TabsTrigger>
                 <TabsTrigger value="in_review">In Review ({counts.in_review})</TabsTrigger>
                 <TabsTrigger value="published">Published ({counts.published})</TabsTrigger>
                 <TabsTrigger value="rejected">Changes Requested ({counts.rejected})</TabsTrigger>
+                <TabsTrigger value="deleted">Deleted ({counts.deleted})</TabsTrigger>
               </TabsList>
 
               <TabsContent value="draft">
@@ -330,6 +363,9 @@ export default function SellerProducts() {
               <TabsContent value="rejected">
                 {renderBucket('rejected', 'No rejected products. Nice work!')}
               </TabsContent>
+              <TabsContent value="deleted">
+                {renderBucket('deleted', 'Nothing in the trash. Deleted products can be restored here.')}
+              </TabsContent>
             </Tabs>
           </main>
         </div>
@@ -338,9 +374,9 @@ export default function SellerProducts() {
       <AlertDialog open={showDelete} onOpenChange={setShowDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this product?</AlertDialogTitle>
+            <AlertDialogTitle>Move this product to Deleted?</AlertDialogTitle>
             <AlertDialogDescription>
-              This permanently removes the product. This action cannot be undone.
+              It will be hidden from the marketplace immediately. You can restore it from the Deleted tab.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

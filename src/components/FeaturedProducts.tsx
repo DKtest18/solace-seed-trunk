@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { RatingDisplay } from '@/components/RatingDisplay';
 import { TrendingUp } from 'lucide-react';
+import { formatMoney, subscriptionLabel } from '@/lib/money';
 
 export function FeaturedProducts() {
   const plugin = useRef(

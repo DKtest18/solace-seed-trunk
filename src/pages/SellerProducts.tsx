@@ -318,6 +318,7 @@ export default function SellerProducts() {
     in_review: grouped.in_review.length,
     published: grouped.published.length,
     rejected: grouped.rejected.length,
+    deleted: grouped.deleted.length,
   };
 
   return (
@@ -342,11 +343,12 @@ export default function SellerProducts() {
             </div>
 
             <Tabs value={tab} onValueChange={(v) => setTab(v as Bucket)}>
-              <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-4">
+              <TabsList className="grid grid-cols-2 md:grid-cols-5 mb-4">
                 <TabsTrigger value="draft">Drafts ({counts.draft})</TabsTrigger>
                 <TabsTrigger value="in_review">In Review ({counts.in_review})</TabsTrigger>
                 <TabsTrigger value="published">Published ({counts.published})</TabsTrigger>
                 <TabsTrigger value="rejected">Changes Requested ({counts.rejected})</TabsTrigger>
+                <TabsTrigger value="deleted">Deleted ({counts.deleted})</TabsTrigger>
               </TabsList>
 
               <TabsContent value="draft">
@@ -361,6 +363,9 @@ export default function SellerProducts() {
               <TabsContent value="rejected">
                 {renderBucket('rejected', 'No rejected products. Nice work!')}
               </TabsContent>
+              <TabsContent value="deleted">
+                {renderBucket('deleted', 'Nothing in the trash. Deleted products can be restored here.')}
+              </TabsContent>
             </Tabs>
           </main>
         </div>
@@ -369,9 +374,9 @@ export default function SellerProducts() {
       <AlertDialog open={showDelete} onOpenChange={setShowDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this product?</AlertDialogTitle>
+            <AlertDialogTitle>Move this product to Deleted?</AlertDialogTitle>
             <AlertDialogDescription>
-              This permanently removes the product. This action cannot be undone.
+              It will be hidden from the marketplace immediately. You can restore it from the Deleted tab.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

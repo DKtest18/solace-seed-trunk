@@ -222,6 +222,17 @@ export function DeliveryTierSelector({
           />
         </Card>
       )}
+
+      {(value === 'tier1' || value === 'tier2') && (
+        <div className="text-xs text-muted-foreground border rounded-lg p-3 bg-muted/20 leading-relaxed">
+          <strong>Hosting notice:</strong> when you choose Instant or Protected
+          Delivery your file is stored on third-party infrastructure (Supabase
+          Storage) that DK AI Marketplace uses to host content. Please keep
+          your own master copy — to the extent permitted by applicable law, the
+          platform is not liable for data loss, corruption, or unavailability
+          of hosted files.
+        </div>
+      )}
     </div>
   );
 }

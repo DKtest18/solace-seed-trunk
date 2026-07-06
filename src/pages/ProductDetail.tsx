@@ -16,6 +16,7 @@ import { ReportDialog } from '@/components/ReportDialog';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { ProductMediaGallery } from '@/components/ProductMediaGallery';
 import { ReturnPolicyDisplay } from '@/components/ReturnPolicyDisplay';
+import { formatMoney, subscriptionLabel } from '@/lib/money';
 
 // Track product analytics
 const trackProductEvent = async (productId: string, eventType: 'view' | 'click', userId?: string, metadata?: any) => {

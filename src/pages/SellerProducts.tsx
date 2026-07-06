@@ -267,12 +267,32 @@ export default function SellerProducts() {
                   <Trash2 className="h-4 w-4 mr-1" /> Delete
                 </Button>
               )}
+              {bucket === 'deleted' && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    const { error } = await db
+                      .from('dkai_products')
+                      .update({ is_active: true, deleted_at: null })
+                      .eq('id', p.id);
+                    if (error) toast.error(error.message);
+                    else {
+                      toast.success('Product restored');
+                      refetch();
+                    }
+                  }}
+                >
+                  Restore
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
     );
   };
+
 
   const renderBucket = (bucket: Bucket, emptyText: string) => {
     const list = grouped[bucket];

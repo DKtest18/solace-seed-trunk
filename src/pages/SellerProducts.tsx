@@ -35,6 +35,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { db } from '@/lib/dkaiDb';
+import { formatMoney, subscriptionLabel } from '@/lib/money';
 import { toast } from 'sonner';
 
 type Bucket = 'draft' | 'in_review' | 'published' | 'rejected';
@@ -172,7 +173,8 @@ export default function SellerProducts() {
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   {statusBadge(bucket)}
                   <span className="text-sm text-muted-foreground">
-                    ${Number(p.price ?? 0).toFixed(2)}
+                    {formatMoney(p.price ?? 0, p.currency)}
+                    {subscriptionLabel(p) ? ` · ${subscriptionLabel(p)}` : ''}
                   </span>
                   <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
                     <Truck className="h-3 w-3" /> {deliveryLabel(p)}
@@ -216,6 +218,23 @@ export default function SellerProducts() {
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => navigate(`/edit-product/${p.id}`)}>
                     <Pencil className="h-4 w-4 mr-1" /> Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={async () => {
+                      const { error } = await db
+                        .from('dkai_products')
+                        .update({ is_published: false })
+                        .eq('id', p.id);
+                      if (error) toast.error(error.message);
+                      else {
+                        toast.success('Product unpublished');
+                        refetch();
+                      }
+                    }}
+                  >
+                    Unpublish
                   </Button>
                 </>
               )}

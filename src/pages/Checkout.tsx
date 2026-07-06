@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { BuyerPolicyAcceptance } from "@/components/BuyerPolicyAcceptance";
 import { useBuyerPolicy } from "@/hooks/useBuyerPolicy";
 import { usePlatformFee } from "@/hooks/usePlatformFee";
+import { formatMoney, subscriptionLabel } from "@/lib/money";
 
 export default function Checkout() {
   const [searchParams] = useSearchParams();
@@ -206,17 +207,24 @@ export default function Checkout() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Price</span>
-                <span className="font-medium">${Number(product.price).toFixed(2)}</span>
+                <span className="font-medium">
+                  {formatMoney(product.price, (product as any).currency)}
+                  {subscriptionLabel(product as any) && (
+                    <span className="text-xs text-muted-foreground ml-2">
+                      {subscriptionLabel(product as any)}
+                    </span>
+                  )}
+                </span>
               </div>
               {appliedCoupon && (
                 <div className="flex justify-between text-green-600">
                   <span>Coupon ({appliedCoupon.code})</span>
-                  <span>-${appliedCoupon.discount_amount.toFixed(2)}</span>
+                  <span>-{formatMoney(appliedCoupon.discount_amount, (product as any).currency)}</span>
                 </div>
               )}
               <div className="flex justify-between text-lg font-bold pt-4 border-t">
                 <span>Total</span>
-                <span>${(appliedCoupon ? appliedCoupon.new_total : Number(product.price)).toFixed(2)}</span>
+                <span>{formatMoney(appliedCoupon ? appliedCoupon.new_total : Number(product.price), (product as any).currency)}</span>
               </div>
 
               <div className="pt-3 border-t space-y-2">

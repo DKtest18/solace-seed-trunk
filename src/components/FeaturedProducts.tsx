@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { RatingDisplay } from '@/components/RatingDisplay';
 import { TrendingUp } from 'lucide-react';
+import { formatMoney, subscriptionLabel } from '@/lib/money';
 
 export function FeaturedProducts() {
   const plugin = useRef(
@@ -98,11 +99,9 @@ export function FeaturedProducts() {
                         ))}
                       </div>
                       <div className="text-xl font-bold text-primary">
-                        ${product.price}
+                        {formatMoney(product.price, (product as any).currency)}
                         <span className="text-sm font-normal text-muted-foreground ml-1">
-                          {product.pricing_model === 'one_time' && 'once'}
-                          {product.pricing_model === 'monthly' && '/month'}
-                          {product.pricing_model === 'yearly' && '/year'}
+                          {subscriptionLabel(product as any) || 'once'}
                         </span>
                       </div>
                     </CardContent>

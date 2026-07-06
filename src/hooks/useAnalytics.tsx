@@ -70,7 +70,7 @@ export function useProductAnalytics(productId: string | undefined, timeRange: Ti
       const { data: analytics, error: analyticsError } = await analyticsQuery;
       if (analyticsError) throw analyticsError;
 
-      let ordersQuery = db.from('dkai_orders').select('price, seller_earnings').eq('product_id', productId).in('status', ['completed', 'delivered', 'payment_confirmed']);
+      let ordersQuery = db.from('dkai_orders').select('price, seller_earnings').eq('product_id', productId).in('status', ['paid', 'completed', 'delivered', 'released', 'payment_confirmed']);
       if (startDate) ordersQuery = ordersQuery.gte('created_at', startDate.toISOString());
       const { data: orders, error: ordersError } = await ordersQuery;
       if (ordersError) throw ordersError;
@@ -121,7 +121,7 @@ export function useAnalyticsTimeSeries(sellerId: string | undefined, timeRange: 
       const { data: analytics, error } = await db.from('dkai_product_analytics').select('event_type, created_at').in('product_id', productIds).gte('created_at', startDate.toISOString()).order('created_at');
       if (error) throw error;
 
-      const { data: orders } = await db.from('dkai_orders').select('seller_earnings, created_at').in('product_id', productIds).in('status', ['completed', 'delivered', 'payment_confirmed', 'invoice_sent']).gte('created_at', startDate.toISOString()).order('created_at');
+      const { data: orders } = await db.from('dkai_orders').select('seller_earnings, created_at').in('product_id', productIds).in('status', ['paid', 'completed', 'delivered', 'released', 'payment_confirmed', 'invoice_sent']).gte('created_at', startDate.toISOString()).order('created_at');
 
       const grouped: Record<string, { views: number; clicks: number; revenue: number }> = {};
       const getKey = (date: Date) => {
@@ -169,14 +169,14 @@ export function useSellerRevenueAnalytics(sellerId: string | undefined) {
       const monthlyData = await Promise.all(
         months.map(async (month) => {
           if (productIds.length === 0) return { month: month.label, revenue: 0 };
-          const { data } = await db.from('dkai_orders').select('seller_earnings, price').in('product_id', productIds).in('status', ['completed', 'delivered', 'payment_confirmed']).gte('created_at', month.start.toISOString()).lte('created_at', month.end.toISOString());
+          const { data } = await db.from('dkai_orders').select('seller_earnings, price').in('product_id', productIds).in('status', ['paid', 'completed', 'delivered', 'released', 'payment_confirmed']).gte('created_at', month.start.toISOString()).lte('created_at', month.end.toISOString());
           const revenue = data?.reduce((sum: number, o: any) => sum + Number(o.seller_earnings || o.price || 0), 0) || 0;
           return { month: month.label, revenue };
         })
       );
 
       const { data: allOrders } = productIds.length > 0
-        ? await db.from('dkai_orders').select('product_id, price, seller_earnings').in('product_id', productIds).in('status', ['completed', 'delivered', 'payment_confirmed'])
+        ? await db.from('dkai_orders').select('product_id, price, seller_earnings').in('product_id', productIds).in('status', ['paid', 'completed', 'delivered', 'released', 'payment_confirmed'])
         : { data: [] };
 
       const { data: productTitles } = productIds.length > 0

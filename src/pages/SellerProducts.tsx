@@ -219,6 +219,23 @@ export default function SellerProducts() {
                   <Button size="sm" variant="outline" onClick={() => navigate(`/edit-product/${p.id}`)}>
                     <Pencil className="h-4 w-4 mr-1" /> Edit
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={async () => {
+                      const { error } = await db
+                        .from('dkai_products')
+                        .update({ is_published: false })
+                        .eq('id', p.id);
+                      if (error) toast.error(error.message);
+                      else {
+                        toast.success('Product unpublished');
+                        refetch();
+                      }
+                    }}
+                  >
+                    Unpublish
+                  </Button>
                 </>
               )}
               {bucket === 'in_review' && (

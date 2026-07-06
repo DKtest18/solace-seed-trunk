@@ -173,7 +173,8 @@ export default function SellerProducts() {
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   {statusBadge(bucket)}
                   <span className="text-sm text-muted-foreground">
-                    ${Number(p.price ?? 0).toFixed(2)}
+                    {formatMoney(p.price ?? 0, p.currency)}
+                    {subscriptionLabel(p) ? ` · ${subscriptionLabel(p)}` : ''}
                   </span>
                   <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
                     <Truck className="h-3 w-3" /> {deliveryLabel(p)}

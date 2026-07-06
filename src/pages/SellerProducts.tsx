@@ -38,9 +38,10 @@ import { db } from '@/lib/dkaiDb';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
 import { toast } from 'sonner';
 
-type Bucket = 'draft' | 'in_review' | 'published' | 'rejected';
+type Bucket = 'draft' | 'in_review' | 'published' | 'rejected' | 'deleted';
 
 function classifyProduct(p: any): Bucket {
+  if (p.is_active === false || p.deleted_at) return 'deleted';
   const status = (p.status || '').toLowerCase();
   const approval = (p.approval_status || '').toLowerCase();
   if (status === 'draft') return 'draft';

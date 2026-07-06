@@ -57,24 +57,26 @@ export function NotificationBell() {
     };
     load();
 
-    const channel = supabase
-      .channel(`notif:${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'dkai_notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          const row = payload.new as NotificationRow;
-          setItems((prev) => [row, ...prev].slice(0, 30));
-          // Light toast — non-intrusive
-          if (row.title) toast(row.title, { description: row.body ?? undefined });
-        }
-      )
-      .subscribe();
+    // Unique topic per mount avoids Supabase returning an already-subscribed
+    // channel on StrictMode re-mount (which would throw "cannot add
+    // postgres_changes callbacks ... after subscribe()").
+    const topic = `notif:${user.id}:${Math.random().toString(36).slice(2, 10)}`;
+    const channel = supabase.channel(topic);
+    channel.on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'dkai_notifications',
+        filter: `user_id=eq.${user.id}`,
+      },
+      (payload) => {
+        const row = payload.new as NotificationRow;
+        setItems((prev) => [row, ...prev].slice(0, 30));
+        if (row.title) toast(row.title, { description: row.body ?? undefined });
+      }
+    );
+    channel.subscribe();
 
     return () => {
       cancelled = true;

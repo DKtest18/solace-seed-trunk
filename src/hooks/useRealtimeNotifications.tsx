@@ -25,23 +25,23 @@ export function useRealtimeNotifications() {
     };
     loadUnreadCount();
 
-    const channel = supabase
-      .channel(`user-notifications:${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'dkai_notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          const n = payload.new as any;
-          toast(n.title, { description: n.body ?? undefined });
-          setUnreadCount((prev) => prev + 1);
-        }
-      )
-      .subscribe();
+    const topic = `user-notifications:${user.id}:${Math.random().toString(36).slice(2, 10)}`;
+    const channel = supabase.channel(topic);
+    channel.on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'dkai_notifications',
+        filter: `user_id=eq.${user.id}`,
+      },
+      (payload) => {
+        const n = payload.new as any;
+        toast(n.title, { description: n.body ?? undefined });
+        setUnreadCount((prev) => prev + 1);
+      }
+    );
+    channel.subscribe();
 
     return () => {
       supabase.removeChannel(channel);

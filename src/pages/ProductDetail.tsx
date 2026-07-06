@@ -249,9 +249,21 @@ export default function ProductDetail() {
                 </div>
               )}
               
-              <h2 className="text-2xl font-semibold text-primary">
-                ${product.price}
-              </h2>
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <h2 className="text-2xl font-semibold text-primary">
+                  {formatMoney(product.price, (product as any).currency)}
+                </h2>
+                {(() => {
+                  const sub = subscriptionLabel(product as any);
+                  return sub ? (
+                    <span className="inline-flex items-center rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-xs font-medium">
+                      Subscription · {sub}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">One-time payment</span>
+                  );
+                })()}
+              </div>
 
               {product.description && (
                 <p className="text-base text-muted-foreground whitespace-pre-line">

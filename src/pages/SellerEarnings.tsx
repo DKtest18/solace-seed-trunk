@@ -74,7 +74,7 @@ export default function SellerEarnings() {
       if (purchasesError) throw purchasesError;
 
       // Calculate metrics
-      const totalRevenue = purchases.reduce((sum, p) => sum + Number(p.amount), 0);
+      const totalRevenue = purchases.reduce((sum, p) => sum + Number(p.seller_earnings || p.price || p.amount || 0), 0);
       const pendingRevenue = 0; // Placeholder for future payout logic
       const totalSales = purchases.length;
       const averageSale = totalSales > 0 ? totalRevenue / totalSales : 0;
@@ -92,7 +92,7 @@ export default function SellerEarnings() {
         const date = new Date(purchase.created_at || '');
         const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
         if (monthlyRevenue.has(monthKey)) {
-          monthlyRevenue.set(monthKey, monthlyRevenue.get(monthKey)! + Number(purchase.amount));
+          monthlyRevenue.set(monthKey, monthlyRevenue.get(monthKey)! + Number(purchase.seller_earnings || purchase.price || purchase.amount || 0));
         }
       });
 
@@ -107,7 +107,7 @@ export default function SellerEarnings() {
         const product = products.find(p => p.id === purchase.product_id);
         if (product) {
           const type = product.product_type;
-          revenueByType.set(type, (revenueByType.get(type) || 0) + Number(purchase.amount));
+          revenueByType.set(type, (revenueByType.get(type) || 0) + Number(purchase.seller_earnings || purchase.price || purchase.amount || 0));
         }
       });
 
@@ -310,7 +310,7 @@ export default function SellerEarnings() {
                             </TableCell>
                             <TableCell>{product?.title || 'Unknown Product'}</TableCell>
                             <TableCell className="font-medium">
-                              ${Number(transaction.amount).toFixed(2)}
+                              ${Number(transaction.seller_earnings || transaction.price || transaction.amount || 0).toFixed(2)}
                             </TableCell>
                             <TableCell>
                               <Badge variant="default">{transaction.status}</Badge>

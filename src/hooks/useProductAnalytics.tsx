@@ -32,7 +32,7 @@ export function useProductAnalytics(productId: string | undefined) {
         .from('dkai_orders')
         .select('*', { count: 'exact', head: true })
         .eq('product_id', productId)
-        .in('status', ['completed', 'delivered', 'payment_confirmed']);
+        .in('status', ['paid', 'completed', 'delivered', 'released', 'payment_confirmed']);
 
       const views = viewCount || 0;
       const clicks = clickCount || 0;
@@ -83,7 +83,7 @@ export function useAllProductsAnalytics(sellerId: string | undefined) {
           .from('dkai_orders')
           .select('*', { count: 'exact', head: true })
           .eq('product_id', product.id)
-          .in('status', ['completed', 'delivered', 'payment_confirmed']);
+          .in('status', ['paid', 'completed', 'delivered', 'released', 'payment_confirmed']);
 
         const views = viewCount || 0;
         const clicks = clickCount || 0;

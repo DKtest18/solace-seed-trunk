@@ -4,26 +4,48 @@ import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
 
 export type TimeRange = 'day' | 'week' | 'month' | 'year' | 'all';
 
+const PAID_STATUSES = ['paid', 'completed', 'delivered', 'released', 'payment_confirmed'];
+
+function rangeStart(timeRange: TimeRange): Date | null {
+  const now = new Date();
+  switch (timeRange) {
+    case 'day': return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    case 'week': { const d = new Date(now); d.setDate(d.getDate() - 7); return d; }
+    case 'month': { const d = new Date(now); d.setMonth(d.getMonth() - 1); return d; }
+    case 'year': { const d = new Date(now); d.setFullYear(d.getFullYear() - 1); return d; }
+    default: return null;
+  }
+}
+
 export function useSellerAnalytics(sellerId: string | undefined, timeRange: TimeRange = 'all') {
   return useQuery({
     queryKey: ['seller-analytics', sellerId, timeRange],
     queryFn: async () => {
       if (!sellerId) throw new Error('Seller ID required');
-      const now = new Date();
-      let startDate: Date | null = null;
-      switch (timeRange) {
-        case 'day': startDate = new Date(now.setHours(0, 0, 0, 0)); break;
-        case 'week': startDate = new Date(now.setDate(now.getDate() - 7)); break;
-        case 'month': startDate = new Date(now.setMonth(now.getMonth() - 1)); break;
-        case 'year': startDate = new Date(now.setFullYear(now.getFullYear() - 1)); break;
+      const startDate = rangeStart(timeRange);
+
+      const { data: products } = await db.from('dkai_products').select('id').eq('seller_id', sellerId);
+      const productIds = (products || []).map((p: any) => p.id);
+      const total_products = productIds.length;
+
+      if (productIds.length === 0) {
+        return { total_products: 0, total_views: 0, total_clicks: 0, total_purchases: 0, total_revenue: 0 };
       }
-      const { data, error } = await db.rpc('dkai_get_seller_analytics', {
-        _seller_id: sellerId,
-        _start_date: startDate?.toISOString() || null,
-        _end_date: new Date().toISOString(),
-      });
-      if (error) throw error;
-      return data?.[0] || { total_products: 0, total_views: 0, total_clicks: 0, total_purchases: 0, total_revenue: 0 };
+
+      let analyticsQ = db.from('dkai_product_analytics').select('event_type').in('product_id', productIds);
+      if (startDate) analyticsQ = analyticsQ.gte('created_at', startDate.toISOString());
+      const { data: events } = await analyticsQ;
+
+      let ordersQ = db.from('dkai_orders').select('price, seller_earnings, status').eq('seller_id', sellerId).in('status', PAID_STATUSES);
+      if (startDate) ordersQ = ordersQ.gte('created_at', startDate.toISOString());
+      const { data: orders } = await ordersQ;
+
+      const total_views = events?.filter((e: any) => e.event_type === 'view').length || 0;
+      const total_clicks = events?.filter((e: any) => e.event_type === 'click').length || 0;
+      const total_purchases = orders?.length || 0;
+      const total_revenue = orders?.reduce((s: number, o: any) => s + Number(o.seller_earnings || o.price || 0), 0) || 0;
+
+      return { total_products, total_views, total_clicks, total_purchases, total_revenue };
     },
     enabled: !!sellerId,
   });
@@ -48,7 +70,7 @@ export function useProductAnalytics(productId: string | undefined, timeRange: Ti
       const { data: analytics, error: analyticsError } = await analyticsQuery;
       if (analyticsError) throw analyticsError;
 
-      let ordersQuery = db.from('dkai_orders').select('price, seller_earnings').eq('product_id', productId).in('status', ['completed', 'delivered', 'payment_confirmed']);
+      let ordersQuery = db.from('dkai_orders').select('price, seller_earnings').eq('product_id', productId).in('status', ['paid', 'completed', 'delivered', 'released', 'payment_confirmed']);
       if (startDate) ordersQuery = ordersQuery.gte('created_at', startDate.toISOString());
       const { data: orders, error: ordersError } = await ordersQuery;
       if (ordersError) throw ordersError;
@@ -99,7 +121,7 @@ export function useAnalyticsTimeSeries(sellerId: string | undefined, timeRange: 
       const { data: analytics, error } = await db.from('dkai_product_analytics').select('event_type, created_at').in('product_id', productIds).gte('created_at', startDate.toISOString()).order('created_at');
       if (error) throw error;
 
-      const { data: orders } = await db.from('dkai_orders').select('seller_earnings, created_at').in('product_id', productIds).in('status', ['completed', 'delivered', 'payment_confirmed', 'invoice_sent']).gte('created_at', startDate.toISOString()).order('created_at');
+      const { data: orders } = await db.from('dkai_orders').select('seller_earnings, created_at').in('product_id', productIds).in('status', ['paid', 'completed', 'delivered', 'released', 'payment_confirmed', 'invoice_sent']).gte('created_at', startDate.toISOString()).order('created_at');
 
       const grouped: Record<string, { views: number; clicks: number; revenue: number }> = {};
       const getKey = (date: Date) => {
@@ -147,14 +169,14 @@ export function useSellerRevenueAnalytics(sellerId: string | undefined) {
       const monthlyData = await Promise.all(
         months.map(async (month) => {
           if (productIds.length === 0) return { month: month.label, revenue: 0 };
-          const { data } = await db.from('dkai_orders').select('seller_earnings, price').in('product_id', productIds).in('status', ['completed', 'delivered', 'payment_confirmed']).gte('created_at', month.start.toISOString()).lte('created_at', month.end.toISOString());
+          const { data } = await db.from('dkai_orders').select('seller_earnings, price').in('product_id', productIds).in('status', ['paid', 'completed', 'delivered', 'released', 'payment_confirmed']).gte('created_at', month.start.toISOString()).lte('created_at', month.end.toISOString());
           const revenue = data?.reduce((sum: number, o: any) => sum + Number(o.seller_earnings || o.price || 0), 0) || 0;
           return { month: month.label, revenue };
         })
       );
 
       const { data: allOrders } = productIds.length > 0
-        ? await db.from('dkai_orders').select('product_id, price, seller_earnings').in('product_id', productIds).in('status', ['completed', 'delivered', 'payment_confirmed'])
+        ? await db.from('dkai_orders').select('product_id, price, seller_earnings').in('product_id', productIds).in('status', ['paid', 'completed', 'delivered', 'released', 'payment_confirmed'])
         : { data: [] };
 
       const { data: productTitles } = productIds.length > 0

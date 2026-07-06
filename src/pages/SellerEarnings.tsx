@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Navigate } from 'react-router-dom';
@@ -10,14 +11,43 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, DollarSign, TrendingUp, ShoppingCart, CreditCard, Lock, Clock } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { useSellerBalance } from '@/hooks/useSellerBalance';
+
+const PAID = ['paid', 'completed', 'delivered', 'released', 'payment_confirmed'];
 
 export default function SellerEarnings() {
   const { user } = useAuth();
   const { hasRole: isSeller, isLoading: roleLoading } = useHasRole('seller');
   const { hasRole: isAdmin } = useHasRole('admin');
   const [timeRange] = useState('all');
-  const { data: balance, isLoading: balanceLoading } = useSellerBalance();
+
+  // Real balance from Stripe Connect
+  const { data: stripeBalance } = useQuery({
+    queryKey: ['stripe-balance', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('stripe-connect-balance');
+      if (error) throw error;
+      return data as {
+        available: { amount: number; currency: string }[];
+        pending: { amount: number; currency: string }[];
+        held?: { amount: number; currency: string }[];
+        payouts?: any[];
+        balance_transactions?: any[];
+      };
+    },
+    enabled: !!user && (isSeller || isAdmin),
+    retry: false,
+  });
+
+  const fmt = (arr?: { amount: number; currency: string }[]) => {
+    if (!arr || arr.length === 0) return '$0.00';
+    const t = arr[0];
+    return `${t.currency.toUpperCase()} ${t.amount.toFixed(2)}`;
+  };
+  const balance = {
+    available_balance: stripeBalance?.available?.[0]?.amount ?? 0,
+    held_balance: stripeBalance?.held?.[0]?.amount ?? 0,
+    pending_balance: stripeBalance?.pending?.[0]?.amount ?? 0,
+  };
 
   // Fetch seller's products and sales
   const { data: salesData, isLoading } = useQuery({
@@ -33,18 +63,18 @@ export default function SellerEarnings() {
 
       if (productsError) throw productsError;
 
-      // Get all purchases for these products
+      // Get all paid orders for this seller
       const { data: purchases, error: purchasesError } = await db
         .from('dkai_orders')
         .select('*')
         .eq('seller_id', user.id)
-        .eq('status', 'completed')
+        .in('status', PAID)
         .order('created_at', { ascending: false });
 
       if (purchasesError) throw purchasesError;
 
       // Calculate metrics
-      const totalRevenue = purchases.reduce((sum, p) => sum + Number(p.amount), 0);
+      const totalRevenue = purchases.reduce((sum, p) => sum + Number(p.seller_earnings || p.price || p.amount || 0), 0);
       const pendingRevenue = 0; // Placeholder for future payout logic
       const totalSales = purchases.length;
       const averageSale = totalSales > 0 ? totalRevenue / totalSales : 0;
@@ -62,7 +92,7 @@ export default function SellerEarnings() {
         const date = new Date(purchase.created_at || '');
         const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
         if (monthlyRevenue.has(monthKey)) {
-          monthlyRevenue.set(monthKey, monthlyRevenue.get(monthKey)! + Number(purchase.amount));
+          monthlyRevenue.set(monthKey, monthlyRevenue.get(monthKey)! + Number(purchase.seller_earnings || purchase.price || purchase.amount || 0));
         }
       });
 
@@ -77,7 +107,7 @@ export default function SellerEarnings() {
         const product = products.find(p => p.id === purchase.product_id);
         if (product) {
           const type = product.product_type;
-          revenueByType.set(type, (revenueByType.get(type) || 0) + Number(purchase.amount));
+          revenueByType.set(type, (revenueByType.get(type) || 0) + Number(purchase.seller_earnings || purchase.price || purchase.amount || 0));
         }
       });
 
@@ -280,7 +310,7 @@ export default function SellerEarnings() {
                             </TableCell>
                             <TableCell>{product?.title || 'Unknown Product'}</TableCell>
                             <TableCell className="font-medium">
-                              ${Number(transaction.amount).toFixed(2)}
+                              ${Number(transaction.seller_earnings || transaction.price || transaction.amount || 0).toFixed(2)}
                             </TableCell>
                             <TableCell>
                               <Badge variant="default">{transaction.status}</Badge>

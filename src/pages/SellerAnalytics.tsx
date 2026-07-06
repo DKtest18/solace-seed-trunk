@@ -57,7 +57,7 @@ export default function SellerAnalytics() {
 
       orders?.forEach((o: any) => {
         if (productMap[o.product_id]) {
-          if (['completed', 'delivered', 'payment_confirmed'].includes(o.status)) {
+          if (['paid', 'completed', 'delivered', 'released', 'payment_confirmed'].includes(o.status)) {
             productMap[o.product_id].sales++;
             productMap[o.product_id].revenue += Number(o.seller_earnings || o.price || 0);
           } else if (['pending', 'processing'].includes(o.status)) {
@@ -121,7 +121,7 @@ export default function SellerAnalytics() {
       const productIds = products.map((p: any) => p.id);
 
       const { data: orders } = await db.from('dkai_orders').select('seller_earnings, price, created_at')
-        .in('product_id', productIds).in('status', ['completed', 'delivered', 'payment_confirmed'])
+        .in('product_id', productIds).in('status', ['paid', 'completed', 'delivered', 'released', 'payment_confirmed'])
         .gte('created_at', start.toISOString()).order('created_at');
 
       const grouped: Record<string, number> = {};

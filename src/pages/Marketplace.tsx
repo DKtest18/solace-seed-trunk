@@ -16,6 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { WishlistButton } from '@/components/WishlistButton';
 import { trackProductClick } from '@/utils/analytics';
 import { AppLayout } from '@/components/AppLayout';
+import { formatMoney, subscriptionLabel } from '@/lib/money';
 
 export default function Marketplace() {
   const navigate = useNavigate();

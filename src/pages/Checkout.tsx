@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { BuyerPolicyAcceptance } from "@/components/BuyerPolicyAcceptance";
 import { useBuyerPolicy } from "@/hooks/useBuyerPolicy";
 import { usePlatformFee } from "@/hooks/usePlatformFee";
+import { formatMoney, subscriptionLabel } from "@/lib/money";
 
 export default function Checkout() {
   const [searchParams] = useSearchParams();

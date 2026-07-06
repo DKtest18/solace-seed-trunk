@@ -364,11 +364,9 @@ export default function Marketplace() {
 
                       <div className="mt-auto flex items-center justify-between pt-4 border-t border-border">
                         <div className="text-xl font-display font-semibold text-gray-900">
-                          ${product.price}
+                          {formatMoney(product.price, (product as any).currency)}
                           <span className="text-xs font-normal text-muted-foreground ml-1">
-                            {product.pricing_model === 'one_time' && 'once'}
-                            {product.pricing_model === 'monthly' && '/mo'}
-                            {product.pricing_model === 'yearly' && '/yr'}
+                            {subscriptionLabel(product as any) || 'once'}
                           </span>
                         </div>
                         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>

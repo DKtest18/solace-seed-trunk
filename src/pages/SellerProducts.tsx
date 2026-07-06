@@ -72,6 +72,12 @@ function statusBadge(bucket: Bucket) {
           <XCircle className="h-3 w-3 mr-1" /> Changes Requested
         </Badge>
       );
+    case 'deleted':
+      return (
+        <Badge variant="outline" className="border-muted-foreground/40 text-muted-foreground bg-muted/40">
+          <Trash2 className="h-3 w-3 mr-1" /> Deleted
+        </Badge>
+      );
   }
 }
 

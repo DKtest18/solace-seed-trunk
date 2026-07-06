@@ -4,26 +4,48 @@ import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
 
 export type TimeRange = 'day' | 'week' | 'month' | 'year' | 'all';
 
+const PAID_STATUSES = ['paid', 'completed', 'delivered', 'released', 'payment_confirmed'];
+
+function rangeStart(timeRange: TimeRange): Date | null {
+  const now = new Date();
+  switch (timeRange) {
+    case 'day': return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    case 'week': { const d = new Date(now); d.setDate(d.getDate() - 7); return d; }
+    case 'month': { const d = new Date(now); d.setMonth(d.getMonth() - 1); return d; }
+    case 'year': { const d = new Date(now); d.setFullYear(d.getFullYear() - 1); return d; }
+    default: return null;
+  }
+}
+
 export function useSellerAnalytics(sellerId: string | undefined, timeRange: TimeRange = 'all') {
   return useQuery({
     queryKey: ['seller-analytics', sellerId, timeRange],
     queryFn: async () => {
       if (!sellerId) throw new Error('Seller ID required');
-      const now = new Date();
-      let startDate: Date | null = null;
-      switch (timeRange) {
-        case 'day': startDate = new Date(now.setHours(0, 0, 0, 0)); break;
-        case 'week': startDate = new Date(now.setDate(now.getDate() - 7)); break;
-        case 'month': startDate = new Date(now.setMonth(now.getMonth() - 1)); break;
-        case 'year': startDate = new Date(now.setFullYear(now.getFullYear() - 1)); break;
+      const startDate = rangeStart(timeRange);
+
+      const { data: products } = await db.from('dkai_products').select('id').eq('seller_id', sellerId);
+      const productIds = (products || []).map((p: any) => p.id);
+      const total_products = productIds.length;
+
+      if (productIds.length === 0) {
+        return { total_products: 0, total_views: 0, total_clicks: 0, total_purchases: 0, total_revenue: 0 };
       }
-      const { data, error } = await db.rpc('dkai_get_seller_analytics', {
-        _seller_id: sellerId,
-        _start_date: startDate?.toISOString() || null,
-        _end_date: new Date().toISOString(),
-      });
-      if (error) throw error;
-      return data?.[0] || { total_products: 0, total_views: 0, total_clicks: 0, total_purchases: 0, total_revenue: 0 };
+
+      let analyticsQ = db.from('dkai_product_analytics').select('event_type').in('product_id', productIds);
+      if (startDate) analyticsQ = analyticsQ.gte('created_at', startDate.toISOString());
+      const { data: events } = await analyticsQ;
+
+      let ordersQ = db.from('dkai_orders').select('price, seller_earnings, status').eq('seller_id', sellerId).in('status', PAID_STATUSES);
+      if (startDate) ordersQ = ordersQ.gte('created_at', startDate.toISOString());
+      const { data: orders } = await ordersQ;
+
+      const total_views = events?.filter((e: any) => e.event_type === 'view').length || 0;
+      const total_clicks = events?.filter((e: any) => e.event_type === 'click').length || 0;
+      const total_purchases = orders?.length || 0;
+      const total_revenue = orders?.reduce((s: number, o: any) => s + Number(o.seller_earnings || o.price || 0), 0) || 0;
+
+      return { total_products, total_views, total_clicks, total_purchases, total_revenue };
     },
     enabled: !!sellerId,
   });

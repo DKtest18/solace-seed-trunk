@@ -51,30 +51,27 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [selectedDispute, setSelectedDispute] = useState<any>(null);
 
-  // Fetch platform analytics
+  // Fetch platform analytics via server-side admin-stats edge function
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
     queryKey: ['admin-analytics'],
     queryFn: async () => {
-      const [productsRes, usersRes, purchasesRes, reviewsRes, disputesRes] = await Promise.all([
-        db.from('dkai_products').select('*', { count: 'exact', head: true }),
-        db.from('dkai_profiles').select('*', { count: 'exact', head: true }),
-        db.from('dkai_purchases').select('amount').eq('status', 'completed'),
-        db.from('dkai_reviews').select('*', { count: 'exact', head: true }),
-        db.from('dkai_disputes').select('*', { count: 'exact', head: true }).eq('status', 'open'),
-      ]);
-
-      const totalRevenue = purchasesRes.data?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
-
+      const { data, error } = await db.functions.invoke('admin-stats', { body: {} });
+      if (error) throw error;
+      const s = (data && (data.stats ?? data)) || {};
       return {
-        totalProducts: productsRes.count || 0,
-        totalUsers: usersRes.count || 0,
-        totalRevenue,
-        totalReviews: reviewsRes.count || 0,
-        openDisputes: disputesRes.count || 0,
+        totalProducts: Number(s.totalProducts ?? s.published_products ?? s.products ?? 0),
+        totalUsers: Number(s.totalUsers ?? s.registered_users ?? s.users ?? 0),
+        totalRevenue: Number(s.totalRevenue ?? s.revenue ?? 0),
+        totalReviews: Number(s.totalReviews ?? s.reviews ?? 0),
+        openDisputes: Number(s.openDisputes ?? s.open_disputes ?? s.disputes ?? 0),
+        totalSales: Number(s.totalSales ?? s.paid_sales ?? s.sales ?? 0),
+        totalRefunds: Number(s.totalRefunds ?? s.refunds ?? 0),
       };
     },
     enabled: !!user && isAdmin,
+    staleTime: 60_000,
   });
+
 
   // Fetch pending products for approval
   const { data: pendingProducts, isLoading: productsLoading, error: productsError } = useQuery({

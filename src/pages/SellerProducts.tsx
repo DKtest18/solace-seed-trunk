@@ -93,13 +93,13 @@ export default function SellerProducts() {
   const [searchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') as Bucket) || 'draft';
   const [tab, setTab] = useState<Bucket>(
-    (['draft', 'in_review', 'published', 'rejected'] as Bucket[]).includes(initialTab) ? initialTab : 'draft'
+    (['draft', 'in_review', 'published', 'rejected', 'deleted'] as Bucket[]).includes(initialTab) ? initialTab : 'draft'
   );
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showDelete, setShowDelete] = useState(false);
 
   const grouped = useMemo(() => {
-    const out: Record<Bucket, any[]> = { draft: [], in_review: [], published: [], rejected: [] };
+    const out: Record<Bucket, any[]> = { draft: [], in_review: [], published: [], rejected: [], deleted: [] };
     (products ?? []).forEach((p: any) => out[classifyProduct(p)].push(p));
     return out;
   }, [products]);
@@ -112,7 +112,11 @@ export default function SellerProducts() {
 
   const handleDelete = async () => {
     if (!deletingId) return;
-    const { error } = await db.from('dkai_products').delete().eq('id', deletingId);
+    // Soft delete: mark inactive
+    const { error } = await db
+      .from('dkai_products')
+      .update({ is_active: false, deleted_at: new Date().toISOString(), is_published: false })
+      .eq('id', deletingId);
     if (error) {
       toast.error(error.message || 'Failed to delete product');
     } else {

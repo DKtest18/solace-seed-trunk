@@ -56,6 +56,7 @@ import RefundRequest from "./pages/RefundRequest";
 import AdminDisputes from "./pages/AdminDisputes";
 import PayoutRequests from "./pages/PayoutRequests";
 import Checkout from "./pages/Checkout";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
 
 import SellerPaymentSettings from "./pages/SellerPaymentSettings";
 import AdminPaymentSettings from "./pages/AdminPaymentSettings";
@@ -133,6 +134,7 @@ const App = () => (
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/about" element={<About />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/checkout/success" element={<CheckoutSuccess />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />

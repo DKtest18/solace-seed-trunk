@@ -20,45 +20,47 @@ export default function PurchaseHistory() {
 
   // Fetch buyer's orders (not purchases)
   const { data: orders, isLoading } = useQuery({
-    queryKey: ['buyer-orders', user?.id],
+    queryKey: ['buyer-orders', user?.id, user?.email],
     queryFn: async () => {
       if (!user) return [];
+
+      // Include orders paid as the logged-in user AND guest orders paid with the same email
+      const orFilter = user.email
+        ? `buyer_id.eq.${user.id},buyer_email.eq.${user.email}`
+        : `buyer_id.eq.${user.id}`;
 
       const { data, error } = await db
         .from('dkai_orders')
         .select(`
           *,
-          products(
-            id,
-            title,
-            description,
-            image_url,
-            product_type,
-            seller_id
+          dkai_products:product_id(
+            id, title, description, image_url, product_type, seller_id
           )
         `)
-        .eq('buyer_id', user.id)
+        .or(orFilter)
+        .in('status', ['paid', 'completed', 'delivered', 'released'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
-      // Fetch seller profiles separately
-      if (data && data.length > 0) {
-        const sellerIds = data.map(o => o.products?.seller_id).filter(Boolean);
+
+      const rows = (data || []).map((o: any) => ({ ...o, products: o.dkai_products }));
+
+      if (rows.length > 0) {
+        const sellerIds = rows.map((o: any) => o.products?.seller_id).filter(Boolean);
         const { data: profiles } = await db
-          .from('profiles')
-          .select('id, full_name, avatar_url, username')
+          .from('dkai_profiles')
+          .select('id, full_name, avatar_url, username, creator_name')
           .in('id', sellerIds as string[]);
-        
-        const profileMap = new Map(profiles?.map(p => [p.id, p]));
-        
-        return data.map(order => ({
+
+        const profileMap = new Map(profiles?.map((p: any) => [p.id, p]));
+
+        return rows.map((order: any) => ({
           ...order,
-          seller_profile: profileMap.get(order.products?.seller_id || '')
+          seller_profile: profileMap.get(order.products?.seller_id || ''),
         }));
       }
-      
-      return data || [];
+
+      return rows;
     },
     enabled: !!user,
   });

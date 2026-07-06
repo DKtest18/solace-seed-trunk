@@ -63,12 +63,12 @@ export default function SellerEarnings() {
 
       if (productsError) throw productsError;
 
-      // Get all purchases for these products
+      // Get all paid orders for this seller
       const { data: purchases, error: purchasesError } = await db
         .from('dkai_orders')
         .select('*')
         .eq('seller_id', user.id)
-        .eq('status', 'completed')
+        .in('status', PAID)
         .order('created_at', { ascending: false });
 
       if (purchasesError) throw purchasesError;

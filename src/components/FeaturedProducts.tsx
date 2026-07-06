@@ -99,11 +99,9 @@ export function FeaturedProducts() {
                         ))}
                       </div>
                       <div className="text-xl font-bold text-primary">
-                        ${product.price}
+                        {formatMoney(product.price, (product as any).currency)}
                         <span className="text-sm font-normal text-muted-foreground ml-1">
-                          {product.pricing_model === 'one_time' && 'once'}
-                          {product.pricing_model === 'monthly' && '/month'}
-                          {product.pricing_model === 'yearly' && '/year'}
+                          {subscriptionLabel(product as any) || 'once'}
                         </span>
                       </div>
                     </CardContent>

@@ -28,9 +28,9 @@ export default function Disputes() {
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from('dkai_orders')
-        .select('id, seller_id, product_id, status, created_at, dkai_products:product_id (id, title)')
+        .select('id, seller_id, product_id, status, price, created_at, dkai_products:product_id (id, title)')
         .eq('buyer_id', user?.id)
-        .in('status', ['paid', 'completed', 'delivered'])
+        .in('status', ['paid', 'completed', 'delivered', 'released'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -195,7 +195,7 @@ export default function Disputes() {
                   <SelectContent>
                     {purchases?.map((purchase: any) => (
                       <SelectItem key={purchase.id} value={purchase.id}>
-                        {purchase.products.title} - ${purchase.amount}
+                        {purchase.products?.title || 'Product'} — ${Number(purchase.price ?? 0).toFixed(2)}
                       </SelectItem>
                     ))}
                   </SelectContent>

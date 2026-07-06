@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Navigate } from 'react-router-dom';
@@ -10,14 +11,43 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, DollarSign, TrendingUp, ShoppingCart, CreditCard, Lock, Clock } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { useSellerBalance } from '@/hooks/useSellerBalance';
+
+const PAID = ['paid', 'completed', 'delivered', 'released', 'payment_confirmed'];
 
 export default function SellerEarnings() {
   const { user } = useAuth();
   const { hasRole: isSeller, isLoading: roleLoading } = useHasRole('seller');
   const { hasRole: isAdmin } = useHasRole('admin');
   const [timeRange] = useState('all');
-  const { data: balance, isLoading: balanceLoading } = useSellerBalance();
+
+  // Real balance from Stripe Connect
+  const { data: stripeBalance } = useQuery({
+    queryKey: ['stripe-balance', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('stripe-connect-balance');
+      if (error) throw error;
+      return data as {
+        available: { amount: number; currency: string }[];
+        pending: { amount: number; currency: string }[];
+        held?: { amount: number; currency: string }[];
+        payouts?: any[];
+        balance_transactions?: any[];
+      };
+    },
+    enabled: !!user && (isSeller || isAdmin),
+    retry: false,
+  });
+
+  const fmt = (arr?: { amount: number; currency: string }[]) => {
+    if (!arr || arr.length === 0) return '$0.00';
+    const t = arr[0];
+    return `${t.currency.toUpperCase()} ${t.amount.toFixed(2)}`;
+  };
+  const balance = {
+    available_balance: stripeBalance?.available?.[0]?.amount ?? 0,
+    held_balance: stripeBalance?.held?.[0]?.amount ?? 0,
+    pending_balance: stripeBalance?.pending?.[0]?.amount ?? 0,
+  };
 
   // Fetch seller's products and sales
   const { data: salesData, isLoading } = useQuery({

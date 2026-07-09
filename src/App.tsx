@@ -12,6 +12,7 @@ import { Chatbot } from "@/components/Chatbot";
 import { CookieBanner } from "@/components/CookieBanner";
 import '@/i18n';
 import Index from "./pages/Index";
+import BlogTopAiAgentMarketplaces from "./pages/BlogTopAiAgentMarketplaces";
 import Marketplace from "./pages/Marketplace";
 import ProductDetail from "./pages/ProductDetail";
 import Login from "./pages/Login";

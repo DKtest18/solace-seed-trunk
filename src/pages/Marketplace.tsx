@@ -276,7 +276,7 @@ export default function Marketplace() {
               {/* Mobile filter trigger */}
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="lg:hidden">
+                  <Button variant="outline" size="icon" className="lg:hidden" aria-label="Open filters">
                     <SlidersHorizontal className="w-4 h-4" />
                   </Button>
                 </SheetTrigger>

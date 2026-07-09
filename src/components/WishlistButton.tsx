@@ -25,6 +25,8 @@ export function WishlistButton({ productId }: WishlistButtonProps) {
       variant="outline"
       size="icon"
       onClick={handleClick}
+      aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+      aria-pressed={isInWishlist}
       className={isInWishlist ? 'text-red-500' : ''}
     >
       <Heart className={`h-4 w-4 ${isInWishlist ? 'fill-current' : ''}`} />

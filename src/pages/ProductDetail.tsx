@@ -121,6 +121,104 @@ export default function ProductDetail() {
     enabled: !!id,
   });
 
+  // Dynamic SEO: title, description, canonical, og:*, and Product/FAQ JSON-LD
+  useEffect(() => {
+    if (!product || !id) return;
+    const url = `https://dkaimarketplace.com/product/${id}`;
+    const rawDesc: string = (product.description || product.title || '').toString();
+    const desc = rawDesc.replace(/\s+/g, ' ').trim().slice(0, 155);
+    const title = `${product.title} — DK AI Marketplace`.slice(0, 60);
+
+    document.title = title;
+
+    const setMeta = (selector: string, attr: string, value: string) => {
+      let el = document.head.querySelector<HTMLMetaElement>(selector);
+      if (!el) {
+        el = document.createElement('meta');
+        const [key, val] = selector.replace('meta[', '').replace(']', '').split('=');
+        el.setAttribute(key, val.replace(/"/g, ''));
+        document.head.appendChild(el);
+      }
+      el.setAttribute(attr, value);
+    };
+
+    setMeta('meta[name="description"]', 'content', desc);
+    setMeta('meta[property="og:title"]', 'content', title);
+    setMeta('meta[property="og:description"]', 'content', desc);
+    setMeta('meta[property="og:url"]', 'content', url);
+    setMeta('meta[property="og:type"]', 'content', 'product');
+    setMeta('meta[name="twitter:title"]', 'content', title);
+    setMeta('meta[name="twitter:description"]', 'content', desc);
+    if (product.image_url) {
+      setMeta('meta[property="og:image"]', 'content', product.image_url);
+      setMeta('meta[name="twitter:image"]', 'content', product.image_url);
+    }
+
+    let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', url);
+
+    // JSON-LD: Product
+    const productLd: Record<string, any> = {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.title,
+      description: desc,
+      url,
+      ...(product.image_url ? { image: product.image_url } : {}),
+      offers: {
+        '@type': 'Offer',
+        price: Number(product.price ?? 0),
+        priceCurrency: (product as any).currency || 'USD',
+        availability: 'https://schema.org/InStock',
+        url,
+      },
+    };
+    if (productRating && productRating.count > 0) {
+      productLd.aggregateRating = {
+        '@type': 'AggregateRating',
+        ratingValue: productRating.average.toFixed(2),
+        reviewCount: productRating.count,
+      };
+    }
+
+    const upsertLd = (id: string, data: unknown) => {
+      let s = document.getElementById(id) as HTMLScriptElement | null;
+      if (!s) {
+        s = document.createElement('script');
+        s.type = 'application/ld+json';
+        s.id = id;
+        document.head.appendChild(s);
+      }
+      s.textContent = JSON.stringify(data);
+    };
+    upsertLd('ld-product', productLd);
+
+    // JSON-LD: FAQPage (if faqs exist)
+    const faqs = Array.isArray((product as any).faqs) ? (product as any).faqs : [];
+    if (faqs.length > 0) {
+      upsertLd('ld-faq', {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f: { question: string; answer: string }) => ({
+          '@type': 'Question',
+          name: f.question,
+          acceptedAnswer: { '@type': 'Answer', text: f.answer },
+        })),
+      });
+    }
+
+    return () => {
+      document.getElementById('ld-product')?.remove();
+      document.getElementById('ld-faq')?.remove();
+    };
+  }, [product, id, productRating]);
+
+
   const handlePurchase = () => {
     // Guests are allowed to buy — go straight to checkout.
     if (id && user) {

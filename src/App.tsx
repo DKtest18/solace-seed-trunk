@@ -12,6 +12,7 @@ import { Chatbot } from "@/components/Chatbot";
 import { CookieBanner } from "@/components/CookieBanner";
 import '@/i18n';
 import Index from "./pages/Index";
+import BlogTopAiAgentMarketplaces from "./pages/BlogTopAiAgentMarketplaces";
 import Marketplace from "./pages/Marketplace";
 import ProductDetail from "./pages/ProductDetail";
 import Login from "./pages/Login";
@@ -130,6 +131,7 @@ const App = () => (
             <Route path="/admin/users" element={<AdminRouteGuard><AdminUsers /></AdminRouteGuard>} />
             <Route path="/" element={<Index />} />
             <Route path="/waitlist" element={<Waitlist />} />
+            <Route path="/blog/top-ai-agent-marketplaces" element={<BlogTopAiAgentMarketplaces />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/about" element={<About />} />

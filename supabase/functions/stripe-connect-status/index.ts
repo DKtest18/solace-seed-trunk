@@ -2,6 +2,7 @@ import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
 const STRIPE_ACCOUNT_TABLES = ['dkaim_user_id', 'dkai_user_id', 'dkai_profiles'];
+const PAYMENT_CONFIG_TABLES = ['dkai_seller_payment_configs', 'seller_payment_configs'];
 
 function isSchemaError(error: any) {
   const message = String(error?.message || '').toLowerCase();
@@ -34,6 +35,90 @@ async function findStripeUserRow(admin: any, userId: string) {
     throw error;
   }
   return firstRow ?? { table: existingTable, row: null };
+}
+
+async function updateStripeStorageOnboarded(admin: any, table: string, userId: string, isOnboarded: boolean) {
+  const attempts = [
+    { stripe_onboarded: isOnboarded, stripe_onboarding_complete: isOnboarded ? new Date().toISOString() : null },
+    { stripe_onboarded: isOnboarded },
+    { stripe_onboarding_complete: isOnboarded ? new Date().toISOString() : null },
+  ];
+
+  for (const values of attempts) {
+    const { error } = await admin.from(table).update(values).eq('id', userId);
+    if (!error) return;
+    if (!isSchemaError(error)) throw error;
+  }
+}
+
+async function syncSellerPaymentConfig(
+  admin: any,
+  userId: string,
+  accountId: string,
+  status: string,
+  chargesEnabled: boolean,
+  payoutsEnabled: boolean,
+  detailsSubmitted: boolean,
+) {
+  const now = new Date().toISOString();
+
+  for (const table of PAYMENT_CONFIG_TABLES) {
+    const existing = await admin.from(table).select('seller_id').eq('seller_id', userId).maybeSingle();
+    if (existing.error) {
+      if (isSchemaError(existing.error)) continue;
+      throw existing.error;
+    }
+
+    const payloadAttempts = [
+      {
+        seller_id: userId,
+        stripe_account_id: accountId,
+        stripe_onboarding_status: status,
+        charges_enabled: chargesEnabled,
+        payouts_enabled: payoutsEnabled,
+        card_payments_enabled: chargesEnabled,
+        onboarding_completed_at: detailsSubmitted ? now : null,
+        updated_at: now,
+      },
+      {
+        seller_id: userId,
+        stripe_account_id: accountId,
+        stripe_onboarding_status: status,
+        charges_enabled: chargesEnabled,
+        payouts_enabled: payoutsEnabled,
+        updated_at: now,
+      },
+      {
+        seller_id: userId,
+        stripe_account_id: accountId,
+        stripe_onboarding_status: status,
+        card_payments_enabled: chargesEnabled,
+        payouts_enabled: payoutsEnabled,
+        onboarding_completed_at: detailsSubmitted ? now : null,
+        updated_at: now,
+      },
+      {
+        seller_id: userId,
+        stripe_account_id: accountId,
+        stripe_onboarding_status: status,
+        updated_at: now,
+      },
+      {
+        seller_id: userId,
+        stripe_account_id: accountId,
+        stripe_onboarding_status: status,
+      },
+    ];
+
+    for (const payload of payloadAttempts) {
+      const result = existing.data
+        ? await admin.from(table).update(payload).eq('seller_id', userId)
+        : await admin.from(table).insert(payload);
+
+      if (!result.error) return;
+      if (!isSchemaError(result.error)) throw result.error;
+    }
+  }
 }
 
 Deno.serve(async (req) => {
@@ -84,7 +169,9 @@ Deno.serve(async (req) => {
     const detailsSubmitted = account.details_submitted || false;
     const isTestMode = stripeKey.startsWith('sk_test_');
 
-    // Determine onboarding status
+    // Determine onboarding status. If Stripe says details were submitted and
+    // there are no current/past due requirements, do not send the seller back
+    // through the onboarding form just because charges/payouts are still under review.
     let onboardingStatus: string;
     if (chargesEnabled && payoutsEnabled && detailsSubmitted) {
       onboardingStatus = 'connected';
@@ -99,40 +186,18 @@ Deno.serve(async (req) => {
     // Sync onboarded flag on the detected Stripe user table.
     const isOnboarded = onboardingStatus === 'connected';
     if (seller.stripe_onboarded !== isOnboarded) {
-      const onboardedUpdate = await admin.from(stripeUserTable).update({
-        stripe_onboarded: isOnboarded,
-      }).eq('id', user.id);
-      if (onboardedUpdate.error && !isSchemaError(onboardedUpdate.error)) throw onboardedUpdate.error;
+      await updateStripeStorageOnboarded(admin, stripeUserTable, user.id, isOnboarded);
     }
 
-    // Sync dkai_seller_payment_configs
-    const { data: paymentConfig, error: paymentConfigError } = await admin
-      .from('dkai_seller_payment_configs')
-      .select('seller_id, stripe_onboarding_status, charges_enabled')
-      .eq('seller_id', user.id)
-      .maybeSingle();
-
-    if (!paymentConfigError || !isSchemaError(paymentConfigError)) {
-      if (paymentConfigError) throw paymentConfigError;
-
-      if (paymentConfig) {
-        const syncUpdate = await admin.from('dkai_seller_payment_configs').update({
-          stripe_account_id: seller.stripe_account_id,
-          stripe_onboarding_status: onboardingStatus,
-          charges_enabled: chargesEnabled,
-          updated_at: new Date().toISOString(),
-        }).eq('seller_id', user.id);
-        if (syncUpdate.error && !isSchemaError(syncUpdate.error)) throw syncUpdate.error;
-      } else {
-        const syncInsert = await admin.from('dkai_seller_payment_configs').insert({
-          seller_id: user.id,
-          stripe_account_id: seller.stripe_account_id,
-          stripe_onboarding_status: onboardingStatus,
-          charges_enabled: chargesEnabled,
-        });
-        if (syncInsert.error && !isSchemaError(syncInsert.error)) throw syncInsert.error;
-      }
-    }
+    await syncSellerPaymentConfig(
+      admin,
+      user.id,
+      seller.stripe_account_id,
+      onboardingStatus,
+      chargesEnabled,
+      payoutsEnabled,
+      detailsSubmitted,
+    );
 
     // Mask account ID for display
     const maskedAccountId = seller.stripe_account_id

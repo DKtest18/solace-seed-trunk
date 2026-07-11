@@ -156,16 +156,17 @@ export default function SellerPaymentSettings() {
 
   const getStatusBadge = () => {
     const modeLabel = stripeStatus.isTestMode ? " (Sandbox)" : "";
-    switch (stripeStatus.onboardingStatus) {
-      case "connected":
-        return <Badge className="bg-green-500 hover:bg-green-600">Connected{modeLabel}</Badge>;
-      case "onboarding":
-        return <Badge className="bg-yellow-500 hover:bg-yellow-600">Onboarding in Progress</Badge>;
-      case "needs_info":
-        return <Badge className="bg-orange-500 hover:bg-orange-600">Verification Required</Badge>;
-      default:
-        return <Badge variant="destructive">Not Connected</Badge>;
+    if (!stripeStatus.connected) {
+      return <Badge variant="destructive">Not Connected</Badge>;
     }
+    const currentlyDue = stripeStatus.requirements?.currently_due?.length ?? 0;
+    if (stripeStatus.chargesEnabled && currentlyDue === 0) {
+      return <Badge className="bg-green-500 hover:bg-green-600">Connected{modeLabel}</Badge>;
+    }
+    if (currentlyDue > 0) {
+      return <Badge className="bg-orange-500 hover:bg-orange-600">Needs Info</Badge>;
+    }
+    return <Badge className="bg-yellow-500 hover:bg-yellow-600">Verifying…</Badge>;
   };
 
   if (loading || roleLoading) {

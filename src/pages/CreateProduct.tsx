@@ -412,6 +412,19 @@ export default function CreateProduct() {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
+  const handleJumpToStep = async (target: number) => {
+    if (target === currentStep || isSubmitting || isSavingDraft) return;
+    // Save progress silently when jumping; skip validation so users can freely navigate.
+    try {
+      await persistDraft();
+    } catch (e) {
+      // non-fatal — still allow navigation
+      console.warn('Draft save on jump failed', e);
+    }
+    setErrors({});
+    setCurrentStep(Math.min(Math.max(target, 1), STEPS.length));
+  };
+
   const handleFileSelect = async (file: File) => {
     setProductFile(file);
     setUploadStatus('uploading');

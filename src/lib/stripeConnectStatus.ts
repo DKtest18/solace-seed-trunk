@@ -103,6 +103,27 @@ export async function createStripeConnectOnboardingLink(origin: string): Promise
   return data.url;
 }
 
+export async function pollStripeConnectStatus(options?: {
+  maxAttempts?: number;
+  intervalMs?: number;
+  stopWhen?: (status: StripeConnectStatus) => boolean;
+}): Promise<StripeConnectStatus> {
+  const maxAttempts = options?.maxAttempts ?? 10;
+  const intervalMs = options?.intervalMs ?? 2_000;
+  const stopWhen = options?.stopWhen ?? ((status) => status.connected && status.onboardingStatus !== 'onboarding');
+  let latest = emptyStripeConnectStatus;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    latest = await fetchStripeConnectStatus();
+    if (stopWhen(latest)) return latest;
+    if (attempt < maxAttempts - 1) {
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    }
+  }
+
+  return latest;
+}
+
 export function isStripeConnectedForOnboarding(status: StripeConnectStatus): boolean {
   return status.connected && status.onboardingStatus === 'connected' && status.detailsSubmitted;
 }

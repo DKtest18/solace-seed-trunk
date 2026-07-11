@@ -211,7 +211,7 @@ export default function CreateProduct() {
     pricing_model: formData.pricing_model,
     currency: formData.currency || 'usd',
     billing_interval: formData.pricing_model === 'recurring' ? formData.billing_interval : null,
-    billing_interval_count: formData.pricing_model === 'recurring' ? formData.billing_interval_count : null,
+    billing_interval_count: formData.pricing_model === 'recurring' ? (formData.billing_interval_count ?? 1) : 1,
     features: formData.features,
     tags: formData.tags,
     purpose: formData.purpose || null,
@@ -410,6 +410,19 @@ export default function CreateProduct() {
 
   const handleBack = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleJumpToStep = async (target: number) => {
+    if (target === currentStep || isSubmitting || isSavingDraft) return;
+    // Save progress silently when jumping; skip validation so users can freely navigate.
+    try {
+      await persistDraft();
+    } catch (e) {
+      // non-fatal — still allow navigation
+      console.warn('Draft save on jump failed', e);
+    }
+    setErrors({});
+    setCurrentStep(Math.min(Math.max(target, 1), STEPS.length));
   };
 
   const handleFileSelect = async (file: File) => {
@@ -695,9 +708,13 @@ export default function CreateProduct() {
             <div className="mb-8">
               <div className="flex justify-between mb-2 overflow-x-auto pb-2">
                 {STEPS.map((step) => (
-                  <div
+                  <button
+                    type="button"
                     key={step.id}
-                    className={`flex flex-col items-center min-w-[60px] ${
+                    onClick={() => handleJumpToStep(step.id)}
+                    disabled={isSubmitting || isSavingDraft}
+                    title={`Go to step ${step.id}: ${step.title}`}
+                    className={`flex flex-col items-center min-w-[60px] cursor-pointer transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50 ${
                       step.id === currentStep
                         ? 'text-primary'
                         : step.id < currentStep
@@ -708,7 +725,7 @@ export default function CreateProduct() {
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${
                         step.id === currentStep
-                          ? 'bg-primary text-primary-foreground'
+                          ? 'bg-primary text-primary-foreground ring-2 ring-primary/40'
                           : step.id < currentStep
                           ? 'bg-green-600 text-white'
                           : 'bg-muted'
@@ -717,7 +734,7 @@ export default function CreateProduct() {
                       {step.id < currentStep ? <CheckCircle className="h-5 w-5" /> : step.id}
                     </div>
                     <span className="text-xs font-medium text-center">{step.title}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
               <Progress value={progress} className="h-2" />

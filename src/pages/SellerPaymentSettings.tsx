@@ -12,7 +12,7 @@ import { useHasRole } from "@/hooks/useUserRole";
 import { Badge } from "@/components/ui/badge";
 import { usePlatformFee } from "@/hooks/usePlatformFee";
 import { StripePaymentMethodsPanel } from "@/components/seller/StripePaymentMethodsPanel";
-import { emptyStripeConnectStatus, fetchStripeConnectStatus, isStripeConnectedForOnboarding, type StripeConnectStatus } from "@/lib/stripeConnectStatus";
+import { createStripeConnectOnboardingLink, emptyStripeConnectStatus, fetchStripeConnectStatus, isStripeConnectedForOnboarding, type StripeConnectStatus } from "@/lib/stripeConnectStatus";
 import { buildSupabaseFunctionError, logSupabaseFunctionError } from "@/lib/supabaseFunctionErrors";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -86,21 +86,10 @@ export default function SellerPaymentSettings() {
   const handleConnectStripe = async () => {
     setConnecting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("stripe-connect-onboarding", {
-        body: { origin: window.location.origin }
-      });
-      if (error || data?.error || !data?.success || !data?.url) {
-        throw await buildSupabaseFunctionError(
-          "stripe-connect-onboarding",
-          error,
-          data,
-          "Failed to create onboarding link",
-        );
-      }
-
+      const url = await createStripeConnectOnboardingLink(window.location.origin);
       toast.info("Redirecting to Stripe...");
       // Use same-tab navigation so the return_url brings them back logged in
-      window.location.href = data.url;
+      window.location.href = url;
     } catch (error: any) {
       logSupabaseFunctionError("Error connecting Stripe", error);
       toast.error(error.message || "Failed to start Stripe onboarding");

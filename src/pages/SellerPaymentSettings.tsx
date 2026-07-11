@@ -12,7 +12,7 @@ import { useHasRole } from "@/hooks/useUserRole";
 import { Badge } from "@/components/ui/badge";
 import { usePlatformFee } from "@/hooks/usePlatformFee";
 import { StripePaymentMethodsPanel } from "@/components/seller/StripePaymentMethodsPanel";
-import { createStripeConnectOnboardingLink, emptyStripeConnectStatus, fetchStripeConnectStatus, isStripeConnectedForOnboarding, type StripeConnectStatus } from "@/lib/stripeConnectStatus";
+import { createStripeConnectOnboardingLink, emptyStripeConnectStatus, fetchStripeConnectStatus, isStripeConnectedForOnboarding, pollStripeConnectStatus, type StripeConnectStatus } from "@/lib/stripeConnectStatus";
 import { buildSupabaseFunctionError, logSupabaseFunctionError } from "@/lib/supabaseFunctionErrors";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -47,18 +47,29 @@ export default function SellerPaymentSettings() {
   useEffect(() => {
     const isStripeReturn = searchParams.get("onboarding") === "complete" || searchParams.get("return") === "1";
     if (isStripeReturn) {
-      fetchStripeStatus().then(() => {
-        // Show success only if actually connected after return
-        setStripeStatus((prev) => {
-          if (isStripeConnectedForOnboarding(prev)) {
-            toast.success("Stripe connected — your payment settings are saved");
-            setShowSuccessAnimation(true);
-            setTimeout(() => setShowSuccessAnimation(false), 5000);
-          } else {
-            toast.info("Returned from Stripe. Finish any pending steps to complete setup.");
-          }
-          return prev;
-        });
+      setLoading(true);
+      setRefreshing(true);
+      toast.info("Returned from Stripe. Syncing payment status...");
+      pollStripeConnectStatus({
+        stopWhen: (status) => isStripeConnectedForOnboarding(status) || status.onboardingStatus === "needs_info",
+      }).then(async (status) => {
+        setStripeStatus(status);
+        await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
+        if (isStripeConnectedForOnboarding(status)) {
+          toast.success("Stripe connected — your payment settings are saved");
+          setShowSuccessAnimation(true);
+          setTimeout(() => setShowSuccessAnimation(false), 5000);
+        } else if (status.onboardingStatus === "needs_info") {
+          toast.info("Stripe needs more information to finish verification.");
+        } else {
+          toast.info("Stripe is still reviewing your account. Use Refresh Status in a moment.");
+        }
+      }).catch((error) => {
+        console.error("Error syncing Stripe status:", error);
+        toast.error(error instanceof Error ? error.message : "Failed to sync Stripe status");
+      }).finally(() => {
+        setLoading(false);
+        setRefreshing(false);
       });
       window.history.replaceState({}, "", "/seller/payment-settings");
     }

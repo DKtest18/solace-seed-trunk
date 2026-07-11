@@ -211,7 +211,7 @@ export default function CreateProduct() {
     pricing_model: formData.pricing_model,
     currency: formData.currency || 'usd',
     billing_interval: formData.pricing_model === 'recurring' ? formData.billing_interval : null,
-    billing_interval_count: formData.pricing_model === 'recurring' ? formData.billing_interval_count : null,
+    billing_interval_count: formData.pricing_model === 'recurring' ? (formData.billing_interval_count ?? 1) : 1,
     features: formData.features,
     tags: formData.tags,
     purpose: formData.purpose || null,

@@ -27,6 +27,7 @@ import { ReturnPolicyStep } from '@/components/product-creation/ReturnPolicyStep
 import { TermsAcceptanceStep } from '@/components/product-creation/TermsAcceptanceStep';
 import { RulesAcceptanceStep } from '@/components/RulesAcceptanceStep';
 import { ArrowLeft, ArrowRight, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/stripeConnectStatus';
 
 const STEPS = [
   { id: 1, title: 'Basic Info', description: 'Product details' },
@@ -655,18 +656,11 @@ export default function CreateProduct() {
   const StripeConnectionNotice = () => {
     const { data: status } = useQuery({
       queryKey: ['stripe-connect-status', user?.id],
-      queryFn: async () => {
-        const { data, error } = await supabase.functions.invoke('stripe-connect-status');
-        if (error) throw error;
-        return data as { connected?: boolean; chargesEnabled?: boolean; payoutsEnabled?: boolean; onboardingStatus?: string };
-      },
+      queryFn: fetchStripeConnectStatus,
       enabled: !!user,
       staleTime: 60_000,
     });
-    const connected =
-      !!status &&
-      (status.onboardingStatus === 'connected' ||
-        (status.chargesEnabled === true && status.payoutsEnabled === true));
+    const connected = !!status && isStripeConnectedForOnboarding(status);
     if (connected || !status) return null;
     return (
       <Alert variant="destructive" className="mb-4">

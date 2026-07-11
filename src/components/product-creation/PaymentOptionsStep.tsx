@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { InfoIcon, CreditCard, CheckCircle, AlertTriangle, Loader2, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
+import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/stripeConnectStatus';
 
 interface PaymentOptionsStepProps {
   data: { payment_methods?: string[] };
@@ -24,25 +24,12 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
   // It reads live status from Stripe and syncs dkai_seller_payment_configs.
   const { data: status, isLoading } = useQuery({
     queryKey: ['stripe-connect-status', user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke('stripe-connect-status');
-      if (error) throw error;
-      return data as {
-        connected?: boolean;
-        chargesEnabled?: boolean;
-        payoutsEnabled?: boolean;
-        onboardingStatus?: string;
-      };
-    },
+    queryFn: fetchStripeConnectStatus,
     enabled: !!user,
     staleTime: 60_000,
   });
 
-  // Treat as connected if Stripe says charges+payouts are enabled OR onboardingStatus==='connected'.
-  const isStripeConnected =
-    !!status &&
-    (status.onboardingStatus === 'connected' ||
-      (status.chargesEnabled === true && status.payoutsEnabled === true));
+  const isStripeConnected = !!status && isStripeConnectedForOnboarding(status);
 
   // Auto-set card payment method once connected (effect avoids state-update during render).
   useEffect(() => {

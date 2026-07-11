@@ -14,7 +14,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Badge } from '@/components/ui/badge';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
-import { emptyStripeConnectStatus, fetchStripeConnectStatus, isStripeConnectedForOnboarding, type StripeConnectStatus } from '@/lib/stripeConnectStatus';
+import { createStripeConnectOnboardingLink, emptyStripeConnectStatus, fetchStripeConnectStatus, isStripeConnectedForOnboarding, pollStripeConnectStatus, type StripeConnectStatus } from '@/lib/stripeConnectStatus';
 import { buildSupabaseFunctionError, logSupabaseFunctionError } from '@/lib/supabaseFunctionErrors';
 
 export default function SellerOnboardingPayment() {
@@ -49,11 +49,29 @@ export default function SellerOnboardingPayment() {
   useEffect(() => {
     const isStripeReturn = searchParams.get("onboarding") === "complete" || searchParams.get("return") === "1";
     if (isStripeReturn) {
-      toast({ title: "Success", description: "Stripe onboarding completed! Checking status..." });
-      fetchStripeStatus().then(() => {
-        // Show success animation if fully connected
-        setShowSuccessAnimation(true);
-        setTimeout(() => setShowSuccessAnimation(false), 5000);
+      setStripeLoading(true);
+      setRefreshing(true);
+      toast({ title: "Returned from Stripe", description: "Syncing payment status..." });
+      pollStripeConnectStatus({
+        stopWhen: (status) => isStripeConnectedForOnboarding(status) || status.onboardingStatus === "needs_info",
+      }).then(async (status) => {
+        setStripeStatus(status);
+        await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
+        if (isStripeConnectedForOnboarding(status)) {
+          toast({ title: "Success", description: "Stripe connected — your payment settings are saved." });
+          setShowSuccessAnimation(true);
+          setTimeout(() => setShowSuccessAnimation(false), 5000);
+        } else if (status.onboardingStatus === "needs_info") {
+          toast({ title: "Action required", description: "Stripe needs more information to finish verification." });
+        } else {
+          toast({ title: "Still reviewing", description: "Stripe is still reviewing your account. Use Refresh in a moment." });
+        }
+      }).catch((error) => {
+        console.error("Error syncing Stripe status:", error);
+        toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to sync Stripe status", variant: "destructive" });
+      }).finally(() => {
+        setStripeLoading(false);
+        setRefreshing(false);
       });
       window.history.replaceState({}, "", "/seller-onboarding/payment");
     }
@@ -80,21 +98,10 @@ export default function SellerOnboardingPayment() {
   const handleConnectStripe = async () => {
     setConnecting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("stripe-connect-onboarding", {
-        body: { origin: window.location.origin }
-      });
-      if (error || data?.error || !data?.success || !data?.url) {
-        throw await buildSupabaseFunctionError(
-          "stripe-connect-onboarding",
-          error,
-          data,
-          "Failed to create onboarding link",
-        );
-      }
-
+      const url = await createStripeConnectOnboardingLink(window.location.origin);
       toast({ title: "Redirecting", description: "Opening Stripe onboarding..." });
       // Same-tab navigation to keep auth session
-      window.location.href = data.url;
+      window.location.href = url;
     } catch (error: any) {
       logSupabaseFunctionError("Error connecting Stripe", error);
       toast({ title: "Error", description: error.message || "Failed to start Stripe onboarding", variant: "destructive" });

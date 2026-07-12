@@ -178,7 +178,7 @@ Deno.serve(async (req) => {
       'metadata[delivery_tier]': tier,
       // 5% application fee — ALWAYS at charge time, all tiers.
       'payment_intent_data[application_fee_amount]': String(appFeeCents),
-      'payment_intent_data[transfer_data][destination]': sellerStripe.stripe_account_id,
+      'payment_intent_data[transfer_data][destination]': stripeAccountId,
       'payment_intent_data[metadata][order_id]': order.id,
       'payment_intent_data[metadata][delivery_tier]': tier,
     };
@@ -195,7 +195,7 @@ Deno.serve(async (req) => {
     // connected account directly; payout to seller is gated by the account's
     // manual payout schedule + our auto_release_at logic.
     if (tier !== 'tier1') {
-      params['payment_intent_data[on_behalf_of]'] = sellerStripe.stripe_account_id;
+      params['payment_intent_data[on_behalf_of]'] = stripeAccountId;
     }
 
     const stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {

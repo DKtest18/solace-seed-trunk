@@ -51,14 +51,47 @@ Deno.serve(async (req) => {
     const tier: 'tier1' | 'tier2' | 'tier3' =
       (product.delivery_tier as any) || 'tier1';
 
-    const { data: sellerStripe } = await admin
-      .from('dkaim_user_id')
-      .select('stripe_account_id, stripe_onboarded')
-      .eq('id', product.seller_id)
-      .single();
+    // Look up the seller's Stripe account across all known storage tables.
+    // Different sellers may have their stripe_account_id on different rows
+    // (dkaim_user_id, dkai_user_id, or dkai_profiles) depending on when they
+    // onboarded. Also consult dkai_seller_payment_configs for the live
+    // onboarding status synced from Stripe.
+    const STRIPE_TABLES = ['dkaim_user_id', 'dkai_user_id', 'dkai_profiles'];
+    let sellerStripe: { stripe_account_id?: string; stripe_onboarded?: boolean } | null = null;
+    for (const t of STRIPE_TABLES) {
+      const { data } = await admin
+        .from(t)
+        .select('stripe_account_id, stripe_onboarded')
+        .eq('id', product.seller_id)
+        .maybeSingle();
+      if (data?.stripe_account_id) { sellerStripe = data; break; }
+    }
 
-    if (!sellerStripe?.stripe_account_id || !sellerStripe.stripe_onboarded) {
+    // Also read the payment config (source of truth synced from Stripe).
+    let cardPaymentsEnabled = false;
+    let configAccountId: string | undefined;
+    for (const t of ['dkai_seller_payment_configs', 'seller_payment_configs']) {
+      const { data } = await admin
+        .from(t)
+        .select('stripe_account_id, charges_enabled, card_payments_enabled, stripe_onboarding_status')
+        .eq('seller_id', product.seller_id)
+        .maybeSingle();
+      if (data) {
+        configAccountId = data.stripe_account_id || configAccountId;
+        cardPaymentsEnabled =
+          !!data.charges_enabled ||
+          !!data.card_payments_enabled ||
+          data.stripe_onboarding_status === 'connected';
+        break;
+      }
+    }
+
+    const stripeAccountId = sellerStripe?.stripe_account_id || configAccountId;
+    if (!stripeAccountId) {
       return errorResponse('Seller has not connected their payout account', 400);
+    }
+    if (!sellerStripe?.stripe_onboarded && !cardPaymentsEnabled) {
+      return errorResponse('Seller has not finished payment setup yet', 400);
     }
 
     const stripeKey = Deno.env.get('DKAIM_STRIPE_SECRET_KEY');
@@ -145,7 +178,7 @@ Deno.serve(async (req) => {
       'metadata[delivery_tier]': tier,
       // 5% application fee — ALWAYS at charge time, all tiers.
       'payment_intent_data[application_fee_amount]': String(appFeeCents),
-      'payment_intent_data[transfer_data][destination]': sellerStripe.stripe_account_id,
+      'payment_intent_data[transfer_data][destination]': stripeAccountId,
       'payment_intent_data[metadata][order_id]': order.id,
       'payment_intent_data[metadata][delivery_tier]': tier,
     };
@@ -162,7 +195,7 @@ Deno.serve(async (req) => {
     // connected account directly; payout to seller is gated by the account's
     // manual payout schedule + our auto_release_at logic.
     if (tier !== 'tier1') {
-      params['payment_intent_data[on_behalf_of]'] = sellerStripe.stripe_account_id;
+      params['payment_intent_data[on_behalf_of]'] = stripeAccountId;
     }
 
     const stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {

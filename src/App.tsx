@@ -64,6 +64,7 @@ import AdminPaymentSettings from "./pages/AdminPaymentSettings";
 import NotFound from "./pages/NotFound";
 import Legal from "./pages/Legal";
 import LegalOverview from "./pages/LegalOverview";
+import LicenseTerms from "./pages/LicenseTerms";
 import AdminReports from "./pages/AdminReports";
 import AdminEmailLogs from "./pages/AdminEmailLogs";
 import Invites from "./pages/Invites";
@@ -202,7 +203,9 @@ const App = () => (
             <Route path="/purchase-history" element={<WaitlistGuard><PurchaseHistory /></WaitlistGuard>} />
             <Route path="/legal" element={<LegalOverview />} />
             <Route path="/legal/imprint" element={<Impressum />} />
+            <Route path="/legal/licenses" element={<LicenseTerms />} />
             <Route path="/legal/:type" element={<Legal />} />
+
             <Route path="/admin/reports" element={<AdminRouteGuard><AdminReports /></AdminRouteGuard>} />
             <Route path="/admin/email-logs" element={<AdminRouteGuard><AdminEmailLogs /></AdminRouteGuard>} />
             <Route path="/invites" element={<WaitlistGuard><Invites /></WaitlistGuard>} />

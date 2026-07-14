@@ -16,6 +16,7 @@ import { ReportDialog } from '@/components/ReportDialog';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { ProductMediaGallery } from '@/components/ProductMediaGallery';
 import { ReturnPolicyDisplay } from '@/components/ReturnPolicyDisplay';
+import { LicenseSelector, type LicenseTier } from '@/components/LicenseSelector';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
 
 // Track product analytics
@@ -42,6 +43,7 @@ export default function ProductDetail() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [reportOpen, setReportOpen] = useState(false);
+  const [licenseTier, setLicenseTier] = useState<LicenseTier>('personal');
 
   // Capture referral ?ref=<code> for attribution + persist for checkout
   useEffect(() => {
@@ -222,9 +224,9 @@ export default function ProductDetail() {
   const handlePurchase = () => {
     // Guests are allowed to buy — go straight to checkout.
     if (id && user) {
-      trackProductEvent(id, 'click', user.id, { action: 'purchase_intent' });
+      trackProductEvent(id, 'click', user.id, { action: 'purchase_intent', tier: licenseTier });
     }
-    navigate(`/checkout?productId=${id}`);
+    navigate(`/checkout?productId=${id}&tier=${licenseTier}`);
   };
 
   const handleContactSeller = () => {
@@ -375,14 +377,17 @@ export default function ProductDetail() {
                 const sold = (product as any)?.quantity_sold ?? 0;
                 const soldOut = qty != null && sold >= qty;
                 return (
-                  <div className="pt-4 flex flex-wrap gap-3">
-                    <Button size="lg" className="flex-1 sm:flex-initial" onClick={handlePurchase} disabled={soldOut}>
-                      {soldOut ? 'Sold out' : 'Buy Now'}
-                    </Button>
-                    <Button size="lg" variant="outline" onClick={() => user ? setReportOpen(true) : navigate('/login')} className="gap-2">
-                      <Flag className="h-4 w-4" /> Report
-                    </Button>
-                  </div>
+                  <>
+                    <LicenseSelector product={product} value={licenseTier} onChange={setLicenseTier} />
+                    <div className="pt-4 flex flex-wrap gap-3">
+                      <Button size="lg" className="flex-1 sm:flex-initial" onClick={handlePurchase} disabled={soldOut}>
+                        {soldOut ? 'Sold out' : 'Buy Now'}
+                      </Button>
+                      <Button size="lg" variant="outline" onClick={() => user ? setReportOpen(true) : navigate('/login')} className="gap-2">
+                        <Flag className="h-4 w-4" /> Report
+                      </Button>
+                    </div>
+                  </>
                 );
               })()}
 

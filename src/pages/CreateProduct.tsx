@@ -118,6 +118,12 @@ export default function CreateProduct() {
     return_fee_enabled: false,
     return_fee_percentage: 0,
     return_conditions: '',
+    license_commercial_enabled: false,
+    license_commercial_price: '',
+    license_agency_enabled: false,
+    license_agency_price: '',
+    license_exclusive_enabled: false,
+    license_exclusive_price: '',
   });
 
   const [images, setImages] = useState<File[]>([]);
@@ -183,6 +189,12 @@ export default function CreateProduct() {
             return_fee_enabled: !!data.return_fee_enabled,
             return_fee_percentage: data.return_fee_percentage ?? 0,
             return_conditions: data.return_conditions ?? '',
+            license_commercial_enabled: !!data.license_commercial_enabled,
+            license_commercial_price: data.license_commercial_price != null ? String(data.license_commercial_price) : '',
+            license_agency_enabled: !!data.license_agency_enabled,
+            license_agency_price: data.license_agency_price != null ? String(data.license_agency_price) : '',
+            license_exclusive_enabled: !!data.license_exclusive_enabled,
+            license_exclusive_price: data.license_exclusive_price != null ? String(data.license_exclusive_price) : '',
           }));
           if (data.file_storage_key) {
             setUploadedFile({
@@ -243,6 +255,18 @@ export default function CreateProduct() {
     return_fee_enabled: formData.return_fee_enabled,
     return_fee_percentage: formData.return_fee_enabled ? formData.return_fee_percentage : 0,
     return_conditions: formData.return_conditions || null,
+    // Tiered licenses (Personal = existing price/currency; higher tiers optional)
+    license_personal_enabled: true,
+    license_personal_price: formData.price ? parseFloat(formData.price) : 0,
+    license_commercial_enabled: !!formData.license_commercial_enabled,
+    license_commercial_price: formData.license_commercial_enabled && formData.license_commercial_price
+      ? parseFloat(formData.license_commercial_price) : null,
+    license_agency_enabled: !!formData.license_agency_enabled,
+    license_agency_price: formData.license_agency_enabled && formData.license_agency_price
+      ? parseFloat(formData.license_agency_price) : null,
+    license_exclusive_enabled: !!formData.license_exclusive_enabled,
+    license_exclusive_price: formData.license_exclusive_enabled && formData.license_exclusive_price
+      ? parseFloat(formData.license_exclusive_price) : null,
     status: 'draft',
     is_published: false,
   });

@@ -4,6 +4,7 @@ const links = [
   { to: '/legal/imprint', label: 'Impressum' },
   { to: '/legal/privacy', label: 'Datenschutz' },
   { to: '/legal/terms', label: 'AGB' },
+  { to: '/legal/licenses', label: 'License Terms' },
   { to: '/legal/cookies', label: 'Cookies' },
   { to: '/legal/refund', label: 'Widerruf' },
 ];

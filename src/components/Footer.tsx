@@ -18,6 +18,7 @@ const legalLinks = [
   { to: '/impressum', label: 'Legal Notice (Impressum)' },
   { to: '/privacy', label: 'Privacy Policy' },
   { to: '/terms', label: 'Terms of Service' },
+  { to: '/legal/licenses', label: 'License Terms' },
   { to: '/cookies', label: 'Cookie Policy' },
   { to: '/cookie-settings', label: 'Cookie Settings' },
 ];

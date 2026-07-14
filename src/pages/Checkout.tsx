@@ -113,7 +113,7 @@ export default function Checkout() {
           code: couponCode.trim().toUpperCase(),
           seller_id: product.seller_id,
           product_id: product.id,
-          subtotal: Number(product.price),
+          subtotal: tierPrice,
         },
       });
       if (error) throw error;
@@ -143,6 +143,7 @@ export default function Checkout() {
           origin: window.location.origin,
           couponCode: appliedCoupon?.code,
           referralSource,
+          license_tier: licenseTier,
         },
       });
 
@@ -222,9 +223,13 @@ export default function Checkout() {
                 <span className="font-medium">{product.title}</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-muted-foreground">License</span>
+                <span className="font-medium">{tierLabel}</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-muted-foreground">Price</span>
                 <span className="font-medium">
-                  {formatMoney(product.price, (product as any).currency)}
+                  {formatMoney(tierPrice, (product as any).currency)}
                   {subscriptionLabel(product as any) && (
                     <span className="text-xs text-muted-foreground ml-2">
                       {subscriptionLabel(product as any)}
@@ -240,8 +245,9 @@ export default function Checkout() {
               )}
               <div className="flex justify-between text-lg font-bold pt-4 border-t">
                 <span>Total</span>
-                <span>{formatMoney(appliedCoupon ? appliedCoupon.new_total : Number(product.price), (product as any).currency)}</span>
+                <span>{formatMoney(appliedCoupon ? appliedCoupon.new_total : tierPrice, (product as any).currency)}</span>
               </div>
+
 
               <div className="pt-3 border-t space-y-2">
                 <div className="flex items-center gap-2 text-sm font-medium">

@@ -1,6 +1,7 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { validatePrice } from '@/utils/productValidation';
 
 interface PricingStepProps {
@@ -10,6 +11,12 @@ interface PricingStepProps {
     currency?: string;
     billing_interval?: string;
     billing_interval_count?: number;
+    license_commercial_enabled?: boolean;
+    license_commercial_price?: string;
+    license_agency_enabled?: boolean;
+    license_agency_price?: string;
+    license_exclusive_enabled?: boolean;
+    license_exclusive_price?: string;
   };
   onChange: (field: string, value: any) => void;
   errors: Record<string, string>;
@@ -39,14 +46,70 @@ export function PricingStep({ data, onChange, errors }: PricingStepProps) {
       (p) => p.id !== 'custom' && p.interval === data.billing_interval && p.count === (data.billing_interval_count ?? 1),
     )?.id ?? 'custom';
 
+  const basePrice = parseFloat(data.price) || 0;
+  const currency = (data.currency || 'usd').toUpperCase();
+  const suggest = (mult: number) => (basePrice > 0 ? (basePrice * mult).toFixed(2) : '');
+
+  const TierRow = ({
+    enabledKey,
+    priceKey,
+    label,
+    suggestion,
+    summary,
+    warn,
+  }: {
+    enabledKey: string;
+    priceKey: string;
+    label: string;
+    suggestion: string;
+    summary: string;
+    warn?: boolean;
+  }) => {
+    const enabled = !!(data as any)[enabledKey];
+    return (
+      <div className={`border rounded-lg p-4 ${warn && enabled ? 'border-destructive/50 bg-destructive/5' : ''}`}>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <Switch checked={enabled} onCheckedChange={(v) => onChange(enabledKey, v)} />
+              <Label className="text-base font-semibold">{label}</Label>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2 ml-11">{summary}</p>
+          </div>
+          {enabled && (
+            <div className="w-40 space-y-1">
+              <Label className="text-xs">Price ({currency})</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder={suggestion || '0.00'}
+                value={(data as any)[priceKey] ?? ''}
+                onChange={(e) => onChange(priceKey, e.target.value)}
+              />
+              {suggestion && (
+                <p className="text-[11px] text-muted-foreground">Suggested: {suggestion}</p>
+              )}
+            </div>
+          )}
+        </div>
+        {warn && enabled && (
+          <p className="text-xs text-destructive mt-3 ml-11">
+            Exclusive Buyout removes this product from the marketplace forever once purchased.
+          </p>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-3 gap-3">
         <div className="col-span-2 space-y-2">
-          <Label htmlFor="price">Price *</Label>
+          <Label htmlFor="price">Personal license price *</Label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              {(data.currency || 'usd').toUpperCase()}
+              {currency}
             </span>
             <Input
               id="price"
@@ -61,6 +124,9 @@ export function PricingStep({ data, onChange, errors }: PricingStepProps) {
             />
           </div>
           {errors.priceError && <p className="text-sm text-destructive">{errors.priceError}</p>}
+          <p className="text-xs text-muted-foreground">
+            Personal license is required — buyer's own business, one deployment. No resale.
+          </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="currency">Currency *</Label>
@@ -138,12 +204,42 @@ export function PricingStep({ data, onChange, errors }: PricingStepProps) {
               </div>
             </div>
           )}
-
-          <p className="text-xs text-muted-foreground">
-            These settings map 1:1 to a Stripe Price object on your connected account.
-          </p>
         </div>
       )}
+
+      <div className="space-y-3">
+        <div>
+          <h3 className="text-lg font-semibold">Additional Licenses (optional)</h3>
+          <p className="text-sm text-muted-foreground">
+            Offer higher tiers to unlock more usage rights. Resale on DK AI Marketplace is never
+            permitted, regardless of tier. See the{' '}
+            <a href="/legal/licenses" target="_blank" className="underline">License Terms</a>.
+          </p>
+        </div>
+
+        <TierRow
+          enabledKey="license_commercial_enabled"
+          priceKey="license_commercial_price"
+          label="Commercial"
+          suggestion={suggest(2.5)}
+          summary="Use across the buyer's own business, multiple internal deployments. No resale, no white-label. Suggested: 2–3× base."
+        />
+        <TierRow
+          enabledKey="license_agency_enabled"
+          priceKey="license_agency_price"
+          label="Agency / White-Label"
+          suggestion={suggest(10)}
+          summary="Deploy and rebrand for the buyer's OWN clients (off-platform). Relisting or reselling on any marketplace is forbidden. Suggested: 5–20× base."
+        />
+        <TierRow
+          enabledKey="license_exclusive_enabled"
+          priceKey="license_exclusive_price"
+          label="Exclusive Buyout"
+          suggestion={suggest(10)}
+          summary="Full rights transfer. Product is permanently removed from the marketplace once sold. Suggested: 6–15× base."
+          warn
+        />
+      </div>
 
       <div className="bg-muted p-4 rounded-lg">
         <h4 className="font-medium mb-2">Payment Processing</h4>

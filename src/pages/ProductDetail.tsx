@@ -16,6 +16,7 @@ import { ReportDialog } from '@/components/ReportDialog';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { ProductMediaGallery } from '@/components/ProductMediaGallery';
 import { ReturnPolicyDisplay } from '@/components/ReturnPolicyDisplay';
+import { LicenseSelector, type LicenseTier } from '@/components/LicenseSelector';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
 
 // Track product analytics
@@ -42,6 +43,7 @@ export default function ProductDetail() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [reportOpen, setReportOpen] = useState(false);
+  const [licenseTier, setLicenseTier] = useState<LicenseTier>('personal');
 
   // Capture referral ?ref=<code> for attribution + persist for checkout
   useEffect(() => {
@@ -222,9 +224,9 @@ export default function ProductDetail() {
   const handlePurchase = () => {
     // Guests are allowed to buy — go straight to checkout.
     if (id && user) {
-      trackProductEvent(id, 'click', user.id, { action: 'purchase_intent' });
+      trackProductEvent(id, 'click', user.id, { action: 'purchase_intent', tier: licenseTier });
     }
-    navigate(`/checkout?productId=${id}`);
+    navigate(`/checkout?productId=${id}&tier=${licenseTier}`);
   };
 
   const handleContactSeller = () => {

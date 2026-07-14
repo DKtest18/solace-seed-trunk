@@ -35,6 +35,22 @@ export default function Checkout() {
   const loadingPolicy = user ? loadingPolicyUser : false;
   const { feePct, sellerPct, launchPromoActive, promoBanner } = usePlatformFee();
   const productId = searchParams.get("productId");
+  const tierParam = (searchParams.get("tier") || "personal").toLowerCase();
+  const licenseTier: 'personal' | 'commercial' | 'agency' | 'exclusive' =
+    (['personal','commercial','agency','exclusive'] as const).includes(tierParam as any)
+      ? (tierParam as any) : 'personal';
+
+  const tierPrice = (() => {
+    if (!product) return 0;
+    if (licenseTier === 'commercial' && product.license_commercial_enabled && product.license_commercial_price)
+      return Number(product.license_commercial_price);
+    if (licenseTier === 'agency' && product.license_agency_enabled && product.license_agency_price)
+      return Number(product.license_agency_price);
+    if (licenseTier === 'exclusive' && product.license_exclusive_enabled && product.license_exclusive_price)
+      return Number(product.license_exclusive_price);
+    return Number(product.license_personal_price ?? product.price) || 0;
+  })();
+  const tierLabel = { personal: 'Personal', commercial: 'Commercial', agency: 'Agency / White-Label', exclusive: 'Exclusive Buyout' }[licenseTier];
 
   useEffect(() => {
     if (!productId) {

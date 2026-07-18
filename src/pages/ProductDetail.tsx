@@ -264,6 +264,26 @@ export default function ProductDetail() {
     );
   }
 
+  if (product.exclusive_locked) {
+    return (
+      <AppLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="pt-6 text-center space-y-4">
+              <h2 className="text-xl font-semibold">Sold Exclusively</h2>
+              <p className="text-muted-foreground text-sm">
+                This product was purchased under an Exclusive Buyout license and is no longer available on the marketplace.
+              </p>
+              <Button asChild>
+                <Link to="/marketplace">Back to Marketplace</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <main className="min-h-screen bg-background">

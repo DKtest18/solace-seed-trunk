@@ -354,7 +354,7 @@ export default function Checkout() {
                 <div className="space-y-3 pt-4">
                   <Button
                     onClick={handleCheckout}
-                    disabled={processing || !cardPaymentsAvailable || checkingCardAvailability}
+                    disabled={processing || !cardPaymentsAvailable || checkingCardAvailability || (licenseTier === 'exclusive' && !ipAssignmentAccepted)}
                     className="w-full"
                     size="lg"
                   >

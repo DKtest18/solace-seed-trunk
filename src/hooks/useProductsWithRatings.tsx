@@ -10,6 +10,7 @@ export function useProductsWithRatings() {
         .select('*')
         .eq('is_published', true)
         .eq('review_status', 'approved')
+        .eq('exclusive_locked', false)
         .order('created_at', { ascending: false });
 
       if (productsError) throw productsError;

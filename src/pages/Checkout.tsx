@@ -146,6 +146,7 @@ export default function Checkout() {
           couponCode: appliedCoupon?.code,
           referralSource,
           license_tier: licenseTier,
+          ip_assignment_accepted: licenseTier === 'exclusive' ? ipAssignmentAccepted : undefined,
         },
       });
 

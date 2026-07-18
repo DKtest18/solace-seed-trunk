@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AppLayout } from "@/components/AppLayout";
 import { toast } from "sonner";
-import { Loader2, CreditCard, ExternalLink, Shield, Tag } from "lucide-react";
+import { Loader2, CreditCard, ExternalLink, Shield, Tag, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { BuyerPolicyAcceptance } from "@/components/BuyerPolicyAcceptance";
 import { useBuyerPolicy } from "@/hooks/useBuyerPolicy";
 import { usePlatformFee } from "@/hooks/usePlatformFee";
@@ -29,6 +30,7 @@ export default function Checkout() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount_amount: number; new_total: number } | null>(null);
   const [guestPolicyAccepted, setGuestPolicyAccepted] = useState(false);
+  const [ipAssignmentAccepted, setIpAssignmentAccepted] = useState(false);
 
   const { hasAccepted: hasBuyerPolicyAcceptedUser, isLoading: loadingPolicyUser, acceptPolicy, isAccepting } = useBuyerPolicy();
   const hasBuyerPolicyAccepted = user ? hasBuyerPolicyAcceptedUser : guestPolicyAccepted;
@@ -144,6 +146,7 @@ export default function Checkout() {
           couponCode: appliedCoupon?.code,
           referralSource,
           license_tier: licenseTier,
+          ip_assignment_accepted: licenseTier === 'exclusive' ? ipAssignmentAccepted : undefined,
         },
       });
 
@@ -285,6 +288,30 @@ export default function Checkout() {
                   Stripe's standard payment processing fees apply and are borne by the seller.
                 </p>
               </div>
+
+              {licenseTier === 'exclusive' && (
+                <div className="mt-4 p-4 border-2 border-destructive/40 bg-destructive/5 rounded-lg space-y-3">
+                  <div className="flex items-center gap-2 text-destructive font-semibold text-sm">
+                    <AlertTriangle className="w-4 h-4" />
+                    Exclusive Ownership Buyout
+                  </div>
+                  <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+                    <li>Payment is <strong>authorized now</strong> but only <strong>captured</strong> after the seller delivers the source files and both parties sign the IP Assignment.</li>
+                    <li>Once captured, this product is <strong>permanently removed</strong> from the marketplace and full ownership transfers to you.</li>
+                    <li>The seller must upload complete deliverables (source, assets, docs) within their delivery window or the authorization is voided.</li>
+                  </ul>
+                  <label className="flex items-start gap-2 text-xs cursor-pointer pt-1 border-t border-destructive/20">
+                    <Checkbox
+                      checked={ipAssignmentAccepted}
+                      onCheckedChange={(v) => setIpAssignmentAccepted(v === true)}
+                      className="mt-0.5"
+                    />
+                    <span>
+                      I agree to the <a href="/legal/licenses" target="_blank" className="underline">IP Assignment Agreement</a> and understand the buyout is final once payment is captured.
+                    </span>
+                  </label>
+                </div>
+              )}
             </div>
           </Card>
 
@@ -327,7 +354,7 @@ export default function Checkout() {
                 <div className="space-y-3 pt-4">
                   <Button
                     onClick={handleCheckout}
-                    disabled={processing || !cardPaymentsAvailable || checkingCardAvailability}
+                    disabled={processing || !cardPaymentsAvailable || checkingCardAvailability || (licenseTier === 'exclusive' && !ipAssignmentAccepted)}
                     className="w-full"
                     size="lg"
                   >

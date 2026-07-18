@@ -26,6 +26,7 @@ export function FeaturedProducts() {
         .select('*')
         .eq('is_published', true)
         .eq('review_status', 'approved')
+        .eq('exclusive_locked', false)
         .order('trending_score', { ascending: false, nullsFirst: false })
         .limit(8);
 

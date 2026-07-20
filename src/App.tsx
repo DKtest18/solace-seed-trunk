@@ -98,6 +98,9 @@ import AdminProductReview from "./pages/AdminProductReview";
 import AdminUsers from "./pages/AdminUsers";
 import { SellerGuidelinesModal } from "@/components/SellerGuidelinesModal";
 import { SellerLayout } from "@/components/SellerLayout";
+import SellerSetupRequirements from "./pages/SellerSetupRequirements";
+import BuyerHandoverCredentials from "./pages/BuyerHandoverCredentials";
+import SellerCredentialAccess from "./pages/SellerCredentialAccess";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -219,6 +222,9 @@ const App = () => (
             <Route path="/sold-products" element={<Seller2FAGuard><SellerLayout title="Sold Products"><SoldProducts /></SellerLayout></Seller2FAGuard>} />
             <Route path="/refund-request/:orderId" element={<RefundRequest />} />
             <Route path="/admin/refund-requests" element={<AdminRouteGuard><AdminRefundRequests /></AdminRouteGuard>} />
+            <Route path="/seller/product/:id/setup-requirements" element={<Seller2FAGuard><SellerLayout title="Setup Requirements"><SellerSetupRequirements /></SellerLayout></Seller2FAGuard>} />
+            <Route path="/order/:orderId/handover" element={<WaitlistGuard><BuyerHandoverCredentials /></WaitlistGuard>} />
+            <Route path="/seller/order/:orderId/credentials" element={<Seller2FAGuard><SellerLayout title="Buyer Credentials"><SellerCredentialAccess /></SellerLayout></Seller2FAGuard>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
               </Routes>

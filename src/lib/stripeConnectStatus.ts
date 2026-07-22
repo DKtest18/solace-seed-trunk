@@ -90,17 +90,12 @@ export async function fetchStripeConnectStatus(): Promise<StripeConnectStatus> {
 }
 
 export async function createStripeConnectOnboardingLink(origin: string): Promise<string> {
-  const data = await invokeStripeFunction<{ success?: boolean; url?: string }>('stripe-connect-onboarding', { origin });
-  if (!data?.success || !data?.url) {
-    const detailedError = await buildSupabaseFunctionError(
-      'stripe-connect-onboarding',
-      null,
-      data,
-      'Failed to create onboarding link',
-    );
-    throw detailedError;
+  const { data, error } = await supabase.functions.invoke('stripe-connect-onboarding', { body: { origin } });
+  if (error || !data?.url) {
+    const msg = (data as any)?.error || error?.message || 'stripe-connect-onboarding returned no url';
+    throw new Error(msg);
   }
-  return data.url;
+  return data.url as string;
 }
 
 export async function pollStripeConnectStatus(options?: {

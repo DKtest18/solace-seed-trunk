@@ -429,6 +429,20 @@ export default function EditProduct() {
           payment_methods: formData.payment_methods,
           faqs: formData.faqs,
           is_published: formData.is_published,
+          currency: formData.currency,
+          billing_interval: formData.pricing_model === 'recurring' ? formData.billing_interval : null,
+          billing_interval_count: formData.pricing_model === 'recurring' ? (formData.billing_interval_count ?? 1) : null,
+          license_personal_enabled: true,
+          license_personal_price: parseFloat(formData.price) || 0,
+          license_commercial_enabled: !!formData.license_commercial_enabled,
+          license_commercial_price: formData.license_commercial_enabled && formData.license_commercial_price
+            ? parseFloat(formData.license_commercial_price) : null,
+          license_agency_enabled: !!formData.license_agency_enabled,
+          license_agency_price: formData.license_agency_enabled && formData.license_agency_price
+            ? parseFloat(formData.license_agency_price) : null,
+          license_exclusive_enabled: !!formData.license_exclusive_enabled,
+          license_exclusive_price: formData.license_exclusive_enabled && formData.license_exclusive_price
+            ? parseFloat(formData.license_exclusive_price) : null,
           delivery_tier: deliveryTier,
           delivery_tier_recommended: deliveryRecommended,
           delivery_tier_overridden: deliveryTier !== deliveryRecommended,

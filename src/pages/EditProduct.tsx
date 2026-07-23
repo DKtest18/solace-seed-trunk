@@ -84,6 +84,15 @@ export default function EditProduct() {
     payment_methods: ['card'] as string[],
     faqs: [] as Array<{ question: string; answer: string }>,
     is_published: false,
+    currency: 'usd',
+    billing_interval: 'month',
+    billing_interval_count: 1,
+    license_commercial_enabled: false,
+    license_commercial_price: '',
+    license_agency_enabled: false,
+    license_agency_price: '',
+    license_exclusive_enabled: false,
+    license_exclusive_price: '',
   });
 
   const [images, setImages] = useState<File[]>([]);

@@ -1,0 +1,86 @@
+/* Scoped dark theme for the marketplace browse page only */
+.marketplace-dark {
+  --mp-bg: #0A0E1A;
+  --mp-surface: #111725;
+  --mp-elev: #1A2234;
+  --mp-hair: rgba(255, 255, 255, 0.08);
+  --mp-text: #F1F5F9;
+  --mp-muted: #94A3B8;
+  background: var(--mp-bg);
+  color: var(--mp-text);
+  min-height: 100vh;
+}
+
+.marketplace-dark .mp-heading { color: var(--mp-text); }
+.marketplace-dark .mp-muted { color: var(--mp-muted); }
+
+.marketplace-dark .mp-card {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-hair);
+  color: var(--mp-text);
+}
+.marketplace-dark .mp-card:hover {
+  border-color: rgba(37, 99, 235, 0.5);
+  background: var(--mp-elev);
+}
+.marketplace-dark .mp-card .mp-card-title { color: var(--mp-text); }
+.marketplace-dark .mp-card .mp-card-desc { color: var(--mp-muted); }
+.marketplace-dark .mp-card .mp-card-price { color: var(--mp-text); }
+.marketplace-dark .mp-card .mp-card-divider { border-color: var(--mp-hair); }
+.marketplace-dark .mp-card .mp-thumb { background: #0A0E1A; }
+
+.marketplace-dark .mp-filter-title {
+  color: var(--mp-text);
+  letter-spacing: 0.06em;
+}
+
+.marketplace-dark .mp-input,
+.marketplace-dark input[type="text"],
+.marketplace-dark input[type="number"],
+.marketplace-dark input[type="search"] {
+  background: var(--mp-elev);
+  border-color: var(--mp-hair);
+  color: var(--mp-text);
+}
+.marketplace-dark .mp-input::placeholder { color: var(--mp-muted); }
+
+.marketplace-dark .mp-tag {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--mp-hair);
+  color: var(--mp-text);
+}
+.marketplace-dark .mp-tag:hover { border-color: #2563EB; color: #60A5FA; }
+.marketplace-dark .mp-tag-active {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: #fff;
+}
+
+.marketplace-dark .mp-chip {
+  background: rgba(37, 99, 235, 0.15);
+  color: #93C5FD;
+  border: 1px solid rgba(37, 99, 235, 0.3);
+}
+
+.marketplace-dark .mp-license-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border: 1px solid var(--mp-hair);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--mp-text);
+}
+.marketplace-dark .mp-license-chip.mp-lic-e {
+  background: linear-gradient(135deg, #2563EB, #7C3AED);
+  border-color: transparent;
+  color: #fff;
+}
+
+.marketplace-dark .mp-check {
+  accent-color: #2563EB;
+}

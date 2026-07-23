@@ -5,7 +5,7 @@ import { db } from '@/lib/dkaiDb';
 import { formatMoney } from '@/lib/money';
 import './index-home.css';
 
-const CATEGORIES = ['Agents', 'Automationen', 'Workflows', 'Prompts', 'Templates', 'Datasets'];
+const CATEGORIES = ['AI Agents', 'Automations', 'Workflows', 'Prompts', 'Templates', 'Datasets'];
 
 type HomeProduct = {
   id: string;

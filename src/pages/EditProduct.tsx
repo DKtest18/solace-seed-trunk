@@ -84,6 +84,15 @@ export default function EditProduct() {
     payment_methods: ['card'] as string[],
     faqs: [] as Array<{ question: string; answer: string }>,
     is_published: false,
+    currency: 'usd',
+    billing_interval: 'month',
+    billing_interval_count: 1,
+    license_commercial_enabled: false,
+    license_commercial_price: '',
+    license_agency_enabled: false,
+    license_agency_price: '',
+    license_exclusive_enabled: false,
+    license_exclusive_price: '',
   });
 
   const [images, setImages] = useState<File[]>([]);
@@ -156,6 +165,15 @@ export default function EditProduct() {
             ? product.faqs 
             : (product.faqs ? Object.values(product.faqs) : []),
           is_published: product.is_published || false,
+          currency: product.currency || 'usd',
+          billing_interval: product.billing_interval || 'month',
+          billing_interval_count: product.billing_interval_count ?? 1,
+          license_commercial_enabled: !!product.license_commercial_enabled,
+          license_commercial_price: product.license_commercial_price != null ? String(product.license_commercial_price) : '',
+          license_agency_enabled: !!product.license_agency_enabled,
+          license_agency_price: product.license_agency_price != null ? String(product.license_agency_price) : '',
+          license_exclusive_enabled: !!product.license_exclusive_enabled,
+          license_exclusive_price: product.license_exclusive_price != null ? String(product.license_exclusive_price) : '',
         });
 
         if (product.image_url) {
@@ -411,6 +429,20 @@ export default function EditProduct() {
           payment_methods: formData.payment_methods,
           faqs: formData.faqs,
           is_published: formData.is_published,
+          currency: formData.currency,
+          billing_interval: formData.pricing_model === 'recurring' ? formData.billing_interval : null,
+          billing_interval_count: formData.pricing_model === 'recurring' ? (formData.billing_interval_count ?? 1) : null,
+          license_personal_enabled: true,
+          license_personal_price: parseFloat(formData.price) || 0,
+          license_commercial_enabled: !!formData.license_commercial_enabled,
+          license_commercial_price: formData.license_commercial_enabled && formData.license_commercial_price
+            ? parseFloat(formData.license_commercial_price) : null,
+          license_agency_enabled: !!formData.license_agency_enabled,
+          license_agency_price: formData.license_agency_enabled && formData.license_agency_price
+            ? parseFloat(formData.license_agency_price) : null,
+          license_exclusive_enabled: !!formData.license_exclusive_enabled,
+          license_exclusive_price: formData.license_exclusive_enabled && formData.license_exclusive_price
+            ? parseFloat(formData.license_exclusive_price) : null,
           delivery_tier: deliveryTier,
           delivery_tier_recommended: deliveryRecommended,
           delivery_tier_overridden: deliveryTier !== deliveryRecommended,

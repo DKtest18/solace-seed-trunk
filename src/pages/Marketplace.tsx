@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
 import { useNavigate, Link } from 'react-router-dom';
 import { Search, SlidersHorizontal, PackageOpen, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -17,7 +18,6 @@ import { WishlistButton } from '@/components/WishlistButton';
 import { trackProductClick } from '@/utils/analytics';
 import { AppLayout } from '@/components/AppLayout';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
-import './marketplace-dark.css';
 
 type LicenseKey = 'personal' | 'commercial' | 'agency' | 'exclusive';
 
@@ -66,7 +66,8 @@ export default function Marketplace() {
       if (!selectedTags.some((tag) => product.tags?.includes(tag))) return false;
     }
     if (selectedLicenses.length > 0) {
-      if (!selectedLicenses.every((k) => productHasLicense(product, k))) return false;
+      // OR within license filter: match if product offers ANY of the selected tiers
+      if (!selectedLicenses.some((k) => productHasLicense(product, k))) return false;
     }
     if (priceRange.min || priceRange.max) {
       const price = Number(product.price);
@@ -137,20 +138,20 @@ export default function Marketplace() {
     minRating > 0;
 
   const FilterPill = ({ label, onRemove }: { label: string; onRemove: () => void }) => (
-    <span className="mp-chip rounded-full px-3 py-1 text-xs flex items-center gap-1">
+    <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs flex items-center gap-1">
       {label}
       <button onClick={onRemove} className="hover:opacity-70" aria-label={`Remove ${label}`}>
         <X className="w-3 h-3" />
       </button>
-    </span>
+    </Badge>
   );
 
   const FilterPanel = () => (
     <div>
       <div className="mb-8">
-        <h3 className="mp-filter-title text-sm font-semibold mb-3 uppercase tracking-wide">Product Type</h3>
+        <h3 className="text-sm font-semibold mb-3 uppercase tracking-wide text-foreground">Product Type</h3>
         <Select value={productType} onValueChange={setProductType}>
-          <SelectTrigger className="mp-input text-sm"><SelectValue placeholder="All Types" /></SelectTrigger>
+          <SelectTrigger className="text-sm"><SelectValue placeholder="All Types" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="agent">AI Agent</SelectItem>
@@ -160,7 +161,7 @@ export default function Marketplace() {
       </div>
 
       <div className="mb-8">
-        <h3 className="mp-filter-title text-sm font-semibold mb-3 uppercase tracking-wide">License Type</h3>
+        <h3 className="text-sm font-semibold mb-3 uppercase tracking-wide text-foreground">License Type</h3>
         <div className="space-y-2">
           {LICENSE_OPTIONS.map((opt) => {
             const checked = selectedLicenses.includes(opt.key);
@@ -168,13 +169,13 @@ export default function Marketplace() {
               <label key={opt.key} className="flex items-start gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
-                  className="mp-check mt-0.5"
+                  className="mt-0.5 accent-primary"
                   checked={checked}
                   onChange={() => toggleLicense(opt.key)}
                 />
                 <div className="min-w-0">
-                  <div className="text-sm text-[#F1F5F9]">{opt.label}</div>
-                  <div className="text-xs mp-muted">{opt.hint}</div>
+                  <div className="text-sm text-foreground">{opt.label}</div>
+                  <div className="text-xs text-muted-foreground">{opt.hint}</div>
                 </div>
               </label>
             );
@@ -183,9 +184,9 @@ export default function Marketplace() {
       </div>
 
       <div className="mb-8">
-        <h3 className="mp-filter-title text-sm font-semibold mb-3 uppercase tracking-wide">Pricing Model</h3>
+        <h3 className="text-sm font-semibold mb-3 uppercase tracking-wide text-foreground">Pricing Model</h3>
         <Select value={pricingModel} onValueChange={setPricingModel}>
-          <SelectTrigger className="mp-input text-sm"><SelectValue placeholder="All Models" /></SelectTrigger>
+          <SelectTrigger className="text-sm"><SelectValue placeholder="All Models" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Models</SelectItem>
             <SelectItem value="one_time">One-time</SelectItem>
@@ -196,7 +197,7 @@ export default function Marketplace() {
       </div>
 
       <div className="mb-8">
-        <h3 className="mp-filter-title text-sm font-semibold mb-3 uppercase tracking-wide">Price Range</h3>
+        <h3 className="text-sm font-semibold mb-3 uppercase tracking-wide text-foreground">Price Range</h3>
         <div className="flex gap-2 items-center">
           <Input
             type="number"
@@ -204,24 +205,24 @@ export default function Marketplace() {
             value={priceRange.min}
             onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
             min="0"
-            className="mp-input text-sm"
+            className="text-sm"
           />
-          <span className="mp-muted">–</span>
+          <span className="text-muted-foreground">–</span>
           <Input
             type="number"
             placeholder="Max"
             value={priceRange.max}
             onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
             min="0"
-            className="mp-input text-sm"
+            className="text-sm"
           />
         </div>
       </div>
 
       <div className="mb-8">
-        <h3 className="mp-filter-title text-sm font-semibold mb-3 uppercase tracking-wide">Minimum Rating</h3>
+        <h3 className="text-sm font-semibold mb-3 uppercase tracking-wide text-foreground">Minimum Rating</h3>
         <Select value={minRating.toString()} onValueChange={(v) => setMinRating(Number(v))}>
-          <SelectTrigger className="mp-input text-sm"><SelectValue placeholder="Any Rating" /></SelectTrigger>
+          <SelectTrigger className="text-sm"><SelectValue placeholder="Any Rating" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="0">Any Rating</SelectItem>
             <SelectItem value="1">1+ Stars</SelectItem>
@@ -235,7 +236,7 @@ export default function Marketplace() {
 
       {allTags && allTags.length > 0 && (
         <div className="mb-8">
-          <h3 className="mp-filter-title text-sm font-semibold mb-3 uppercase tracking-wide">Tags</h3>
+          <h3 className="text-sm font-semibold mb-3 uppercase tracking-wide text-foreground">Tags</h3>
           <div className="flex flex-wrap gap-2">
             {allTags.map((tag) => {
               const active = selectedTags.includes(tag);
@@ -245,8 +246,8 @@ export default function Marketplace() {
                   onClick={() => toggleTag(tag)}
                   className={
                     active
-                      ? 'mp-tag mp-tag-active rounded-full px-3 py-1 text-xs'
-                      : 'mp-tag rounded-full px-3 py-1 text-xs transition-colors'
+                      ? 'rounded-full px-3 py-1 text-xs bg-primary text-primary-foreground border border-primary'
+                      : 'rounded-full px-3 py-1 text-xs bg-background border border-border text-foreground hover:border-primary/40 transition-colors'
                   }
                 >
                   {tag}
@@ -257,7 +258,7 @@ export default function Marketplace() {
         </div>
       )}
 
-      <Button variant="outline" onClick={clearFilters} className="w-full bg-transparent border-white/15 text-[#F1F5F9] hover:bg-white/5 hover:text-white">
+      <Button variant="outline" onClick={clearFilters} className="w-full">
         Clear Filters
       </Button>
     </div>
@@ -272,7 +273,16 @@ export default function Marketplace() {
           {chips.map((o) => (
             <Tooltip key={o.key}>
               <TooltipTrigger asChild>
-                <span className={`mp-license-chip ${o.key === 'exclusive' ? 'mp-lic-e' : ''}`}>{o.chip}</span>
+                <span
+                  className={
+                    'inline-flex items-center justify-center w-6 h-6 rounded-full text-[0.65rem] font-semibold border ' +
+                    (o.key === 'exclusive'
+                      ? 'bg-gradient-to-br from-primary to-purple-600 text-white border-transparent'
+                      : 'bg-muted text-foreground border-border')
+                  }
+                >
+                  {o.chip}
+                </span>
               </TooltipTrigger>
               <TooltipContent>{o.tooltip}</TooltipContent>
             </Tooltip>
@@ -283,23 +293,23 @@ export default function Marketplace() {
   };
 
   const SkeletonCard = () => (
-    <Card className="mp-card overflow-hidden">
-      <Skeleton className="aspect-video w-full bg-white/5" />
+    <Card className="overflow-hidden">
+      <Skeleton className="aspect-video w-full" />
       <div className="p-5">
-        <Skeleton className="h-5 w-20 mb-3 rounded-full bg-white/5" />
-        <Skeleton className="h-6 w-3/4 mb-2 bg-white/5" />
-        <Skeleton className="h-4 w-full mb-2 bg-white/5" />
-        <Skeleton className="h-4 w-2/3 mb-4 bg-white/5" />
+        <Skeleton className="h-5 w-20 mb-3 rounded-full" />
+        <Skeleton className="h-6 w-3/4 mb-2" />
+        <Skeleton className="h-4 w-full mb-2" />
+        <Skeleton className="h-4 w-2/3 mb-4" />
       </div>
     </Card>
   );
 
   return (
     <AppLayout>
-      <div className="marketplace-dark">
+      <div className="bg-background min-h-screen">
         <header className="max-w-7xl mx-auto px-6 pt-12 pb-8">
-          <h1 className="text-4xl font-semibold tracking-tight mp-heading mb-2">Marketplace</h1>
-          <p className="mp-muted text-lg">
+          <h1 className="text-4xl font-semibold tracking-tight text-foreground mb-2">Marketplace</h1>
+          <p className="text-muted-foreground text-lg">
             AI agents, automations, prompts and tools — built by verified sellers.
           </p>
         </header>
@@ -312,17 +322,17 @@ export default function Marketplace() {
           <div className="min-w-0">
             <div className="mb-6 flex gap-3">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 mp-muted" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="mp-input pl-10 rounded-lg px-4 py-2.5 text-sm"
+                  className="pl-10 rounded-lg px-4 py-2.5 text-sm"
                 />
               </div>
 
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="mp-input w-[180px] rounded-lg px-4 py-2.5 text-sm">
+                <SelectTrigger className="w-[180px] rounded-lg px-4 py-2.5 text-sm">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -336,14 +346,14 @@ export default function Marketplace() {
 
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="lg:hidden bg-transparent border-white/15 text-[#F1F5F9] hover:bg-white/5" aria-label="Open filters">
+                  <Button variant="outline" size="icon" className="lg:hidden" aria-label="Open filters">
                     <SlidersHorizontal className="w-4 h-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="marketplace-dark bg-[#0A0E1A] border-white/10">
+                <SheetContent>
                   <SheetHeader>
-                    <SheetTitle className="text-[#F1F5F9]">Filters</SheetTitle>
-                    <SheetDescription className="text-[#94A3B8]">Refine your search with filters</SheetDescription>
+                    <SheetTitle>Filters</SheetTitle>
+                    <SheetDescription>Refine your search with filters</SheetDescription>
                   </SheetHeader>
                   <div className="mt-6">
                     <FilterPanel />
@@ -395,24 +405,24 @@ export default function Marketplace() {
                       trackProductClick(product.id, user?.id);
                       navigate(`/product/${product.id}`);
                     }}
-                    className="mp-card cursor-pointer overflow-hidden hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
+                    className="cursor-pointer overflow-hidden hover:-translate-y-0.5 hover:shadow-lg hover:border-primary/40 transition-all duration-200 flex flex-col"
                   >
-                    <div className="mp-thumb aspect-video w-full overflow-hidden">
+                    <div className="aspect-video w-full overflow-hidden bg-muted">
                       {product.image_url ? (
                         <img src={product.image_url} alt={product.title} className="w-full h-full object-cover" loading="lazy" />
                       ) : null}
                     </div>
                     <div className="p-5 flex flex-col flex-1">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="mp-chip inline-flex text-xs font-medium px-2.5 py-1 rounded-full">
+                        <Badge variant="secondary" className="text-xs font-medium">
                           {product.product_type}
-                        </span>
+                        </Badge>
                         <LicenseChips product={product} />
                       </div>
-                      <h3 className="mp-card-title text-lg font-semibold mb-2 line-clamp-2">
+                      <h3 className="text-lg font-semibold mb-2 line-clamp-2 text-foreground">
                         {product.title}
                       </h3>
-                      <p className="mp-card-desc text-sm mb-4 line-clamp-2">
+                      <p className="text-sm mb-4 line-clamp-2 text-muted-foreground">
                         {product.description || 'No description available'}
                       </p>
 
@@ -422,16 +432,16 @@ export default function Marketplace() {
                         </div>
                       )}
 
-                      <div className="mp-card-divider mt-auto flex items-center justify-between pt-4 border-t">
-                        <div className="mp-card-price text-xl font-semibold">
+                      <div className="mt-auto flex items-center justify-between pt-4 border-t border-border">
+                        <div className="text-xl font-semibold text-foreground">
                           {formatMoney(product.price, (product as any).currency)}
-                          <span className="text-xs font-normal mp-muted ml-1">
+                          <span className="text-xs font-normal text-muted-foreground ml-1">
                             {subscriptionLabel(product as any) || 'once'}
                           </span>
                         </div>
                         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                           <WishlistButton productId={product.id} />
-                          <Button size="sm" asChild style={{ background: '#2563EB' }} className="text-white hover:opacity-90">
+                          <Button size="sm" asChild>
                             <Link to={`/product/${product.id}`}>View</Link>
                           </Button>
                         </div>
@@ -442,12 +452,12 @@ export default function Marketplace() {
               </div>
             ) : (
               <div className="text-center py-20">
-                <PackageOpen className="mx-auto mb-4 mp-muted" size={48} />
-                <h2 className="text-xl font-semibold mp-heading mb-2">No products match your filters</h2>
-                <p className="mp-muted mb-6 max-w-md mx-auto">
+                <PackageOpen className="mx-auto mb-4 text-muted-foreground" size={48} />
+                <h2 className="text-xl font-semibold text-foreground mb-2">No products match your filters</h2>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                   Try removing some filters or check back soon — we're pre-launch and adding new sellers daily.
                 </p>
-                <Button variant="outline" onClick={clearFilters} className="bg-transparent border-white/15 text-[#F1F5F9] hover:bg-white/5">
+                <Button variant="outline" onClick={clearFilters}>
                   Reset filters
                 </Button>
               </div>

@@ -60,7 +60,7 @@ function ProductGlassCard({ product, className = '' }: { product?: HomeProduct; 
       </div>
       <div className="flex items-center gap-1.5 mb-1">
         <span className="text-sm font-medium text-[#F1F5F9] line-clamp-1">{product.title}</span>
-        <BadgeCheck className="h-4 w-4 text-[#22C55E] shrink-0" aria-label="Verifiziert" />
+        <BadgeCheck className="h-4 w-4 text-[#22C55E] shrink-0" aria-label="Verified" />
       </div>
       <div className="text-sm text-[#94A3B8]">{formatMoney(product.price, product.currency)}</div>
     </Link>

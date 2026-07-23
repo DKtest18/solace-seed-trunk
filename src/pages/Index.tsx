@@ -86,13 +86,13 @@ export default function Index() {
         <div aria-hidden className="home-blob" />
         <div className="relative">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-[#94A3B8] mb-8">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#22C55E]" /> Live · Schweizer Qualität · KI-First
+            <span className="h-1.5 w-1.5 rounded-full bg-[#22C55E]" /> Live · Swiss Quality · AI-First
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight leading-[1.05] mb-6">
-            <span className="home-headline-grad">Der Marktplatz für fertige KI-Automationen</span>
+            <span className="home-headline-grad">The Marketplace for Ready-Made AI Automations</span>
           </h1>
           <p className="text-base sm:text-lg text-[#94A3B8] max-w-2xl mx-auto mb-10">
-            Geprüfte AI-Agents, Workflows und Prompts — von verifizierten Verkäufern.
+            Verified sellers. Reviewed AI agents, workflows and prompts. Buy in minutes — no account needed.
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Link
@@ -101,13 +101,13 @@ export default function Index() {
               style={{ background: '#2563EB' }}
             >
               <ShoppingBag className="h-4 w-4" />
-              Marktplatz durchsuchen
+              Browse Marketplace
             </Link>
             <Link
               to="/seller-onboarding"
               className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-[#F1F5F9] border border-white/15 bg-white/5 hover:bg-white/10 transition-colors"
             >
-              Verkäufer werden
+              Become a Seller
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

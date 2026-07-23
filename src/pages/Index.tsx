@@ -145,20 +145,20 @@ export default function Index() {
       {/* HOW IT WORKS */}
       <section className="relative max-w-6xl mx-auto px-6 py-24">
         <div className="text-center mb-14">
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-3">So funktioniert's</h2>
-          <p className="text-[#94A3B8]">In drei Schritten zu deiner KI-Lösung.</p>
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-3">How it works</h2>
+          <p className="text-[#94A3B8]">Three steps to your AI solution.</p>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { icon: Search, title: 'Finden', text: 'Durchsuche geprüfte AI-Agents, Workflows und Prompts von echten Buildern.' },
-            { icon: CreditCard, title: 'Kaufen (auch ohne Konto)', text: 'Sichere Zahlung mit Stripe — kein Konto nötig, keine versteckten Kosten.' },
-            { icon: Download, title: 'Sofort erhalten', text: 'Downloads, Zugangsdaten und Setup sofort nach der Bezahlung verfügbar.' },
+            { icon: Search, title: 'Find it', text: 'Browse reviewed AI agents, workflows and prompts from real builders.' },
+            { icon: CreditCard, title: 'Buy it (no account needed)', text: 'Secure Stripe checkout — no sign-up required, no hidden fees.' },
+            { icon: Download, title: 'Get it instantly', text: 'Downloads, access details and setup delivered right after payment.' },
           ].map((s, i) => (
             <div key={i} className="home-glass p-8">
               <div className="h-10 w-10 rounded-lg bg-[#2563EB]/15 border border-[#2563EB]/30 flex items-center justify-center mb-5">
                 <s.icon className="h-5 w-5 text-[#60A5FA]" />
               </div>
-              <div className="text-xs text-[#94A3B8] mb-2">Schritt {i + 1}</div>
+              <div className="text-xs text-[#94A3B8] mb-2">Step {i + 1}</div>
               <h3 className="text-lg font-medium text-[#F1F5F9] mb-2">{s.title}</h3>
               <p className="text-sm text-[#94A3B8] leading-relaxed">{s.text}</p>
             </div>
@@ -169,15 +169,15 @@ export default function Index() {
       {/* TRUST */}
       <section className="relative max-w-6xl mx-auto px-6 py-20">
         <div className="text-center mb-14">
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-3">Warum DK AI Marketplace</h2>
-          <p className="text-[#94A3B8]">Vertrauen ist keine Feature-Liste — es ist der Standard.</p>
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-3">Why DK AI Marketplace</h2>
+          <p className="text-[#94A3B8]">Trust isn't a feature list — it's the standard.</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: Shield, title: 'Käuferschutz', text: '14 Tage Rückgaberecht bei nicht funktionierender Ware.' },
-            { icon: ShieldCheck, title: 'Admin-geprüft', text: 'Jedes Produkt wird vor Veröffentlichung manuell überprüft.' },
-            { icon: BadgeCheck, title: 'Verifizierte Verkäufer', text: 'Identität und Auszahlungskonto bestätigt.' },
-            { icon: Wallet, title: 'Direkte Stripe-Auszahlung', text: 'Zahlung fließt direkt an den Verkäufer — ohne Umwege.' },
+            { icon: Shield, title: 'Buyer Protection', text: '14-day return right if the product does not work as described.' },
+            { icon: ShieldCheck, title: 'Admin-Reviewed Products', text: 'Every product is manually reviewed before it goes live.' },
+            { icon: BadgeCheck, title: 'Verified Sellers', text: 'Identity and payout account confirmed for every seller.' },
+            { icon: Wallet, title: 'Direct Stripe Payouts', text: 'Payments flow straight to the seller — no detours.' },
           ].map((t, i) => (
             <div key={i} className="home-glass p-6">
               <t.icon className="h-6 w-6 text-[#60A5FA] mb-4" />
@@ -192,18 +192,17 @@ export default function Index() {
       <section className="relative max-w-6xl mx-auto px-6 py-20">
         <div className="home-cta-border p-10 md:p-14 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
-            <span className="home-headline-grad">Verkaufe deine KI-Produkte</span>
+            <span className="home-headline-grad">Sell your AI products</span>
           </h2>
           <p className="text-[#94A3B8] max-w-xl mx-auto mb-8">
-            Werde verifizierter Verkäufer und erreiche eine kaufbereite Community —
-            mit direkter Stripe-Auszahlung und fairer Gebührenstruktur.
+            Become a verified seller and reach a buy-ready community — with direct Stripe payouts and a fair fee structure.
           </p>
           <Link
             to="/seller-onboarding"
             className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-white shadow-lg shadow-[#2563EB]/30 transition-transform hover:scale-[1.02]"
             style={{ background: '#2563EB' }}
           >
-            Jetzt Verkäufer werden
+            Become a Seller
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

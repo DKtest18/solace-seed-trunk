@@ -165,6 +165,15 @@ export default function EditProduct() {
             ? product.faqs 
             : (product.faqs ? Object.values(product.faqs) : []),
           is_published: product.is_published || false,
+          currency: product.currency || 'usd',
+          billing_interval: product.billing_interval || 'month',
+          billing_interval_count: product.billing_interval_count ?? 1,
+          license_commercial_enabled: !!product.license_commercial_enabled,
+          license_commercial_price: product.license_commercial_price != null ? String(product.license_commercial_price) : '',
+          license_agency_enabled: !!product.license_agency_enabled,
+          license_agency_price: product.license_agency_price != null ? String(product.license_agency_price) : '',
+          license_exclusive_enabled: !!product.license_exclusive_enabled,
+          license_exclusive_price: product.license_exclusive_price != null ? String(product.license_exclusive_price) : '',
         });
 
         if (product.image_url) {

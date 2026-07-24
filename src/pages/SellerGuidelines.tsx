@@ -250,6 +250,17 @@ export default function SellerGuidelines() {
               .
             </p>
           </section>
+
+          {/* Hosting & liability notice */}
+          <section id="hosting-liability">
+            <h2 className="text-2xl font-semibold mb-4">9. Hosting &amp; liability <span className="text-sm font-normal text-muted-foreground">(subject to lawyer review)</span></h2>
+            <p>
+              Product files and data are stored on third-party infrastructure (Supabase). Keep your own master copies.
+              To the extent permitted by law, DK AI Marketplace is not liable for data loss, unauthorized access, or breaches
+              of third-party infrastructure. Sellers and buyers are responsible for their own backups and for rotating any
+              shared credentials after setup.
+            </p>
+          </section>
         </div>
 
         <footer className="mt-16 pt-6 border-t border-border">

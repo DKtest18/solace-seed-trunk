@@ -392,6 +392,43 @@ export default function ProductDetail() {
                 </p>
               )}
 
+              {/* Delivery mode + setup requirements */}
+              {(() => {
+                const p: any = product;
+                const mode = p.delivery_mode || 'instant';
+                const modeLabel = mode === 'instant' ? 'Instant download after payment'
+                  : mode === 'manual' ? `Manual delivery within ${p.delivery_time_hours ?? 24}h`
+                  : mode === 'setup' ? 'Seller installs / configures for you'
+                  : 'Delivered by seller';
+                const specs: any[] = Array.isArray(p.setup_requirements) ? p.setup_requirements : [];
+                const needsSetupList = mode === 'setup' && !p.setup_no_credentials && specs.length > 0;
+                return (
+                  <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                    <p className="text-sm"><strong>Delivery:</strong> {modeLabel}</p>
+                    {needsSetupList && (
+                      <div className="text-xs">
+                        <p className="font-medium mb-1">Requires from you after purchase:</p>
+                        <ul className="list-disc list-inside space-y-0.5 text-muted-foreground">
+                          {specs.map((s, i) => <li key={i}>{s.label || s.key}{s.required === false ? ' (optional)' : ''}</li>)}
+                        </ul>
+                        <p className="text-[11px] text-muted-foreground mt-1">
+                          Credentials are AES-256-GCM encrypted, access is logged, and they auto-purge after the seller's access window.
+                        </p>
+                      </div>
+                    )}
+                    {p.license_exclusive_enabled && (
+                      <p className="text-xs text-destructive">
+                        Exclusive Buyout available — a full-rights purchase permanently removes this product from the marketplace.
+                      </p>
+                    )}
+                    {p.pricing_model === 'recurring' && p.subscription_period_deliverables && (
+                      <p className="text-xs"><strong>Each billing period:</strong> {p.subscription_period_deliverables}</p>
+                    )}
+                  </div>
+                );
+              })()}
+
+
               {(() => {
                 const qty = (product as any)?.available_quantity;
                 const sold = (product as any)?.quantity_sold ?? 0;

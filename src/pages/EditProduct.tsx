@@ -185,6 +185,8 @@ export default function EditProduct() {
             ? product.faqs 
             : (product.faqs ? Object.values(product.faqs) : []),
           is_published: product.is_published || false,
+          delivery_mode: product.delivery_mode || 'instant',
+          delivery_time_hours: product.delivery_time_hours ?? 24,
           currency: product.currency || 'usd',
           billing_interval: product.billing_interval || 'month',
           billing_interval_count: product.billing_interval_count ?? 1,

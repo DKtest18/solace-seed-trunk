@@ -77,6 +77,17 @@ export function TermsAcceptanceStep({ data, onChange, errors }: TermsAcceptanceS
       </div>
 
       {/* Inspection notice */}
+      <Alert className="border-amber-500/40 bg-amber-500/5">
+        <AlertCircle className="h-4 w-4 text-amber-600" />
+        <AlertDescription className="text-xs">
+          <strong>Hosting &amp; liability notice</strong> <em className="text-muted-foreground">(subject to lawyer review)</em>.
+          Product files and data are stored on third-party infrastructure (Supabase). Keep your own master copies.
+          To the extent permitted by law, DK AI Marketplace is not liable for data loss, unauthorized access, or breaches
+          of third-party infrastructure. Sellers and buyers are responsible for their own backups and for rotating any
+          shared credentials after setup.
+        </AlertDescription>
+      </Alert>
+
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription className="text-xs">

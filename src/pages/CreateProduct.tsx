@@ -124,6 +124,27 @@ export default function CreateProduct() {
     license_agency_price: '',
     license_exclusive_enabled: false,
     license_exclusive_price: '',
+    // Adaptive fields
+    subscription_period_deliverables: '',
+    subscription_cancellation_note: '',
+    max_active_subscribers: '',
+    license_personal_description: '',
+    license_commercial_description: '',
+    license_agency_description: '',
+    license_exclusive_description: '',
+    exclusive_source_files_description: '',
+    // Setup-by-seller
+    requires_setup_credentials: false,
+    setup_requirements: [] as any[],
+    setup_access_window_hours: 48,
+    setup_no_credentials: false,
+    // Dynamic acknowledgements
+    seller_ack_refund_policy: false,
+    seller_ack_subscription: false,
+    seller_ack_manual_delivery: false,
+    seller_ack_setup_credentials: false,
+    seller_ack_agency: false,
+    seller_ack_exclusive: false,
   });
 
   const [images, setImages] = useState<File[]>([]);
@@ -195,6 +216,24 @@ export default function CreateProduct() {
             license_agency_price: data.license_agency_price != null ? String(data.license_agency_price) : '',
             license_exclusive_enabled: !!data.license_exclusive_enabled,
             license_exclusive_price: data.license_exclusive_price != null ? String(data.license_exclusive_price) : '',
+            subscription_period_deliverables: data.subscription_period_deliverables ?? '',
+            subscription_cancellation_note: data.subscription_cancellation_note ?? '',
+            max_active_subscribers: data.max_active_subscribers != null ? String(data.max_active_subscribers) : '',
+            license_personal_description: data.license_personal_description ?? '',
+            license_commercial_description: data.license_commercial_description ?? '',
+            license_agency_description: data.license_agency_description ?? '',
+            license_exclusive_description: data.license_exclusive_description ?? '',
+            exclusive_source_files_description: data.exclusive_source_files_description ?? '',
+            requires_setup_credentials: !!data.requires_setup_credentials,
+            setup_requirements: Array.isArray(data.setup_requirements) ? data.setup_requirements : [],
+            setup_access_window_hours: data.setup_access_window_hours ?? 48,
+            setup_no_credentials: !!data.setup_no_credentials,
+            seller_ack_refund_policy: !!data.seller_ack_refund_policy,
+            seller_ack_subscription: !!data.seller_ack_subscription,
+            seller_ack_manual_delivery: !!data.seller_ack_manual_delivery,
+            seller_ack_setup_credentials: !!data.seller_ack_setup_credentials,
+            seller_ack_agency: !!data.seller_ack_agency,
+            seller_ack_exclusive: !!data.seller_ack_exclusive,
           }));
           if (data.file_storage_key) {
             setUploadedFile({
@@ -267,6 +306,29 @@ export default function CreateProduct() {
     license_exclusive_enabled: !!formData.license_exclusive_enabled,
     license_exclusive_price: formData.license_exclusive_enabled && formData.license_exclusive_price
       ? parseFloat(formData.license_exclusive_price) : null,
+    // Adaptive columns
+    subscription_period_deliverables: formData.pricing_model === 'recurring'
+      ? (formData.subscription_period_deliverables || null) : null,
+    subscription_cancellation_note: formData.pricing_model === 'recurring'
+      ? (formData.subscription_cancellation_note || null) : null,
+    max_active_subscribers: formData.pricing_model === 'recurring' && formData.max_active_subscribers
+      ? parseInt(formData.max_active_subscribers) : null,
+    license_personal_description: formData.license_personal_description || null,
+    license_commercial_description: formData.license_commercial_enabled ? (formData.license_commercial_description || null) : null,
+    license_agency_description: formData.license_agency_enabled ? (formData.license_agency_description || null) : null,
+    license_exclusive_description: formData.license_exclusive_enabled ? (formData.license_exclusive_description || null) : null,
+    exclusive_source_files_description: formData.license_exclusive_enabled ? (formData.exclusive_source_files_description || null) : null,
+    requires_setup_credentials: formData.delivery_mode === 'setup' && !formData.setup_no_credentials,
+    setup_requirements: formData.delivery_mode === 'setup' && !formData.setup_no_credentials
+      ? formData.setup_requirements : [],
+    setup_access_window_hours: formData.delivery_mode === 'setup' ? formData.setup_access_window_hours : null,
+    setup_no_credentials: formData.delivery_mode === 'setup' ? !!formData.setup_no_credentials : false,
+    seller_ack_refund_policy: !!formData.seller_ack_refund_policy,
+    seller_ack_subscription: !!formData.seller_ack_subscription,
+    seller_ack_manual_delivery: !!formData.seller_ack_manual_delivery,
+    seller_ack_setup_credentials: !!formData.seller_ack_setup_credentials,
+    seller_ack_agency: !!formData.seller_ack_agency,
+    seller_ack_exclusive: !!formData.seller_ack_exclusive,
     status: 'draft',
     is_published: false,
   });
@@ -361,13 +423,25 @@ export default function CreateProduct() {
         }
         break;
 
-      case 4:
+      case 4: {
         const price = parseFloat(formData.price);
-        if (isNaN(price) || price < 1) {
-          newErrors.priceError = 'Price must be at least $1';
+        if (isNaN(price) || price < 1) newErrors.priceError = 'Price must be at least $1';
+        if (price > 10000) newErrors.priceError = 'Price cannot exceed $10,000';
+        if (formData.pricing_model === 'recurring') {
+          const limits: Record<string, number> = { day: 365, week: 52, month: 12, year: 1 };
+          const iv = formData.billing_interval || 'month';
+          const c = Number(formData.billing_interval_count ?? 1);
+          const max = limits[iv] ?? 12;
+          if (!Number.isFinite(c) || c < 1 || c > max) {
+            newErrors.priceError = `For ${iv}s Stripe allows interval count 1 to ${max}.`;
+          }
         }
-        if (price > 10000) {
-          newErrors.priceError = 'Price cannot exceed $10,000';
+        break;
+      }
+
+      case 6:
+        if (formData.license_exclusive_enabled && !(formData.exclusive_source_files_description || '').trim()) {
+          newErrors.exclusiveSourceFilesError = 'Describe the source files the exclusive buyer receives.';
         }
         break;
 
@@ -385,8 +459,8 @@ export default function CreateProduct() {
         break;
 
       case 8:
-        if (formData.delivery_mode !== 'instant' && formData.delivery_mode !== 'manual') {
-          newErrors.deliveryModeError = 'Choose Instant download or Manual delivery';
+        if (!['instant', 'manual', 'setup'].includes(formData.delivery_mode)) {
+          newErrors.deliveryModeError = 'Choose Instant download, Manual delivery, or Setup by seller';
         }
         if (formData.delivery_mode === 'instant' && deliveryFiles.length === 0 && !uploadedFile) {
           newErrors.deliveryFilesError = 'Instant download requires at least one uploaded file';
@@ -397,16 +471,39 @@ export default function CreateProduct() {
             newErrors.deliveryModeError = 'Pick 12, 24, or 48 hours (max 48h)';
           }
         }
+        if (formData.delivery_mode === 'setup') {
+          if (!formData.setup_no_credentials && (formData.setup_requirements?.length ?? 0) === 0) {
+            newErrors.setupRequirementsError = 'Add at least one required item, or check "no credentials needed".';
+          }
+          if (!formData.setup_no_credentials) {
+            for (const sp of formData.setup_requirements || []) {
+              if (!sp.key?.trim() || !sp.label?.trim()) {
+                newErrors.setupRequirementsError = 'Every setup item needs a key and a label.';
+                break;
+              }
+            }
+          }
+        }
         if (formData.available_quantity && (parseInt(formData.available_quantity) < 1 || isNaN(parseInt(formData.available_quantity)))) {
           newErrors.deliveryFilesError = 'Available quantity must be a positive integer or empty';
         }
         break;
 
-      case 9:
-        if (formData.return_allowed && formData.return_fee_enabled && (!formData.return_fee_percentage || formData.return_fee_percentage < 1 || formData.return_fee_percentage > 30)) {
-          newErrors.returnPolicyError = 'Return fee must be between 1% and 30%';
-        }
+      case 9: {
+        const isSubscription = formData.pricing_model === 'recurring';
+        const isManual = formData.delivery_mode === 'manual';
+        const isSetup = formData.delivery_mode === 'setup';
+        const hasSecretSpecs = isSetup && !formData.setup_no_credentials && (formData.setup_requirements?.length ?? 0) > 0;
+        const missing: string[] = [];
+        if (!formData.seller_ack_refund_policy) missing.push('refund policy');
+        if (isSubscription && !formData.seller_ack_subscription) missing.push('subscription cancellation');
+        if ((isManual || isSetup) && !formData.seller_ack_manual_delivery) missing.push('delivery commitment');
+        if (hasSecretSpecs && !formData.seller_ack_setup_credentials) missing.push('credential handling');
+        if (formData.license_agency_enabled && !formData.seller_ack_agency) missing.push('agency license');
+        if (formData.license_exclusive_enabled && !formData.seller_ack_exclusive) missing.push('exclusive buyout');
+        if (missing.length > 0) newErrors.returnPolicyError = `Please acknowledge: ${missing.join(', ')}.`;
         break;
+      }
 
       case 10:
         if (!formData.seller_accepted_terms) {

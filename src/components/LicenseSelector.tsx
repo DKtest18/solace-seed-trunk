@@ -111,6 +111,7 @@ export function LicenseSelector({ product, value, onChange }: Props) {
         {tiers.map((t) => {
           const meta = TIER_META[t.tier];
           const active = value === t.tier;
+          const custom: string | undefined = product?.[`license_${t.tier}_description`];
           return (
             <button
               key={t.tier}
@@ -122,11 +123,7 @@ export function LicenseSelector({ product, value, onChange }: Props) {
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <div
-                    className={`w-4 h-4 rounded-full border-2 ${
-                      active ? 'border-primary' : 'border-muted-foreground/40'
-                    } flex items-center justify-center`}
-                  >
+                  <div className={`w-4 h-4 rounded-full border-2 ${active ? 'border-primary' : 'border-muted-foreground/40'} flex items-center justify-center`}>
                     {active && <div className="w-2 h-2 rounded-full bg-primary" />}
                   </div>
                   <div>
@@ -134,10 +131,13 @@ export function LicenseSelector({ product, value, onChange }: Props) {
                     <div className="text-xs text-muted-foreground">{meta.summary}</div>
                   </div>
                 </div>
-                <div className="font-semibold whitespace-nowrap">
-                  {formatMoney(t.price, currency)}
-                </div>
+                <div className="font-semibold whitespace-nowrap">{formatMoney(t.price, currency)}</div>
               </div>
+              {custom && (
+                <div className="mt-2 text-xs text-foreground/80 whitespace-pre-line border-t pt-2">
+                  {custom}
+                </div>
+              )}
               {meta.warn && active && (
                 <div className="mt-2 flex items-start gap-2 text-xs text-destructive">
                   <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />

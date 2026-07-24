@@ -469,6 +469,8 @@ export default function EditProduct() {
           payment_methods: formData.payment_methods,
           faqs: formData.faqs,
           is_published: formData.is_published,
+          delivery_mode: formData.delivery_mode,
+          delivery_time_hours: formData.delivery_mode === 'manual' ? (formData.delivery_time_hours ?? 24) : null,
           currency: formData.currency,
           billing_interval: formData.pricing_model === 'recurring' ? formData.billing_interval : null,
           billing_interval_count: formData.pricing_model === 'recurring' ? (formData.billing_interval_count ?? 1) : null,

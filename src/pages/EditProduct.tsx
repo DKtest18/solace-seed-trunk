@@ -479,6 +479,28 @@ export default function EditProduct() {
           license_exclusive_enabled: !!formData.license_exclusive_enabled,
           license_exclusive_price: formData.license_exclusive_enabled && formData.license_exclusive_price
             ? parseFloat(formData.license_exclusive_price) : null,
+          subscription_period_deliverables: formData.pricing_model === 'recurring'
+            ? (formData.subscription_period_deliverables || null) : null,
+          subscription_cancellation_note: formData.pricing_model === 'recurring'
+            ? (formData.subscription_cancellation_note || null) : null,
+          max_active_subscribers: formData.pricing_model === 'recurring' && formData.max_active_subscribers
+            ? parseInt(formData.max_active_subscribers) : null,
+          license_personal_description: formData.license_personal_description || null,
+          license_commercial_description: formData.license_commercial_enabled ? (formData.license_commercial_description || null) : null,
+          license_agency_description: formData.license_agency_enabled ? (formData.license_agency_description || null) : null,
+          license_exclusive_description: formData.license_exclusive_enabled ? (formData.license_exclusive_description || null) : null,
+          exclusive_source_files_description: formData.license_exclusive_enabled ? (formData.exclusive_source_files_description || null) : null,
+          requires_setup_credentials: formData.delivery_mode === 'setup' && !formData.setup_no_credentials,
+          setup_requirements: formData.delivery_mode === 'setup' && !formData.setup_no_credentials
+            ? formData.setup_requirements : [],
+          setup_access_window_hours: formData.delivery_mode === 'setup' ? formData.setup_access_window_hours : null,
+          setup_no_credentials: formData.delivery_mode === 'setup' ? !!formData.setup_no_credentials : false,
+          seller_ack_refund_policy: !!formData.seller_ack_refund_policy,
+          seller_ack_subscription: !!formData.seller_ack_subscription,
+          seller_ack_manual_delivery: !!formData.seller_ack_manual_delivery,
+          seller_ack_setup_credentials: !!formData.seller_ack_setup_credentials,
+          seller_ack_agency: !!formData.seller_ack_agency,
+          seller_ack_exclusive: !!formData.seller_ack_exclusive,
           delivery_tier: deliveryTier,
           delivery_tier_recommended: deliveryRecommended,
           delivery_tier_overridden: deliveryTier !== deliveryRecommended,

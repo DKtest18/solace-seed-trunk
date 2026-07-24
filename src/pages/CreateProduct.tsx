@@ -889,6 +889,11 @@ export default function CreateProduct() {
                     delivery_mode: formData.delivery_mode,
                     delivery_time_hours: formData.delivery_time_hours,
                     available_quantity: formData.available_quantity,
+                    product_type: formData.product_type,
+                    license_exclusive_enabled: formData.license_exclusive_enabled,
+                    setup_requirements: formData.setup_requirements,
+                    setup_access_window_hours: formData.setup_access_window_hours,
+                    setup_no_credentials: formData.setup_no_credentials,
                   }}
                   onChange={handleChange}
                   deliveryFiles={deliveryFiles}

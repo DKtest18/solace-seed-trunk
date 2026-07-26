@@ -517,16 +517,14 @@ export default function CreateProduct() {
   };
 
   const handleNext = async () => {
-    if (!validateStep(currentStep)) {
-      toast.error('Please fix the errors before continuing');
-      return;
-    }
+    // Free navigation: don't block on validation between steps.
+    // Full validation only runs at final submit.
     try {
       await persistDraft();
-    } catch (e: any) {
-      toast.error(e.message || 'Could not save progress');
-      return;
+    } catch (e) {
+      console.warn('Draft save on next failed', e);
     }
+    setErrors({});
     setCurrentStep((prev) => Math.min(prev + 1, STEPS.length));
   };
 

@@ -15,6 +15,9 @@ import { StripePaymentMethodsPanel } from "@/components/seller/StripePaymentMeth
 import { createStripeConnectOnboardingLink, emptyStripeConnectStatus, fetchStripeConnectStatus, isStripeConnectedForOnboarding, pollStripeConnectStatus, type StripeConnectStatus } from "@/lib/stripeConnectStatus";
 import { buildSupabaseFunctionError, logSupabaseFunctionError } from "@/lib/supabaseFunctionErrors";
 import { useQueryClient } from "@tanstack/react-query";
+import { PayPalConnectCard } from "@/components/seller/PayPalConnectCard";
+import { AcceptedPaymentMethods } from "@/components/seller/AcceptedPaymentMethods";
+import { emptyPayPalConnectStatus, isPayPalConnectedForOnboarding, type PayPalConnectStatus } from "@/lib/paypalConnectStatus";
 
 export default function SellerPaymentSettings() {
   const { user } = useAuth();

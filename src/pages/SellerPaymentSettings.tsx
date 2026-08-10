@@ -484,6 +484,23 @@ export default function SellerPaymentSettings() {
           </CardContent>
         </Card>
 
+        {/* PayPal Connect */}
+        <PayPalConnectCard
+          returnPath="/seller/payment-settings"
+          onStatusChange={async (status) => {
+            setPaypalStatus(status);
+            await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
+          }}
+        />
+
+        {/* Which providers buyers may choose */}
+        <AcceptedPaymentMethods
+          stripeReady={isFullyOnboarded}
+          paypalReady={isPayPalConnectedForOnboarding(paypalStatus)}
+        />
+
+
+
         {/* Payment Info */}
         <Card>
           <CardHeader>

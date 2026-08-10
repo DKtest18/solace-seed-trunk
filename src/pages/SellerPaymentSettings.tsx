@@ -33,6 +33,7 @@ export default function SellerPaymentSettings() {
   const [disconnecting, setDisconnecting] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus>(emptyStripeConnectStatus);
+  const [paypalStatus, setPaypalStatus] = useState<PayPalConnectStatus>(emptyPayPalConnectStatus);
 
   useEffect(() => {
     if (!user) {

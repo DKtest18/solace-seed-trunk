@@ -230,7 +230,7 @@ export default function SellerPaymentSettings() {
 
         <h1 className="text-3xl font-bold mb-2">Payment Settings</h1>
         <p className="text-muted-foreground mb-8">
-          Connect your Stripe account to receive card payments directly
+          Connect Stripe, PayPal, or both — payouts go directly to your own account
         </p>
 
         {/* Success Animation */}

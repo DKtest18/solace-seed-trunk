@@ -425,6 +425,16 @@ export default function SellerOnboardingPayment() {
           </CardContent>
         </Card>
 
+        {/* PayPal — either provider satisfies this onboarding step */}
+        <PayPalConnectCard
+          returnPath="/seller-onboarding/payment"
+          onStatusChange={async () => {
+            await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
+          }}
+        />
+
+
+
         <ReauthModal
           open={showReauthModal}
           onOpenChange={setShowReauthModal}

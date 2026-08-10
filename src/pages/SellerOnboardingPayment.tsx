@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
 import { createStripeConnectOnboardingLink, emptyStripeConnectStatus, fetchStripeConnectStatus, isStripeConnectedForOnboarding, pollStripeConnectStatus, type StripeConnectStatus } from '@/lib/stripeConnectStatus';
 import { buildSupabaseFunctionError, logSupabaseFunctionError } from '@/lib/supabaseFunctionErrors';
+import { PayPalConnectCard } from '@/components/seller/PayPalConnectCard';
 
 export default function SellerOnboardingPayment() {
   const { user } = useAuth();

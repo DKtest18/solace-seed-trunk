@@ -1,97 +1,48 @@
+# PayPal as a second payout provider (onboarding first)
 
-# Adaptive Product Wizard — 5 Parts
+Yes — this is possible. PayPal's equivalent of Stripe Connect is the **PayPal Commerce Platform**: you (the platform) onboard sellers as connected merchants via **Partner Referrals**, and later charge buyers with `Orders v2` using `payee.merchant_id` plus `platform_fees` for your platform cut. Since you have a Partner/Commerce Platform account, we can mirror the Stripe Connect flow almost 1:1.
 
-## SQL you must run first (idempotent)
+This first phase covers **seller onboarding + connection status only**. Buyer-side PayPal checkout comes as a second phase.
 
-```sql
-ALTER TABLE public.dkai_products
-  ADD COLUMN IF NOT EXISTS subscription_period_deliverables text,
-  ADD COLUMN IF NOT EXISTS subscription_cancellation_note text,
-  ADD COLUMN IF NOT EXISTS license_personal_description text,
-  ADD COLUMN IF NOT EXISTS license_commercial_description text,
-  ADD COLUMN IF NOT EXISTS license_agency_description text,
-  ADD COLUMN IF NOT EXISTS license_exclusive_description text,
-  ADD COLUMN IF NOT EXISTS exclusive_source_files_description text,
-  ADD COLUMN IF NOT EXISTS max_active_subscribers integer,
-  ADD COLUMN IF NOT EXISTS delivery_mode text,
-  ADD COLUMN IF NOT EXISTS delivery_window_hours integer,
-  ADD COLUMN IF NOT EXISTS setup_no_credentials boolean NOT NULL DEFAULT false;
+## What the seller will see
 
--- Widen billing_interval to accept 'day'|'week'|'month'|'year' (already text, no-op if so)
--- Nothing to do if column is already text; verify:
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema='public' AND table_name='dkai_products' AND column_name='billing_interval'
-  ) THEN
-    ALTER TABLE public.dkai_products ADD COLUMN billing_interval text;
-  END IF;
-END $$;
+Payment Settings gets a two-card layout:
 
-NOTIFY pgrst, 'reload schema';
+```text
+┌── Stripe ──────────────┐  ┌── PayPal ──────────────┐
+│ Connected (Live)       │  │ Not connected          │
+│ Charges / Payouts / …  │  │ [Connect PayPal]       │
+│ [Dashboard][Disconnect]│  │                        │
+└────────────────────────┘  └────────────────────────┘
+Accepted at checkout:  [x] Cards (Stripe)   [ ] PayPal
 ```
 
-`dkai_product_setup_requirements` (secret specs) already exists from Part C work — reused as-is.
+- A seller can connect Stripe, PayPal, or both.
+- Toggles let the seller disable a provider they've connected; at least one must stay enabled.
+- Onboarding is blocked from completing until at least one provider is fully connected (today it requires Stripe — that gate becomes "any provider").
 
-## Part 1 — Custom billing interval (PricingStep)
+## Steps
 
-Rewrite the recurring section so the seller has a free integer input + unit select that never snap back. Presets are prefill buttons, not radios. Validate Stripe limits (day ≤ 365, week ≤ 52, month ≤ 12, year ≤ 1). Persist `billing_interval` + `billing_interval_count` + `is_subscription=true`. `subscriptionLabel()` in `src/lib/money.ts` already renders "every 2 weeks" style — verified.
+1. **Database** — extend `dkai_seller_payment_configs` with PayPal columns (merchant id, tracking id, onboarding status, permission/consent flags, payments-receivable + email-confirmed booleans, timestamps) and two `accepts_*` provider toggles. SQL will be given in chat, as always.
+2. **Secrets** — add `DKAIM_PAYPAL_CLIENT_ID`, `DKAIM_PAYPAL_SECRET`, `DKAIM_PAYPAL_BN_CODE` (partner attribution / BN code) and `DKAIM_PAYPAL_ENV` (`sandbox` | `live`). Requested via the secure secret form, never in code.
+3. **Edge functions** (prompts delivered in chat for you to run in Supabase AI, matching how the Stripe ones were deployed):
+   - `paypal-connect-onboarding` — OAuth token, then `POST /v2/customer/partner-referrals` with a `tracking_id` = seller user id, `PAYPAL_MERCHANT_INTEGRATION` product, and `return_url` back to Payment Settings. Returns the `action_url` for the seller to complete PayPal signup.
+   - `paypal-connect-status` — resolves the merchant id via `/v1/customer/partners/{partner_id}/merchant-integrations?tracking_id=…`, then reads the integration to get `payments_receivable`, `primary_email_confirmed`, and granted permissions. Syncs the result into `dkai_seller_payment_configs` (same aggressive-sync pattern the Stripe status function uses).
+   - `paypal-connect-disconnect` — clears the stored PayPal merchant data for the seller.
+4. **Frontend**
+   - `src/lib/paypalConnectStatus.ts` — mirror of `stripeConnectStatus.ts` (status type, fetch, onboarding link, `pollPaypalConnectStatus` so the badge updates right after return from PayPal).
+   - `src/pages/SellerPaymentSettings.tsx` — add the PayPal card, connect/disconnect actions, live status badge, and the two accepted-methods toggles.
+   - `src/pages/SellerOnboardingPayment.tsx` — allow either provider to satisfy the payment step; show both options side by side.
+   - `src/hooks/useSellerOnboardingProgress.tsx` and `ProfileCompletionIndicator` — treat "payment connected" as Stripe **or** PayPal.
+5. **Not touched in this phase** — checkout, `create-checkout-session`, webhooks, earnings/payout pages, product wizard, homepage. Stripe behaviour stays exactly as it is today.
 
-Files: `src/components/product-creation/PricingStep.tsx`.
+## Technical notes
 
-## Part 2 — Adaptive AdditionalDetailsStep
+- PayPal returns to your `return_url` with `merchantIdInPayPal` and `permissionsGranted` query params, but those are advisory: status is always re-verified server-side against the PayPal API before we mark a seller connected — same trust rule as Stripe.
+- A seller is "PayPal ready" only when `payments_receivable === true`, `primary_email_confirmed === true`, and the `PARTNER_FEE` permission is granted (that permission is what allows your platform fee later).
+- Sandbox vs live is driven by `DKAIM_PAYPAL_ENV` so we can test with your sandbox partner account first; the UI shows a "Sandbox" tag exactly like the Stripe card does.
+- PayPal Commerce Platform onboarding is not available in every country. Sellers in unsupported countries will get a status of `unsupported_country` and the card explains they must use Stripe.
 
-Rewrite `AdditionalDetailsStep.tsx` to branch on `pricing_model`, `delivery_mode` (read from formData), and enabled license tiers:
-- One-time: Estimated Delivery only when `delivery_mode==='manual'`.
-- Subscription: add `subscription_period_deliverables`, `subscription_cancellation_note` (prefilled), relabel Quantity → "Max active subscribers".
-- Per enabled tier: optional "What's included" textarea → `license_{tier}_description`.
-- Exclusive enabled: required `exclusive_source_files_description`.
-- Remove per-product refund field; replace with read-only info note pointing to Return Policy step.
+## Phase 2 (after you approve this)
 
-Files: `AdditionalDetailsStep.tsx`, `CreateProduct.tsx` & `EditProduct.tsx` (formData + save/load mapping).
-
-## Part 3 — Adaptive DeliveryFilesStep
-
-Refactor `DeliveryFilesStep.tsx` to expose 3 delivery modes as a toggle group:
-1. Instant download — needs ≥1 file.
-2. Manual delivery — needs `delivery_window_hours` (12/24/48).
-3. Setup by seller — surfaces Setup Requirements (secret specs) inline; needs ≥1 spec OR `setup_no_credentials=true` checkbox.
-
-Suggested-files hint text switches on `product_type` (agent / workflow / prompt / dataset / template). Exclusive info box appears when `license_exclusive_enabled`. Next-button validation lives in `CreateProduct.tsx` `validateStep(8)`.
-
-Secret spec CRUD reuses the existing `SellerSetupRequirements.tsx` logic; extract its form into a small `SetupRequirementsInline` sub-component and reuse in both places.
-
-Files: `DeliveryFilesStep.tsx`, new `src/components/product-creation/SetupRequirementsInline.tsx`, `CreateProduct.tsx` validation.
-
-## Part 4 — Adaptive Return Policy + Terms
-
-`ReturnPolicyStep.tsx`: keep platform-wide policy text, append conditional bullets driven by formData (subscription / manual / setup+secrets / agency / exclusive). Each conditional block ships its own required acknowledgement checkbox in the local `acknowledgements` state; `CreateProduct.validateStep(9)` requires all visible ones checked.
-
-`TermsAcceptanceStep.tsx`: add the hosting/liability notice block (limitation wording, "subject to lawyer review" tag). Same notice appended to `src/pages/SellerGuidelines.tsx`.
-
-Files: `ReturnPolicyStep.tsx`, `TermsAcceptanceStep.tsx`, `SellerGuidelines.tsx`, `CreateProduct.tsx` validation.
-
-## Part 5 — Buyer-side consistency
-
-- `ProductDetail.tsx`: show subscription interval next to price via `formatProductPrice()` (already), render "Requires from you after purchase: …" list from `dkai_product_setup_requirements`, render exclusive warning when applicable, render delivery mode + window line.
-- `src/components/LicenseSelector.tsx`: render per-tier `license_*_description` under each tier row.
-- `src/pages/Checkout.tsx`: order summary shows chosen license tier label + `subscriptionLabel(product)`.
-
-Files: `ProductDetail.tsx`, `LicenseSelector.tsx`, `Checkout.tsx`.
-
-## Test matrix I will verify with a build + type check
-
-| Scenario | Save | Product page | Checkout |
-|---|---|---|---|
-| One-time + instant, 1 file | ✅ | price only | one-time |
-| One-time + manual, 24h window | ✅ | "Manual delivery within 24h" | one-time |
-| Subscription every 2 weeks | ✅ | "CHF 20 / 2 weeks" | recurring label |
-| 2 secret specs (setup mode) | ✅ | "Requires: X, Y" list | setup notice |
-| Agency + Exclusive enabled | ✅ | both tier descriptions; exclusive warning | tier label in summary |
-
-## Non-goals / do-not-touch
-
-Stripe Connect flow, guest checkout gating, admin review edge functions, delivery-files-dirty trigger, encryption of credentials, existing RLS.
-
-Approve and I ship in this order: SQL note → Part 1 → 2 → 3 → 4 → 5, single response each with the files diffed and a build check at the end.
+Buyer-side PayPal: `paypal-create-order` / `paypal-capture-order` edge functions with `platform_fees`, a PayPal button on Checkout shown only when the seller has PayPal enabled, PayPal webhooks writing into `dkai_orders`, and refunds via `/v2/payments/captures/{id}/refund`.

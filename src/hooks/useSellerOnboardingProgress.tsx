@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/stripeConnectStatus';
+import { fetchPayPalConnectStatus, isPayPalConnectedForOnboarding } from '@/lib/paypalConnectStatus';
 
 export interface OnboardingStep {
   id: string;
@@ -37,7 +38,7 @@ export function useSellerOnboardingProgress() {
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
-      // Stripe Connect status is the single source of truth for payment-step completion.
+      // Payment step is complete when EITHER provider is fully connected.
       let stripeConnected = false;
       try {
         const stripeData = await fetchStripeConnectStatus();
@@ -45,6 +46,15 @@ export function useSellerOnboardingProgress() {
       } catch {
         // ignore
       }
+      let paypalConnected = false;
+      if (!stripeConnected) {
+        try {
+          paypalConnected = isPayPalConnectedForOnboarding(await fetchPayPalConnectStatus());
+        } catch {
+          // ignore
+        }
+      }
+      const paymentConnected = stripeConnected || paypalConnected;
 
       const isSeller = roles?.some((r: any) => r.role === 'seller');
 
@@ -69,7 +79,7 @@ export function useSellerOnboardingProgress() {
         { id: '2fa', title: '2FA Setup', description: 'Optional: Add two-factor authentication for extra security', required: false, completed: !!profile?.is_2fa_enabled, route: '/settings' },
         { id: 'seller-identity-age', title: 'Seller Identity & Age Verification', description: 'Provide your seller details and confirm you are 18+', required: true, completed: identityAndAgeComplete, route: '/seller-onboarding/identity' },
         { id: 'seller-terms', title: 'Seller Terms & Conditions', description: 'Review and accept the seller agreement', required: true, completed: termsAccepted, route: '/seller-onboarding/terms' },
-        { id: 'payment', title: 'Payment Preferences (Stripe)', description: 'Connect Stripe to receive card payments', required: true, completed: stripeConnected, route: '/seller-onboarding/payment' },
+        { id: 'payment', title: 'Payment Preferences', description: 'Connect Stripe or PayPal to receive payments', required: true, completed: paymentConnected, route: '/seller-onboarding/payment' },
       ];
 
       const requiredSteps = steps.filter((s) => s.required);

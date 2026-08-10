@@ -15,6 +15,9 @@ import { StripePaymentMethodsPanel } from "@/components/seller/StripePaymentMeth
 import { createStripeConnectOnboardingLink, emptyStripeConnectStatus, fetchStripeConnectStatus, isStripeConnectedForOnboarding, pollStripeConnectStatus, type StripeConnectStatus } from "@/lib/stripeConnectStatus";
 import { buildSupabaseFunctionError, logSupabaseFunctionError } from "@/lib/supabaseFunctionErrors";
 import { useQueryClient } from "@tanstack/react-query";
+import { PayPalConnectCard } from "@/components/seller/PayPalConnectCard";
+import { AcceptedPaymentMethods } from "@/components/seller/AcceptedPaymentMethods";
+import { emptyPayPalConnectStatus, isPayPalConnectedForOnboarding, type PayPalConnectStatus } from "@/lib/paypalConnectStatus";
 
 export default function SellerPaymentSettings() {
   const { user } = useAuth();
@@ -30,6 +33,7 @@ export default function SellerPaymentSettings() {
   const [disconnecting, setDisconnecting] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus>(emptyStripeConnectStatus);
+  const [paypalStatus, setPaypalStatus] = useState<PayPalConnectStatus>(emptyPayPalConnectStatus);
 
   useEffect(() => {
     if (!user) {
@@ -226,7 +230,7 @@ export default function SellerPaymentSettings() {
 
         <h1 className="text-3xl font-bold mb-2">Payment Settings</h1>
         <p className="text-muted-foreground mb-8">
-          Connect your Stripe account to receive card payments directly
+          Connect Stripe, PayPal, or both — payouts go directly to your own account
         </p>
 
         {/* Success Animation */}
@@ -479,6 +483,23 @@ export default function SellerPaymentSettings() {
             )}
           </CardContent>
         </Card>
+
+        {/* PayPal Connect */}
+        <PayPalConnectCard
+          returnPath="/seller/payment-settings"
+          onStatusChange={async (status) => {
+            setPaypalStatus(status);
+            await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
+          }}
+        />
+
+        {/* Which providers buyers may choose */}
+        <AcceptedPaymentMethods
+          stripeReady={isFullyOnboarded}
+          paypalReady={isPayPalConnectedForOnboarding(paypalStatus)}
+        />
+
+
 
         {/* Payment Info */}
         <Card>

@@ -38,17 +38,19 @@ export function ProfileCompletionIndicator() {
 
         const { data: sellerConfig } = await db
           .from('dkai_seller_payment_configs')
-          .select('stripe_account_id, stripe_onboarding_status')
+          .select('stripe_account_id, stripe_onboarding_status, paypal_merchant_id, paypal_onboarding_status')
           .eq('seller_id', user.id)
           .single();
 
-        const hasStripeConnected = sellerConfig?.stripe_account_id && 
+        const hasStripeConnected = !!sellerConfig?.stripe_account_id &&
                                     sellerConfig?.stripe_onboarding_status === 'connected';
+        const hasPaypalConnected = !!sellerConfig?.paypal_merchant_id &&
+                                    sellerConfig?.paypal_onboarding_status === 'connected';
 
         setStatus({
           ageVerified: profileData.is_age_verified || false,
           twoFactorEnabled: profileData.is_2fa_enabled || false,
-          paymentMethodsSet: hasStripeConnected,
+          paymentMethodsSet: hasStripeConnected || hasPaypalConnected,
           termsAccepted: profileData.terms_accepted || false,
         });
       } catch (error) {

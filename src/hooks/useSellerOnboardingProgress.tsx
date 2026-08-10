@@ -37,7 +37,7 @@ export function useSellerOnboardingProgress() {
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
-      // Stripe Connect status is the single source of truth for payment-step completion.
+      // Payment step is complete when EITHER provider is fully connected.
       let stripeConnected = false;
       try {
         const stripeData = await fetchStripeConnectStatus();
@@ -45,6 +45,15 @@ export function useSellerOnboardingProgress() {
       } catch {
         // ignore
       }
+      let paypalConnected = false;
+      if (!stripeConnected) {
+        try {
+          paypalConnected = isPayPalConnectedForOnboarding(await fetchPayPalConnectStatus());
+        } catch {
+          // ignore
+        }
+      }
+      const paymentConnected = stripeConnected || paypalConnected;
 
       const isSeller = roles?.some((r: any) => r.role === 'seller');
 

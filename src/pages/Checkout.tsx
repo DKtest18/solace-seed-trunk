@@ -15,6 +15,7 @@ import { BuyerPolicyAcceptance } from "@/components/BuyerPolicyAcceptance";
 import { useBuyerPolicy } from "@/hooks/useBuyerPolicy";
 import { usePlatformFee } from "@/hooks/usePlatformFee";
 import { formatMoney, subscriptionLabel } from "@/lib/money";
+import { fetchSellerAcceptedMethods, createPayPalOrder } from "@/lib/paypalCheckout";
 
 export default function Checkout() {
   const [searchParams] = useSearchParams();

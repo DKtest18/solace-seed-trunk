@@ -103,13 +103,16 @@ export function PayPalConnectCard({ returnPath, onStatusChange }: PayPalConnectC
 
   const handleConnect = async () => {
     setConnecting(true);
+    setConnectError(null);
     try {
       const url = await createPayPalOnboardingLink(window.location.origin);
       toast.info('Redirecting to PayPal...');
       window.location.href = url;
     } catch (error: any) {
       console.error('paypal-connect-onboarding failed:', error);
-      toast.error(error?.message || 'Failed to create PayPal onboarding link');
+      const msg = error?.message || 'Failed to create PayPal onboarding link';
+      setConnectError(msg);
+      toast.error(msg);
       setConnecting(false);
     }
   };

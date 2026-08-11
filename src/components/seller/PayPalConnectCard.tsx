@@ -38,6 +38,7 @@ export function PayPalConnectCard({ returnPath, onStatusChange }: PayPalConnectC
   const [refreshing, setRefreshing] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [connectError, setConnectError] = useState<string | null>(null);
 
   const apply = (next: PayPalConnectStatus) => {
     setStatus(next);

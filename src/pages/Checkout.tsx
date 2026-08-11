@@ -15,6 +15,7 @@ import { BuyerPolicyAcceptance } from "@/components/BuyerPolicyAcceptance";
 import { useBuyerPolicy } from "@/hooks/useBuyerPolicy";
 import { usePlatformFee } from "@/hooks/usePlatformFee";
 import { formatMoney, subscriptionLabel } from "@/lib/money";
+import { fetchSellerAcceptedMethods, createPayPalOrder } from "@/lib/paypalCheckout";
 
 export default function Checkout() {
   const [searchParams] = useSearchParams();
@@ -31,6 +32,9 @@ export default function Checkout() {
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount_amount: number; new_total: number } | null>(null);
   const [guestPolicyAccepted, setGuestPolicyAccepted] = useState(false);
   const [ipAssignmentAccepted, setIpAssignmentAccepted] = useState(false);
+  const [paypalAvailable, setPaypalAvailable] = useState(false);
+  const [paypalProcessing, setPaypalProcessing] = useState(false);
+
 
   const { hasAccepted: hasBuyerPolicyAcceptedUser, isLoading: loadingPolicyUser, acceptPolicy, isAccepting } = useBuyerPolicy();
   const hasBuyerPolicyAccepted = user ? hasBuyerPolicyAcceptedUser : guestPolicyAccepted;
@@ -105,6 +109,40 @@ export default function Checkout() {
       setLoading(false);
     }
   };
+
+  // Which providers this seller accepts (PayPal only shows when connected + enabled).
+  useEffect(() => {
+    if (!product?.seller_id) return;
+    let cancelled = false;
+    fetchSellerAcceptedMethods(product.seller_id).then((methods) => {
+      if (!cancelled) setPaypalAvailable(methods.paypal);
+    });
+    return () => { cancelled = true; };
+  }, [product?.seller_id]);
+
+  const handlePayPalCheckout = async () => {
+    setPaypalProcessing(true);
+    try {
+      const referralSource = sessionStorage.getItem(`ref_${product.id}`) || undefined;
+      const { approveUrl } = await createPayPalOrder({
+        productId: product.id,
+        licenseTier: licenseTier,
+        couponCode: appliedCoupon?.code,
+        referralSource,
+        ipAssignmentAccepted: licenseTier === 'exclusive' ? ipAssignmentAccepted : undefined,
+        origin: window.location.origin,
+      });
+      toast.success("Redirecting to PayPal...");
+      window.location.href = approveUrl;
+    } catch (error: any) {
+      console.error("PayPal checkout error:", error);
+      toast.error(error.message || "Failed to start PayPal checkout");
+    } finally {
+      setPaypalProcessing(false);
+    }
+  };
+
+
 
   const applyCoupon = async () => {
     if (!couponCode.trim() || !product) return;
@@ -326,10 +364,10 @@ export default function Checkout() {
                   <div className="flex items-center justify-center p-8">
                     <Loader2 className="w-6 h-6 animate-spin" />
                   </div>
-                ) : !cardPaymentsAvailable ? (
+                ) : !cardPaymentsAvailable && !paypalAvailable ? (
                   <Alert variant="destructive">
                     <AlertDescription>
-                      Card payments are not available for this product. The seller needs to connect their Stripe account first.
+                      Payments are not available for this product yet. The seller needs to connect a payout account (Stripe or PayPal) first.
                     </AlertDescription>
                   </Alert>
                 ) : (
@@ -337,39 +375,65 @@ export default function Checkout() {
                     <Alert>
                       <CreditCard className="h-4 w-4" />
                       <AlertDescription>
-                        You will be redirected to Stripe's secure payment page.
+                        You will be redirected to {cardPaymentsAvailable && paypalAvailable
+                          ? "Stripe or PayPal"
+                          : cardPaymentsAvailable ? "Stripe's" : "PayPal's"} secure payment page.
                       </AlertDescription>
                     </Alert>
 
                     <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
-                      <p>✓ Secure Stripe Checkout</p>
+                      <p>✓ Secure hosted checkout</p>
                       <p>✓ No card data stored on this website</p>
-                      <p>✓ Payment goes directly to the seller's Stripe account</p>
+                      <p>✓ Payment goes directly to the seller's payout account</p>
                       <p>✓ {launchPromoActive ? '0% platform fee (launch promo — first 20 platform sales)' : `${feePct}% platform fee`}</p>
-                      <p>✓ Stripe's standard processing fees apply (paid by the seller)</p>
+                      <p>✓ The provider's standard processing fees apply (paid by the seller)</p>
                     </div>
                   </>
                 )}
 
                 <div className="space-y-3 pt-4">
-                  <Button
-                    onClick={handleCheckout}
-                    disabled={processing || !cardPaymentsAvailable || checkingCardAvailability || (licenseTier === 'exclusive' && !ipAssignmentAccepted)}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {processing ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Pay with Card
-                      </>
-                    )}
-                  </Button>
+                  {cardPaymentsAvailable && (
+                    <Button
+                      onClick={handleCheckout}
+                      disabled={processing || paypalProcessing || checkingCardAvailability || (licenseTier === 'exclusive' && !ipAssignmentAccepted)}
+                      className="w-full"
+                      size="lg"
+                    >
+                      {processing ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          Pay with Card
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  {paypalAvailable && (
+                    <Button
+                      onClick={handlePayPalCheckout}
+                      disabled={paypalProcessing || processing || (licenseTier === 'exclusive' && !ipAssignmentAccepted)}
+                      variant="secondary"
+                      className="w-full"
+                      size="lg"
+                    >
+                      {paypalProcessing ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          Pay with PayPal
+                        </>
+                      )}
+                    </Button>
+                  )}
+                
                   <Button
                     variant="outline"
                     onClick={() => navigate(`/product/${product.id}`)}

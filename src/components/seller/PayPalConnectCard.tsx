@@ -38,6 +38,7 @@ export function PayPalConnectCard({ returnPath, onStatusChange }: PayPalConnectC
   const [refreshing, setRefreshing] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [connectError, setConnectError] = useState<string | null>(null);
 
   const apply = (next: PayPalConnectStatus) => {
     setStatus(next);
@@ -102,13 +103,16 @@ export function PayPalConnectCard({ returnPath, onStatusChange }: PayPalConnectC
 
   const handleConnect = async () => {
     setConnecting(true);
+    setConnectError(null);
     try {
       const url = await createPayPalOnboardingLink(window.location.origin);
       toast.info('Redirecting to PayPal...');
       window.location.href = url;
     } catch (error: any) {
       console.error('paypal-connect-onboarding failed:', error);
-      toast.error(error?.message || 'Failed to create PayPal onboarding link');
+      const msg = error?.message || 'Failed to create PayPal onboarding link';
+      setConnectError(msg);
+      toast.error(msg);
       setConnecting(false);
     }
   };
@@ -319,6 +323,18 @@ export function PayPalConnectCard({ returnPath, onStatusChange }: PayPalConnectC
                 <li>To grant the marketplace permission to process payments for you</li>
               </ul>
             </div>
+
+            {connectError && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>PayPal setup failed:</strong>
+                  <span className="block mt-1 break-words font-mono text-xs select-all">
+                    {connectError}
+                  </span>
+                </AlertDescription>
+              </Alert>
+            )}
 
             <Button onClick={handleConnect} disabled={connecting} className="w-full">
               {connecting ? (

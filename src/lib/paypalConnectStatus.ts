@@ -71,7 +71,13 @@ export function mapPayPalConnectStatus(data: any): PayPalConnectStatus {
 export async function fetchPayPalConnectStatus(): Promise<PayPalConnectStatus> {
   const { data, error } = await supabase.functions.invoke('paypal-connect-status');
   if (error || (data as any)?.error) {
-    const msg = (data as any)?.detail || (data as any)?.error || error?.message || 'paypal-connect-status failed';
+    const detail = await readFunctionErrorMessage(error);
+    const msg =
+      detail ||
+      (data as any)?.detail ||
+      (data as any)?.error ||
+      error?.message ||
+      'paypal-connect-status failed';
     logSupabaseFunctionError('PayPal status edge-function error', error ?? new Error(msg));
     throw new Error(msg);
   }
@@ -83,11 +89,14 @@ export async function createPayPalOnboardingLink(origin: string): Promise<string
     body: { origin },
   });
   if (error || !(data as any)?.url) {
+    const detail = await readFunctionErrorMessage(error);
     const msg =
+      detail ||
       (data as any)?.paypal_error ||
       (data as any)?.error ||
       error?.message ||
       'paypal-connect-onboarding returned no url';
+    logSupabaseFunctionError('PayPal onboarding edge-function error', error ?? new Error(msg));
     throw new Error(msg);
   }
   return (data as any).url as string;
@@ -96,7 +105,9 @@ export async function createPayPalOnboardingLink(origin: string): Promise<string
 export async function disconnectPayPal(): Promise<void> {
   const { data, error } = await supabase.functions.invoke('paypal-connect-disconnect');
   if (error || (data as any)?.error || !(data as any)?.success) {
-    const msg = (data as any)?.error || error?.message || 'Failed to disconnect PayPal';
+    const detail = await readFunctionErrorMessage(error);
+    const msg =
+      detail || (data as any)?.error || error?.message || 'Failed to disconnect PayPal';
     throw new Error(msg);
   }
 }

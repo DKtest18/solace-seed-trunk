@@ -320,6 +320,18 @@ export function PayPalConnectCard({ returnPath, onStatusChange }: PayPalConnectC
               </ul>
             </div>
 
+            {connectError && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>PayPal setup failed:</strong>
+                  <span className="block mt-1 break-words font-mono text-xs select-all">
+                    {connectError}
+                  </span>
+                </AlertDescription>
+              </Alert>
+            )}
+
             <Button onClick={handleConnect} disabled={connecting} className="w-full">
               {connecting ? (
                 <>

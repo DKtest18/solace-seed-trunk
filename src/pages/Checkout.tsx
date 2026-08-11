@@ -110,6 +110,40 @@ export default function Checkout() {
     }
   };
 
+  // Which providers this seller accepts (PayPal only shows when connected + enabled).
+  useEffect(() => {
+    if (!product?.seller_id) return;
+    let cancelled = false;
+    fetchSellerAcceptedMethods(product.seller_id).then((methods) => {
+      if (!cancelled) setPaypalAvailable(methods.paypal);
+    });
+    return () => { cancelled = true; };
+  }, [product?.seller_id]);
+
+  const handlePayPalCheckout = async () => {
+    setPaypalProcessing(true);
+    try {
+      const referralSource = sessionStorage.getItem(`ref_${product.id}`) || undefined;
+      const { approveUrl } = await createPayPalOrder({
+        productId: product.id,
+        licenseTier: licenseTier,
+        couponCode: appliedCoupon?.code,
+        referralSource,
+        ipAssignmentAccepted: licenseTier === 'exclusive' ? ipAssignmentAccepted : undefined,
+        origin: window.location.origin,
+      });
+      toast.success("Redirecting to PayPal...");
+      window.location.href = approveUrl;
+    } catch (error: any) {
+      console.error("PayPal checkout error:", error);
+      toast.error(error.message || "Failed to start PayPal checkout");
+    } finally {
+      setPaypalProcessing(false);
+    }
+  };
+
+
+
   const applyCoupon = async () => {
     if (!couponCode.trim() || !product) return;
     setCouponLoading(true);

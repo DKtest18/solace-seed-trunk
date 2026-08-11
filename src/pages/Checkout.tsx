@@ -364,10 +364,10 @@ export default function Checkout() {
                   <div className="flex items-center justify-center p-8">
                     <Loader2 className="w-6 h-6 animate-spin" />
                   </div>
-                ) : !cardPaymentsAvailable ? (
+                ) : !cardPaymentsAvailable && !paypalAvailable ? (
                   <Alert variant="destructive">
                     <AlertDescription>
-                      Card payments are not available for this product. The seller needs to connect their Stripe account first.
+                      Payments are not available for this product yet. The seller needs to connect a payout account (Stripe or PayPal) first.
                     </AlertDescription>
                   </Alert>
                 ) : (
@@ -375,39 +375,65 @@ export default function Checkout() {
                     <Alert>
                       <CreditCard className="h-4 w-4" />
                       <AlertDescription>
-                        You will be redirected to Stripe's secure payment page.
+                        You will be redirected to {cardPaymentsAvailable && paypalAvailable
+                          ? "Stripe or PayPal"
+                          : cardPaymentsAvailable ? "Stripe's" : "PayPal's"} secure payment page.
                       </AlertDescription>
                     </Alert>
 
                     <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
-                      <p>✓ Secure Stripe Checkout</p>
+                      <p>✓ Secure hosted checkout</p>
                       <p>✓ No card data stored on this website</p>
-                      <p>✓ Payment goes directly to the seller's Stripe account</p>
+                      <p>✓ Payment goes directly to the seller's payout account</p>
                       <p>✓ {launchPromoActive ? '0% platform fee (launch promo — first 20 platform sales)' : `${feePct}% platform fee`}</p>
-                      <p>✓ Stripe's standard processing fees apply (paid by the seller)</p>
+                      <p>✓ The provider's standard processing fees apply (paid by the seller)</p>
                     </div>
                   </>
                 )}
 
                 <div className="space-y-3 pt-4">
-                  <Button
-                    onClick={handleCheckout}
-                    disabled={processing || !cardPaymentsAvailable || checkingCardAvailability || (licenseTier === 'exclusive' && !ipAssignmentAccepted)}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {processing ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Pay with Card
-                      </>
-                    )}
-                  </Button>
+                  {cardPaymentsAvailable && (
+                    <Button
+                      onClick={handleCheckout}
+                      disabled={processing || paypalProcessing || checkingCardAvailability || (licenseTier === 'exclusive' && !ipAssignmentAccepted)}
+                      className="w-full"
+                      size="lg"
+                    >
+                      {processing ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          Pay with Card
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  {paypalAvailable && (
+                    <Button
+                      onClick={handlePayPalCheckout}
+                      disabled={paypalProcessing || processing || (licenseTier === 'exclusive' && !ipAssignmentAccepted)}
+                      variant="secondary"
+                      className="w-full"
+                      size="lg"
+                    >
+                      {paypalProcessing ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          Pay with PayPal
+                        </>
+                      )}
+                    </Button>
+                  )}
+                
                   <Button
                     variant="outline"
                     onClick={() => navigate(`/product/${product.id}`)}

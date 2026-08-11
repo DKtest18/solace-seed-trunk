@@ -32,6 +32,9 @@ export default function Checkout() {
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount_amount: number; new_total: number } | null>(null);
   const [guestPolicyAccepted, setGuestPolicyAccepted] = useState(false);
   const [ipAssignmentAccepted, setIpAssignmentAccepted] = useState(false);
+  const [paypalAvailable, setPaypalAvailable] = useState(false);
+  const [paypalProcessing, setPaypalProcessing] = useState(false);
+
 
   const { hasAccepted: hasBuyerPolicyAcceptedUser, isLoading: loadingPolicyUser, acceptPolicy, isAccepting } = useBuyerPolicy();
   const hasBuyerPolicyAccepted = user ? hasBuyerPolicyAcceptedUser : guestPolicyAccepted;

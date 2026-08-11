@@ -26,6 +26,25 @@ export const emptyStripeConnectStatus: StripeConnectStatus = {
   detailsSubmitted: false,
 };
 
+/** Reads the JSON/text body of a failed functions.invoke() error. */
+export async function readFunctionErrorMessage(error: unknown): Promise<string | undefined> {
+  const ctx: any = (error as any)?.context;
+  if (ctx && typeof ctx.clone === 'function') {
+    try {
+      const body = await ctx.clone().json();
+      return body?.detail || body?.error || body?.paypal_error || body?.stripe_error || body?.message;
+    } catch {
+      try {
+        const text = await ctx.clone().text();
+        return text?.slice(0, 500) || undefined;
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+  return undefined;
+}
+
 async function invokeStripeFunction<T = any>(functionName: string, body?: Record<string, unknown>): Promise<T> {
   const {
     data: { session },
@@ -35,19 +54,17 @@ async function invokeStripeFunction<T = any>(functionName: string, body?: Record
     throw new Error('Please sign in again before managing Stripe payments.');
   }
 
-  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${functionName}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.access_token}`,
-      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-    },
-    body: JSON.stringify(body ?? {}),
-  });
+  const { data, error } = await supabase.functions.invoke(functionName, { body: body ?? {} });
 
-  const data = await response.json().catch(() => null);
-  if (!response.ok || data?.error) {
-    throw new Error(data?.detail || data?.error || `Stripe function failed: ${response.status}`);
+  if (error || (data as any)?.error) {
+    const detail = await readFunctionErrorMessage(error);
+    throw new Error(
+      detail ||
+        (data as any)?.detail ||
+        (data as any)?.error ||
+        (error as any)?.message ||
+        `${functionName} failed`,
+    );
   }
 
   return data as T;

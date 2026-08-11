@@ -58,6 +58,7 @@ import AdminDisputes from "./pages/AdminDisputes";
 import PayoutRequests from "./pages/PayoutRequests";
 import Checkout from "./pages/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
+import PayPalReturn from "./pages/PayPalReturn";
 
 import SellerPaymentSettings from "./pages/SellerPaymentSettings";
 import AdminPaymentSettings from "./pages/AdminPaymentSettings";

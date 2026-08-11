@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { logSupabaseFunctionError } from '@/lib/supabaseFunctionErrors';
+import { readFunctionErrorMessage } from '@/lib/stripeConnectStatus';
 
 export type PayPalOnboardingStatus =
   | 'not_connected'

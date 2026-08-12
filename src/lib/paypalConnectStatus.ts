@@ -82,6 +82,10 @@ export async function fetchPayPalConnectStatus(): Promise<PayPalConnectStatus> {
   });
   if (error || (data as any)?.error) {
     const detail = await readFunctionErrorMessage(error);
+    const status = (error as any)?.context?.status;
+    // The deployed function rejects the token (401/403): treat PayPal as simply
+    // not linked instead of breaking the page.
+    if (status === 401 || status === 403) return emptyPayPalConnectStatus;
     const msg =
       detail ||
       (data as any)?.detail ||
@@ -91,6 +95,7 @@ export async function fetchPayPalConnectStatus(): Promise<PayPalConnectStatus> {
     logSupabaseFunctionError('PayPal status edge-function error', error ?? new Error(msg));
     throw new Error(msg);
   }
+
   return mapPayPalConnectStatus(data);
 }
 

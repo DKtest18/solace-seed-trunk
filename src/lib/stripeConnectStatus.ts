@@ -32,7 +32,22 @@ export async function readFunctionErrorMessage(error: unknown): Promise<string |
   if (ctx && typeof ctx.clone === 'function') {
     try {
       const body = await ctx.clone().json();
-      return body?.detail || body?.error || body?.paypal_error || body?.stripe_error || body?.message;
+      const providerError = body?.paypal_error || body?.stripe_error;
+      if (typeof providerError === 'string' && providerError.trim()) return providerError;
+      if (providerError && typeof providerError === 'object') {
+        const nestedMessage =
+          providerError.message ||
+          providerError.error_description ||
+          providerError.details?.[0]?.description ||
+          providerError.details?.[0]?.issue;
+        if (typeof nestedMessage === 'string' && nestedMessage.trim()) return nestedMessage;
+        try {
+          return JSON.stringify(providerError).slice(0, 1_000);
+        } catch {
+          /* fall through to the generic response fields */
+        }
+      }
+      return body?.detail || body?.message || body?.error;
     } catch {
       try {
         const text = await ctx.clone().text();

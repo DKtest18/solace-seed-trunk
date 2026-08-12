@@ -70,7 +70,16 @@ export function mapPayPalConnectStatus(data: any): PayPalConnectStatus {
 }
 
 export async function fetchPayPalConnectStatus(): Promise<PayPalConnectStatus> {
-  const { data, error } = await supabase.functions.invoke('paypal-connect-status');
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  // Not signed in yet (e.g. during onboarding bootstrap) — no PayPal link can exist.
+  if (!session?.access_token) return emptyPayPalConnectStatus;
+
+  const { data, error } = await supabase.functions.invoke('paypal-connect-status', {
+    body: {},
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
   if (error || (data as any)?.error) {
     const detail = await readFunctionErrorMessage(error);
     const msg =
@@ -84,6 +93,7 @@ export async function fetchPayPalConnectStatus(): Promise<PayPalConnectStatus> {
   }
   return mapPayPalConnectStatus(data);
 }
+
 
 export async function createPayPalOnboardingLink(origin: string): Promise<string> {
   const { data, error } = await supabase.functions.invoke('paypal-connect-onboarding', {

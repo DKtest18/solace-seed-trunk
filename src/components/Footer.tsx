@@ -53,7 +53,16 @@ export function Footer() {
             <p className="text-sm text-muted-foreground">
               The marketplace for AI builders and buyers worldwide.
             </p>
+            <a
+              href={`mailto:${SUPPORT_EMAIL}`}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+              aria-label={`Email support at ${SUPPORT_EMAIL}`}
+            >
+              <Mail className="w-4 h-4" />
+              Email Support
+            </a>
           </div>
+
 
           {/* Column 2: Platform */}
           <div>

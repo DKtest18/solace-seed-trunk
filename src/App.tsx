@@ -88,6 +88,7 @@ import { WaitlistGuard } from "@/components/WaitlistGuard";
 import Waitlist from "./pages/Waitlist";
 import AdminWaitlist from "./pages/AdminWaitlist";
 import Impressum from "./pages/Impressum";
+import RefundPolicy from "./pages/RefundPolicy";
 import Privacy from "./pages/Privacy";
 import TermsOfService from "./pages/TermsOfService";
 import CookiePolicy from "./pages/CookiePolicy";
@@ -148,6 +149,7 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/impressum" element={<Impressum />} />
+            <Route path="/refund-policy" element={<RefundPolicy />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/datenschutz" element={<Privacy />} />
             <Route path="/terms" element={<TermsOfService />} />
@@ -209,6 +211,8 @@ const App = () => (
             <Route path="/legal" element={<LegalOverview />} />
             <Route path="/legal/imprint" element={<Impressum />} />
             <Route path="/legal/licenses" element={<LicenseTerms />} />
+            <Route path="/legal/refund" element={<RefundPolicy />} />
+            <Route path="/legal/refund-policy" element={<RefundPolicy />} />
             <Route path="/legal/:type" element={<Legal />} />
 
             <Route path="/admin/reports" element={<AdminRouteGuard><AdminReports /></AdminRouteGuard>} />

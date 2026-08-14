@@ -1,7 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Linkedin } from 'lucide-react';
+import { Linkedin, Mail } from 'lucide-react';
 
 const LINKEDIN_URL = 'https://www.linkedin.com/company/dk-ai-marketplace';
+const SUPPORT_EMAIL = 'support@dkaimarketplace.com';
 
 const platformLinks = [
   { to: '/marketplace', label: 'Marketplace' },
@@ -10,7 +11,7 @@ const platformLinks = [
 
 const companyLinks = [
   { to: '/about', label: 'About' },
-  { href: 'mailto:support@dkaimarketplace.com', label: 'Contact' },
+  { href: `mailto:${SUPPORT_EMAIL}`, label: 'Contact' },
   { href: LINKEDIN_URL, label: 'Follow us on LinkedIn', external: true },
 ];
 
@@ -18,10 +19,12 @@ const legalLinks = [
   { to: '/impressum', label: 'Legal Notice (Impressum)' },
   { to: '/privacy', label: 'Privacy Policy' },
   { to: '/terms', label: 'Terms of Service' },
+  { to: '/refund-policy', label: 'Refund & Dispute Policy' },
   { to: '/legal/licenses', label: 'License Terms' },
   { to: '/cookies', label: 'Cookie Policy' },
   { to: '/cookie-settings', label: 'Cookie Settings' },
 ];
+
 
 export function Footer() {
   const location = useLocation();
@@ -50,7 +53,16 @@ export function Footer() {
             <p className="text-sm text-muted-foreground">
               The marketplace for AI builders and buyers worldwide.
             </p>
+            <a
+              href={`mailto:${SUPPORT_EMAIL}`}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+              aria-label={`Email support at ${SUPPORT_EMAIL}`}
+            >
+              <Mail className="w-4 h-4" />
+              Email Support
+            </a>
           </div>
+
 
           {/* Column 2: Platform */}
           <div>

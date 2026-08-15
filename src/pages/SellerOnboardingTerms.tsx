@@ -25,12 +25,20 @@ export default function SellerOnboardingTerms() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { pdfDoc, downloaded, pdfBusy, pdfError, download } = useSellerObligationsPdf();
 
   const [initializing, setInitializing] = useState(true);
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState(false);
   const [alreadyAccepted, setAlreadyAccepted] = useState(false);
+
+  const scrollToPdf = () => {
+    const el = document.getElementById('seller-obligations-pdf-section');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   useEffect(() => {
     if (!user) {

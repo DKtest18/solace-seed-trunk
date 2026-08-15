@@ -85,7 +85,7 @@ export default function AdminProductReview() {
       // "all" shows every product ever created, including legacy rows whose
       // review_status was never set (NULL) — so admins can audit what is live.
       let q = db.from('dkai_products').select(PRODUCT_COLUMNS);
-      if (tab !== 'all') q = q.eq('review_status', tab);
+      if (tab !== 'all') q = q.in('review_status', STATUS_GROUPS[tab]);
       const { data, error } = await q
         .order('created_at', { ascending: false });
       if (error) throw error;

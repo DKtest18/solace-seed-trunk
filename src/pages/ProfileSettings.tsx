@@ -461,7 +461,7 @@ export default function ProfileSettings() {
                     </p>
                   </div>
                   <div className="flex justify-end pt-2">
-                    <Button onClick={() => navigate('/profile/edit')}>
+                    <Button onClick={() => navigate('/profile')}>
                       Edit Profile
                     </Button>
                   </div>

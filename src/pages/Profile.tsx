@@ -703,8 +703,6 @@ export default function Profile() {
 
                 {/* Work Experience */}
 
-
-                {/* Work Experience */}
                 <ExperienceEditor items={experience} onChange={setExperience} />
 
 

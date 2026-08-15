@@ -12,12 +12,17 @@ import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, User, Globe, MapPin, Mail, Calendar, Camera, AlertTriangle, Crop, Trash2, ArrowLeft } from 'lucide-react';
+import { Loader2, User, Globe, MapPin, Mail, Calendar, Camera, AlertTriangle, Crop, Trash2, ArrowLeft, ImageIcon, Sparkles } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { AppLayout } from '@/components/AppLayout';
 import { useHasRole } from '@/hooks/useUserRole';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { AvatarCropEditor, getAvatarCropStyle } from '@/components/AvatarCropEditor';
+import { ExperienceEditor } from '@/components/profile/ExperienceEditor';
+import { EducationEditor } from '@/components/profile/EducationEditor';
+import { SkillsTagInput } from '@/components/profile/SkillsTagInput';
+import { EducationItem, ExperienceItem, parseJsonArray } from '@/types/profile';
+
 
 
 export default function Profile() {

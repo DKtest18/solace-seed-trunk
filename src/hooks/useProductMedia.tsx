@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { db } from '@/lib/dkaiDb';
 import type { ProductMediaItem } from '@/components/product-creation/ImagesStep';
@@ -19,17 +19,35 @@ export function mediaPublicUrl(storagePath: string) {
  */
 export function useProductMedia(userId?: string) {
   const [media, setMedia] = useState<ProductMediaItem[]>([]);
+  const mediaRef = useRef<ProductMediaItem[]>([]);
+  const productIdRef = useRef<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+
+  const replaceMedia = useCallback((next: ProductMediaItem[]) => {
+    mediaRef.current = next;
+    setMedia(next);
+  }, []);
+
+  const syncCover = useCallback(async (next: ProductMediaItem[]) => {
+    const productId = productIdRef.current;
+    if (!productId) return;
+    const cover = next.find((item) => item.media_type === 'image' && !item.uploading && !item.error);
+    await db
+      .from('dkai_products')
+      .update({ image_url: cover?.url || null })
+      .eq('id', productId);
+  }, []);
 
   /** Loads persisted rows for a product/draft. */
   const load = useCallback(async (productId: string) => {
+    productIdRef.current = productId;
     const { data, error } = await db
       .from('dkai_product_media')
       .select('id, storage_path, media_type, mime_type, size_bytes, sort_order')
       .eq('product_id', productId)
       .order('sort_order', { ascending: true });
     if (!error && data) {
-      setMedia(
+      replaceMedia(
         (data as any[]).map((r) => ({
           id: r.id,
           storage_path: r.storage_path,
@@ -41,17 +59,19 @@ export function useProductMedia(userId?: string) {
       );
     }
     setLoaded(true);
-  }, []);
+  }, [replaceMedia]);
 
   const persistOrder = useCallback(async (next: ProductMediaItem[]) => {
+    const firstImageId = next.find((item) => item.media_type === 'image')?.id;
     await Promise.all(
       next.map((m, i) =>
         m.id
-          ? db.from('dkai_product_media').update({ sort_order: i, is_cover: i === 0 }).eq('id', m.id)
+          ? db.from('dkai_product_media').update({ sort_order: i, is_cover: m.id === firstImageId }).eq('id', m.id)
           : Promise.resolve(),
       ),
     );
-  }, []);
+    await syncCover(next);
+  }, [syncCover]);
 
   /**
    * Uploads a file and inserts its row.
@@ -62,6 +82,7 @@ export function useProductMedia(userId?: string) {
       if (!userId) throw new Error('Sign in required to upload media');
       const productId = await ensureProductId();
       if (!productId) throw new Error('Could not create the product draft');
+      productIdRef.current = productId;
 
       const isVideo = file.type.startsWith('video/');
       const bucket = isVideo ? VIDEO_BUCKET : IMAGE_BUCKET;
@@ -77,7 +98,7 @@ export function useProductMedia(userId?: string) {
         url: '',
         uploading: true,
       };
-      setMedia((prev) => [...prev, placeholder]);
+      replaceMedia([...mediaRef.current, placeholder]);
 
       try {
         const { error: upErr } = await supabase.storage
@@ -85,12 +106,10 @@ export function useProductMedia(userId?: string) {
           .upload(path, file, { contentType: file.type, upsert: false });
         if (upErr) throw upErr;
 
-        const sortOrder = await new Promise<number>((resolve) => {
-          setMedia((prev) => {
-            resolve(prev.findIndex((m) => m.storage_path === storagePath));
-            return prev;
-          });
-        });
+        const sortOrder = mediaRef.current.findIndex((m) => m.storage_path === storagePath);
+        const hasEarlierImage = mediaRef.current.some(
+          (item, index) => index < sortOrder && item.media_type === 'image' && !item.error,
+        );
 
         const { data: row, error: insErr } = await db
           .from('dkai_product_media')
@@ -102,60 +121,52 @@ export function useProductMedia(userId?: string) {
             mime_type: file.type,
             size_bytes: file.size,
             sort_order: Math.max(0, sortOrder),
-            is_cover: sortOrder === 0,
+            is_cover: !isVideo && !hasEarlierImage,
           })
           .select('id')
           .single();
         if (insErr) throw insErr;
 
-        setMedia((prev) =>
-          prev.map((m) =>
+        const next = mediaRef.current.map((m) =>
             m.storage_path === storagePath
               ? { ...m, id: (row as any).id, uploading: false, url: mediaPublicUrl(storagePath) }
               : m,
-          ),
         );
+        replaceMedia(next);
 
         // Keep the legacy cover column in sync so listing cards always show an image.
-        if (!isVideo && sortOrder === 0) {
-          await db
-            .from('dkai_products')
-            .update({ image_url: mediaPublicUrl(storagePath) })
-            .eq('id', productId);
-        }
+        await syncCover(next);
         return storagePath;
       } catch (e: any) {
-        setMedia((prev) =>
-          prev.map((m) =>
+        const failed = mediaRef.current.map((m) =>
             m.storage_path === storagePath
               ? { ...m, uploading: false, error: e?.message || 'Upload failed' }
               : m,
-          ),
         );
+        replaceMedia(failed);
         throw e;
       }
     },
-    [userId],
+    [replaceMedia, syncCover, userId],
   );
 
   const remove = useCallback(async (index: number) => {
-    let target: ProductMediaItem | undefined;
-    setMedia((prev) => {
-      target = prev[index];
-      return prev.filter((_, i) => i !== index);
-    });
+    const target = mediaRef.current[index];
     if (!target) return;
+    const next = mediaRef.current.filter((_, i) => i !== index);
+    replaceMedia(next);
     if (target.id) await db.from('dkai_product_media').delete().eq('id', target.id);
     const [bucket, ...rest] = target.storage_path.split('/');
     await supabase.storage.from(bucket).remove([rest.join('/')]);
-  }, []);
+    await persistOrder(next);
+  }, [persistOrder, replaceMedia]);
 
   const reorder = useCallback(
     async (next: ProductMediaItem[]) => {
-      setMedia(next);
+      replaceMedia(next);
       await persistOrder(next);
     },
-    [persistOrder],
+    [persistOrder, replaceMedia],
   );
 
   return { media, setMedia, loaded, load, addFile, remove, reorder };

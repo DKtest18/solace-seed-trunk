@@ -341,6 +341,7 @@ export default function SellerProducts() {
   const counts = {
     draft: grouped.draft.length,
     in_review: grouped.in_review.length,
+    approved_pending_publish: grouped.approved_pending_publish.length,
     published: grouped.published.length,
     rejected: grouped.rejected.length,
     deleted: grouped.deleted.length,

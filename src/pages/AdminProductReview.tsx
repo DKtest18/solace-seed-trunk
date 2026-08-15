@@ -21,6 +21,8 @@ import {
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, ShieldAlert, ExternalLink } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { DemoVideoReviewPanel, hasDemoVideo } from '@/components/admin/DemoVideoReviewPanel';
 
 type ReviewStatus = 'submitted' | 'in_review' | 'approved' | 'rejected' | 'changes_requested';
 
@@ -50,7 +52,8 @@ export default function AdminProductReview() {
         .from('dkai_products')
         .select(
           'id, title, price, delivery_tier, file_size_bytes, category, description, seller_id, ' +
-            'review_status, requires_access_review, submitted_at, review_notes, reviewed_at'
+            'review_status, requires_access_review, submitted_at, review_notes, reviewed_at, ' +
+            'demo_video_url, demo_video_storage_path'
         )
         .eq('review_status', tab)
         .order('submitted_at', { ascending: false, nullsFirst: false });
@@ -185,6 +188,10 @@ export default function AdminProductReview() {
                     <p className="text-sm text-foreground line-clamp-3 whitespace-pre-wrap">
                       {p.description}
                     </p>
+                    <DemoVideoReviewPanel
+                      demoVideoUrl={p.demo_video_url}
+                      demoVideoStoragePath={p.demo_video_storage_path}
+                    />
                     {p.review_notes && (
                       <Alert>
                         <AlertDescription className="text-sm">
@@ -208,16 +215,28 @@ export default function AdminProductReview() {
                       )}
                       {['submitted', 'in_review', 'changes_requested'].includes(p.review_status) && (
                         <>
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setActionProductId(p.id);
-                              setActionType('approve');
-                              setNotes('');
-                            }}
-                          >
-                            Approve
-                          </Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span>
+                                  <Button
+                                    size="sm"
+                                    disabled={!hasDemoVideo(p)}
+                                    onClick={() => {
+                                      setActionProductId(p.id);
+                                      setActionType('approve');
+                                      setNotes('');
+                                    }}
+                                  >
+                                    Approve
+                                  </Button>
+                                </span>
+                              </TooltipTrigger>
+                              {!hasDemoVideo(p) && (
+                                <TooltipContent>No demo video submitted</TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
                           <Button
                             size="sm"
                             variant="outline"

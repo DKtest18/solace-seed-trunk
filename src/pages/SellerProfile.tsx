@@ -1,3 +1,5 @@
+import { LinkedInVerifiedBadge } from '@/components/LinkedInVerifiedBadge';
+import { Linkedin } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
@@ -115,12 +117,24 @@ export default function SellerProfile() {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <h1 className="text-3xl font-bold">{profile.creator_name || profile.full_name}</h1>
+                {profile.is_linkedin_verified && <LinkedInVerifiedBadge />}
                 {profile.seller_verification_status === 'verified' && (
                   <Badge variant="outline" className="text-green-600 border-green-600">
                     Verified Seller
                   </Badge>
                 )}
               </div>
+              {profile.linkedin_url && (
+                <a
+                  href={profile.linkedin_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn profile"
+                  className="inline-flex items-center gap-1 text-sm text-[#0A66C2] hover:underline mb-2"
+                >
+                  <Linkedin className="w-4 h-4" /> LinkedIn
+                </a>
+              )}
               {profile.bio && (
                 <p className="text-muted-foreground mb-4">{profile.bio}</p>
               )}

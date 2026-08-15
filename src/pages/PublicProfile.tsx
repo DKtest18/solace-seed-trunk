@@ -424,47 +424,45 @@ export default function PublicProfile() {
           )}
 
           {activeTab === 'about' && (
-            <div className="max-w-2xl py-8 font-body text-gray-700 leading-relaxed space-y-4">
-              <h2 className="font-display text-xl font-semibold text-gray-900">Bio</h2>
-              {profile.bio ? (
-                <p className="whitespace-pre-wrap">{profile.bio}</p>
-              ) : (
-                <p className="text-muted-foreground italic">No bio provided.</p>
-              )}
+            <div className="py-8 space-y-6">
+              <ProfileDetailSections
+                about={profile.expanded_bio || profile.bio}
+                experience={experience}
+                education={education}
+                skills={skills}
+              />
 
-              {skills.length > 0 && (
-                <>
-                  <h2 className="font-display text-xl font-semibold text-gray-900 mt-6">Skills</h2>
-                  <div className="flex flex-wrap gap-2">
-                    {skills.map((skill) => (
-                      <span key={skill} className="bg-primary-soft text-primary text-sm px-3 py-1 rounded-full">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </>
-              )}
-
-              <h2 className="font-display text-xl font-semibold text-gray-900 mt-6">Details</h2>
-              <ul className="space-y-2">
-                <li>
-                  <span className="text-muted-foreground">Member since:</span>{' '}
-                  {format(new Date(profile.created_at), 'MMMM yyyy')}
-                </li>
-                {profile.country && (
-                  <li><span className="text-muted-foreground">Country:</span> {profile.country}</li>
-                )}
-                {profile.website_url && (
+              <Card className="p-6 sm:p-8 rounded-2xl">
+                <h2 className="font-display text-xl font-semibold text-gray-900 mb-5">Details</h2>
+                <ul className="space-y-2 text-gray-700">
                   <li>
-                    <span className="text-muted-foreground">Website:</span>{' '}
-                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                      {profile.website_url}
-                    </a>
+                    <span className="text-muted-foreground">Member since:</span>{' '}
+                    {format(new Date(profile.created_at), 'MMMM yyyy')}
                   </li>
-                )}
-              </ul>
+                  {profile.country && (
+                    <li><span className="text-muted-foreground">Country:</span> {profile.country}</li>
+                  )}
+                  {profile.website_url && (
+                    <li>
+                      <span className="text-muted-foreground">Website:</span>{' '}
+                      <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                        {profile.website_url}
+                      </a>
+                    </li>
+                  )}
+                  {profile.linkedin_url && (
+                    <li>
+                      <span className="text-muted-foreground">LinkedIn:</span>{' '}
+                      <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-[#0A66C2] hover:underline">
+                        View profile
+                      </a>
+                    </li>
+                  )}
+                </ul>
+              </Card>
             </div>
           )}
+
         </div>
       </div>
 

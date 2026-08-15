@@ -35,8 +35,14 @@ export function useLinkedInProfileSync(user: User | null) {
           .eq('id', user.id)
           .maybeSingle();
 
+        const rawUrl: string | null =
+          meta.linkedin_url || meta.profile_url || meta.publicProfileUrl ||
+          meta.profile || meta.website || null;
+        const vanity: string | null = meta.vanityName || meta.vanity_name || null;
         const linkedinUrl: string | null =
-          meta.linkedin_url || meta.profile || meta.website || null;
+          (rawUrl && /linkedin\.com/i.test(rawUrl) ? rawUrl : null) ||
+          (vanity ? `https://www.linkedin.com/in/${vanity}` : null);
+
         const fullName: string | null =
           meta.name || meta.full_name ||
           [meta.given_name, meta.family_name].filter(Boolean).join(' ') || null;

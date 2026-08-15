@@ -92,7 +92,7 @@ export default function ProductDetail() {
       
       const { data, error } = await db
         .from('dkai_profiles')
-        .select('id, full_name, avatar_url, username, verified, seller_type')
+        .select('id, full_name, avatar_url, username, verified, seller_type, headline, linkedin_url, is_linkedin_verified')
         .eq('id', product.seller_id)
         .single();
 
@@ -482,17 +482,43 @@ export default function ProductDetail() {
                               founding={(sellerProfile as any).seller_type === 'founding'}
                             />
                           </p>
+                          {(sellerProfile as any).headline && (
+                            <p className="text-xs text-muted-foreground line-clamp-1">
+                              {(sellerProfile as any).headline}
+                            </p>
+                          )}
+                          <span className="text-xs text-primary hover:underline">View profile</span>
                         </div>
                       </Link>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={handleContactSeller}
-                        className="gap-2"
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                        Ask a question
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        {(sellerProfile as any).linkedin_url && (
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            className="gap-2 text-[#0A66C2] border-[#0A66C2]/40 hover:bg-[#0A66C2]/10"
+                          >
+                            <a
+                              href={(sellerProfile as any).linkedin_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label={`Open ${sellerProfile.full_name || 'seller'} on LinkedIn`}
+                            >
+                              <Linkedin className="h-4 w-4" />
+                              LinkedIn
+                            </a>
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleContactSeller}
+                          className="gap-2"
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          Ask a question
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

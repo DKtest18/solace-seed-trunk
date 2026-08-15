@@ -19,7 +19,9 @@ import { format } from 'date-fns';
 import { LinkedInVerifiedBadge } from '@/components/LinkedInVerifiedBadge';
 import { Linkedin, Briefcase, GraduationCap } from 'lucide-react';
 import { ProfileDetailSections } from '@/components/profile/ProfileDetailSections';
+import { ProfileStatusFrame } from '@/components/profile/ProfileStatusFrame';
 import { EducationItem, ExperienceItem, parseJsonArray } from '@/types/profile';
+
 
 
 interface Profile {

@@ -377,17 +377,25 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
           <div className="space-y-4">
             {reviews.filter(r => r.user_id !== user?.id).map((review) => (
               <div key={review.id} className="flex gap-4 p-4 border rounded-lg">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={review.profiles?.avatar_url || undefined} />
-                  <AvatarFallback>
-                    <User className="h-5 w-5" />
-                  </AvatarFallback>
-                </Avatar>
+                <Link
+                  to={`/profile/${review.profiles?.username || review.user_id}`}
+                  aria-label={`View profile of ${review.profiles?.full_name || review.profiles?.username || "this user"}`}
+                >
+                  <Avatar className="h-10 w-10 transition-opacity hover:opacity-80">
+                    <AvatarImage src={review.profiles?.avatar_url || undefined} />
+                    <AvatarFallback>
+                      <User className="h-5 w-5" />
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">
+                    <Link
+                      to={`/profile/${review.profiles?.username || review.user_id}`}
+                      className="font-medium hover:underline"
+                    >
                       {review.profiles?.full_name || review.profiles?.username || "Anonymous"}
-                    </span>
+                    </Link>
                     <span className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
                     </span>

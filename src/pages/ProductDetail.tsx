@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { db } from '@/lib/dkaiDb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, ArrowLeft, MessageCircle, HelpCircle, Star, Flag } from 'lucide-react';
+import { Loader2, ArrowLeft, MessageCircle, HelpCircle, Star, Flag, Linkedin } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';

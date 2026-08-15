@@ -160,7 +160,7 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
           </h2>
         </div>
 
-        <ScrollArea className="flex-1 px-6 py-4">
+        <ScrollArea className="flex-1 min-h-0 max-h-[60vh] px-6 py-4">
           <p className="text-sm text-muted-foreground">
             Before you can submit products to DK AI Marketplace, please confirm the following (this
             agreement is subject to review by legal counsel and may be updated):

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -7,12 +7,23 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, FileText } from 'lucide-react';
+import { Loader2, FileText, Download, CheckCircle2 } from 'lucide-react';
 import {
   SELLER_AGREEMENT_VERSION,
   isSellerAgreementCurrent,
   useSellerRestrictions,
 } from '@/hooks/useSellerRestrictions';
+
+const OBLIGATIONS: string[] = [
+  'Deliver exactly what your listing describes. You may not refuse delivery of a purchased product.',
+  'Only upload content you own or are fully licensed to sell. No malware, illegal, infringing, or adult content.',
+  'Answer buyer questions and support requests about your products within 48 hours.',
+  'Cooperate with refund reviews. No response within 48 hours means the case is decided in the buyer\u2019s favour.',
+  'Keep your own master copies of every file you upload \u2014 you are responsible for your backups.',
+  'Keep your payout details (Stripe / PayPal) accurate and taxes for your own sales are your responsibility.',
+  'Follow the Platform Rules and all applicable law in your country of residence.',
+];
+
 
 const CLAUSES: { heading: string; body: string }[] = [
   {

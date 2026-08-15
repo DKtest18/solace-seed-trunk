@@ -27,6 +27,7 @@ import { LinkedInImportCard } from '@/components/profile/LinkedInImportCard';
 import type { LinkedInImportResult } from '@/lib/linkedinImport';
 
 import { EducationItem, ExperienceItem, parseJsonArray } from '@/types/profile';
+import { normalizeLinkedInUrl } from '@/lib/profileUrls';
 
 
 
@@ -318,14 +319,25 @@ export default function Profile() {
       return;
     }
 
+    const normalizedLinkedInUrl = normalizeLinkedInUrl(formData.linkedin_url);
+    if (formData.linkedin_url.trim() && !normalizedLinkedInUrl) {
+      toast({ title: 'Invalid LinkedIn link', description: 'Enter a valid linkedin.com profile URL.', variant: 'destructive' });
+      return;
+    }
+
     // Check if username is already taken by another user
     if (formData.username !== originalData.username) {
-      const { data: existingUsername } = await db
+      const { data: existingUsername, error: usernameError } = await db
         .from('dkai_profiles')
         .select('id')
         .eq('username', formData.username.trim())
         .neq('id', user.id)
         .maybeSingle();
+
+      if (usernameError) {
+        toast({ title: 'Could not validate username', description: usernameError.message, variant: 'destructive' });
+        return;
+      }
 
       if (existingUsername) {
         toast({ title: 'Username taken', description: 'This username is already in use. Please choose another.', variant: 'destructive' });
@@ -335,12 +347,17 @@ export default function Profile() {
 
     // Check if display name is already taken by another user
     if (formData.full_name !== originalData.full_name) {
-      const { data: existingName } = await db
+      const { data: existingName, error: nameError } = await db
         .from('dkai_profiles')
         .select('id')
         .eq('full_name', formData.full_name.trim())
         .neq('id', user.id)
         .maybeSingle();
+
+      if (nameError) {
+        toast({ title: 'Could not validate display name', description: nameError.message, variant: 'destructive' });
+        return;
+      }
 
       if (existingName) {
         toast({ title: 'Display Name taken', description: 'This display name is already in use. Please choose another.', variant: 'destructive' });
@@ -353,12 +370,12 @@ export default function Profile() {
       const { data: updatedData, error } = await db
         .from('dkai_profiles')
         .update({
-          username: formData.username || null,
-          full_name: formData.full_name || null,
-          headline: formData.headline || null,
-          bio: formData.bio || null,
-          website_url: formData.website_url || null,
-          linkedin_url: formData.linkedin_url || null,
+          username: formData.username.trim(),
+          full_name: formData.full_name.trim(),
+          headline: formData.headline.trim() || null,
+          bio: formData.bio.trim() || null,
+          website_url: formData.website_url.trim() || null,
+          linkedin_url: normalizedLinkedInUrl,
           country: formData.country || null,
           avatar_url: formData.avatar_url || null,
           expanded_bio: formData.expanded_bio || null,
@@ -662,7 +679,8 @@ export default function Profile() {
                     </Label>
                     <Input
                       id="website_url"
-                      type="url"
+                      type="text"
+                      inputMode="url"
                       placeholder="https://yourwebsite.com"
                       value={formData.website_url}
                       onChange={(e) => setFormData(prev => ({ ...prev, website_url: e.target.value }))}
@@ -695,12 +713,20 @@ export default function Profile() {
                       placeholder="https://www.linkedin.com/in/your-name"
                       value={formData.linkedin_url}
                       onChange={(e) => setFormData(prev => ({ ...prev, linkedin_url: e.target.value }))}
+                      onBlur={() => {
+                        const normalized = normalizeLinkedInUrl(formData.linkedin_url);
+                        if (normalized) setFormData(prev => ({ ...prev, linkedin_url: normalized }));
+                      }}
                     />
                     <Button
                       type="button"
                       variant="outline"
                       disabled={!formData.linkedin_url}
-                      onClick={() => window.open(formData.linkedin_url, '_blank', 'noopener,noreferrer')}
+                      onClick={() => {
+                        const normalized = normalizeLinkedInUrl(formData.linkedin_url);
+                        if (normalized) window.open(normalized, '_blank', 'noopener,noreferrer');
+                        else toast({ title: 'Invalid LinkedIn link', description: 'Enter a valid linkedin.com profile URL.', variant: 'destructive' });
+                      }}
                       className="shrink-0 text-[#0A66C2] border-[#0A66C2]/30 hover:bg-[#0A66C2]/5"
                     >
                       <ExternalLink className="h-4 w-4 mr-2" /> Open LinkedIn

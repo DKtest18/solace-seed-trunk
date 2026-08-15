@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
@@ -62,6 +62,8 @@ export default function CreateProduct() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [draftId, setDraftId] = useState<string | null>(null);
+  const draftIdRef = useRef<string | null>(null);
+  const draftCreationRef = useRef<Promise<string | null> | null>(null);
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [showSubmittedDialog, setShowSubmittedDialog] = useState(false);
   const [showSellerRules, setShowSellerRules] = useState(false);
@@ -186,6 +188,7 @@ export default function CreateProduct() {
         if (error) throw error;
         if (data) {
           setDraftId(data.id);
+          draftIdRef.current = data.id;
           setFormData((prev) => ({
             ...prev,
             title: data.title ?? '',
@@ -358,10 +361,11 @@ export default function CreateProduct() {
     if (!user) return null;
     const payload = buildDraftPayload();
     try {
-      if (draftId) {
-        const { error } = await db.from('dkai_products').update(payload).eq('id', draftId);
+      const existingDraftId = draftIdRef.current;
+      if (existingDraftId) {
+        const { error } = await db.from('dkai_products').update(payload).eq('id', existingDraftId);
         if (error) throw error;
-        return draftId;
+        return existingDraftId;
       } else {
         const { data, error } = await db
           .from('dkai_products')
@@ -369,12 +373,24 @@ export default function CreateProduct() {
           .select('id')
           .single();
         if (error) throw error;
+        draftIdRef.current = data.id;
         setDraftId(data.id);
         return data.id;
       }
     } catch (e: any) {
       console.error('Draft save failed', e);
       throw e;
+    }
+  };
+
+  const ensureDraftForMedia = async (): Promise<string | null> => {
+    if (draftIdRef.current) return draftIdRef.current;
+    if (draftCreationRef.current) return draftCreationRef.current;
+    draftCreationRef.current = persistDraft();
+    try {
+      return await draftCreationRef.current;
+    } finally {
+      draftCreationRef.current = null;
     }
   };
 
@@ -876,7 +892,7 @@ export default function CreateProduct() {
                   media={media}
                   onAddFile={async (file) => {
                     try {
-                      await addMediaFile(file, async () => draftId ?? (await persistDraft()));
+                      await addMediaFile(file, ensureDraftForMedia);
                     } catch (e: any) {
                       toast.error(e?.message || 'Could not upload media');
                     }

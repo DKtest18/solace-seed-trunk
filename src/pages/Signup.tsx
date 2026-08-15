@@ -468,6 +468,15 @@ export default function Signup() {
                 {loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account...</>) : 'Create account'}
               </Button>
 
+              <div className="flex items-center gap-3 my-6">
+                <span className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground">or</span>
+                <span className="h-px flex-1 bg-border" />
+              </div>
+
+              <LinkedInAuthButton label="Continue with LinkedIn" redirectPath="/" />
+
+
               <p className="text-sm text-muted-foreground text-center mt-6">
                 Already have an account?{' '}
                 <Link to="/login" className="text-primary font-medium hover:underline">

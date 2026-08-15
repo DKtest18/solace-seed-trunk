@@ -46,7 +46,7 @@ const PRODUCT_COLUMNS =
   'id, title, price, currency, category, description, seller_id, review_status, admin_review_note, ' +
   'submitted_at, created_at, demo_video_url, demo_video_storage_path, ' +
   'license_commercial_enabled, license_commercial_price, license_agency_enabled, license_agency_price, ' +
-  'license_exclusive_enabled, license_exclusive_price';
+  'license_exclusive_enabled, license_exclusive_price, is_published, is_active';
 
 function licenseTiers(p: any): string {
   const tiers: string[] = ['Standard'];

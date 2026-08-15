@@ -368,9 +368,10 @@ export default function SellerProducts() {
             </div>
 
             <Tabs value={tab} onValueChange={(v) => setTab(v as Bucket)}>
-              <TabsList className="grid grid-cols-2 md:grid-cols-5 mb-4">
+              <TabsList className="grid grid-cols-2 md:grid-cols-6 mb-4">
                 <TabsTrigger value="draft">Drafts ({counts.draft})</TabsTrigger>
                 <TabsTrigger value="in_review">In Review ({counts.in_review})</TabsTrigger>
+                <TabsTrigger value="approved_pending_publish">Approved ({counts.approved_pending_publish})</TabsTrigger>
                 <TabsTrigger value="published">Published ({counts.published})</TabsTrigger>
                 <TabsTrigger value="rejected">Changes Requested ({counts.rejected})</TabsTrigger>
                 <TabsTrigger value="deleted">Deleted ({counts.deleted})</TabsTrigger>
@@ -381,6 +382,9 @@ export default function SellerProducts() {
               </TabsContent>
               <TabsContent value="in_review">
                 {renderBucket('in_review', 'Nothing waiting for staff review right now.')}
+              </TabsContent>
+              <TabsContent value="approved_pending_publish">
+                {renderBucket('approved_pending_publish', 'Nothing approved and waiting for publication.')}
               </TabsContent>
               <TabsContent value="published">
                 {renderBucket('published', 'No live products yet.')}

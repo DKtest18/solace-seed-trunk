@@ -15,6 +15,8 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { Loader2, CheckCircle2, XCircle, Search, ExternalLink } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { DemoVideoReviewPanel, hasDemoVideo } from '@/components/admin/DemoVideoReviewPanel';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -30,6 +32,8 @@ type ProductRow = {
   review_notes: string | null;
   created_at: string;
   is_published: boolean | null;
+  demo_video_url: string | null;
+  demo_video_storage_path: string | null;
 };
 
 type TabKey = 'submitted' | 'approved' | 'rejected';
@@ -62,7 +66,7 @@ function AdminProductQueueContent() {
         : ['rejected', 'changes_requested'];
       const { data, error } = await db
         .from('dkai_products')
-        .select('id, title, price, category, seller_id, review_status, submitted_at, reviewed_at, review_notes, created_at, is_published')
+        .select('id, title, price, category, seller_id, review_status, submitted_at, reviewed_at, review_notes, created_at, is_published, demo_video_url, demo_video_storage_path')
         .in('review_status', statuses)
         .order('submitted_at', { ascending: false, nullsFirst: false })
         .limit(200);
@@ -225,6 +229,7 @@ function AdminProductQueueContent() {
                       <TableRow>
                         <TableHead>Title</TableHead>
                         <TableHead>Category</TableHead>
+                        {status === 'submitted' && <TableHead>Demo</TableHead>}
                         <TableHead>Price</TableHead>
                         <TableHead>{status === 'submitted' ? 'Submitted' : status === 'approved' ? 'Approved' : 'Declined'}</TableHead>
                         {status === 'rejected' && <TableHead>Reason</TableHead>}
@@ -243,6 +248,14 @@ function AdminProductQueueContent() {
                             </div>
                           </TableCell>
                           <TableCell className="text-sm">{row.category || '—'}</TableCell>
+                          {status === 'submitted' && (
+                            <TableCell className="min-w-[220px]">
+                              <DemoVideoReviewPanel
+                                demoVideoUrl={row.demo_video_url}
+                                demoVideoStoragePath={row.demo_video_storage_path}
+                              />
+                            </TableCell>
+                          )}
                           <TableCell className="text-sm">{row.price != null ? `€${row.price}` : '—'}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             {fmtDate(status === 'submitted' ? row.submitted_at : row.reviewed_at)}
@@ -261,13 +274,25 @@ function AdminProductQueueContent() {
                               </Button>
                               {status === 'submitted' && (
                                 <>
-                                  <Button
-                                    size="sm"
-                                    className="bg-green-600 hover:bg-green-700 text-white"
-                                    onClick={() => setApproveTarget(row)}
-                                  >
-                                    <CheckCircle2 className="h-4 w-4 mr-1" /> Accept
-                                  </Button>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span>
+                                          <Button
+                                            size="sm"
+                                            className="bg-green-600 hover:bg-green-700 text-white"
+                                            disabled={!hasDemoVideo(row)}
+                                            onClick={() => setApproveTarget(row)}
+                                          >
+                                            <CheckCircle2 className="h-4 w-4 mr-1" /> Accept
+                                          </Button>
+                                        </span>
+                                      </TooltipTrigger>
+                                      {!hasDemoVideo(row) && (
+                                        <TooltipContent>No demo video submitted</TooltipContent>
+                                      )}
+                                    </Tooltip>
+                                  </TooltipProvider>
                                   <Button
                                     size="sm"
                                     variant="destructive"

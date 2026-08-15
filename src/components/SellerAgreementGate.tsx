@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, FileText } from 'lucide-react';
+import { Loader2, FileText, ArrowDown } from 'lucide-react';
 import {
   SELLER_AGREEMENT_VERSION,
   isSellerAgreementCurrent,

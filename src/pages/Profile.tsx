@@ -23,6 +23,9 @@ import { AvatarCropEditor, getAvatarCropStyle } from '@/components/AvatarCropEdi
 import { ExperienceEditor } from '@/components/profile/ExperienceEditor';
 import { EducationEditor } from '@/components/profile/EducationEditor';
 import { SkillsTagInput } from '@/components/profile/SkillsTagInput';
+import { LinkedInImportCard } from '@/components/profile/LinkedInImportCard';
+import type { LinkedInImportResult } from '@/lib/linkedinImport';
+
 import { EducationItem, ExperienceItem, parseJsonArray } from '@/types/profile';
 
 
@@ -70,6 +73,23 @@ export default function Profile() {
   const emptyStatus = { open_to_work: false, open_to_roles: '', is_hiring: false, hiring_roles: '' };
   const [status, setStatus] = useState(emptyStatus);
   const [originalStatus, setOriginalStatus] = useState(emptyStatus);
+
+  /** Merges a parsed LinkedIn data export into the form (does not save until the user submits). */
+  const applyLinkedInImport = (result: LinkedInImportResult) => {
+    setFormData(prev => ({
+      ...prev,
+      headline: result.headline ? result.headline.slice(0, 160) : prev.headline,
+      expanded_bio: result.about ? result.about.slice(0, 2000) : prev.expanded_bio,
+      website_url: result.website || prev.website_url,
+    }));
+    if (result.experience.length) setExperience(result.experience);
+    if (result.education.length) setEducation(result.education);
+    if (result.skills.length) {
+      setSkills(prev => Array.from(new Set([...prev, ...result.skills])).slice(0, 30));
+    }
+  };
+
+
 
 
   useEffect(() => {
@@ -646,8 +666,14 @@ export default function Profile() {
 
                 <Separator />
 
+                {/* One-click import from a LinkedIn data export */}
+                <LinkedInImportCard onImported={applyLinkedInImport} />
+
+                <Separator />
+
                 {/* Work Experience */}
                 <ExperienceEditor items={experience} onChange={setExperience} />
+
 
                 <Separator />
 

@@ -65,6 +65,11 @@ export default function Profile() {
   const [skills, setSkills] = useState<string[]>([]);
   const [originalRich, setOriginalRich] = useState({ experience: '[]', education: '[]', skills: '[]' });
 
+  const emptyStatus = { open_to_work: false, open_to_roles: '', is_hiring: false, hiring_roles: '' };
+  const [status, setStatus] = useState(emptyStatus);
+  const [originalStatus, setOriginalStatus] = useState(emptyStatus);
+
+
   useEffect(() => {
     if (!user) {
       navigate('/login');

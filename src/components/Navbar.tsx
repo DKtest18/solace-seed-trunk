@@ -178,7 +178,7 @@ export function Navbar() {
                     <>
                       <DropdownMenuItem asChild><Link to="/admin"><Settings className="w-4 h-4 mr-2" />Admin Dashboard</Link></DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link to="/admin/waitlist" className="flex items-center justify-between gap-2">
+                        <Link to="/admin/product-review" className="flex items-center justify-between gap-2">
                           <span className="flex items-center"><User className="w-4 h-4 mr-2" />Product Approvals</span>
                           {pendingProducts > 0 && (
                             <Badge variant="destructive" className="rounded-full h-5 px-2 text-xs">{pendingProducts}</Badge>
@@ -267,7 +267,7 @@ export function Navbar() {
                           <div className="border-t my-2" />
                           <div className="px-2 space-y-1">
                             <Link to="/admin" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors"><Settings className="w-4 h-4 mr-3" />Admin</Link>
-                            <Link to="/admin/waitlist" onClick={() => setMobileOpen(false)} className="flex items-center justify-between px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors">
+                            <Link to="/admin/product-review" onClick={() => setMobileOpen(false)} className="flex items-center justify-between px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors">
                               <span className="flex items-center"><User className="w-4 h-4 mr-3" />Product Approvals</span>
                               {pendingProducts > 0 && <Badge variant="destructive" className="rounded-full h-5 px-2 text-xs">{pendingProducts}</Badge>}
                             </Link>

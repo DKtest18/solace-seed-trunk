@@ -139,6 +139,7 @@ const App = () => (
             <Route path="/seller-guidelines" element={<SellerGuidelines />} />
             <Route path="/admin/delivery-thresholds" element={<AdminRouteGuard><AdminDeliveryThresholds /></AdminRouteGuard>} />
             <Route path="/admin/product-review" element={<AdminRouteGuard><AdminProductReview /></AdminRouteGuard>} />
+            <Route path="/admin/products" element={<Navigate to="/admin/product-review" replace />} />
             <Route path="/admin/users" element={<AdminRouteGuard><AdminUsers /></AdminRouteGuard>} />
             <Route path="/" element={<Index />} />
             <Route path="/waitlist" element={<Waitlist />} />

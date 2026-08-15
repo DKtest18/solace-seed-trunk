@@ -612,7 +612,26 @@ export default function Profile() {
 
                 <Separator />
 
+                {/* Work Experience */}
+                <ExperienceEditor items={experience} onChange={setExperience} />
+
+                <Separator />
+
+                {/* Education */}
+                <EducationEditor items={education} onChange={setEducation} />
+
+                <Separator />
+
+                {/* Skills */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Skills</Label>
+                  <SkillsTagInput skills={skills} onChange={setSkills} />
+                </div>
+
+                <Separator />
+
                 {/* Read-only info */}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Mail className="h-4 w-4" />

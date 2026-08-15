@@ -1,15 +1,13 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { db } from '@/lib/dkaiDb';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Dialog,
@@ -20,108 +18,137 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Eye, ShieldAlert, ExternalLink } from 'lucide-react';
+import { Loader2, Eye } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DemoVideoReviewPanel, hasDemoVideo } from '@/components/admin/DemoVideoReviewPanel';
+import { formatMoney } from '@/lib/money';
+import { format } from 'date-fns';
 
-type ReviewStatus = 'submitted' | 'in_review' | 'approved' | 'rejected' | 'changes_requested';
+type ReviewStatus = 'pending_review' | 'draft' | 'approved' | 'delisted';
 
-const STATUS_LABEL: Record<ReviewStatus, string> = {
-  submitted: 'Submitted',
-  in_review: 'In Review',
+const STATUS_LABEL: Record<string, string> = {
+  pending_review: 'Pending review',
+  draft: 'Draft',
   approved: 'Approved',
-  rejected: 'Rejected',
-  changes_requested: 'Changes Requested',
+  delisted: 'Delisted',
+  locked_exclusive: 'Locked (exclusive)',
 };
-const STATUS_VARIANT: Record<ReviewStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  submitted: 'default',
-  in_review: 'secondary',
+const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+  pending_review: 'default',
+  draft: 'secondary',
   approved: 'outline',
-  rejected: 'destructive',
-  changes_requested: 'secondary',
+  delisted: 'destructive',
+  locked_exclusive: 'outline',
 };
+
+const PRODUCT_COLUMNS =
+  'id, title, price, currency, category, description, seller_id, review_status, admin_review_note, ' +
+  'submitted_at, created_at, demo_video_url, demo_video_storage_path, ' +
+  'license_commercial_enabled, license_commercial_price, license_agency_enabled, license_agency_price, ' +
+  'license_exclusive_enabled, license_exclusive_price';
+
+function licenseTiers(p: any): string {
+  const tiers: string[] = ['Standard'];
+  if (p.license_commercial_enabled) tiers.push('Commercial');
+  if (p.license_agency_enabled) tiers.push('Agency');
+  if (p.license_exclusive_enabled) tiers.push('Exclusive');
+  return tiers.join(' · ');
+}
 
 export default function AdminProductReview() {
-  const [tab, setTab] = useState<ReviewStatus>('submitted');
+  const [tab, setTab] = useState<ReviewStatus>('pending_review');
   const qc = useQueryClient();
 
-  const { data: products, isLoading } = useQuery({
+  const { data: products, isLoading, error } = useQuery({
     queryKey: ['admin-product-review', tab],
     queryFn: async () => {
       const { data, error } = await db
         .from('dkai_products')
-        .select(
-          'id, title, price, delivery_tier, file_size_bytes, category, description, seller_id, ' +
-            'review_status, requires_access_review, submitted_at, review_notes, reviewed_at, ' +
-            'demo_video_url, demo_video_storage_path'
-        )
+        .select(PRODUCT_COLUMNS)
         .eq('review_status', tab)
-        .order('submitted_at', { ascending: false, nullsFirst: false });
+        .order('submitted_at', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: true });
       if (error) throw error;
       return data || [];
     },
     refetchInterval: 30_000,
   });
 
-  const [actionProductId, setActionProductId] = useState<string | null>(null);
-  const [actionType, setActionType] = useState<'start' | 'approve' | 'request_changes' | 'reject' | null>(null);
-  const [notes, setNotes] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const sellerIds = useMemo(
+    () => Array.from(new Set((products ?? []).map((p: any) => p.seller_id).filter(Boolean))),
+    [products]
+  );
 
-  // Access logging dialog
-  const [accessProductId, setAccessProductId] = useState<string | null>(null);
-  const [accessReason, setAccessReason] = useState('');
-  const [accessExpiresMinutes, setAccessExpiresMinutes] = useState(60);
-  const [accessSignedUrl, setAccessSignedUrl] = useState<string | null>(null);
-  const [loggingAccess, setLoggingAccess] = useState(false);
-
-  const runAction = async () => {
-    if (!actionProductId || !actionType) return;
-    if ((actionType === 'request_changes' || actionType === 'reject') && notes.trim().length < 10) {
-      toast.error('Please provide notes (at least 10 characters).');
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('decide-product-review', {
-        body: { product_id: actionProductId, action: actionType, notes: notes.trim() || null },
-      });
+  const { data: sellers } = useQuery({
+    queryKey: ['admin-product-review-sellers', sellerIds],
+    enabled: sellerIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await db
+        .from('dkai_profiles')
+        .select('id, full_name, creator_name, username, email')
+        .in('id', sellerIds);
       if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
-      toast.success(`Product ${actionType.replace('_', ' ')}d.`);
-      setActionProductId(null);
-      setActionType(null);
-      setNotes('');
-      qc.invalidateQueries({ queryKey: ['admin-product-review'] });
-    } catch (e: any) {
-      toast.error(e.message || 'Action failed');
+      const map: Record<string, any> = {};
+      (data || []).forEach((s: any) => (map[s.id] = s));
+      return map;
+    },
+  });
+
+  const [rejectProduct, setRejectProduct] = useState<any>(null);
+  const [note, setNote] = useState('');
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  // Optimistically drop a product from the current list, then refetch to confirm.
+  const dropFromList = (productId: string) => {
+    qc.setQueryData(['admin-product-review', tab], (old: any) =>
+      Array.isArray(old) ? old.filter((p: any) => p.id !== productId) : old
+    );
+  };
+
+  const approve = async (p: any) => {
+    setBusyId(p.id);
+    try {
+      const { error } = await db
+        .from('dkai_products')
+        .update({ review_status: 'approved' })
+        .eq('id', p.id);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      dropFromList(p.id);
+      toast.success(`Approved “${p.title}”.`);
     } finally {
-      setSubmitting(false);
+      setBusyId(null);
+      qc.invalidateQueries({ queryKey: ['admin-product-review'] });
     }
   };
 
-  const logAccess = async () => {
-    if (!accessProductId || accessReason.trim().length < 10) {
-      toast.error('Reason must be at least 10 characters.');
+  const reject = async () => {
+    const p = rejectProduct;
+    if (!p) return;
+    const text = note.trim();
+    if (text.split(/\s+/).filter(Boolean).length < 3 || text.length < 10) {
+      toast.error('Please write at least a few words explaining what needs to change.');
       return;
     }
-    setLoggingAccess(true);
+    setBusyId(p.id);
     try {
-      const { data, error } = await supabase.functions.invoke('log-product-review-access', {
-        body: {
-          product_id: accessProductId,
-          access_reason: accessReason.trim(),
-          expires_in_minutes: accessExpiresMinutes,
-        },
-      });
-      if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
-      setAccessSignedUrl((data as any)?.signed_url ?? null);
-      toast.success('Access logged. Seller has been notified.');
-    } catch (e: any) {
-      toast.error(e.message || 'Failed to log access');
+      const { error } = await db
+        .from('dkai_products')
+        .update({ review_status: 'draft', admin_review_note: text })
+        .eq('id', p.id);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      dropFromList(p.id);
+      toast.success(`Sent back to the seller as a draft with your note.`);
+      setRejectProduct(null);
+      setNote('');
     } finally {
-      setLoggingAccess(false);
+      setBusyId(null);
+      qc.invalidateQueries({ queryKey: ['admin-product-review'] });
     }
   };
 
@@ -130,17 +157,16 @@ export default function AdminProductReview() {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-display font-semibold mb-2">Product Review Queue</h1>
         <p className="text-muted-foreground mb-6">
-          Every product is reviewed before going live. Approve, request changes, or reject submissions.
-          For higher-risk products, log time-limited access before viewing samples.
+          Every product is reviewed before going live. Approve it, or send it back to the seller as a
+          draft with a note describing the changes you need.
         </p>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as ReviewStatus)}>
           <TabsList>
-            <TabsTrigger value="submitted">Submitted</TabsTrigger>
-            <TabsTrigger value="in_review">In Review</TabsTrigger>
-            <TabsTrigger value="changes_requested">Changes Requested</TabsTrigger>
+            <TabsTrigger value="pending_review">Pending review</TabsTrigger>
+            <TabsTrigger value="draft">Drafts</TabsTrigger>
             <TabsTrigger value="approved">Approved</TabsTrigger>
-            <TabsTrigger value="rejected">Rejected</TabsTrigger>
+            <TabsTrigger value="delisted">Delisted</TabsTrigger>
           </TabsList>
 
           <TabsContent value={tab} className="mt-6 space-y-4">
@@ -148,6 +174,10 @@ export default function AdminProductReview() {
               <div className="flex justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
+            ) : error ? (
+              <Alert variant="destructive">
+                <AlertDescription>{(error as any)?.message || 'Failed to load products.'}</AlertDescription>
+              </Alert>
             ) : !products || products.length === 0 ? (
               <Card>
                 <CardContent className="py-10 text-center text-muted-foreground">
@@ -155,79 +185,70 @@ export default function AdminProductReview() {
                 </CardContent>
               </Card>
             ) : (
-              products.map((p: any) => (
-                <Card key={p.id}>
-                  <CardHeader>
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
-                          {p.title}
-                          <Badge variant={STATUS_VARIANT[p.review_status as ReviewStatus]}>
-                            {STATUS_LABEL[p.review_status as ReviewStatus]}
-                          </Badge>
-                          {p.requires_access_review && (
-                            <Badge variant="destructive" className="gap-1">
-                              <ShieldAlert className="w-3 h-3" /> Access review
+              products.map((p: any) => {
+                const seller = sellers?.[p.seller_id];
+                const sellerName =
+                  seller?.full_name || seller?.creator_name || seller?.username || 'Unknown seller';
+                const submitted = p.submitted_at || p.created_at;
+                return (
+                  <Card key={p.id}>
+                    <CardHeader>
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
+                            {p.title || 'Untitled product'}
+                            <Badge variant={STATUS_VARIANT[p.review_status] || 'secondary'}>
+                              {STATUS_LABEL[p.review_status] || p.review_status}
                             </Badge>
-                          )}
-                        </CardTitle>
-                        <CardDescription className="mt-1">
-                          CHF {Number(p.price).toLocaleString('de-CH')} · {p.delivery_tier || 'tier1'} ·{' '}
-                          {p.file_size_bytes ? `${(p.file_size_bytes / 1048576).toFixed(1)} MB` : 'no file'}
-                          {p.category ? ` · ${p.category}` : ''}
-                        </CardDescription>
-                      </div>
-                      <Button asChild variant="outline" size="sm">
-                        <Link to={`/product/${p.id}`} target="_blank">
-                          <Eye className="w-4 h-4 mr-1" /> Preview
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-foreground line-clamp-3 whitespace-pre-wrap">
-                      {p.description}
-                    </p>
-                    <DemoVideoReviewPanel
-                      demoVideoUrl={p.demo_video_url}
-                      demoVideoStoragePath={p.demo_video_storage_path}
-                    />
-                    {p.review_notes && (
-                      <Alert>
-                        <AlertDescription className="text-sm">
-                          <strong>Previous notes:</strong> {p.review_notes}
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                    <div className="flex gap-2 flex-wrap">
-                      {p.review_status === 'submitted' && (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => {
-                            setActionProductId(p.id);
-                            setActionType('start');
-                            setNotes('');
-                          }}
-                        >
-                          Start review
+                          </CardTitle>
+                          <CardDescription className="mt-1">
+                            {sellerName}
+                            {seller?.email ? ` · ${seller.email}` : ''}
+                            {submitted ? ` · submitted ${format(new Date(submitted), 'dd MMM yyyy HH:mm')}` : ''}
+                          </CardDescription>
+                          <CardDescription className="mt-1">
+                            {formatMoney(p.price ?? 0, p.currency)} · Licenses: {licenseTiers(p)}
+                            {p.category ? ` · ${p.category}` : ''}
+                          </CardDescription>
+                        </div>
+                        <Button asChild variant="outline" size="sm">
+                          <Link to={`/product/${p.id}`} target="_blank">
+                            <Eye className="w-4 h-4 mr-1" /> Preview
+                          </Link>
                         </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {p.description && (
+                        <p className="text-sm text-foreground line-clamp-3 whitespace-pre-wrap">
+                          {p.description}
+                        </p>
                       )}
-                      {['submitted', 'in_review', 'changes_requested'].includes(p.review_status) && (
-                        <>
+                      <DemoVideoReviewPanel
+                        demoVideoUrl={p.demo_video_url}
+                        demoVideoStoragePath={p.demo_video_storage_path}
+                      />
+                      {p.admin_review_note && (
+                        <Alert>
+                          <AlertDescription className="text-sm">
+                            <strong>Previous note:</strong> {p.admin_review_note}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                      <div className="flex gap-2 flex-wrap">
+                        {p.review_status !== 'approved' && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span>
                                   <Button
                                     size="sm"
-                                    disabled={!hasDemoVideo(p)}
-                                    onClick={() => {
-                                      setActionProductId(p.id);
-                                      setActionType('approve');
-                                      setNotes('');
-                                    }}
+                                    disabled={!hasDemoVideo(p) || busyId === p.id}
+                                    onClick={() => approve(p)}
                                   >
+                                    {busyId === p.id && (
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    )}
                                     Approve
                                   </Button>
                                 </span>
@@ -237,177 +258,62 @@ export default function AdminProductReview() {
                               )}
                             </Tooltip>
                           </TooltipProvider>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setActionProductId(p.id);
-                              setActionType('request_changes');
-                              setNotes('');
-                            }}
-                          >
-                            Request changes
-                          </Button>
+                        )}
+                        {p.review_status !== 'draft' && (
                           <Button
                             size="sm"
                             variant="destructive"
+                            disabled={busyId === p.id}
                             onClick={() => {
-                              setActionProductId(p.id);
-                              setActionType('reject');
-                              setNotes('');
+                              setRejectProduct(p);
+                              setNote('');
                             }}
                           >
-                            Reject
+                            Reject (send back as draft)
                           </Button>
-                        </>
-                      )}
-                      {p.requires_access_review && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="ml-auto"
-                          onClick={() => {
-                            setAccessProductId(p.id);
-                            setAccessReason('');
-                            setAccessSignedUrl(null);
-                          }}
-                        >
-                          <ShieldAlert className="w-4 h-4 mr-1" />
-                          Log access
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
             )}
           </TabsContent>
         </Tabs>
       </div>
 
-      {/* Action dialog */}
       <Dialog
-        open={!!actionType}
+        open={!!rejectProduct}
         onOpenChange={(o) => {
           if (!o) {
-            setActionType(null);
-            setActionProductId(null);
-            setNotes('');
+            setRejectProduct(null);
+            setNote('');
           }
         }}
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {actionType === 'start' && 'Start review'}
-              {actionType === 'approve' && 'Approve product'}
-              {actionType === 'request_changes' && 'Request changes'}
-              {actionType === 'reject' && 'Reject product'}
-            </DialogTitle>
+            <DialogTitle>Request changes</DialogTitle>
             <DialogDescription>
-              {actionType === 'approve' && 'The product will become visible on the marketplace.'}
-              {(actionType === 'request_changes' || actionType === 'reject') &&
-                'Notes are required and will be emailed to the seller.'}
-              {actionType === 'start' && 'Moves the product into the In Review queue.'}
+              The product goes back to the seller as a draft with your note. Nothing is deleted.
             </DialogDescription>
           </DialogHeader>
-          {(actionType === 'request_changes' || actionType === 'reject' || actionType === 'approve') && (
-            <div>
-              <Label>
-                {actionType === 'approve' ? 'Approval note (optional)' : 'Notes (required)'}
-              </Label>
-              <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={4}
-                placeholder={
-                  actionType === 'approve'
-                    ? 'Optional approval comment for internal log…'
-                    : 'Explain what needs to change or why the product was rejected.'
-                }
-              />
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setActionType(null)} disabled={submitting}>
-              Cancel
-            </Button>
-            <Button onClick={runAction} disabled={submitting}>
-              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Confirm
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Access log dialog */}
-      <Dialog
-        open={!!accessProductId}
-        onOpenChange={(o) => {
-          if (!o) {
-            setAccessProductId(null);
-            setAccessReason('');
-            setAccessSignedUrl(null);
-          }
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Log time-limited access</DialogTitle>
-            <DialogDescription>
-              Required before viewing sample/file for this product. All access is logged, time-limited,
-              and the seller is notified for transparency.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <Label>Reason (min 10 chars)</Label>
-              <Textarea
-                value={accessReason}
-                onChange={(e) => setAccessReason(e.target.value)}
-                rows={3}
-                placeholder="e.g. Verify product matches the listing description and complies with content policy."
-              />
-            </div>
-            <div>
-              <Label>Expires in (minutes)</Label>
-              <Input
-                type="number"
-                min={5}
-                max={1440}
-                value={accessExpiresMinutes}
-                onChange={(e) => setAccessExpiresMinutes(Math.max(5, Number(e.target.value) || 60))}
-              />
-            </div>
-            {accessSignedUrl && (
-              <Alert>
-                <AlertDescription>
-                  <a
-                    href={accessSignedUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline inline-flex items-center gap-1"
-                  >
-                    Open sample <ExternalLink className="w-3 h-3" />
-                  </a>
-                </AlertDescription>
-              </Alert>
-            )}
+          <div>
+            <Label>Note for the seller (required)</Label>
+            <Textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={4}
+              placeholder="Explain what needs to change before this can be approved."
+            />
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setAccessProductId(null);
-                setAccessSignedUrl(null);
-              }}
-              disabled={loggingAccess}
-            >
-              Close
+            <Button variant="outline" onClick={() => setRejectProduct(null)} disabled={!!busyId}>
+              Cancel
             </Button>
-            <Button onClick={logAccess} disabled={loggingAccess}>
-              {loggingAccess && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Log access
+            <Button onClick={reject} disabled={!!busyId}>
+              {!!busyId && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Send back to seller
             </Button>
           </DialogFooter>
         </DialogContent>

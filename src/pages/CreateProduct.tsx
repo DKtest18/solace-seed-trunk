@@ -29,6 +29,7 @@ import { TermsAcceptanceStep } from '@/components/product-creation/TermsAcceptan
 import { RulesAcceptanceStep } from '@/components/RulesAcceptanceStep';
 import { ArrowLeft, ArrowRight, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/stripeConnectStatus';
+import { fetchPayPalConnectStatus, isPayPalConnectedForOnboarding } from '@/lib/paypalConnectStatus';
 
 const STEPS = [
   { id: 1, title: 'Basic Info', description: 'Product details' },

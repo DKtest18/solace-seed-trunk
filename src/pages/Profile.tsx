@@ -662,7 +662,58 @@ export default function Profile() {
 
                 <Separator />
 
+                {/* Profile status frame */}
+                <div className="space-y-4">
+                  <Label className="text-sm font-medium">Profile status frame</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Shows a badge around your profile photo, like LinkedIn's "Open to work" and "Hiring" frames.
+                  </p>
+
+                  <div className="flex items-start justify-between gap-4 rounded-lg border border-border p-4">
+                    <div className="space-y-1">
+                      <Label htmlFor="open_to_work" className="text-sm">Open to work</Label>
+                      <p className="text-xs text-muted-foreground">Let buyers and sellers know you're available.</p>
+                    </div>
+                    <Switch
+                      id="open_to_work"
+                      checked={status.open_to_work}
+                      onCheckedChange={(v) => setStatus(prev => ({ ...prev, open_to_work: v }))}
+                    />
+                  </div>
+                  {status.open_to_work && (
+                    <Input
+                      placeholder="Roles you're open to (e.g. AI Automation Consultant)"
+                      maxLength={160}
+                      value={status.open_to_roles}
+                      onChange={(e) => setStatus(prev => ({ ...prev, open_to_roles: e.target.value }))}
+                    />
+                  )}
+
+                  <div className="flex items-start justify-between gap-4 rounded-lg border border-border p-4">
+                    <div className="space-y-1">
+                      <Label htmlFor="is_hiring" className="text-sm">Hiring</Label>
+                      <p className="text-xs text-muted-foreground">Show that you're recruiting for your team.</p>
+                    </div>
+                    <Switch
+                      id="is_hiring"
+                      checked={status.is_hiring}
+                      onCheckedChange={(v) => setStatus(prev => ({ ...prev, is_hiring: v }))}
+                    />
+                  </div>
+                  {status.is_hiring && (
+                    <Input
+                      placeholder="Roles you're hiring for (e.g. Prompt Engineer)"
+                      maxLength={160}
+                      value={status.hiring_roles}
+                      onChange={(e) => setStatus(prev => ({ ...prev, hiring_roles: e.target.value }))}
+                    />
+                  )}
+                </div>
+
+                <Separator />
+
                 {/* Read-only info */}
+
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">

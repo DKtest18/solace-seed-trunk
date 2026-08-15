@@ -13,6 +13,7 @@ import { RulesAcceptanceStep } from '@/components/RulesAcceptanceStep';
 import { lovable } from '@/integrations/lovable/index';
 import dkLogo from '@/assets/dk-ai-logo.png';
 import { LinkedInAuthButton } from '@/components/auth/LinkedInAuthButton';
+import { contentPolicyText } from '@/data/contentPolicyText';
 
 type SignupStep = 'details' | 'verify-email' | 'accept-rules' | 'offer-2fa' | 'setup-2fa';
 

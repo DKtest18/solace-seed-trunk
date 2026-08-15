@@ -928,6 +928,7 @@ export default function CreateProduct() {
                   data={{
                     demo_video_url: formData.demo_video_url,
                     demo_video_storage_path: formData.demo_video_storage_path,
+                    demo_video_paths: formData.demo_video_paths,
                   }}
                   onChange={handleChange}
                   errors={errors}

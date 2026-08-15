@@ -11,44 +11,67 @@ function youtubeId(url: string): string | null {
   return m ? m[1] : null;
 }
 
-export function hasDemoVideo(p: { demo_video_url?: string | null; demo_video_storage_path?: string | null }) {
-  return !!(p.demo_video_url?.trim() || p.demo_video_storage_path?.trim());
+function toPathList(paths?: string[] | string | null, legacy?: string | null): string[] {
+  const list = Array.isArray(paths)
+    ? paths
+    : typeof paths === 'string' && paths.trim().startsWith('[')
+      ? (() => { try { return JSON.parse(paths) as string[]; } catch { return []; } })()
+      : typeof paths === 'string' && paths.trim()
+        ? [paths.trim()]
+        : [];
+  const all = list.length ? list : legacy?.trim() ? [legacy.trim()] : [];
+  return all.filter((p) => typeof p === 'string' && p.trim());
+}
+
+export function hasDemoVideo(p: {
+  demo_video_url?: string | null;
+  demo_video_storage_path?: string | null;
+  demo_video_paths?: string[] | string | null;
+}) {
+  return !!(p.demo_video_url?.trim() || toPathList(p.demo_video_paths, p.demo_video_storage_path).length);
 }
 
 interface Props {
   demoVideoUrl?: string | null;
   demoVideoStoragePath?: string | null;
+  demoVideoPaths?: string[] | string | null;
 }
 
-export function DemoVideoReviewPanel({ demoVideoUrl, demoVideoStoragePath }: Props) {
-  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+export function DemoVideoReviewPanel({ demoVideoUrl, demoVideoStoragePath, demoVideoPaths }: Props) {
+  const [signedUrls, setSignedUrls] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  const paths = toPathList(demoVideoPaths, demoVideoStoragePath);
+  const pathsKey = paths.join('|');
+
   useEffect(() => {
-    const path = demoVideoStoragePath?.trim();
-    if (!path) {
-      setSignedUrl(null);
+    if (!paths.length) {
+      setSignedUrls([]);
       return;
     }
-    const [bucket, ...rest] = path.split('/');
-    const objectPath = rest.join('/') || bucket;
-    const realBucket = rest.length ? bucket : 'product-media';
     let cancelled = false;
     (async () => {
-      const { data, error } = await supabase.storage
-        .from(realBucket)
-        .createSignedUrl(objectPath, 60 * 60);
-      if (cancelled) return;
-      if (error) setError(error.message);
-      else setSignedUrl(data?.signedUrl ?? null);
+      const urls: string[] = [];
+      for (const path of paths) {
+        const [bucket, ...rest] = path.split('/');
+        const objectPath = rest.join('/') || bucket;
+        const realBucket = rest.length ? bucket : 'product-media';
+        const { data, error } = await supabase.storage
+          .from(realBucket)
+          .createSignedUrl(objectPath, 60 * 60);
+        if (error) { setError(error.message); continue; }
+        if (data?.signedUrl) urls.push(data.signedUrl);
+      }
+      if (!cancelled) setSignedUrls(urls);
     })();
     return () => { cancelled = true; };
-  }, [demoVideoStoragePath]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathsKey]);
 
   const url = demoVideoUrl?.trim() || '';
   const ytId = url ? youtubeId(url) : null;
 
-  if (!url && !demoVideoStoragePath?.trim()) {
+  if (!url && !paths.length) {
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
@@ -84,9 +107,14 @@ export function DemoVideoReviewPanel({ demoVideoUrl, demoVideoStoragePath }: Pro
         </a>
       ) : null}
 
-      {signedUrl && (
-        <video src={signedUrl} controls className="w-full max-w-xl rounded-md" />
-      )}
+      {signedUrls.map((signedUrl, i) => (
+        <div key={signedUrl} className="space-y-1">
+          {signedUrls.length > 1 && (
+            <p className="text-xs text-muted-foreground">Uploaded video {i + 1} of {signedUrls.length}</p>
+          )}
+          <video src={signedUrl} controls preload="metadata" className="w-full max-w-xl rounded-md" />
+        </div>
+      ))}
       {error && (
         <p className="text-sm text-destructive">Could not load uploaded video: {error}</p>
       )}

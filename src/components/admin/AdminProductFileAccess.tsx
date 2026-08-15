@@ -134,7 +134,7 @@ export function AdminProductFileAccess({
             <Textarea
               id="justification"
               rows={5}
-              placeholder="Explain why this access is necessary for dispute resolution (min. 20 characters)…"
+              placeholder={isReview ? "Short reason for downloading this file during product review (min. 20 characters)…" : "Explain why this access is necessary for dispute resolution (min. 20 characters)…"}
               value={justification}
               onChange={(e) => setJustification(e.target.value)}
             />

@@ -9,6 +9,7 @@ import { Star, Loader2, Edit2, Trash2, User } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { HalfStarRating } from "@/components/HalfStarRating";
+import { Link } from "react-router-dom";
 
 interface Review {
   id: string;

@@ -27,7 +27,7 @@ import { LinkedInImportCard } from '@/components/profile/LinkedInImportCard';
 import type { LinkedInImportResult } from '@/lib/linkedinImport';
 
 import { EducationItem, ExperienceItem, parseJsonArray } from '@/types/profile';
-import { normalizeLinkedInUrl } from '@/lib/profileUrls';
+import { normalizeLinkedInUrl, normalizeWebsiteUrl } from '@/lib/profileUrls';
 
 
 
@@ -365,6 +365,16 @@ export default function Profile() {
       }
     }
 
+    const normalizedWebsiteUrl = normalizeWebsiteUrl(formData.website_url);
+    if (normalizedWebsiteUrl === false) {
+      toast({
+        title: 'Invalid website',
+        description: 'Enter a valid web address, for example yourwebsite.com or https://yourwebsite.com',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const { data: updatedData, error } = await db
@@ -374,7 +384,7 @@ export default function Profile() {
           full_name: formData.full_name.trim(),
           headline: formData.headline.trim() || null,
           bio: formData.bio.trim() || null,
-          website_url: formData.website_url.trim() || null,
+          website_url: normalizedWebsiteUrl,
           linkedin_url: normalizedLinkedInUrl,
           country: formData.country || null,
           avatar_url: formData.avatar_url || null,
@@ -684,7 +694,16 @@ export default function Profile() {
                       placeholder="https://yourwebsite.com"
                       value={formData.website_url}
                       onChange={(e) => setFormData(prev => ({ ...prev, website_url: e.target.value }))}
+                      onBlur={(e) => {
+                        const normalized = normalizeWebsiteUrl(e.target.value);
+                        if (typeof normalized === 'string') {
+                          setFormData(prev => ({ ...prev, website_url: normalized }));
+                        }
+                      }}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      No need to type https:// — we add it for you.
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="country" className="text-sm font-medium flex items-center gap-2">

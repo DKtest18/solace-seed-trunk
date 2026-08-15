@@ -646,8 +646,14 @@ export default function Profile() {
 
                 <Separator />
 
+                {/* One-click import from a LinkedIn data export */}
+                <LinkedInImportCard onImported={applyLinkedInImport} />
+
+                <Separator />
+
                 {/* Work Experience */}
                 <ExperienceEditor items={experience} onChange={setExperience} />
+
 
                 <Separator />
 

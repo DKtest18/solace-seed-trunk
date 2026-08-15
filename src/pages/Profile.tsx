@@ -40,35 +40,30 @@ export default function Profile() {
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [showCropEditor, setShowCropEditor] = useState(false);
 
-  const [originalData, setOriginalData] = useState({
+  const emptyProfile = {
     username: '',
     full_name: '',
+    headline: '',
     bio: '',
     website_url: '',
     country: '',
     avatar_url: '',
     expanded_bio: '',
-    banner_url: '',
     avatar_zoom: 1,
     avatar_position_x: 50,
     avatar_position_y: 50,
-  });
+  };
 
-  const [formData, setFormData] = useState({
-    username: '',
-    full_name: '',
-    bio: '',
-    website_url: '',
-    country: '',
-    avatar_url: '',
-    expanded_bio: '',
-    avatar_zoom: 1,
-    avatar_position_x: 50,
-    avatar_position_y: 50,
-  });
+  const [originalData, setOriginalData] = useState({ ...emptyProfile, banner_url: '' });
+  const [formData, setFormData] = useState({ ...emptyProfile });
 
   const [bannerUrl, setBannerUrl] = useState('');
   const [previousBannerUrl, setPreviousBannerUrl] = useState('');
+
+  const [experience, setExperience] = useState<ExperienceItem[]>([]);
+  const [education, setEducation] = useState<EducationItem[]>([]);
+  const [skills, setSkills] = useState<string[]>([]);
+  const [originalRich, setOriginalRich] = useState({ experience: '[]', education: '[]', skills: '[]' });
 
   useEffect(() => {
     if (!user) {
@@ -95,6 +90,7 @@ export default function Profile() {
     const profileData = {
       username: data.username || '',
       full_name: data.full_name || '',
+      headline: data.headline || '',
       bio: data.bio || '',
       website_url: data.website_url || '',
       country: data.country || '',
@@ -106,21 +102,23 @@ export default function Profile() {
       avatar_position_y: data.avatar_position_y ?? 50,
     };
 
-    setFormData({
-      username: profileData.username,
-      full_name: profileData.full_name,
-      bio: profileData.bio,
-      website_url: profileData.website_url,
-      country: profileData.country,
-      avatar_url: profileData.avatar_url,
-      expanded_bio: profileData.expanded_bio,
-      avatar_zoom: profileData.avatar_zoom,
-      avatar_position_x: profileData.avatar_position_x,
-      avatar_position_y: profileData.avatar_position_y,
-    });
+    const { banner_url, ...rest } = profileData;
+    setFormData(rest);
     setOriginalData(profileData);
-    setBannerUrl(data.banner_url || '');
-    setPreviousBannerUrl(data.banner_url || '');
+    setBannerUrl(banner_url);
+    setPreviousBannerUrl(banner_url);
+
+    const exp = parseJsonArray<ExperienceItem>(data.experience);
+    const edu = parseJsonArray<EducationItem>(data.education);
+    const sk = parseJsonArray<string>(data.skills);
+    setExperience(exp);
+    setEducation(edu);
+    setSkills(sk);
+    setOriginalRich({
+      experience: JSON.stringify(exp),
+      education: JSON.stringify(edu),
+      skills: JSON.stringify(sk),
+    });
     setHasUnsavedChanges(false);
   };
 
@@ -128,6 +126,7 @@ export default function Profile() {
     const hasChanges =
       formData.username !== originalData.username ||
       formData.full_name !== originalData.full_name ||
+      formData.headline !== originalData.headline ||
       formData.bio !== originalData.bio ||
       formData.website_url !== originalData.website_url ||
       formData.country !== originalData.country ||
@@ -136,10 +135,14 @@ export default function Profile() {
       formData.avatar_zoom !== originalData.avatar_zoom ||
       formData.avatar_position_x !== originalData.avatar_position_x ||
       formData.avatar_position_y !== originalData.avatar_position_y ||
-      bannerUrl !== originalData.banner_url;
+      bannerUrl !== originalData.banner_url ||
+      JSON.stringify(experience) !== originalRich.experience ||
+      JSON.stringify(education) !== originalRich.education ||
+      JSON.stringify(skills) !== originalRich.skills;
 
     setHasUnsavedChanges(hasChanges);
-  }, [formData, bannerUrl, originalData]);
+  }, [formData, bannerUrl, originalData, experience, education, skills, originalRich]);
+
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

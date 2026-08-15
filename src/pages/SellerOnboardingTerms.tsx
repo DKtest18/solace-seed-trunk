@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, CheckCircle2, FileText, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowDown, CheckCircle2, FileText, Loader2 } from 'lucide-react';
 import {
   SELLER_AGREEMENT_VERSION,
 } from '@/hooks/useSellerRestrictions';
@@ -25,12 +25,20 @@ export default function SellerOnboardingTerms() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { pdfDoc, downloaded, pdfBusy, pdfError, download } = useSellerObligationsPdf();
 
   const [initializing, setInitializing] = useState(true);
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState(false);
   const [alreadyAccepted, setAlreadyAccepted] = useState(false);
+
+  const scrollToPdf = () => {
+    const el = document.getElementById('seller-obligations-pdf-section');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   useEffect(() => {
     if (!user) {
@@ -120,6 +128,10 @@ export default function SellerOnboardingTerms() {
           <p className="text-muted-foreground">
             Review the seller agreement and accept the terms to complete this step.
           </p>
+          <Button type="button" variant="outline" size="sm" onClick={scrollToPdf} className="text-primary">
+            <ArrowDown className="h-4 w-4 mr-2" />
+            Jump to Download PDF
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -146,7 +158,10 @@ export default function SellerOnboardingTerms() {
                   <FileText className="w-4 h-4" />
                   <span className="font-medium text-sm">Seller Agreement</span>
                 </div>
-                <div className="h-[420px] overflow-y-auto overscroll-contain px-4 py-4">
+                <div
+                  ref={scrollContainerRef}
+                  className="h-[420px] overflow-y-auto overscroll-contain scroll-smooth px-4 py-4"
+                >
                   <div className="pr-3">
                     <SellerAgreementBody
                       pdfVersion={pdfDoc?.version}

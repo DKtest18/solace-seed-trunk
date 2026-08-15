@@ -228,6 +228,11 @@ export default function SellerProducts() {
                 In inspection — will be published within 0–24h if approved.
               </p>
             )}
+            {p.admin_review_note && reviewStatusOf(p) === 'draft' && (
+              <p className="mt-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1">
+                <strong>Changes requested:</strong> {p.admin_review_note}
+              </p>
+            )}
             {bucket === 'rejected' && (
               <p className="mt-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1">
                 <strong>Staff note:</strong> {p.admin_rejection_reason || 'No reason provided.'}

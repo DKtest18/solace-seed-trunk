@@ -270,7 +270,7 @@ export default function PublicProfile() {
 
                 <div className="flex flex-wrap gap-2">
                   {isOwnProfile ? (
-                    <Button variant="outline" size="sm" onClick={() => navigate('/profile/edit')}>
+                    <Button variant="outline" size="sm" onClick={() => navigate('/profile')}>
                       <Edit className="h-4 w-4 mr-2" /> Edit profile
                     </Button>
                   ) : userBlockedMe ? (

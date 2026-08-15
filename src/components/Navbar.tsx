@@ -59,6 +59,34 @@ export function Navbar() {
     setUnreadCount(0);
   }, [user]);
 
+  // Keep the header avatar in sync with the saved profile (same source as Edit Profile)
+  const [myProfile, setMyProfile] = useState<{ avatar_url: string | null; full_name: string | null } | null>(null);
+  useEffect(() => {
+    if (!user) {
+      setMyProfile(null);
+      return;
+    }
+    let cancelled = false;
+    const load = async () => {
+      const { data } = await db
+        .from('dkai_profiles')
+        .select('avatar_url, full_name')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (!cancelled && data) setMyProfile(data as any);
+    };
+    load();
+    const onUpdated = () => load();
+    window.addEventListener('dkai:profile-updated', onUpdated);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('dkai:profile-updated', onUpdated);
+    };
+  }, [user]);
+
+  const avatarSrc = myProfile?.avatar_url || user?.user_metadata?.avatar_url || undefined;
+  const displayName = myProfile?.full_name || user?.user_metadata?.full_name || 'User';
+
   return (
     <nav className="bg-white border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -118,9 +146,9 @@ export function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full hidden md:flex">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.user_metadata?.avatar_url} />
+                      <AvatarImage src={avatarSrc} />
                       <AvatarFallback className="text-xs">
-                        {user.user_metadata?.full_name?.[0] || user.email?.[0].toUpperCase()}
+                        {displayName?.[0] || user.email?.[0].toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -128,7 +156,7 @@ export function Navbar() {
                 <DropdownMenuContent align="end" className="w-64">
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-semibold">{user.user_metadata?.full_name || 'User'}</p>
+                      <p className="text-sm font-semibold">{displayName}</p>
                       <p className="text-xs text-muted-foreground">{user.email}</p>
                     </div>
                   </DropdownMenuLabel>
@@ -185,11 +213,11 @@ export function Navbar() {
                     <div className="p-4 border-b bg-muted/30">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">
-                          <AvatarImage src={user.user_metadata?.avatar_url} />
-                          <AvatarFallback>{user.user_metadata?.full_name?.[0] || user.email?.[0].toUpperCase()}</AvatarFallback>
+                          <AvatarImage src={avatarSrc} />
+                          <AvatarFallback>{displayName?.[0] || user.email?.[0].toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold truncate">{user.user_metadata?.full_name || 'User'}</p>
+                          <p className="text-sm font-semibold truncate">{displayName}</p>
                           <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                         </div>
                       </div>

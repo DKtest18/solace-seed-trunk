@@ -38,8 +38,15 @@ export function ProductMediaGallery({ productId, fallbackImageUrl }: Props) {
   });
 
   const [activeIdx, setActiveIdx] = useState(0);
+  // Some rows point at files that were removed from storage — skip those instead
+  // of rendering a broken image/video placeholder.
+  const [brokenIds, setBrokenIds] = useState<string[]>([]);
+  const markBroken = (id: string) =>
+    setBrokenIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
 
-  if (media.length === 0) {
+  const usable = media.filter((m) => !brokenIds.includes(m.id));
+
+  if (usable.length === 0) {
     return fallbackImageUrl ? (
       <div className="aspect-video bg-muted overflow-hidden rounded-lg">
         <img src={fallbackImageUrl} alt="Product" className="w-full h-full object-cover" />
@@ -51,25 +58,41 @@ export function ProductMediaGallery({ productId, fallbackImageUrl }: Props) {
     );
   }
 
-  const active = media[activeIdx] ?? media[0];
+  const active = usable[Math.min(activeIdx, usable.length - 1)];
   const activeUrl = publicUrl(active.storage_path);
 
   return (
     <div className="space-y-3">
       <div className="aspect-video bg-muted overflow-hidden rounded-lg flex items-center justify-center">
         {active.media_type === 'video' ? (
-          <video src={activeUrl} controls className="w-full h-full object-contain bg-black" />
+          <video
+            key={active.id}
+            src={activeUrl}
+            controls
+            playsInline
+            preload="metadata"
+            className="w-full h-full object-contain bg-black"
+            onError={() => markBroken(active.id)}
+          />
         ) : (
-          <img src={activeUrl} alt="Product media" className="w-full h-full object-cover" />
+          <img
+            key={active.id}
+            src={activeUrl}
+            alt="Product media"
+            loading="lazy"
+            className="w-full h-full object-cover"
+            onError={() => markBroken(active.id)}
+          />
         )}
       </div>
-      {media.length > 1 && (
+      {usable.length > 1 && (
         <div className="flex gap-2 overflow-x-auto">
-          {media.map((m, i) => {
+          {usable.map((m, i) => {
             const url = publicUrl(m.storage_path);
             return (
               <button
                 key={m.id}
+                type="button"
                 onClick={() => setActiveIdx(i)}
                 className={`shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 ${
                   i === activeIdx ? 'border-primary' : 'border-transparent'
@@ -77,9 +100,15 @@ export function ProductMediaGallery({ productId, fallbackImageUrl }: Props) {
                 aria-label={`Media ${i + 1}`}
               >
                 {m.media_type === 'video' ? (
-                  <div className="w-full h-full bg-black flex items-center justify-center text-white text-xs">▶ Video</div>
+                  <div className="w-full h-full bg-black flex items-center justify-center text-white text-xs">Video</div>
                 ) : (
-                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <img
+                    src={url}
+                    alt=""
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                    onError={() => markBroken(m.id)}
+                  />
                 )}
               </button>
             );

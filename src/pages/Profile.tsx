@@ -413,7 +413,7 @@ export default function Profile() {
             </Button>
           </div>
         )}
-        {/* Avatar (no banner) */}
+        {/* Banner + overlapping avatar (LinkedIn style) */}
         <div className="max-w-3xl mx-auto px-4 pt-8">
           <Input
             id="banner-upload"
@@ -424,50 +424,77 @@ export default function Profile() {
             disabled={uploadingBanner}
           />
 
-          <div className="flex flex-col items-center">
-            <div className="relative group">
-              <Avatar className="h-40 w-40 border-4 border-background shadow-xl overflow-hidden">
-                <AvatarImage
-                  src={formData.avatar_url}
-                  style={getAvatarCropStyle(formData.avatar_zoom, formData.avatar_position_x, formData.avatar_position_y)}
-                />
-                <AvatarFallback className="text-4xl">
-                  <User className="h-20 w-20" />
-                </AvatarFallback>
-              </Avatar>
-              <Label htmlFor="avatar-upload" className="absolute bottom-2 right-2 cursor-pointer">
-                <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors">
-                  {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
+          <Card className="overflow-hidden">
+            <div className="relative">
+              <div className="relative aspect-[4/1] w-full bg-background-soft">
+                {bannerUrl ? (
+                  <img src={bannerUrl} alt="Profile banner" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="h-full w-full flex flex-col items-center justify-center text-muted-foreground gap-1">
+                    <ImageIcon className="h-6 w-6" />
+                    <span className="text-xs">Add a banner image (4:1 recommended)</span>
+                  </div>
+                )}
+                <div className="absolute top-3 right-3 flex gap-2">
+                  <Label htmlFor="banner-upload" className="cursor-pointer">
+                    <div className="h-9 px-3 rounded-full bg-primary text-primary-foreground text-sm flex items-center gap-2 shadow-md hover:bg-primary/90 transition-colors">
+                      {uploadingBanner ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                      <span className="hidden sm:inline">{bannerUrl ? 'Change banner' : 'Upload banner'}</span>
+                    </div>
+                  </Label>
+                  {bannerUrl && (
+                    <button
+                      type="button"
+                      aria-label="Remove banner"
+                      onClick={() => setBannerUrl('')}
+                      className="h-9 w-9 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md hover:bg-destructive/90 transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
-              </Label>
-              {formData.avatar_url && (
-                <div className="absolute bottom-2 left-2 flex gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setShowCropEditor(true)}
-                    className="h-10 w-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center shadow-lg hover:bg-secondary/90 transition-colors"
-                  >
-                    <Crop className="h-5 w-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleAvatarDelete}
-                    className="h-10 w-10 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg hover:bg-destructive/90 transition-colors"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
+              </div>
+
+              {/* Avatar overlapping bottom-left */}
+              <div className="px-4 sm:px-6 pb-5">
+                <div className="relative -mt-12 sm:-mt-16 w-fit">
+                  <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-background shadow-xl overflow-hidden">
+                    <AvatarImage
+                      src={formData.avatar_url}
+                      style={getAvatarCropStyle(formData.avatar_zoom, formData.avatar_position_x, formData.avatar_position_y)}
+                    />
+                    <AvatarFallback className="text-3xl">
+                      <User className="h-12 w-12" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <Label htmlFor="avatar-upload" className="absolute bottom-0 right-0 cursor-pointer">
+                    <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors">
+                      {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                    </div>
+                  </Label>
+                  <Input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarUpload}
+                    disabled={uploading}
+                  />
                 </div>
-              )}
-              <Input
-                id="avatar-upload"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarUpload}
-                disabled={uploading}
-              />
+                {formData.avatar_url && (
+                  <div className="flex gap-2 mt-3">
+                    <Button type="button" variant="outline" size="sm" onClick={() => setShowCropEditor(true)}>
+                      <Crop className="h-4 w-4 mr-1" /> Adjust photo
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={handleAvatarDelete}>
+                      <Trash2 className="h-4 w-4 mr-1 text-destructive" /> Remove photo
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          </Card>
+
 
           {/* Profile Form - pushed below avatar */}
           <form onSubmit={handleSubmit} className="mt-8 pb-12">

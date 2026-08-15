@@ -25,9 +25,11 @@ function formatSize(b: number) {
 export function AdminProductFileAccess({
   productId,
   disputeId,
+  mode = 'dispute',
 }: {
   productId: string;
   disputeId?: string;
+  mode?: 'dispute' | 'review';
 }) {
   const [files, setFiles] = useState<AdminFile[]>([]);
   const [loading, setLoading] = useState(true);

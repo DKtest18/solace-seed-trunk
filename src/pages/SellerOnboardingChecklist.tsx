@@ -89,7 +89,7 @@ export default function SellerOnboardingChecklist() {
     await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress', user.id] });
 
     toast({ title: 'Success!', description: 'Your seller account is now active.' });
-    navigate('/seller/products/new');
+    navigate('/create-product');
     } finally {
       setActivating(false);
     }
@@ -229,5 +229,6 @@ export default function SellerOnboardingChecklist() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

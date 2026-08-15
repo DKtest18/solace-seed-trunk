@@ -168,6 +168,7 @@ export default function AdminProductReview() {
             <TabsTrigger value="draft">Drafts</TabsTrigger>
             <TabsTrigger value="approved">Approved</TabsTrigger>
             <TabsTrigger value="delisted">Delisted</TabsTrigger>
+            <TabsTrigger value="all">All products</TabsTrigger>
           </TabsList>
 
           <TabsContent value={tab} className="mt-6 space-y-4">

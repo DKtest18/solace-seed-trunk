@@ -25,6 +25,7 @@ interface Profile {
   full_name: string | null;
   creator_name?: string | null;
   bio: string | null;
+  expanded_bio?: string | null;
   avatar_url: string | null;
   banner_url: string | null;
   website_url: string | null;
@@ -32,11 +33,14 @@ interface Profile {
   created_at: string;
   is_verified?: boolean | null;
   is_founding_seller?: boolean | null;
-  skills?: string[] | null;
+  skills?: unknown;
+  experience?: unknown;
+  education?: unknown;
   headline?: string | null;
   is_linkedin_verified?: boolean | null;
   linkedin_url?: string | null;
 }
+
 
 interface Product {
   id: string;

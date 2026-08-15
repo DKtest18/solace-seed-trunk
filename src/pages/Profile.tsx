@@ -23,6 +23,9 @@ import { AvatarCropEditor, getAvatarCropStyle } from '@/components/AvatarCropEdi
 import { ExperienceEditor } from '@/components/profile/ExperienceEditor';
 import { EducationEditor } from '@/components/profile/EducationEditor';
 import { SkillsTagInput } from '@/components/profile/SkillsTagInput';
+import { LinkedInImportCard } from '@/components/profile/LinkedInImportCard';
+import type { LinkedInImportResult } from '@/lib/linkedinImport';
+
 import { EducationItem, ExperienceItem, parseJsonArray } from '@/types/profile';
 
 

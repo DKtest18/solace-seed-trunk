@@ -81,6 +81,7 @@ import SellerAnalytics from "./pages/SellerAnalytics";
 import SellerCoupons from "./pages/SellerCoupons";
 import SellerStorefrontSettings from "./pages/SellerStorefrontSettings";
 import SellerProductQA from "./pages/SellerProductQA";
+import { PayoutRouteGuard } from '@/components/PayoutRouteGuard';
 import { Seller2FAGuard } from "@/components/Seller2FAGuard";
 import { AdminRouteGuard } from "@/components/AdminRouteGuard";
 import { WaitlistGuard } from "@/components/WaitlistGuard";
@@ -176,17 +177,17 @@ const App = () => (
             <Route path="/admin" element={<AdminRouteGuard><AdminDashboard /></AdminRouteGuard>} />
             <Route path="/admin/transactions" element={<AdminRouteGuard><AdminTransactions /></AdminRouteGuard>} />
             <Route path="/purchases" element={<WaitlistGuard><PurchaseHistory /></WaitlistGuard>} />
-            <Route path="/earnings" element={<Seller2FAGuard><SellerLayout title="Earnings"><SellerEarnings /></SellerLayout></Seller2FAGuard>} />
+            <Route path="/earnings" element={<Seller2FAGuard><PayoutRouteGuard><SellerLayout title="Earnings"><SellerEarnings /></SellerLayout></PayoutRouteGuard></Seller2FAGuard>} />
             <Route path="/balances" element={<Seller2FAGuard><SellerLayout title="Balances"><SellerBalances /></SellerLayout></Seller2FAGuard>} />
             <Route path="/seller-onboarding" element={<Seller2FAGuard><SellerLayout title="Seller Onboarding"><SellerOnboardingChecklist /></SellerLayout></Seller2FAGuard>} />
             <Route path="/seller-onboarding/identity" element={<Seller2FAGuard><SellerLayout title="Identity Verification"><SellerOnboardingIdentity /></SellerLayout></Seller2FAGuard>} />
             <Route path="/seller-onboarding/terms" element={<Seller2FAGuard><SellerLayout title="Seller Terms & Conditions"><SellerOnboardingTerms /></SellerLayout></Seller2FAGuard>} />
-            <Route path="/seller-onboarding/payment" element={<Seller2FAGuard><SellerLayout title="Payment Setup"><SellerOnboardingPayment /></SellerLayout></Seller2FAGuard>} />
+            <Route path="/seller-onboarding/payment" element={<Seller2FAGuard><PayoutRouteGuard><SellerLayout title="Payment Setup"><SellerOnboardingPayment /></SellerLayout></PayoutRouteGuard></Seller2FAGuard>} />
 
             <Route path="/wishlist" element={<WaitlistGuard><Wishlist /></WaitlistGuard>} />
             <Route path="/disputes" element={<WaitlistGuard><Disputes /></WaitlistGuard>} />
             {/* Own seller payment settings must stay above /seller/:sellerId so Stripe return URLs never hit the public seller profile lookup. */}
-            <Route path="/seller/payment-settings" element={<Seller2FAGuard><SellerLayout title="Payment Settings"><SellerPaymentSettings /></SellerLayout></Seller2FAGuard>} />
+            <Route path="/seller/payment-settings" element={<Seller2FAGuard><PayoutRouteGuard><SellerLayout title="Payment Settings"><SellerPaymentSettings /></SellerLayout></PayoutRouteGuard></Seller2FAGuard>} />
             <Route path="/seller/:sellerId" element={<SellerProfile />} />
             <Route path="/settings" element={<WaitlistGuard><ProfileSettings /></WaitlistGuard>} />
             <Route path="/profile" element={<WaitlistGuard><Profile /></WaitlistGuard>} />
@@ -198,10 +199,10 @@ const App = () => (
             <Route path="/admin/payment-confirmations" element={<AdminRouteGuard><AdminPaymentConfirmations /></AdminRouteGuard>} />
             <Route path="/admin/refund-disputes" element={<AdminRouteGuard><AdminRefundDisputes /></AdminRouteGuard>} />
             <Route path="/admin/disputes" element={<AdminRouteGuard><AdminDisputes /></AdminRouteGuard>} />
-            <Route path="/payouts" element={<Seller2FAGuard><SellerLayout title="Payouts"><PayoutRequests /></SellerLayout></Seller2FAGuard>} />
+            <Route path="/payouts" element={<Seller2FAGuard><PayoutRouteGuard><SellerLayout title="Payouts"><PayoutRequests /></SellerLayout></PayoutRouteGuard></Seller2FAGuard>} />
             
             
-            <Route path="/seller-dashboard/payment-settings" element={<Seller2FAGuard><SellerLayout title="Payment Settings"><SellerPaymentSettings /></SellerLayout></Seller2FAGuard>} />
+            <Route path="/seller-dashboard/payment-settings" element={<Seller2FAGuard><PayoutRouteGuard><SellerLayout title="Payment Settings"><SellerPaymentSettings /></SellerLayout></PayoutRouteGuard></Seller2FAGuard>} />
             <Route path="/seller-payment-settings" element={<Navigate to="/seller/payment-settings" replace />} />
             <Route path="/seller-dashboard/qa" element={<Seller2FAGuard><SellerLayout title="Product Q&A"><SellerProductQA /></SellerLayout></Seller2FAGuard>} />
 

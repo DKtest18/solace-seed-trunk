@@ -185,7 +185,12 @@ export default function PublicProfile() {
     );
   }
 
-  const skills = profile.skills && profile.skills.length > 0 ? profile.skills : [];
+  const skills = parseJsonArray<string>(profile.skills);
+  const experience = parseJsonArray<ExperienceItem>(profile.experience);
+  const education = parseJsonArray<EducationItem>(profile.education);
+  const currentRole = experience.find((e) => e.is_current_role) || experience[0];
+  const latestSchool = education[0];
+
 
   const tabBtn = (key: TabKey, label: string, count?: number) => {
     const active = activeTab === key;

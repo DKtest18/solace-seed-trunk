@@ -11,6 +11,7 @@ import { ShieldAlert, ShieldCheck, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import QRCode from 'react-qr-code';
 import { generateTOTPSecret, generateOTPAuthURI } from '@/utils/totp';
+import { SellerAgreementGate } from '@/components/SellerAgreementGate';
 
 interface Seller2FAGuardProps {
   children: React.ReactNode;
@@ -217,5 +218,5 @@ export function Seller2FAGuard({ children }: Seller2FAGuardProps) {
     );
   }
 
-  return <>{children}</>;
+  return <SellerAgreementGate>{children}</SellerAgreementGate>;
 }

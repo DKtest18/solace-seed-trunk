@@ -10,6 +10,8 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Chatbot } from "@/components/Chatbot";
 import { CookieBanner } from "@/components/CookieBanner";
+import { RouteSeo } from "@/components/RouteSeo";
+
 import '@/i18n';
 import Index from "./pages/Index";
 import BlogTopAiAgentMarketplaces from "./pages/BlogTopAiAgentMarketplaces";

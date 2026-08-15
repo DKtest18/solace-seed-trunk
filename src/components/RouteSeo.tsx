@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet-async';
+import { useEffect } from 'react';
 import { useLocation, matchPath } from 'react-router-dom';
 
 const SITE_URL = 'https://dkaimarketplace.com';
@@ -12,16 +12,12 @@ const DEFAULT_DESCRIPTION =
 interface RouteMeta {
   title: string;
   description: string;
-  /** Pages that own their <head> imperatively (dynamic product/blog pages). */
-  skipTitle?: boolean;
+  /** Pages that build their own title/description (dynamic product/blog pages). */
+  own?: boolean;
   noindex?: boolean;
 }
 
-/**
- * Per-route titles and descriptions. Keys are React Router path patterns.
- * Routes not listed keep the site default; routes flagged `skipTitle` manage
- * their own title/description in the page component.
- */
+/** Per-route titles and descriptions. Keys are React Router path patterns. */
 const ROUTE_META: Record<string, RouteMeta> = {
   '/': { title: DEFAULT_TITLE, description: DEFAULT_DESCRIPTION },
   '/marketplace': {
@@ -112,15 +108,14 @@ const ROUTE_META: Record<string, RouteMeta> = {
   },
   '/seller-guidelines': {
     title: `Seller Guidelines | ${SITE_NAME}`,
-    description:
-      'Rules and quality standards for selling AI agents, automations, and prompts on DK AI Marketplace.',
+    description: 'Rules and quality standards for selling AI agents, automations, and prompts on DK AI Marketplace.',
   },
-  // Pages that build their own title/description dynamically.
-  '/product/:id': { title: '', description: '', skipTitle: true },
-  '/blog/top-ai-agent-marketplaces': { title: '', description: '', skipTitle: true },
-  '/refund-policy': { title: '', description: '', skipTitle: true },
-  '/legal/refund': { title: '', description: '', skipTitle: true },
-  '/legal/refund-policy': { title: '', description: '', skipTitle: true },
+  // Pages that set their own title/description imperatively.
+  '/product/:id': { title: '', description: '', own: true },
+  '/blog/top-ai-agent-marketplaces': { title: '', description: '', own: true },
+  '/refund-policy': { title: '', description: '', own: true },
+  '/legal/refund': { title: '', description: '', own: true },
+  '/legal/refund-policy': { title: '', description: '', own: true },
 };
 
 function findMeta(pathname: string): RouteMeta | undefined {
@@ -131,29 +126,60 @@ function findMeta(pathname: string): RouteMeta | undefined {
   return undefined;
 }
 
+function upsertMeta(selector: string, attr: 'name' | 'property', key: string, content: string) {
+  let el = document.head.querySelector<HTMLMetaElement>(selector);
+  if (!el) {
+    el = document.createElement('meta');
+    el.setAttribute(attr, key);
+    document.head.appendChild(el);
+  }
+  el.setAttribute('content', content);
+}
+
+function upsertCanonical(href: string) {
+  let el = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (!el) {
+    el = document.createElement('link');
+    el.setAttribute('rel', 'canonical');
+    document.head.appendChild(el);
+  }
+  el.setAttribute('href', href);
+}
+
 /**
- * Emits a self-referencing canonical/og:url for every route, plus a unique
- * title and description for known routes. Rendered once inside the router.
+ * Keeps the document head in sync with the active route: a self-referencing
+ * canonical and og:url for every page, plus a unique title/description and
+ * matching social tags for known routes.
  */
 export function RouteSeo() {
   const { pathname } = useLocation();
-  const url = `${SITE_URL}${pathname}`;
-  const meta = findMeta(pathname);
-  const showTitle = !!meta && !meta.skipTitle;
 
-  return (
-    <Helmet>
-      <link rel="canonical" href={url} />
-      <meta property="og:url" content={url} />
-      {showTitle && <title>{meta!.title}</title>}
-      {showTitle && <meta name="description" content={meta!.description} />}
-      {showTitle && <meta property="og:title" content={meta!.title} />}
-      {showTitle && <meta property="og:description" content={meta!.description} />}
-      {showTitle && <meta name="twitter:title" content={meta!.title} />}
-      {showTitle && <meta name="twitter:description" content={meta!.description} />}
-      {meta?.noindex && <meta name="robots" content="noindex, follow" />}
-    </Helmet>
-  );
+  useEffect(() => {
+    const url = `${SITE_URL}${pathname}`;
+    upsertCanonical(url);
+    upsertMeta('meta[property="og:url"]', 'property', 'og:url', url);
+
+    const meta = findMeta(pathname);
+
+    // Robots: only set noindex where declared, otherwise clear a stale one.
+    const robots = document.head.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    if (meta?.noindex) {
+      upsertMeta('meta[name="robots"]', 'name', 'robots', 'noindex, follow');
+    } else if (robots) {
+      robots.remove();
+    }
+
+    if (!meta || meta.own) return;
+
+    document.title = meta.title;
+    upsertMeta('meta[name="description"]', 'name', 'description', meta.description);
+    upsertMeta('meta[property="og:title"]', 'property', 'og:title', meta.title);
+    upsertMeta('meta[property="og:description"]', 'property', 'og:description', meta.description);
+    upsertMeta('meta[name="twitter:title"]', 'name', 'twitter:title', meta.title);
+    upsertMeta('meta[name="twitter:description"]', 'name', 'twitter:description', meta.description);
+  }, [pathname]);
+
+  return null;
 }
 
 export default RouteSeo;

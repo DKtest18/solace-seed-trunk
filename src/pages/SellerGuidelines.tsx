@@ -180,7 +180,7 @@ export default function SellerGuidelines() {
                 infrastructure with EU data centers, encrypted at rest and in transit.
               </li>
               <li>
-                Payments are processed by Stripe; we never see or store your full bank or
+                Payments are processed by Stripe or PayPal; we never see or store your full bank or
                 card details.
               </li>
               <li>

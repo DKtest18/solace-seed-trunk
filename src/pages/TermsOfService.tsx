@@ -61,7 +61,7 @@ export default function TermsOfService() {
                 <strong>Quick summary:</strong> These are the rules for using DK AI Marketplace.
                 By signing up you agree to them. Launch promo: 0% platform fee for the first 20
                 sales on the platform. After that, a small platform fee (default 5%) applies.
-                Payments are processed by Stripe and go directly to the seller's Stripe account;
+                Payments are processed by Stripe or PayPal and go directly to the seller's connected payment account;
                 Stripe's standard payment processing fees apply and are borne by the seller.
                 Swiss law applies, and we are a marketplace (not a party to your transactions).
                 Full details below.
@@ -178,7 +178,7 @@ export default function TermsOfService() {
                 <li>All payments run through Stripe</li>
                 <li>We do not store card details</li>
                 <li>Payments are captured at checkout (custom orders: upon acceptance)</li>
-                <li>Payments go directly to the seller's Stripe account (direct charges)</li>
+                <li>Payments go directly to the seller's connected payment account — Stripe (direct charges) or PayPal</li>
                 <li>Stripe's standard payment processing fees apply and are borne by the seller</li>
               </ul>
             </section>

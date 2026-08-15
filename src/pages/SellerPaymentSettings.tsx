@@ -265,7 +265,7 @@ export default function SellerPaymentSettings() {
         <Alert className="mb-6">
           <Shield className="h-4 w-4" />
           <AlertDescription>
-            Payments are processed by Stripe and go directly to your Stripe account. Platform fee: 0% during the launch promo (first 20 platform sales), otherwise {feePct}%. Stripe's standard payment processing fees apply and are borne by you as the seller.
+            Payments are processed by Stripe or PayPal and go directly to your connected payment account. Platform fee: 0% during the launch promo (first 20 platform sales), otherwise {feePct}%. The provider's standard payment processing fees apply and are borne by you as the seller.
           </AlertDescription>
         </Alert>
 

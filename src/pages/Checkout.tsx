@@ -319,7 +319,7 @@ export default function Checkout() {
                   <span className="font-medium text-sm">Secure Payment</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Payments are processed by Stripe and go directly to the seller's Stripe account.
+                  Payments are processed by Stripe or PayPal and go directly to the seller's connected payment account.
                   {launchPromoActive
                     ? ` 0% platform fee — launch promo for the first 20 sales on the platform.`
                     : ` Platform fee: ${feePct}%.`}{' '}

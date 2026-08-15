@@ -269,7 +269,7 @@ export default function SellerOnboardingPayment() {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">Stripe Payment Settings</h1>
           <p className="text-muted-foreground">
-            Connect your Stripe account to receive payments. Payments are processed by Stripe and go directly to your Stripe account. Platform fee: 0% during the launch promo (first 20 platform sales), otherwise {feePct}%. Stripe's standard payment processing fees apply and are borne by you.
+            Connect Stripe or PayPal to receive payments. Payments are processed by Stripe or PayPal and go directly to your connected payment account. Platform fee: 0% during the launch promo (first 20 platform sales), otherwise {feePct}%. The provider's standard payment processing fees apply and are borne by you.
           </p>
         </div>
 

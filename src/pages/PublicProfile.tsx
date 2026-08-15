@@ -216,20 +216,27 @@ export default function PublicProfile() {
     <AppLayout>
       <div className="min-h-screen bg-background">
         <div className="max-w-5xl mx-auto px-6 pt-12 pb-16">
-          {/* Hero card */}
-          <Card className="p-8 flex flex-col md:flex-row items-start gap-6 rounded-2xl">
-            <a
-              href={`/profile/${profile.id}`}
-              data-userid={profile.id}
-              className="profile-link cursor-pointer hover:opacity-80 transition-opacity shrink-0 self-center md:self-start"
-            >
-              <Avatar className="w-24 h-24 ring-4 ring-background-soft">
-                <AvatarImage src={profile.avatar_url || undefined} />
-                <AvatarFallback className="bg-background-soft">
-                  <User className="h-10 w-10 text-muted-foreground" />
-                </AvatarFallback>
-              </Avatar>
-            </a>
+          {/* Hero card — LinkedIn style banner + overlapping avatar */}
+          <Card className="rounded-2xl overflow-hidden">
+            <div className="aspect-[4/1] w-full bg-background-soft">
+              {profile.banner_url && (
+                <img src={profile.banner_url} alt={`${profile.full_name || 'User'} banner`} className="h-full w-full object-cover" />
+              )}
+            </div>
+            <div className="px-6 sm:px-8 pb-8">
+              <a
+                href={`/profile/${profile.id}`}
+                data-userid={profile.id}
+                className="profile-link block w-fit -mt-14 sm:-mt-16 mb-4 cursor-pointer hover:opacity-80 transition-opacity"
+              >
+                <Avatar className="w-28 h-28 sm:w-32 sm:h-32 border-4 border-background shadow-lg">
+                  <AvatarImage src={profile.avatar_url || undefined} />
+                  <AvatarFallback className="bg-background-soft">
+                    <User className="h-12 w-12 text-muted-foreground" />
+                  </AvatarFallback>
+                </Avatar>
+              </a>
+
 
             <div className="flex-1 min-w-0 w-full">
               <div className="flex flex-wrap items-start justify-between gap-3">

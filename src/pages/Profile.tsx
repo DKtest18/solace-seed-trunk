@@ -71,6 +71,23 @@ export default function Profile() {
   const [status, setStatus] = useState(emptyStatus);
   const [originalStatus, setOriginalStatus] = useState(emptyStatus);
 
+  /** Merges a parsed LinkedIn data export into the form (does not save until the user submits). */
+  const applyLinkedInImport = (result: LinkedInImportResult) => {
+    setFormData(prev => ({
+      ...prev,
+      headline: result.headline ? result.headline.slice(0, 160) : prev.headline,
+      expanded_bio: result.about ? result.about.slice(0, 2000) : prev.expanded_bio,
+      website_url: result.website || prev.website_url,
+    }));
+    if (result.experience.length) setExperience(result.experience);
+    if (result.education.length) setEducation(result.education);
+    if (result.skills.length) {
+      setSkills(prev => Array.from(new Set([...prev, ...result.skills])).slice(0, 30));
+    }
+  };
+
+
+
 
   useEffect(() => {
     if (!user) {

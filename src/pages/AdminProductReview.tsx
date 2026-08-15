@@ -229,6 +229,7 @@ export default function AdminProductReview() {
                         demoVideoUrl={p.demo_video_url}
                         demoVideoStoragePath={p.demo_video_storage_path}
                       />
+                      <AdminProductFileAccess productId={p.id} mode="review" />
                       {p.admin_review_note && (
                         <Alert>
                           <AlertDescription className="text-sm">

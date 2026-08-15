@@ -13,6 +13,7 @@ import { RulesAcceptanceStep } from '@/components/RulesAcceptanceStep';
 import { lovable } from '@/integrations/lovable/index';
 import dkLogo from '@/assets/dk-ai-logo.png';
 import { LinkedInAuthButton } from '@/components/auth/LinkedInAuthButton';
+import { contentPolicyText } from '@/data/contentPolicyText';
 
 type SignupStep = 'details' | 'verify-email' | 'accept-rules' | 'offer-2fa' | 'setup-2fa';
 
@@ -25,6 +26,7 @@ export default function Signup() {
   const [fullName, setFullName] = useState('');
   const [reasonForJoining, setReasonForJoining] = useState('');
   const [acceptedGuidelines, setAcceptedGuidelines] = useState(false);
+  const [contentPolicyOpen, setContentPolicyOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<SignupStep>('details');
   const [signupUserId, setSignupUserId] = useState<string | null>(null);
@@ -442,9 +444,14 @@ export default function Signup() {
                     Seller Guidelines
                   </Link>
                   ,{' '}
-                  <Link to="/content-policy" target="_blank" className="text-primary hover:underline">
+                  <a
+                    href="/legal/content-policy-v1.pdf"
+                    download="content-policy-v1.pdf"
+                    onClick={() => setContentPolicyOpen(true)}
+                    className="text-primary hover:underline"
+                  >
                     Content Policy
-                  </Link>
+                  </a>
                   , and{' '}
                   <Link to="/terms" target="_blank" className="text-primary hover:underline">
                     Terms of Service
@@ -593,6 +600,32 @@ export default function Signup() {
           )}
         </div>
       </div>
+
+      {contentPolicyOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-xl bg-white shadow-2xl">
+            <div className="border-b px-6 py-4">
+              <h2 className="text-xl font-semibold text-gray-900">Content Policy</h2>
+            </div>
+            <div className="overflow-y-auto px-6 py-5">
+              <div className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
+                {contentPolicyText}
+              </div>
+            </div>
+            <div className="border-t px-6 py-4 flex justify-end">
+              <Button
+                variant="hero"
+                onClick={() => {
+                  setAcceptedGuidelines(true);
+                  setContentPolicyOpen(false);
+                }}
+              >
+                I Accept
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

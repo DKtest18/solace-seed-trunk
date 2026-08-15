@@ -61,11 +61,9 @@ const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | '
   locked_exclusive: 'outline',
 };
 
-const PRODUCT_COLUMNS =
-  'id, title, price, currency, category, description, seller_id, review_status, admin_review_note, ' +
-  'submitted_at, created_at, demo_video_url, demo_video_storage_path, ' +
-  'license_commercial_enabled, license_commercial_price, license_agency_enabled, license_agency_price, ' +
-  'license_exclusive_enabled, license_exclusive_price, is_published, is_active';
+// Select everything so the queue never breaks when a column is missing
+// (legacy schemas may not have is_active / demo_video_* etc.).
+const PRODUCT_COLUMNS = '*';
 
 function licenseTiers(p: any): string {
   const tiers: string[] = ['Standard'];

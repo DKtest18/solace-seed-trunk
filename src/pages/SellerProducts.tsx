@@ -38,26 +38,49 @@ import { db } from '@/lib/dkaiDb';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
 import { toast } from 'sonner';
 
-type Bucket = 'draft' | 'in_review' | 'published' | 'rejected' | 'deleted';
+type Bucket = 'draft' | 'in_review' | 'approved_pending_publish' | 'published' | 'rejected' | 'deleted';
+
+function reviewStatusOf(p: any): string {
+  return String(p.review_status || p.approval_status || p.status || '').toLowerCase();
+}
+
+/**
+ * Same condition the public marketplace query uses:
+ * is_published === true AND review_status === 'approved'.
+ */
+export function isBuyable(p: any): boolean {
+  return p?.is_published === true && reviewStatusOf(p) === 'approved';
+}
 
 function classifyProduct(p: any): Bucket {
   if (p.is_active === false || p.deleted_at) return 'deleted';
   const status = (p.status || '').toLowerCase();
-  const approval = (p.approval_status || '').toLowerCase();
-  if (status === 'draft') return 'draft';
-  if (approval === 'rejected') return 'rejected';
-  if (p.is_published === true || approval === 'approved') return 'published';
+  const review = reviewStatusOf(p);
+  if (review === 'rejected') return 'rejected';
+  if (status === 'draft' || review === 'draft') return 'draft';
+  if (isBuyable(p)) return 'published';
+  if (review === 'approved') return 'approved_pending_publish';
   return 'in_review';
 }
 
 function statusBadge(bucket: Bucket) {
   switch (bucket) {
     case 'draft':
-      return <Badge variant="secondary">Draft</Badge>;
+      return (
+        <Badge variant="secondary">
+          <Clock className="h-3 w-3 mr-1" /> Under review — not yet visible on the marketplace.
+        </Badge>
+      );
     case 'in_review':
       return (
         <Badge variant="outline" className="border-amber-500 text-amber-700 bg-amber-50">
-          <Clock className="h-3 w-3 mr-1" /> In Review
+          <Clock className="h-3 w-3 mr-1" /> Under review — not yet visible on the marketplace.
+        </Badge>
+      );
+    case 'approved_pending_publish':
+      return (
+        <Badge variant="outline" className="border-blue-500 text-blue-700 bg-blue-50">
+          <CheckCircle2 className="h-3 w-3 mr-1" /> Approved — will be published soon.
         </Badge>
       );
     case 'published':
@@ -99,13 +122,13 @@ export default function SellerProducts() {
   const [searchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') as Bucket) || 'draft';
   const [tab, setTab] = useState<Bucket>(
-    (['draft', 'in_review', 'published', 'rejected', 'deleted'] as Bucket[]).includes(initialTab) ? initialTab : 'draft'
+    (['draft', 'in_review', 'approved_pending_publish', 'published', 'rejected', 'deleted'] as Bucket[]).includes(initialTab) ? initialTab : 'draft'
   );
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showDelete, setShowDelete] = useState(false);
 
   const grouped = useMemo(() => {
-    const out: Record<Bucket, any[]> = { draft: [], in_review: [], published: [], rejected: [], deleted: [] };
+    const out: Record<Bucket, any[]> = { draft: [], in_review: [], approved_pending_publish: [], published: [], rejected: [], deleted: [] };
     (products ?? []).forEach((p: any) => out[classifyProduct(p)].push(p));
     return out;
   }, [products]);
@@ -183,10 +206,12 @@ export default function SellerProducts() {
                 <h3 className="font-semibold truncate">{p.title || 'Untitled draft'}</h3>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   {statusBadge(bucket)}
-                  <span className="text-sm text-muted-foreground">
-                    {formatMoney(p.price ?? 0, p.currency)}
-                    {subscriptionLabel(p) ? ` · ${subscriptionLabel(p)}` : ''}
-                  </span>
+                  {bucket !== 'draft' && bucket !== 'in_review' && (
+                    <span className="text-sm text-muted-foreground">
+                      {formatMoney(p.price ?? 0, p.currency)}
+                      {subscriptionLabel(p) ? ` · ${subscriptionLabel(p)}` : ''}
+                    </span>
+                  )}
                   <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
                     <Truck className="h-3 w-3" /> {deliveryLabel(p)}
                   </span>

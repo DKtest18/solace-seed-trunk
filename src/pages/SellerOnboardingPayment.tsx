@@ -213,6 +213,18 @@ export default function SellerOnboardingPayment() {
           Back
         </Button>
 
+        <Alert>
+          <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <span className="text-sm flex-1">
+              Connecting a payout provider is optional. You can create products and submit them for
+              review without it — you only need it to receive money.
+            </span>
+            <Button variant="outline" size="sm" onClick={() => navigate('/seller-dashboard')}>
+              Skip for now
+            </Button>
+          </AlertDescription>
+        </Alert>
+
         {needsReauth && (
           <Alert className="border-destructive/50 bg-destructive/10">
             <Shield className="h-4 w-4 text-destructive" />

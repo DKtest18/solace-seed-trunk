@@ -21,6 +21,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { FAQStep } from '@/components/product-creation/FAQStep';
+import { DemoVideoStep, isValidDemoVideoUrl } from '@/components/product-creation/DemoVideoStep';
 
 import { DeliveryFilesStep } from '@/components/product-creation/DeliveryFilesStep';
 import { ReturnPolicyStep } from '@/components/product-creation/ReturnPolicyStep';
@@ -40,6 +41,7 @@ const STEPS = [
   { id: 8, title: 'Delivery Files', description: 'Workflows, tutorials & files' },
   { id: 9, title: 'Return Policy', description: 'Return rules' },
   { id: 10, title: 'Terms', description: 'Accept seller terms' },
+  { id: 11, title: 'Demo Video', description: 'Required demo' },
 ];
 
 export default function CreateProduct() {
@@ -145,6 +147,9 @@ export default function CreateProduct() {
     seller_ack_setup_credentials: false,
     seller_ack_agency: false,
     seller_ack_exclusive: false,
+    // Demo video (required before review)
+    demo_video_url: '',
+    demo_video_storage_path: '',
   });
 
   const [images, setImages] = useState<File[]>([]);
@@ -234,6 +239,8 @@ export default function CreateProduct() {
             seller_ack_setup_credentials: !!data.seller_ack_setup_credentials,
             seller_ack_agency: !!data.seller_ack_agency,
             seller_ack_exclusive: !!data.seller_ack_exclusive,
+            demo_video_url: data.demo_video_url ?? '',
+            demo_video_storage_path: data.demo_video_storage_path ?? '',
           }));
           if (data.file_storage_key) {
             setUploadedFile({
@@ -329,6 +336,8 @@ export default function CreateProduct() {
     seller_ack_setup_credentials: !!formData.seller_ack_setup_credentials,
     seller_ack_agency: !!formData.seller_ack_agency,
     seller_ack_exclusive: !!formData.seller_ack_exclusive,
+    demo_video_url: formData.demo_video_url?.trim() || null,
+    demo_video_storage_path: formData.demo_video_storage_path?.trim() || null,
     status: 'draft',
     is_published: false,
   });
@@ -457,6 +466,17 @@ export default function CreateProduct() {
       case 7:
         // FAQ validation (optional step)
         break;
+
+      case 11: {
+        const link = (formData.demo_video_url || '').trim();
+        const uploaded = (formData.demo_video_storage_path || '').trim();
+        if (!link && !uploaded) {
+          newErrors.demoVideoUrlError = 'A demo video is required: paste a Loom/YouTube link or upload a file.';
+        } else if (link && !isValidDemoVideoUrl(link)) {
+          newErrors.demoVideoUrlError = 'Enter a valid loom.com/share/..., youtube.com/watch?v=... or youtu.be/... link.';
+        }
+        break;
+      }
 
       case 8:
         if (!['instant', 'manual', 'setup'].includes(formData.delivery_mode)) {
@@ -587,6 +607,9 @@ export default function CreateProduct() {
       setUploadStatus('idle');
     }
   };
+
+  const hasDemoVideo =
+    !!(formData.demo_video_url || '').trim() || !!(formData.demo_video_storage_path || '').trim();
 
   const handleSubmit = async () => {
     // Re-validate every required step before submitting
@@ -906,6 +929,16 @@ export default function CreateProduct() {
               {currentStep === 10 && (
                 <TermsAcceptanceStep data={formData} onChange={handleChange} errors={errors} />
               )}
+              {currentStep === 11 && (
+                <DemoVideoStep
+                  data={{
+                    demo_video_url: formData.demo_video_url,
+                    demo_video_storage_path: formData.demo_video_storage_path,
+                  }}
+                  onChange={handleChange}
+                  errors={errors}
+                />
+              )}
             </div>
 
             <div className="flex justify-between items-center mt-8 gap-2 flex-wrap">
@@ -934,7 +967,7 @@ export default function CreateProduct() {
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 ) : (
-                  <Button onClick={handleSubmit} disabled={isSubmitting || isSavingDraft}>
+                  <Button onClick={handleSubmit} disabled={isSubmitting || isSavingDraft || !hasDemoVideo}>
                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Submit for Approval
                   </Button>

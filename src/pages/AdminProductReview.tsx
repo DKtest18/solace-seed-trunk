@@ -250,7 +250,7 @@ export default function AdminProductReview() {
                       <DemoVideoReviewPanel
                         demoVideoUrl={p.demo_video_url}
                         demoVideoPaths={(p as any).demo_video_paths}
-                          demoVideoStoragePath={p.demo_video_storage_path}
+                        demoVideoStoragePath={p.demo_video_storage_path}
                       />
                       <AdminProductFileAccess productId={p.id} mode="review" />
                       {p.admin_review_note && (

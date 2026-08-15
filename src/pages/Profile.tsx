@@ -375,7 +375,16 @@ export default function Profile() {
         education: JSON.stringify(savedEdu),
         skills: JSON.stringify(savedSkills),
       });
+      const savedStatus = {
+        open_to_work: !!updatedData.open_to_work,
+        open_to_roles: updatedData.open_to_roles || '',
+        is_hiring: !!updatedData.is_hiring,
+        hiring_roles: updatedData.hiring_roles || '',
+      };
+      setStatus(savedStatus);
+      setOriginalStatus(savedStatus);
       setHasUnsavedChanges(false);
+
 
       toast({ title: 'Success', description: 'Profile saved successfully.' });
 

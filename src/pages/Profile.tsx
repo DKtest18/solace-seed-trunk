@@ -201,8 +201,8 @@ export default function Profile() {
       return;
     }
 
-    const maxWidth = isAdmin ? 1536 : 1200;
-    const maxHeight = isAdmin ? 1024 : 400;
+    const maxWidth = isAdmin ? 1920 : 1600;
+    const maxHeight = isAdmin ? 1024 : 600;
 
     setUploadingBanner(true);
     try {

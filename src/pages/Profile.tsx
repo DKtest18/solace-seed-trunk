@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, User, Globe, MapPin, Mail, Calendar, Camera, AlertTriangle, Crop, Trash2, ArrowLeft, ImageIcon, Sparkles } from 'lucide-react';
+import { Loader2, User, Globe, MapPin, Mail, Calendar, Camera, AlertTriangle, Crop, Trash2, ArrowLeft, ImageIcon, Sparkles, Linkedin, ExternalLink } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 
@@ -51,6 +51,7 @@ export default function Profile() {
     headline: '',
     bio: '',
     website_url: '',
+    linkedin_url: '',
     country: '',
     avatar_url: '',
     expanded_bio: '',
@@ -120,6 +121,7 @@ export default function Profile() {
       headline: data.headline || '',
       bio: data.bio || '',
       website_url: data.website_url || '',
+      linkedin_url: data.linkedin_url || '',
       country: data.country || '',
       avatar_url: data.avatar_url || '',
       expanded_bio: data.expanded_bio || '',
@@ -165,6 +167,7 @@ export default function Profile() {
       formData.headline !== originalData.headline ||
       formData.bio !== originalData.bio ||
       formData.website_url !== originalData.website_url ||
+      formData.linkedin_url !== originalData.linkedin_url ||
       formData.country !== originalData.country ||
       formData.avatar_url !== originalData.avatar_url ||
       formData.expanded_bio !== originalData.expanded_bio ||
@@ -355,6 +358,7 @@ export default function Profile() {
           headline: formData.headline || null,
           bio: formData.bio || null,
           website_url: formData.website_url || null,
+          linkedin_url: formData.linkedin_url || null,
           country: formData.country || null,
           avatar_url: formData.avatar_url || null,
           expanded_bio: formData.expanded_bio || null,
@@ -383,6 +387,7 @@ export default function Profile() {
         headline: updatedData.headline || '',
         bio: updatedData.bio || '',
         website_url: updatedData.website_url || '',
+        linkedin_url: updatedData.linkedin_url || '',
         country: updatedData.country || '',
         avatar_url: updatedData.avatar_url || '',
         expanded_bio: updatedData.expanded_bio || '',
@@ -674,6 +679,36 @@ export default function Profile() {
                     />
 
                   </div>
+                </div>
+
+                <Separator />
+
+                {/* LinkedIn profile link */}
+                <div className="space-y-2">
+                  <Label htmlFor="linkedin_url" className="text-sm font-medium flex items-center gap-2">
+                    <Linkedin className="h-4 w-4 text-[#0A66C2]" /> LinkedIn profile
+                  </Label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Input
+                      id="linkedin_url"
+                      type="url"
+                      placeholder="https://www.linkedin.com/in/your-name"
+                      value={formData.linkedin_url}
+                      onChange={(e) => setFormData(prev => ({ ...prev, linkedin_url: e.target.value }))}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={!formData.linkedin_url}
+                      onClick={() => window.open(formData.linkedin_url, '_blank', 'noopener,noreferrer')}
+                      className="shrink-0 text-[#0A66C2] border-[#0A66C2]/30 hover:bg-[#0A66C2]/5"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" /> Open LinkedIn
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Filled in automatically when LinkedIn provides it at sign-in. Shown as a LinkedIn button on your public profile and on your product pages.
+                  </p>
                 </div>
 
                 <Separator />

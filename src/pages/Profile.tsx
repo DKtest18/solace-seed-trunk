@@ -303,12 +303,16 @@ export default function Profile() {
         .update({
           username: formData.username || null,
           full_name: formData.full_name || null,
+          headline: formData.headline || null,
           bio: formData.bio || null,
           website_url: formData.website_url || null,
           country: formData.country || null,
           avatar_url: formData.avatar_url || null,
           expanded_bio: formData.expanded_bio || null,
           banner_url: bannerUrl || null,
+          experience,
+          education,
+          skills,
           avatar_zoom: formData.avatar_zoom,
           avatar_position_x: formData.avatar_position_x,
           avatar_position_y: formData.avatar_position_y,
@@ -322,6 +326,7 @@ export default function Profile() {
       const savedData = {
         username: updatedData.username || '',
         full_name: updatedData.full_name || '',
+        headline: updatedData.headline || '',
         bio: updatedData.bio || '',
         website_url: updatedData.website_url || '',
         country: updatedData.country || '',
@@ -332,21 +337,23 @@ export default function Profile() {
         avatar_position_x: updatedData.avatar_position_x ?? 50,
         avatar_position_y: updatedData.avatar_position_y ?? 50,
       };
-      setFormData({
-        username: savedData.username,
-        full_name: savedData.full_name,
-        bio: savedData.bio,
-        website_url: savedData.website_url,
-        country: savedData.country,
-        avatar_url: savedData.avatar_url,
-        expanded_bio: savedData.expanded_bio,
-        avatar_zoom: savedData.avatar_zoom,
-        avatar_position_x: savedData.avatar_position_x,
-        avatar_position_y: savedData.avatar_position_y,
-      });
+      const { banner_url, ...savedForm } = savedData;
+      setFormData(savedForm);
       setOriginalData(savedData);
-      setBannerUrl(savedData.banner_url);
-      setPreviousBannerUrl(savedData.banner_url);
+      setBannerUrl(banner_url);
+      setPreviousBannerUrl(banner_url);
+
+      const savedExp = parseJsonArray<ExperienceItem>(updatedData.experience);
+      const savedEdu = parseJsonArray<EducationItem>(updatedData.education);
+      const savedSkills = parseJsonArray<string>(updatedData.skills);
+      setExperience(savedExp);
+      setEducation(savedEdu);
+      setSkills(savedSkills);
+      setOriginalRich({
+        experience: JSON.stringify(savedExp),
+        education: JSON.stringify(savedEdu),
+        skills: JSON.stringify(savedSkills),
+      });
       setHasUnsavedChanges(false);
 
       toast({ title: 'Success', description: 'Profile saved successfully.' });
@@ -357,19 +364,6 @@ export default function Profile() {
       }
     } catch (error: any) {
       toast({ title: 'Error', description: error.message || 'Failed to update profile', variant: 'destructive' });
-      setFormData({
-        username: originalData.username,
-        full_name: originalData.full_name,
-        bio: originalData.bio,
-        website_url: originalData.website_url,
-        country: originalData.country,
-        avatar_url: originalData.avatar_url,
-        expanded_bio: originalData.expanded_bio,
-        avatar_zoom: originalData.avatar_zoom,
-        avatar_position_x: originalData.avatar_position_x,
-        avatar_position_y: originalData.avatar_position_y,
-      });
-      setBannerUrl(originalData.banner_url);
     } finally {
       setLoading(false);
     }
@@ -385,19 +379,13 @@ export default function Profile() {
   };
 
   const handleDiscardChanges = () => {
-    setFormData({
-      username: originalData.username,
-      full_name: originalData.full_name,
-      bio: originalData.bio,
-      website_url: originalData.website_url,
-      country: originalData.country,
-      avatar_url: originalData.avatar_url,
-      expanded_bio: originalData.expanded_bio,
-      avatar_zoom: originalData.avatar_zoom,
-      avatar_position_x: originalData.avatar_position_x,
-      avatar_position_y: originalData.avatar_position_y,
-    });
-    setBannerUrl(originalData.banner_url);
+    const { banner_url, ...form } = originalData;
+    setFormData(form);
+    setBannerUrl(banner_url);
+    setExperience(parseJsonArray<ExperienceItem>(JSON.parse(originalRich.experience)));
+    setEducation(parseJsonArray<EducationItem>(JSON.parse(originalRich.education)));
+    setSkills(parseJsonArray<string>(JSON.parse(originalRich.skills)));
+
     setHasUnsavedChanges(false);
     setShowUnsavedDialog(false);
     if (pendingNavigation) {

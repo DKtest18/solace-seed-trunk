@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { BasicInfoStep } from '@/components/product-creation/BasicInfoStep';
+import { useProductMedia } from '@/hooks/useProductMedia';
 import { ImagesStep } from '@/components/product-creation/ImagesStep';
 import { ProductDeliveryFilesManager } from '@/components/ProductDeliveryFilesManager';
 import { DeliveryTierSelector } from '@/components/DeliveryTierSelector';
@@ -115,7 +116,13 @@ export default function EditProduct() {
     seller_ack_exclusive: false,
   });
 
-  const [images, setImages] = useState<File[]>([]);
+  const {
+    media,
+    load: loadMedia,
+    addFile: addMediaFile,
+    remove: removeMediaItem,
+    reorder: reorderMedia,
+  } = useProductMedia(user?.id);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -220,6 +227,8 @@ export default function EditProduct() {
           setExistingImageUrl(product.image_url);
         }
 
+        if (id) await loadMedia(id);
+
         // Delivery tier + related fields
         if (product.delivery_tier) setDeliveryTier(product.delivery_tier as DeliveryTier);
         if (product.delivery_tier_recommended)
@@ -294,11 +303,12 @@ export default function EditProduct() {
         break;
 
       case 3:
-        if (images.length === 0 && !existingImageUrl) {
+        if (media.filter((m) => !m.uploading && !m.error).length === 0 && !existingImageUrl) {
           newErrors.imagesError = 'At least one product image is required';
-        }
-        if (images.length > 10) {
-          newErrors.imagesError = 'Maximum 10 images allowed';
+        } else if (media.some((m) => m.uploading)) {
+          newErrors.imagesError = 'Please wait until all media finished uploading';
+        } else if (media.length > 10) {
+          newErrors.imagesError = 'Maximum 10 media files allowed';
         }
         break;
 
@@ -412,32 +422,10 @@ export default function EditProduct() {
     setIsSubmitting(true);
 
     try {
-      let imageUrl = existingImageUrl;
-
-      // Upload new image if provided
-      if (images.length > 0) {
-        // Delete old image if exists
-        if (existingImageUrl) {
-          const oldPath = existingImageUrl.split('/').slice(-2).join('/');
-          await supabase.storage.from('product-images').remove([oldPath]);
-        }
-
-        const firstImage = images[0];
-        const fileExt = firstImage.name.split('.').pop();
-        const filePath = `${user?.id}/${crypto.randomUUID()}.${fileExt}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('product-images')
-          .upload(filePath, firstImage);
-
-        if (uploadError) throw uploadError;
-
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from('product-images').getPublicUrl(filePath);
-
-        imageUrl = publicUrl;
-      }
+      // Gallery media is uploaded and persisted immediately in dkai_product_media,
+      // so we only refresh the legacy cover column here.
+      const cover = media.find((m) => m.media_type === 'image' && !m.uploading && !m.error);
+      const imageUrl = cover?.url ?? existingImageUrl;
 
       // Update product
       const { error } = await db
@@ -659,7 +647,7 @@ export default function EditProduct() {
               )}
               {currentStep === 3 && (
                 <div>
-                  {existingImageUrl && images.length === 0 && (
+                  {existingImageUrl && media.length === 0 && (
                     <div className="mb-4">
                       <p className="text-sm text-muted-foreground mb-2">Current Image:</p>
                       <img
@@ -670,9 +658,16 @@ export default function EditProduct() {
                     </div>
                   )}
                   <ImagesStep
-                    images={images}
-                    onAddImage={(file) => setImages([...images, file])}
-                    onRemoveImage={(index) => setImages(images.filter((_, i) => i !== index))}
+                    media={media}
+                    onAddFile={async (file) => {
+                      try {
+                        await addMediaFile(file, async () => id ?? null);
+                      } catch (e: any) {
+                        toast.error(e?.message || 'Could not upload media');
+                      }
+                    }}
+                    onRemove={removeMediaItem}
+                    onReorder={reorderMedia}
                     errors={errors}
                   />
                 </div>

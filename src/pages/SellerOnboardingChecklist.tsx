@@ -1,4 +1,6 @@
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { SellerOnboardingCelebration } from '@/components/seller/SellerOnboardingCelebration';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSellerOnboardingProgress } from '@/hooks/useSellerOnboardingProgress';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +19,20 @@ export default function SellerOnboardingChecklist() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: onboarding, isLoading } = useSellerOnboardingProgress();
+  const [searchParams] = useSearchParams();
+  const [celebrating, setCelebrating] = useState(false);
+  const [activating, setActivating] = useState(false);
+
+  const celebrationKey = user ? `dkai_seller_celebrated_${user.id}` : null;
+
+  useEffect(() => {
+    if (!onboarding?.allRequiredComplete || !celebrationKey) return;
+    const alreadyShown = localStorage.getItem(celebrationKey) === '1';
+    if (!alreadyShown || searchParams.get('celebrate') === '1') {
+      setCelebrating(true);
+      localStorage.setItem(celebrationKey, '1');
+    }
+  }, [onboarding?.allRequiredComplete, celebrationKey, searchParams]);
 
   if (!user) {
     navigate('/login');
@@ -24,6 +40,7 @@ export default function SellerOnboardingChecklist() {
   }
 
   const handleFinishSetup = async () => {
+    if (activating) return;
     if (!onboarding?.allRequiredComplete) {
       toast({
         title: 'Complete Required Steps',
@@ -33,6 +50,8 @@ export default function SellerOnboardingChecklist() {
       return;
     }
 
+    setActivating(true);
+    try {
     // Server-side SECURITY DEFINER validates all 5 requirements and grants the seller role.
     const { data, error } = await db.rpc('dkai_activate_seller');
 
@@ -70,7 +89,10 @@ export default function SellerOnboardingChecklist() {
     await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress', user.id] });
 
     toast({ title: 'Success!', description: 'Your seller account is now active.' });
-    navigate('/seller-dashboard');
+    navigate('/create-product');
+    } finally {
+      setActivating(false);
+    }
   };
 
   if (isLoading) {
@@ -84,6 +106,13 @@ export default function SellerOnboardingChecklist() {
   if (!onboarding) return null;
 
   return (
+    <>
+      <SellerOnboardingCelebration
+        open={celebrating}
+        onOpenChange={setCelebrating}
+        onContinue={() => { setCelebrating(false); handleFinishSetup(); }}
+        loading={activating}
+      />
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-12 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center space-y-4">
@@ -200,5 +229,6 @@ export default function SellerOnboardingChecklist() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

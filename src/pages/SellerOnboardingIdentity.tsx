@@ -14,6 +14,7 @@ import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { resolveNextOnboardingRoute } from '@/lib/sellerOnboardingNav';
 
 export default function SellerOnboardingIdentity() {
   const { user } = useAuth();
@@ -156,9 +157,9 @@ export default function SellerOnboardingIdentity() {
     setLoading(true);
     try {
       await persistDraft();
-      await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
-      toast({ title: 'Saved', description: 'Identity and age verification saved. Please review the seller terms next.' });
-      navigate('/seller-onboarding/terms');
+      const nextRoute = await resolveNextOnboardingRoute(queryClient, uid, 'seller-identity-age');
+      toast({ title: 'Saved', description: 'Identity and age verification saved.' });
+      navigate(nextRoute);
     } catch (error: any) {
       console.error('[onboarding/identity] save error:', error);
       toast({

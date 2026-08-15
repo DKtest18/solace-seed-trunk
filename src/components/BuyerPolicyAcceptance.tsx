@@ -17,7 +17,7 @@ const buildPolicies = (feePct: number, launchPromoActive: boolean) => [
   "Refund requests must be filed within 14 days of purchase, with a description and any evidence (screenshots, logs). Approved refunds are for the FULL purchase price and are issued via Stripe to your original payment method, typically within 24–72 hours of approval.",
   "Abuse of the refund system (false claims, chargeback fraud) may result in account suspension.",
   "Upon a refund, your license to use the product ends immediately. Any further use, copying, or distribution of the delivered files is a breach of contract and a copyright infringement.",
-  "Payments are processed by Stripe and go directly to the seller's Stripe account. " +
+  "Payments are processed by Stripe or PayPal and go directly to the seller's connected payment account. " +
     (launchPromoActive
       ? "Platform fee: 0% during the launch promo (first 20 sales on the platform)."
       : `Platform fee: ${feePct}%.`) +
@@ -79,7 +79,7 @@ export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAccept
             <div className="mt-6 pt-4 border-t">
               <h4 className="font-semibold mb-2">Payment</h4>
               <p className="text-sm text-muted-foreground">
-                Payments are processed by Stripe and go directly to the seller's Stripe account.{' '}
+                Payments are processed by Stripe or PayPal and go directly to the seller's connected payment account.{' '}
                 {launchPromoActive
                   ? '0% platform fee during the launch promo (first 20 sales on the platform).'
                   : `Platform fee: ${feePct}%.`}{' '}
@@ -163,7 +163,7 @@ export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAccept
             className={`text-sm cursor-pointer ${!hasScrolledToBottom ? 'text-muted-foreground' : ''}`}
           >
             I have read and agree to all buyer terms and conditions. I understand that payment is
-            processed by Stripe and goes directly to the seller, and that refunds are only
+            processed by Stripe or PayPal and goes directly to the seller, and that refunds are only
             granted through DK AI Marketplace support review for products that were not
             delivered or are materially not as described. I consent to receiving up to 3
             order-related reminder emails from the seller.

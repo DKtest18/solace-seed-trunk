@@ -52,7 +52,7 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
         <div className="space-y-2">
           <h3 className="text-lg font-semibold">Payment Method</h3>
           <p className="text-sm text-muted-foreground">
-            Connect your Stripe account to receive payments.
+            Connect Stripe or PayPal to receive payments.
           </p>
         </div>
 

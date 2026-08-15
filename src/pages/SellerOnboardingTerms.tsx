@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { resolveNextOnboardingRoute } from '@/lib/sellerOnboardingNav';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
@@ -95,7 +96,7 @@ export default function SellerOnboardingTerms() {
       await queryClient.invalidateQueries({ queryKey: ['seller-restrictions', uid] });
       setAlreadyAccepted(true);
       toast({ title: 'Terms accepted', description: 'Seller terms saved.' });
-      navigate('/seller-onboarding');
+      navigate(await resolveNextOnboardingRoute(queryClient, uid, 'seller-terms'));
     } catch (err: any) {
       console.error('[onboarding/terms] save error:', err);
       toast({ title: 'Error', description: err?.message || 'Failed to save terms.', variant: 'destructive' });

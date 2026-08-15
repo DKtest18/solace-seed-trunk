@@ -102,7 +102,6 @@ import About from "./pages/About";
 import AdminDeliveryThresholds from "./pages/AdminDeliveryThresholds";
 import AdminProductReview from "./pages/AdminProductReview";
 import AdminUsers from "./pages/AdminUsers";
-import { SellerGuidelinesModal } from "@/components/SellerGuidelinesModal";
 import { SellerLayout } from "@/components/SellerLayout";
 import SellerSetupRequirements from "./pages/SellerSetupRequirements";
 import BuyerHandoverCredentials from "./pages/BuyerHandoverCredentials";
@@ -134,8 +133,6 @@ const App = () => (
               {/* AI Assistant deaktiviert – zum Aktivieren: <Chatbot /> einkommentieren */}
               {/* <Chatbot /> */}
               <CookieBanner />
-              
-              <SellerGuidelinesModal />
               <Routes>
             <Route path="/seller-guidelines" element={<SellerGuidelines />} />
             <Route path="/admin/delivery-thresholds" element={<AdminRouteGuard><AdminDeliveryThresholds /></AdminRouteGuard>} />

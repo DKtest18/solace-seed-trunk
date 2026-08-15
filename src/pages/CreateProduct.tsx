@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { BasicInfoStep } from '@/components/product-creation/BasicInfoStep';
+import { useProductMedia } from '@/hooks/useProductMedia';
 import { ImagesStep } from '@/components/product-creation/ImagesStep';
 import { PricingStep } from '@/components/product-creation/PricingStep';
 import { FeaturesTagsStep } from '@/components/product-creation/FeaturesTagsStep';
@@ -21,7 +22,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { FAQStep } from '@/components/product-creation/FAQStep';
-import { DemoVideoStep, isValidDemoVideoUrl } from '@/components/product-creation/DemoVideoStep';
+import { DemoVideoStep, isValidDemoVideoUrl, parseDemoVideoPaths } from '@/components/product-creation/DemoVideoStep';
 
 import { DeliveryFilesStep } from '@/components/product-creation/DeliveryFilesStep';
 import { ReturnPolicyStep } from '@/components/product-creation/ReturnPolicyStep';
@@ -29,6 +30,7 @@ import { TermsAcceptanceStep } from '@/components/product-creation/TermsAcceptan
 import { RulesAcceptanceStep } from '@/components/RulesAcceptanceStep';
 import { ArrowLeft, ArrowRight, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/stripeConnectStatus';
+import { fetchPayPalConnectStatus, isPayPalConnectedForOnboarding } from '@/lib/paypalConnectStatus';
 
 const STEPS = [
   { id: 1, title: 'Basic Info', description: 'Product details' },
@@ -150,9 +152,16 @@ export default function CreateProduct() {
     // Demo video (required before review)
     demo_video_url: '',
     demo_video_storage_path: '',
+    demo_video_paths: [] as string[],
   });
 
-  const [images, setImages] = useState<File[]>([]);
+  const {
+    media,
+    load: loadMedia,
+    addFile: addMediaFile,
+    remove: removeMediaItem,
+    reorder: reorderMedia,
+  } = useProductMedia(user?.id);
   const [deliveryFiles, setDeliveryFiles] = useState<Array<{ file: File; label: string }>>([]);
 
   
@@ -241,7 +250,9 @@ export default function CreateProduct() {
             seller_ack_exclusive: !!data.seller_ack_exclusive,
             demo_video_url: data.demo_video_url ?? '',
             demo_video_storage_path: data.demo_video_storage_path ?? '',
+            demo_video_paths: parseDemoVideoPaths(data.demo_video_paths ?? data.demo_video_storage_path),
           }));
+          await loadMedia(data.id);
           if (data.file_storage_key) {
             setUploadedFile({
               path: data.file_storage_key,
@@ -337,7 +348,8 @@ export default function CreateProduct() {
     seller_ack_agency: !!formData.seller_ack_agency,
     seller_ack_exclusive: !!formData.seller_ack_exclusive,
     demo_video_url: formData.demo_video_url?.trim() || null,
-    demo_video_storage_path: formData.demo_video_storage_path?.trim() || null,
+    demo_video_storage_path: (formData.demo_video_paths?.[0] || formData.demo_video_storage_path || '').trim() || null,
+    demo_video_paths: formData.demo_video_paths?.length ? formData.demo_video_paths : null,
     status: 'draft',
     is_published: false,
   });
@@ -424,11 +436,12 @@ export default function CreateProduct() {
         break;
 
       case 3:
-        if (images.length === 0) {
+        if (media.filter((m) => !m.uploading && !m.error).length === 0) {
           newErrors.imagesError = 'At least one product image is required';
-        }
-        if (images.length > 10) {
-          newErrors.imagesError = 'Maximum 10 images allowed';
+        } else if (media.some((m) => m.uploading)) {
+          newErrors.imagesError = 'Please wait until all media finished uploading';
+        } else if (media.length > 10) {
+          newErrors.imagesError = 'Maximum 10 media files allowed';
         }
         break;
 
@@ -469,7 +482,7 @@ export default function CreateProduct() {
 
       case 11: {
         const link = (formData.demo_video_url || '').trim();
-        const uploaded = (formData.demo_video_storage_path || '').trim();
+        const uploaded = (formData.demo_video_paths?.[0] || formData.demo_video_storage_path || '').trim();
         if (!link && !uploaded) {
           newErrors.demoVideoUrlError = 'A demo video is required: paste a Loom/YouTube link or upload a file.';
         } else if (link && !isValidDemoVideoUrl(link)) {
@@ -609,7 +622,9 @@ export default function CreateProduct() {
   };
 
   const hasDemoVideo =
-    !!(formData.demo_video_url || '').trim() || !!(formData.demo_video_storage_path || '').trim();
+    !!(formData.demo_video_url || '').trim() ||
+    !!(formData.demo_video_paths?.length) ||
+    !!(formData.demo_video_storage_path || '').trim();
 
   const handleSubmit = async () => {
     // Re-validate every required step before submitting
@@ -624,43 +639,10 @@ export default function CreateProduct() {
     setIsSubmitting(true);
 
     try {
-      let imageUrl: string | null = null;
-      const mediaRows: Array<{
-        storage_path: string;
-        media_type: 'image' | 'video';
-        mime_type: string;
-        size_bytes: number;
-        sort_order: number;
-        is_cover: boolean;
-      }> = [];
-
-      for (let i = 0; i < images.length; i++) {
-        const file = images[i];
-        const ext = file.name.split('.').pop();
-        const path = `${user!.id}/${crypto.randomUUID()}.${ext}`;
-        const isVideo = file.type.startsWith('video/');
-        const bucket = isVideo ? 'product-media' : 'product-images';
-
-        const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, {
-          contentType: file.type,
-          upsert: false,
-        });
-        if (upErr) throw upErr;
-
-        if (i === 0 && !isVideo) {
-          imageUrl = supabase.storage.from('product-images').getPublicUrl(path).data.publicUrl;
-        }
-
-        mediaRows.push({
-          storage_path: `${bucket}/${path}`,
-          media_type: isVideo ? 'video' : 'image',
-          mime_type: file.type,
-          size_bytes: file.size,
-          sort_order: i,
-          is_cover: i === 0,
-        });
-      }
-
+      // Media is already uploaded and stored in dkai_product_media as the seller
+      // picks files, so nothing to upload here. Just derive the cover image.
+      const cover = media.find((m) => m.media_type === 'image' && !m.uploading && !m.error);
+      const imageUrl: string | null = cover ? cover.url : null;
 
       // Update seller profile with PayPal and IBAN if provided
       if (formData.paypal_email || formData.iban) {
@@ -695,12 +677,6 @@ export default function CreateProduct() {
 
       const { error } = await db.from('dkai_products').update(submitPayload).eq('id', id);
       if (error) throw error;
-
-      if (mediaRows.length > 0) {
-        await db.from('dkai_product_media').insert(
-          mediaRows.map((m) => ({ ...m, product_id: id, seller_id: user!.id })),
-        );
-      }
 
       // Best-effort: create/update Stripe Price on seller's connected account.
       // Non-blocking — review submission must succeed even if Stripe is briefly unavailable.
@@ -795,21 +771,32 @@ export default function CreateProduct() {
 
   // Inline notice only — Stripe connection lives on the account / Payment Settings page,
   // it is NOT a step in product creation anymore.
-  const StripeConnectionNotice = () => {
-    const { data: status } = useQuery({
+  const PayoutConnectionNotice = () => {
+    const { data: stripeStatus } = useQuery({
       queryKey: ['stripe-connect-status', user?.id],
       queryFn: fetchStripeConnectStatus,
       enabled: !!user,
       staleTime: 60_000,
     });
-    const connected = !!status && isStripeConnectedForOnboarding(status);
-    if (connected || !status) return null;
+    const { data: paypalStatus } = useQuery({
+      queryKey: ['paypal-connect-status', user?.id],
+      queryFn: fetchPayPalConnectStatus,
+      enabled: !!user,
+      staleTime: 60_000,
+    });
+
+    const stripeConnected = !!stripeStatus && isStripeConnectedForOnboarding(stripeStatus);
+    const paypalConnected = !!paypalStatus && isPayPalConnectedForOnboarding(paypalStatus);
+    if (stripeConnected || paypalConnected) return null;
+    if (!stripeStatus && !paypalStatus) return null;
+
     return (
-      <Alert variant="destructive" className="mb-4">
+      <Alert className="mb-4">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
-          Your Stripe account isn't connected yet. You can still save a draft, but the product
-          can only go live once Stripe is connected.{' '}
+          No payout account connected yet (Stripe or PayPal). You can still submit this product for
+          review and it will be shown in the marketplace to everyone — including visitors without an
+          account — but it <strong>cannot be bought</strong> until you connect Stripe or PayPal.{' '}
           <Link to="/seller/payment-settings" className="underline font-medium">
             Open Payment Settings
           </Link>
@@ -818,6 +805,7 @@ export default function CreateProduct() {
       </Alert>
     );
   };
+
 
   return (
     <div className="min-h-screen bg-background py-8">
@@ -837,7 +825,7 @@ export default function CreateProduct() {
           )}
         </div>
 
-        <StripeConnectionNotice />
+        <PayoutConnectionNotice />
 
         <Card className="mb-6">
           <CardContent className="pt-6">
@@ -885,10 +873,16 @@ export default function CreateProduct() {
               )}
               {currentStep === 3 && (
                 <ImagesStep
-                  images={images}
-                  onAddImage={(file) => setImages([...images, file])}
-                  onRemoveImage={(index) => setImages(images.filter((_, i) => i !== index))}
-                  onReorderImages={(newImages) => setImages(newImages)}
+                  media={media}
+                  onAddFile={async (file) => {
+                    try {
+                      await addMediaFile(file, async () => draftId ?? (await persistDraft()));
+                    } catch (e: any) {
+                      toast.error(e?.message || 'Could not upload media');
+                    }
+                  }}
+                  onRemove={removeMediaItem}
+                  onReorder={reorderMedia}
                   errors={errors}
                 />
               )}
@@ -934,6 +928,7 @@ export default function CreateProduct() {
                   data={{
                     demo_video_url: formData.demo_video_url,
                     demo_video_storage_path: formData.demo_video_storage_path,
+                    demo_video_paths: formData.demo_video_paths,
                   }}
                   onChange={handleChange}
                   errors={errors}

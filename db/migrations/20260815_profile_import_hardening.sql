@@ -72,7 +72,7 @@ ALTER TABLE public.dkai_profiles ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users update own profile" ON public.dkai_profiles;
 CREATE POLICY "Users update own profile"
   ON public.dkai_profiles FOR UPDATE TO authenticated
-  USING (user_id = auth.uid())
-  WITH CHECK (user_id = auth.uid());
+  USING (id = auth.uid())
+  WITH CHECK (id = auth.uid());
 
 NOTIFY pgrst, 'reload schema';

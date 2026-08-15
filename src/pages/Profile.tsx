@@ -124,6 +124,15 @@ export default function Profile() {
       education: JSON.stringify(edu),
       skills: JSON.stringify(sk),
     });
+
+    const statusData = {
+      open_to_work: !!data.open_to_work,
+      open_to_roles: data.open_to_roles || '',
+      is_hiring: !!data.is_hiring,
+      hiring_roles: data.hiring_roles || '',
+    };
+    setStatus(statusData);
+    setOriginalStatus(statusData);
     setHasUnsavedChanges(false);
   };
 
@@ -143,10 +152,12 @@ export default function Profile() {
       bannerUrl !== originalData.banner_url ||
       JSON.stringify(experience) !== originalRich.experience ||
       JSON.stringify(education) !== originalRich.education ||
-      JSON.stringify(skills) !== originalRich.skills;
+      JSON.stringify(skills) !== originalRich.skills ||
+      JSON.stringify(status) !== JSON.stringify(originalStatus);
 
     setHasUnsavedChanges(hasChanges);
-  }, [formData, bannerUrl, originalData, experience, education, skills, originalRich]);
+  }, [formData, bannerUrl, originalData, experience, education, skills, originalRich, status, originalStatus]);
+
 
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

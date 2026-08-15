@@ -252,7 +252,7 @@ export default function CreateProduct() {
             demo_video_storage_path: data.demo_video_storage_path ?? '',
             demo_video_paths: parseDemoVideoPaths(data.demo_video_paths ?? data.demo_video_storage_path),
           }));
-          await loadMedia(existingDraftId ?? data.id);
+          await loadMedia(data.id);
           if (data.file_storage_key) {
             setUploadedFile({
               path: data.file_storage_key,

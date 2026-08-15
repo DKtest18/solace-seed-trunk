@@ -239,49 +239,60 @@ export default function Profile() {
       return;
     }
 
+    // Oversized banners are downscaled automatically instead of being rejected.
     const maxWidth = isAdmin ? 1920 : 1600;
-    const maxHeight = isAdmin ? 1024 : 600;
 
     setUploadingBanner(true);
     try {
+      const objectUrl = URL.createObjectURL(file);
       const img = new Image();
-      const reader = new FileReader();
+      const loaded = await new Promise<boolean>((resolve) => {
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = objectUrl;
+      });
+      if (!loaded) throw new Error('Could not read this image file.');
 
-      reader.onload = async (event) => {
-        img.src = event.target?.result as string;
-        img.onload = async () => {
-          if (isAdmin && (img.width < maxWidth || img.height < maxHeight)) {
-            toast({ title: 'Image too small', description: `Admin banner must be at least ${maxWidth}×${maxHeight}px.`, variant: 'destructive' });
-            setUploadingBanner(false);
-            return;
+      let uploadBody: Blob = file;
+      let uploadExt = (file.name.split('.').pop() || 'jpg').toLowerCase();
+
+      if (img.width > maxWidth) {
+        const scale = maxWidth / img.width;
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const blob = await new Promise<Blob | null>((resolve) =>
+            canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.9),
+          );
+          if (blob) {
+            uploadBody = blob;
+            uploadExt = 'jpg';
           }
-          if (img.width > maxWidth || img.height > maxHeight) {
-            toast({ title: 'Image too large', description: `Banner max ${maxWidth}×${maxHeight}px. Current: ${img.width}×${img.height}px`, variant: 'destructive' });
-            setUploadingBanner(false);
-            return;
-          }
+        }
+      }
+      URL.revokeObjectURL(objectUrl);
 
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${user.id}-banner-${Date.now()}.${fileExt}`;
-          const filePath = `${user.id}/${fileName}`;
+      const fileName = `${user.id}-banner-${Date.now()}.${uploadExt}`;
+      const filePath = `${user.id}/${fileName}`;
 
-          const { error: uploadError } = await supabase.storage
-            .from('avatars')
-            .upload(filePath, file, { cacheControl: '3600', upsert: true });
-          if (uploadError) throw uploadError;
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, uploadBody, {
+          cacheControl: '3600',
+          upsert: true,
+          contentType: uploadBody instanceof File ? file.type : 'image/jpeg',
+        });
+      if (uploadError) throw uploadError;
 
-          const { data: urlData } = supabase.storage
-            .from('avatars')
-            .getPublicUrl(filePath);
-
-          setBannerUrl(urlData.publicUrl);
-          toast({ title: 'Banner uploaded', description: 'Click "Save Changes" to persist your new banner.' });
-          setUploadingBanner(false);
-        };
-      };
-      reader.readAsDataURL(file);
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      setBannerUrl(urlData.publicUrl);
+      toast({ title: 'Banner uploaded', description: 'Click "Save Changes" to persist your new banner.' });
     } catch (error: any) {
       toast({ title: 'Error', description: error.message || 'Failed to upload banner', variant: 'destructive' });
+    } finally {
       setUploadingBanner(false);
     }
   };

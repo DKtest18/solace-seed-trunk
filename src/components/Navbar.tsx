@@ -59,6 +59,34 @@ export function Navbar() {
     setUnreadCount(0);
   }, [user]);
 
+  // Keep the header avatar in sync with the saved profile (same source as Edit Profile)
+  const [myProfile, setMyProfile] = useState<{ avatar_url: string | null; full_name: string | null } | null>(null);
+  useEffect(() => {
+    if (!user) {
+      setMyProfile(null);
+      return;
+    }
+    let cancelled = false;
+    const load = async () => {
+      const { data } = await db
+        .from('dkai_profiles')
+        .select('avatar_url, full_name')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (!cancelled && data) setMyProfile(data as any);
+    };
+    load();
+    const onUpdated = () => load();
+    window.addEventListener('dkai:profile-updated', onUpdated);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('dkai:profile-updated', onUpdated);
+    };
+  }, [user]);
+
+  const avatarSrc = myProfile?.avatar_url || user?.user_metadata?.avatar_url || undefined;
+  const displayName = myProfile?.full_name || user?.user_metadata?.full_name || 'User';
+
   return (
     <nav className="bg-white border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">

@@ -125,9 +125,10 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <RouteSeo />
-
+          <>
+            <RouteSeo />
             <>
+
               <Navbar />
               {/* AI Assistant deaktiviert – zum Aktivieren: <Chatbot /> einkommentieren */}
               {/* <Chatbot /> */}

@@ -444,9 +444,14 @@ export default function Signup() {
                     Seller Guidelines
                   </Link>
                   ,{' '}
-                  <Link to="/content-policy" target="_blank" className="text-primary hover:underline">
+                  <a
+                    href="/legal/content-policy-v1.pdf"
+                    download="content-policy-v1.pdf"
+                    onClick={() => setContentPolicyOpen(true)}
+                    className="text-primary hover:underline"
+                  >
                     Content Policy
-                  </Link>
+                  </a>
                   , and{' '}
                   <Link to="/terms" target="_blank" className="text-primary hover:underline">
                     Terms of Service

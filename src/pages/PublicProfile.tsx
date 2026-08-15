@@ -17,7 +17,10 @@ import { BlockUserButton } from '@/components/BlockUserButton';
 import { useUserBlocks } from '@/hooks/useUserBlocks';
 import { format } from 'date-fns';
 import { LinkedInVerifiedBadge } from '@/components/LinkedInVerifiedBadge';
-import { Linkedin } from 'lucide-react';
+import { Linkedin, Briefcase, GraduationCap } from 'lucide-react';
+import { ProfileDetailSections } from '@/components/profile/ProfileDetailSections';
+import { EducationItem, ExperienceItem, parseJsonArray } from '@/types/profile';
+
 
 interface Profile {
   id: string;

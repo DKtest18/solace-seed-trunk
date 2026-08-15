@@ -101,22 +101,38 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
 
   const handleDownload = async () => {
     setErrorMessage(null);
-    if (!pdfDoc?.storage_path) {
-      setErrorMessage('Seller Obligations PDF is not configured yet. Please contact support.');
-      return;
-    }
     setPdfBusy(true);
-    const { data, error } = await db.storage
-      .from('legal-documents')
-      .createSignedUrl(pdfDoc.storage_path, 300, { download: 'Seller_Obligations.pdf' });
-    setPdfBusy(false);
-    if (error || !data?.signedUrl) {
-      setErrorMessage(error?.message ?? 'Could not create download link.');
-      return;
+
+    const candidates: string[] = [];
+    if (pdfDoc?.storage_path) candidates.push(pdfDoc.storage_path);
+    candidates.push('Seller_Obligations.pdf', 'seller-obligations/Seller_Obligations.pdf');
+
+    // Last resort: find any PDF at the bucket root (covers a differently named upload).
+    const { data: rootFiles } = await db.storage.from('legal-documents').list('', { limit: 100 });
+    for (const f of (rootFiles as any[]) ?? []) {
+      if (typeof f?.name === 'string' && f.name.toLowerCase().endsWith('.pdf')) candidates.push(f.name);
     }
-    window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
-    setDownloaded(true);
+
+    let lastError: string | null = null;
+    for (const path of Array.from(new Set(candidates))) {
+      const { data, error } = await db.storage
+        .from('legal-documents')
+        .createSignedUrl(path, 300, { download: 'Seller_Obligations.pdf' });
+      if (!error && data?.signedUrl) {
+        setPdfBusy(false);
+        window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+        setDownloaded(true);
+        return;
+      }
+      lastError = error?.message ?? 'Could not create download link.';
+    }
+
+    setPdfBusy(false);
+    setErrorMessage(
+      `${lastError ?? 'Seller Obligations PDF not found.'} — check the file exists in the "legal-documents" bucket.`,
+    );
   };
+
 
   const handleConfirm = async () => {
     setSaving(true);

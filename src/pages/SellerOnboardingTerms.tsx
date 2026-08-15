@@ -128,6 +128,10 @@ export default function SellerOnboardingTerms() {
           <p className="text-muted-foreground">
             Review the seller agreement and accept the terms to complete this step.
           </p>
+          <Button type="button" variant="outline" size="sm" onClick={scrollToPdf} className="text-primary">
+            <ArrowDown className="h-4 w-4 mr-2" />
+            Jump to Download PDF
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -154,7 +158,10 @@ export default function SellerOnboardingTerms() {
                   <FileText className="w-4 h-4" />
                   <span className="font-medium text-sm">Seller Agreement</span>
                 </div>
-                <div className="h-[420px] overflow-y-auto overscroll-contain px-4 py-4">
+                <div
+                  ref={scrollContainerRef}
+                  className="h-[420px] overflow-y-auto overscroll-contain scroll-smooth px-4 py-4"
+                >
                   <div className="pr-3">
                     <SellerAgreementBody
                       pdfVersion={pdfDoc?.version}

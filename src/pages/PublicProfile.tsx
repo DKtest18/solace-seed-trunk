@@ -44,6 +44,11 @@ interface Profile {
   headline?: string | null;
   is_linkedin_verified?: boolean | null;
   linkedin_url?: string | null;
+  open_to_work?: boolean | null;
+  open_to_roles?: string | null;
+  is_hiring?: boolean | null;
+  hiring_roles?: string | null;
+
 }
 
 

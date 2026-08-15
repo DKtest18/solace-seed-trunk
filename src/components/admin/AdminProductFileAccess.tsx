@@ -111,7 +111,7 @@ export function AdminProductFileAccess({
               <p className="text-xs text-muted-foreground">{formatSize(f.file_size)} · scan: {f.scan_status}</p>
             </div>
             <Button size="sm" variant="outline" onClick={() => setSelected(f)}>
-              <ExternalLink className="w-4 h-4 mr-2" /> Request access
+              <ExternalLink className="w-4 h-4 mr-2" /> {isReview ? 'Download file' : 'Request access'}
             </Button>
           </div>
         ))}
@@ -120,9 +120,11 @@ export function AdminProductFileAccess({
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Justify file access</DialogTitle>
+            <DialogTitle>{isReview ? 'Confirm file download' : 'Justify file access'}</DialogTitle>
             <DialogDescription>
-              Accessing <strong>{selected?.file_name}</strong>. The seller will be notified by email and this action will be logged with your account.
+              {isReview
+                ? <>You are about to download <strong>{selected?.file_name}</strong>. This action will be logged with your admin account.</>
+                : <>Accessing <strong>{selected?.file_name}</strong>. The seller will be notified by email and this action will be logged with your account.</>}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">

@@ -338,8 +338,27 @@ export default function PublicProfile() {
                   </a>
                 )}
               </div>
+
+                {(currentRole || latestSchool) && (
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mt-5 pt-5 border-t border-border">
+                    {currentRole && (
+                      <span className="inline-flex items-center gap-2 text-sm text-gray-700">
+                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+                        {currentRole.company || currentRole.title}
+                      </span>
+                    )}
+                    {latestSchool && (
+                      <span className="inline-flex items-center gap-2 text-sm text-gray-700">
+                        <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                        {latestSchool.school}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </Card>
+
 
           {/* Tabs */}
           <div className="flex gap-6 border-b border-border mt-8">

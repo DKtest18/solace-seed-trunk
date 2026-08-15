@@ -227,6 +227,8 @@ export default function EditProduct() {
           setExistingImageUrl(product.image_url);
         }
 
+        if (id) await loadMedia(id);
+
         // Delivery tier + related fields
         if (product.delivery_tier) setDeliveryTier(product.delivery_tier as DeliveryTier);
         if (product.delivery_tier_recommended)

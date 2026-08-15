@@ -229,13 +229,21 @@ export default function PublicProfile() {
                 data-userid={profile.id}
                 className="profile-link block w-fit -mt-14 sm:-mt-16 mb-4 cursor-pointer hover:opacity-80 transition-opacity"
               >
-                <Avatar className="w-28 h-28 sm:w-32 sm:h-32 border-4 border-background shadow-lg">
-                  <AvatarImage src={profile.avatar_url || undefined} />
-                  <AvatarFallback className="bg-background-soft">
-                    <User className="h-12 w-12 text-muted-foreground" />
-                  </AvatarFallback>
-                </Avatar>
+                <ProfileStatusFrame
+                  openToWork={profile.open_to_work}
+                  openToRoles={profile.open_to_roles}
+                  isHiring={profile.is_hiring}
+                  hiringRoles={profile.hiring_roles}
+                >
+                  <Avatar className="w-28 h-28 sm:w-32 sm:h-32 border-4 border-background shadow-lg">
+                    <AvatarImage src={profile.avatar_url || undefined} />
+                    <AvatarFallback className="bg-background-soft">
+                      <User className="h-12 w-12 text-muted-foreground" />
+                    </AvatarFallback>
+                  </Avatar>
+                </ProfileStatusFrame>
               </a>
+
 
 
             <div className="flex-1 min-w-0 w-full">

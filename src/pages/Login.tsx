@@ -8,6 +8,7 @@ import { db } from '@/lib/dkaiDb';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { lovable } from '@/integrations/lovable/index';
 import dkLogo from '@/assets/dk-ai-logo.png';
+import { LinkedInAuthButton } from '@/components/auth/LinkedInAuthButton';
 
 export default function Login() {
   const [email, setEmail] = useState('');

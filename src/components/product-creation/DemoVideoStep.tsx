@@ -6,11 +6,16 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Upload, X, Video, AlertCircle, CheckCircle2 } from 'lucide-react';
+import * as tus from 'tus-js-client';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const DEMO_VIDEO_BUCKET = 'product-media';
-export const MAX_DEMO_VIDEO_BYTES = 500 * 1024 * 1024;
+/** 2.5 GB per demo video file (resumable TUS upload). */
+export const MAX_DEMO_VIDEO_BYTES = 2.5 * 1024 * 1024 * 1024;
+export const MAX_DEMO_VIDEOS = 5;
+
+const SUPABASE_URL = 'https://dwqpkdatzdqhplgyhigg.supabase.co';
 
 export const DEMO_VIDEO_URL_REGEX =
   /^https?:\/\/(www\.)?(loom\.com\/share\/[\w-]+|youtube\.com\/watch\?[\w=&%-]*v=[\w-]+[\w=&%-]*|youtu\.be\/[\w-]+)/i;
@@ -19,8 +24,24 @@ export function isValidDemoVideoUrl(url: string) {
   return DEMO_VIDEO_URL_REGEX.test((url || '').trim());
 }
 
+/** Parses the stored value (JSON array or single legacy path) into a list. */
+export function parseDemoVideoPaths(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === 'string' && !!v.trim());
+  if (typeof value === 'string' && value.trim()) {
+    const t = value.trim();
+    if (t.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(t);
+        if (Array.isArray(parsed)) return parsed.filter((v) => typeof v === 'string' && v.trim());
+      } catch { /* fall through to single path */ }
+    }
+    return [t];
+  }
+  return [];
+}
+
 interface DemoVideoStepProps {
-  data: { demo_video_url: string; demo_video_storage_path: string };
+  data: { demo_video_url: string; demo_video_storage_path: string; demo_video_paths?: string[] };
   onChange: (field: string, value: any) => void;
   errors: Record<string, string>;
 }
@@ -28,38 +49,51 @@ interface DemoVideoStepProps {
 export function DemoVideoStep({ data, onChange, errors }: DemoVideoStepProps) {
   const { user } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [open, setOpen] = useState(!!data.demo_video_storage_path);
+  const paths = data.demo_video_paths?.length
+    ? data.demo_video_paths
+    : parseDemoVideoPaths(data.demo_video_storage_path);
+  const [open, setOpen] = useState(paths.length > 0);
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [uploadingName, setUploadingName] = useState('');
   const [fileError, setFileError] = useState<string | null>(null);
 
   const url = data.demo_video_url || '';
   const urlInvalid = url.trim().length > 0 && !isValidDemoVideoUrl(url);
 
-  const uploadWithProgress = (path: string, file: File, token: string) =>
+  const setPaths = (next: string[]) => {
+    onChange('demo_video_paths', next);
+    // Keep the legacy single-path column in sync (first video) for back-compat.
+    onChange('demo_video_storage_path', next[0] ?? '');
+  };
+
+  /** Resumable (TUS) upload — required for multi-GB files. */
+  const uploadResumable = (path: string, file: File, token: string) =>
     new Promise<void>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open(
-        'POST',
-        `https://dwqpkdatzdqhplgyhigg.supabase.co/storage/v1/object/${DEMO_VIDEO_BUCKET}/${path}`,
-      );
-      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-      xhr.setRequestHeader('x-upsert', 'false');
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
-      };
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) resolve();
-        else {
-          let msg = xhr.responseText;
-          try { msg = JSON.parse(xhr.responseText)?.message || msg; } catch { /* raw text */ }
-          reject(new Error(msg || `Upload failed (${xhr.status})`));
-        }
-      };
-      xhr.onerror = () => reject(new Error('Network error during upload'));
-      const form = new FormData();
-      form.append('', file);
-      xhr.send(form);
+      const upload = new tus.Upload(file, {
+        endpoint: `${SUPABASE_URL}/storage/v1/upload/resumable`,
+        retryDelays: [0, 1000, 3000, 5000, 10000],
+        headers: {
+          authorization: `Bearer ${token}`,
+          'x-upsert': 'false',
+        },
+        uploadDataDuringCreation: true,
+        removeFingerprintOnSuccess: true,
+        chunkSize: 6 * 1024 * 1024, // Supabase requires exactly 6MB chunks
+        metadata: {
+          bucketName: DEMO_VIDEO_BUCKET,
+          objectName: path,
+          contentType: file.type || 'video/mp4',
+          cacheControl: '3600',
+        },
+        onError: (err) => reject(err instanceof Error ? err : new Error(String(err))),
+        onProgress: (sent, total) => setProgress(Math.round((sent / total) * 100)),
+        onSuccess: () => resolve(),
+      });
+      upload.findPreviousUploads().then((previous) => {
+        if (previous.length) upload.resumeFromPreviousUpload(previous[0]);
+        upload.start();
+      }).catch(() => upload.start());
     });
 
   const handleFile = async (file: File) => {
@@ -73,10 +107,15 @@ export function DemoVideoStep({ data, onChange, errors }: DemoVideoStepProps) {
       return;
     }
     if (file.size > MAX_DEMO_VIDEO_BYTES) {
-      setFileError('Please use a Loom link for files this large.');
+      setFileError('That file is larger than 2.5 GB. Please compress it or use a Loom link.');
+      return;
+    }
+    if (paths.length >= MAX_DEMO_VIDEOS) {
+      setFileError(`You can upload up to ${MAX_DEMO_VIDEOS} demo videos.`);
       return;
     }
     setUploading(true);
+    setUploadingName(file.name);
     setProgress(0);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
@@ -84,13 +123,14 @@ export function DemoVideoStep({ data, onChange, errors }: DemoVideoStepProps) {
       if (!token) throw new Error('Your session expired. Please sign in again.');
       const ext = file.name.split('.').pop() || 'mp4';
       const path = `${user.id}/demo/${crypto.randomUUID()}.${ext}`;
-      await uploadWithProgress(path, file, token);
-      onChange('demo_video_storage_path', `${DEMO_VIDEO_BUCKET}/${path}`);
+      await uploadResumable(path, file, token);
+      setPaths([...paths, `${DEMO_VIDEO_BUCKET}/${path}`]);
       setProgress(100);
     } catch (e: any) {
-      setFileError(e.message || 'Upload failed');
+      setFileError(e?.message || 'Upload failed');
     } finally {
       setUploading(false);
+      setUploadingName('');
       if (fileRef.current) fileRef.current.value = '';
     }
   };
@@ -134,29 +174,38 @@ export function DemoVideoStep({ data, onChange, errors }: DemoVideoStepProps) {
         <CollapsibleTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2">
             <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} />
-            Don't use Loom? Upload a video file instead
+            Don't use Loom? Upload video files instead
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className="pt-4 space-y-3">
           <p className="text-sm text-muted-foreground">
-            Video files up to 500 MB. The file stays private and is only shown to our review team.
+            Up to {MAX_DEMO_VIDEOS} video files, each up to 2.5 GB. Large uploads are resumable — if your
+            connection drops, picking the same file again continues where it stopped. Files stay private and
+            are only shown to our review team.
           </p>
 
-          {data.demo_video_storage_path ? (
-            <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
-              <span className="flex items-center gap-2 text-sm truncate">
-                <Video className="h-4 w-4 text-primary shrink-0" />
-                <span className="truncate">{data.demo_video_storage_path.split('/').pop()}</span>
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onChange('demo_video_storage_path', '')}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+          {paths.length > 0 && (
+            <div className="space-y-2">
+              {paths.map((p, i) => (
+                <div key={p} className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                  <span className="flex items-center gap-2 text-sm truncate">
+                    <Video className="h-4 w-4 text-primary shrink-0" />
+                    <span className="truncate">{p.split('/').pop()}</span>
+                    {i === 0 && <span className="text-xs text-muted-foreground shrink-0">(main)</span>}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setPaths(paths.filter((_, idx) => idx !== i))}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
-          ) : (
+          )}
+
+          {paths.length < MAX_DEMO_VIDEOS && (
             <div>
               <input
                 ref={fileRef}
@@ -175,7 +224,7 @@ export function DemoVideoStep({ data, onChange, errors }: DemoVideoStepProps) {
                 className="gap-2"
               >
                 <Upload className="h-4 w-4" />
-                {uploading ? 'Uploading…' : 'Choose video file'}
+                {uploading ? 'Uploading…' : paths.length ? 'Add another video' : 'Choose video file'}
               </Button>
             </div>
           )}
@@ -183,7 +232,9 @@ export function DemoVideoStep({ data, onChange, errors }: DemoVideoStepProps) {
           {uploading && (
             <div className="space-y-1">
               <Progress value={progress} className="h-2" />
-              <p className="text-xs text-muted-foreground">{progress}% uploaded</p>
+              <p className="text-xs text-muted-foreground">
+                {progress}% uploaded{uploadingName ? ` — ${uploadingName}` : ''}
+              </p>
             </div>
           )}
 
@@ -195,7 +246,7 @@ export function DemoVideoStep({ data, onChange, errors }: DemoVideoStepProps) {
         </CollapsibleContent>
       </Collapsible>
 
-      {!url.trim() && !data.demo_video_storage_path && (
+      {!url.trim() && paths.length === 0 && (
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>

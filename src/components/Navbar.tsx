@@ -45,7 +45,7 @@ export function Navbar() {
       const { count } = await db
         .from('dkai_products')
         .select('id', { count: 'exact', head: true })
-        .eq('review_status', 'submitted');
+        .in('review_status', ['submitted', 'in_review', 'pending_review']);
       setPendingProducts(count || 0);
     };
     loadPending();

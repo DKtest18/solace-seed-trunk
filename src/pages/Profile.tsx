@@ -419,6 +419,7 @@ export default function Profile() {
       setHasUnsavedChanges(false);
 
 
+      window.dispatchEvent(new Event('dkai:profile-updated'));
       toast({ title: 'Success', description: 'Profile saved successfully.' });
 
       if (fromChecklist) {

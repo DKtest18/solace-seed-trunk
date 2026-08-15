@@ -172,6 +172,35 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
               </li>
             ))}
           </ul>
+
+          <div className="mt-6 rounded-lg border bg-muted/40 p-4">
+            <h3 className="text-sm font-semibold">Seller obligations</h3>
+            <ul className="mt-2 space-y-2 list-disc list-inside text-sm leading-relaxed">
+              {OBLIGATIONS.map((o) => (
+                <li key={o}>{o}</li>
+              ))}
+            </ul>
+            <p className="mt-3 text-xs text-muted-foreground">
+              The full Seller Obligations document{pdfDoc?.version ? ` (version ${pdfDoc.version})` : ''} must be
+              downloaded and read before you can accept.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-3 w-full"
+              onClick={handleDownload}
+              disabled={pdfBusy}
+            >
+              {pdfBusy ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : downloaded ? (
+                <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+              ) : (
+                <Download className="h-4 w-4 mr-2" />
+              )}
+              {downloaded ? 'PDF downloaded — download again' : 'Download Seller Obligations (PDF)'}
+            </Button>
+          </div>
         </ScrollArea>
 
         <div className="px-6 py-4 border-t space-y-4">
@@ -180,20 +209,28 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
               <AlertDescription className="text-xs break-words font-mono">{errorMessage}</AlertDescription>
             </Alert>
           )}
+          {!downloaded && (
+            <p className="text-xs text-muted-foreground">
+              Download the Seller Obligations PDF above to enable the acceptance checkbox.
+            </p>
+          )}
           <div className="flex items-start gap-2">
             <Checkbox
               id="seller-agreement-accept"
               checked={checked}
+              disabled={!downloaded}
               onCheckedChange={(v) => setChecked(v === true)}
             />
             <Label htmlFor="seller-agreement-accept" className="text-sm cursor-pointer">
-              I have read and accept this agreement.
+              I have downloaded and read the Seller Obligations PDF as well as this agreement and the
+              seller obligations listed above, and I accept them in full.
             </Label>
           </div>
-          <Button onClick={handleConfirm} disabled={!checked || saving} className="w-full">
+          <Button onClick={handleConfirm} disabled={!checked || !downloaded || saving} className="w-full">
             {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
             Confirm
           </Button>
+
         </div>
       </div>
     </div>

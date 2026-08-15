@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -7,12 +7,23 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, FileText } from 'lucide-react';
+import { Loader2, FileText, Download, CheckCircle2 } from 'lucide-react';
 import {
   SELLER_AGREEMENT_VERSION,
   isSellerAgreementCurrent,
   useSellerRestrictions,
 } from '@/hooks/useSellerRestrictions';
+
+const OBLIGATIONS: string[] = [
+  'Deliver exactly what your listing describes. You may not refuse delivery of a purchased product.',
+  'Only upload content you own or are fully licensed to sell. No malware, illegal, infringing, or adult content.',
+  'Answer buyer questions and support requests about your products within 48 hours.',
+  'Cooperate with refund reviews. No response within 48 hours means the case is decided in the buyer\u2019s favour.',
+  'Keep your own master copies of every file you upload \u2014 you are responsible for your backups.',
+  'Keep your payout details (Stripe / PayPal) accurate and taxes for your own sales are your responsibility.',
+  'Follow the Platform Rules and all applicable law in your country of residence.',
+];
+
 
 const CLAUSES: { heading: string; body: string }[] = [
   {
@@ -57,7 +68,24 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
   const { data: restrictions, isLoading } = useSellerRestrictions();
   const [checked, setChecked] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const { data: pdfDoc } = useQuery({
+    queryKey: ['legal-doc', 'seller_obligations'],
+    queryFn: async () => {
+      const { data } = await db
+        .from('dkai_legal_documents')
+        .select('title, version, storage_path')
+        .eq('slug', 'seller_obligations')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return (data as any) ?? null;
+    },
+  });
 
   if (!user) return <>{children}</>;
 
@@ -71,6 +99,25 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
 
   if (isSellerAgreementCurrent(restrictions)) return <>{children}</>;
 
+  const handleDownload = async () => {
+    setErrorMessage(null);
+    if (!pdfDoc?.storage_path) {
+      setErrorMessage('Seller Obligations PDF is not configured yet. Please contact support.');
+      return;
+    }
+    setPdfBusy(true);
+    const { data, error } = await db.storage
+      .from('legal-documents')
+      .createSignedUrl(pdfDoc.storage_path, 300, { download: 'Seller_Obligations.pdf' });
+    setPdfBusy(false);
+    if (error || !data?.signedUrl) {
+      setErrorMessage(error?.message ?? 'Could not create download link.');
+      return;
+    }
+    window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    setDownloaded(true);
+  };
+
   const handleConfirm = async () => {
     setSaving(true);
     setErrorMessage(null);
@@ -80,6 +127,8 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
         seller_agreement_accepted: true,
         seller_agreement_version: SELLER_AGREEMENT_VERSION,
         seller_agreement_accepted_at: new Date().toISOString(),
+        seller_obligations_pdf_acknowledged: true,
+        seller_obligations_pdf_version: pdfDoc?.version ?? null,
       })
       .eq('id', user.id);
 
@@ -94,6 +143,7 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
     await queryClient.refetchQueries({ queryKey: ['seller-restrictions', user.id] });
     setSaving(false);
   };
+
 
   return (
     <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
@@ -122,6 +172,35 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
               </li>
             ))}
           </ul>
+
+          <div className="mt-6 rounded-lg border bg-muted/40 p-4">
+            <h3 className="text-sm font-semibold">Seller obligations</h3>
+            <ul className="mt-2 space-y-2 list-disc list-inside text-sm leading-relaxed">
+              {OBLIGATIONS.map((o) => (
+                <li key={o}>{o}</li>
+              ))}
+            </ul>
+            <p className="mt-3 text-xs text-muted-foreground">
+              The full Seller Obligations document{pdfDoc?.version ? ` (version ${pdfDoc.version})` : ''} must be
+              downloaded and read before you can accept.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-3 w-full"
+              onClick={handleDownload}
+              disabled={pdfBusy}
+            >
+              {pdfBusy ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : downloaded ? (
+                <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+              ) : (
+                <Download className="h-4 w-4 mr-2" />
+              )}
+              {downloaded ? 'PDF downloaded — download again' : 'Download Seller Obligations (PDF)'}
+            </Button>
+          </div>
         </ScrollArea>
 
         <div className="px-6 py-4 border-t space-y-4">
@@ -130,20 +209,28 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
               <AlertDescription className="text-xs break-words font-mono">{errorMessage}</AlertDescription>
             </Alert>
           )}
+          {!downloaded && (
+            <p className="text-xs text-muted-foreground">
+              Download the Seller Obligations PDF above to enable the acceptance checkbox.
+            </p>
+          )}
           <div className="flex items-start gap-2">
             <Checkbox
               id="seller-agreement-accept"
               checked={checked}
+              disabled={!downloaded}
               onCheckedChange={(v) => setChecked(v === true)}
             />
             <Label htmlFor="seller-agreement-accept" className="text-sm cursor-pointer">
-              I have read and accept this agreement.
+              I have downloaded and read the Seller Obligations PDF as well as this agreement and the
+              seller obligations listed above, and I accept them in full.
             </Label>
           </div>
-          <Button onClick={handleConfirm} disabled={!checked || saving} className="w-full">
+          <Button onClick={handleConfirm} disabled={!checked || !downloaded || saving} className="w-full">
             {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
             Confirm
           </Button>
+
         </div>
       </div>
     </div>

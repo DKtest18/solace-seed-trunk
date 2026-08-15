@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 
-export const SELLER_AGREEMENT_VERSION = '2026-08-15-v2-en';
+export const SELLER_AGREEMENT_VERSION = '2026-08-15-v3-en-pdf';
 
 export interface SellerRestrictions {
   paymentSettingsRestricted: boolean;

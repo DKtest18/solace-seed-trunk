@@ -25,7 +25,7 @@ import { AdminProductFileAccess } from '@/components/admin/AdminProductFileAcces
 import { formatMoney } from '@/lib/money';
 import { format } from 'date-fns';
 
-type ReviewStatus = 'pending_review' | 'draft' | 'approved' | 'delisted';
+type ReviewStatus = 'pending_review' | 'draft' | 'approved' | 'delisted' | 'all';
 
 const STATUS_LABEL: Record<string, string> = {
   pending_review: 'Pending review',

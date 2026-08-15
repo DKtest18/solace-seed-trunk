@@ -21,6 +21,7 @@ import { Linkedin, Briefcase, GraduationCap } from 'lucide-react';
 import { ProfileDetailSections } from '@/components/profile/ProfileDetailSections';
 import { ProfileStatusFrame } from '@/components/profile/ProfileStatusFrame';
 import { EducationItem, ExperienceItem, parseJsonArray } from '@/types/profile';
+import { normalizeLinkedInUrl } from '@/lib/profileUrls';
 
 
 
@@ -200,6 +201,7 @@ export default function PublicProfile() {
   const education = parseJsonArray<EducationItem>(profile.education);
   const currentRole = experience.find((e) => e.is_current_role) || experience[0];
   const latestSchool = education[0];
+  const linkedInUrl = normalizeLinkedInUrl(profile.linkedin_url);
 
 
   const tabBtn = (key: TabKey, label: string, count?: number) => {
@@ -269,6 +271,13 @@ export default function PublicProfile() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
+                  {linkedInUrl && (
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={linkedInUrl} target="_blank" rel="noopener noreferrer">
+                        <Linkedin className="h-4 w-4 mr-2" /> Open LinkedIn
+                      </a>
+                    </Button>
+                  )}
                   {isOwnProfile ? (
                     <Button variant="outline" size="sm" onClick={() => navigate('/profile')}>
                       <Edit className="h-4 w-4 mr-2" /> Edit profile
@@ -326,9 +335,9 @@ export default function PublicProfile() {
                     <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> Founding seller
                   </span>
                 )}
-                {profile.linkedin_url && (
+                {linkedInUrl && (
                   <a
-                    href={profile.linkedin_url}
+                    href={linkedInUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="LinkedIn profile"
@@ -499,10 +508,10 @@ export default function PublicProfile() {
                       </a>
                     </li>
                   )}
-                  {profile.linkedin_url && (
+                  {linkedInUrl && (
                     <li>
                       <span className="text-muted-foreground">LinkedIn:</span>{' '}
-                      <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-[#0A66C2] hover:underline">
+                      <a href={linkedInUrl} target="_blank" rel="noopener noreferrer" className="text-[#0A66C2] hover:underline">
                         View profile
                       </a>
                     </li>

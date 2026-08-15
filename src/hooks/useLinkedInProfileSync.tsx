@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { db } from '@/lib/dkaiDb';
+import { normalizeLinkedInUrl } from '@/lib/profileUrls';
 
 /**
  * When a user signs in (or links) via LinkedIn OIDC, mirror the LinkedIn
@@ -39,9 +40,8 @@ export function useLinkedInProfileSync(user: User | null) {
           meta.linkedin_url || meta.profile_url || meta.publicProfileUrl ||
           meta.profile || meta.website || null;
         const vanity: string | null = meta.vanityName || meta.vanity_name || null;
-        const linkedinUrl: string | null =
-          (rawUrl && /linkedin\.com/i.test(rawUrl) ? rawUrl : null) ||
-          (vanity ? `https://www.linkedin.com/in/${vanity}` : null);
+        const linkedinUrl = normalizeLinkedInUrl(rawUrl) ||
+          normalizeLinkedInUrl(vanity ? `https://www.linkedin.com/in/${vanity}` : null);
 
         const fullName: string | null =
           meta.name || meta.full_name ||

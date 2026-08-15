@@ -144,11 +144,66 @@ export function mapSkills(rows: Record<string, string>[]): string[] {
   return Array.from(new Set(names)).slice(0, 30);
 }
 
-const findEntry = (names: string[], target: string) =>
-  names.find((n) => {
-    const base = n.split('/').pop()?.toLowerCase() ?? '';
-    return base === `${target}.csv`;
-  });
+type CsvKind = 'profile' | 'positions' | 'education' | 'skills' | null;
+
+const normaliseHeader = (value: string) => value.trim().toLowerCase().replace(/[_-]+/g, ' ');
+
+const classifyCsv = (name: string, rows: Record<string, string>[]): CsvKind => {
+  const base = name.split('/').pop()?.toLowerCase().replace(/[^a-z]/g, '') ?? '';
+  const headers = Object.keys(rows[0] ?? {}).map(normaliseHeader);
+  const has = (...values: string[]) => values.some((value) => headers.includes(value));
+
+  if (base.includes('position') || (has('company name', 'company') && has('title', 'position'))) return 'positions';
+  if (base.includes('education') || (has('school name', 'school') && has('degree name', 'degree'))) return 'education';
+  if (base.includes('skill') || (headers.length <= 4 && has('name', 'skill'))) return 'skills';
+  if (base.includes('profile') || has('headline', 'summary', 'geo location', 'websites')) return 'profile';
+  return null;
+};
+
+const mergeUniqueBy = <T>(current: T[], incoming: T[], key: (item: T) => string) => {
+  const seen = new Set(current.map(key));
+  return [...current, ...incoming.filter((item) => {
+    const value = key(item);
+    if (!value || seen.has(value)) return false;
+    seen.add(value);
+    return true;
+  })];
+};
+
+const applyRows = (
+  result: LinkedInImportResult,
+  name: string,
+  rows: Record<string, string>[],
+) => {
+  if (!rows.length) return;
+  const kind = classifyCsv(name, rows);
+  if (!kind) return;
+  result.filesFound.push(name.split('/').pop() || name);
+
+  if (kind === 'positions') {
+    result.experience = mergeUniqueBy(
+      result.experience,
+      mapPositions(rows),
+      (item) => `${item.title}|${item.company}|${item.start_date}`.toLowerCase(),
+    );
+  } else if (kind === 'education') {
+    result.education = mergeUniqueBy(
+      result.education,
+      mapEducation(rows),
+      (item) => `${item.school}|${item.degree}|${item.start_date}`.toLowerCase(),
+    );
+  } else if (kind === 'skills') {
+    result.skills = Array.from(new Set([...result.skills, ...mapSkills(rows)])).slice(0, 30);
+  } else {
+    const profile = rows[0];
+    result.headline ||= pick(profile, 'Headline').slice(0, 160) || undefined;
+    result.about ||= pick(profile, 'Summary', 'About') || undefined;
+    result.location ||= pick(profile, 'Geo Location', 'Address', 'Location') || undefined;
+    const websites = pick(profile, 'Websites', 'Website');
+    const url = websites.match(/https?:\/\/[^\s,\]]+/);
+    result.website ||= url ? url[0] : undefined;
+  }
+};
 
 /** Reads a LinkedIn "Get a copy of your data" archive (ZIP) or a single CSV file. */
 export async function parseLinkedInExport(file: File): Promise<LinkedInImportResult> {
@@ -163,53 +218,20 @@ export async function parseLinkedInExport(file: File): Promise<LinkedInImportRes
 
   if (!isZip) {
     const rows = parseCsv(await file.text());
-    const headers = Object.keys(rows[0] ?? {}).map((h) => h.toLowerCase());
-    result.filesFound.push(file.name);
-    if (headers.includes('company name') || headers.includes('title')) {
-      result.experience = mapPositions(rows);
-    } else if (headers.includes('school name')) {
-      result.education = mapEducation(rows);
-    } else if (headers.includes('headline') || headers.includes('summary')) {
-      const p = rows[0] ?? {};
-      result.headline = pick(p, 'Headline').slice(0, 160) || undefined;
-      result.about = pick(p, 'Summary') || undefined;
-      result.location = pick(p, 'Geo Location', 'Address') || undefined;
-      result.website = pick(p, 'Websites').split(':').slice(1).join(':') || undefined;
-    } else {
-      result.skills = mapSkills(rows);
-    }
+    applyRows(result, file.name, rows);
     return result;
   }
 
-  const zip = await JSZip.loadAsync(file);
-  const names = Object.keys(zip.files).filter((n) => !zip.files[n].dir);
+  const zip = await JSZip.loadAsync(await file.arrayBuffer());
+  const csvEntries = Object.values(zip.files)
+    .filter((entry) => !entry.dir && entry.name.toLowerCase().endsWith('.csv'))
+    .slice(0, 500);
 
-  const read = async (target: string) => {
-    const entry = findEntry(names, target);
-    if (!entry) return null;
-    result.filesFound.push(entry.split('/').pop() as string);
-    return parseCsv(await zip.files[entry].async('string'));
-  };
-
-  const [profile, positions, education, skills] = await Promise.all([
-    read('Profile'),
-    read('Positions'),
-    read('Education'),
-    read('Skills'),
-  ]);
-
-  if (profile && profile[0]) {
-    const p = profile[0];
-    result.headline = pick(p, 'Headline').slice(0, 160) || undefined;
-    result.about = pick(p, 'Summary') || undefined;
-    result.location = pick(p, 'Geo Location', 'Address') || undefined;
-    const websites = pick(p, 'Websites');
-    const url = websites.match(/https?:\/\/[^\s,\]]+/);
-    result.website = url ? url[0] : undefined;
+  for (const entry of csvEntries) {
+    const text = await entry.async('string');
+    if (text.length > 5 * 1024 * 1024) continue;
+    applyRows(result, entry.name, parseCsv(text));
   }
-  if (positions) result.experience = mapPositions(positions);
-  if (education) result.education = mapEducation(education);
-  if (skills) result.skills = mapSkills(skills);
 
   return result;
 }

@@ -15,8 +15,8 @@ export function LinkedInImportCard({ onImported }: LinkedInImportCardProps) {
 
   const handleFile = async (file?: File | null) => {
     if (!file) return;
-    if (file.size > 100 * 1024 * 1024) {
-      toast.error('File is too large (max 100MB).');
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error('File is too large (max 50MB).');
       return;
     }
     setLoading(true);
@@ -26,7 +26,9 @@ export function LinkedInImportCard({ onImported }: LinkedInImportCardProps) {
         result.experience.length + result.education.length + result.skills.length;
       if (!total && !result.headline && !result.about) {
         toast.error('No profile data found in that file.', {
-          description: 'Upload the ZIP you downloaded from LinkedIn, or a single Positions/Education/Skills CSV.',
+          description: result.filesFound.length
+            ? `Read ${result.filesFound.length} LinkedIn file(s), but they contained no supported profile rows.`
+            : 'No Profile, Positions, Education, or Skills CSV was found in this archive.',
         });
         return;
       }

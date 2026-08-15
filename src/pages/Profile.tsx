@@ -415,6 +415,8 @@ export default function Profile() {
     setExperience(parseJsonArray<ExperienceItem>(JSON.parse(originalRich.experience)));
     setEducation(parseJsonArray<EducationItem>(JSON.parse(originalRich.education)));
     setSkills(parseJsonArray<string>(JSON.parse(originalRich.skills)));
+    setStatus(originalStatus);
+
 
     setHasUnsavedChanges(false);
     setShowUnsavedDialog(false);

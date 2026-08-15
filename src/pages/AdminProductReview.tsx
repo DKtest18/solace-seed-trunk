@@ -200,8 +200,12 @@ export default function AdminProductReview() {
                           <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
                             {p.title || 'Untitled product'}
                             <Badge variant={STATUS_VARIANT[p.review_status] || 'secondary'}>
-                              {STATUS_LABEL[p.review_status] || p.review_status}
+                              {STATUS_LABEL[p.review_status] || p.review_status || 'No review status (legacy)'}
                             </Badge>
+                            <Badge variant={p.is_published ? 'outline' : 'secondary'}>
+                              {p.is_published ? 'Live on marketplace' : 'Not live'}
+                            </Badge>
+                            {p.is_active === false && <Badge variant="destructive">Deleted</Badge>}
                           </CardTitle>
                           <CardDescription className="mt-1">
                             {sellerName}

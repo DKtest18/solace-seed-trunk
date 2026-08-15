@@ -146,9 +146,9 @@ export function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full hidden md:flex">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.user_metadata?.avatar_url} />
+                      <AvatarImage src={avatarSrc} />
                       <AvatarFallback className="text-xs">
-                        {user.user_metadata?.full_name?.[0] || user.email?.[0].toUpperCase()}
+                        {displayName?.[0] || user.email?.[0].toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -156,7 +156,7 @@ export function Navbar() {
                 <DropdownMenuContent align="end" className="w-64">
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-semibold">{user.user_metadata?.full_name || 'User'}</p>
+                      <p className="text-sm font-semibold">{displayName}</p>
                       <p className="text-xs text-muted-foreground">{user.email}</p>
                     </div>
                   </DropdownMenuLabel>
@@ -213,11 +213,11 @@ export function Navbar() {
                     <div className="p-4 border-b bg-muted/30">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">
-                          <AvatarImage src={user.user_metadata?.avatar_url} />
-                          <AvatarFallback>{user.user_metadata?.full_name?.[0] || user.email?.[0].toUpperCase()}</AvatarFallback>
+                          <AvatarImage src={avatarSrc} />
+                          <AvatarFallback>{displayName?.[0] || user.email?.[0].toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold truncate">{user.user_metadata?.full_name || 'User'}</p>
+                          <p className="text-sm font-semibold truncate">{displayName}</p>
                           <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                         </div>
                       </div>

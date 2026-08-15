@@ -329,6 +329,11 @@ export default function Profile() {
           experience,
           education,
           skills,
+          open_to_work: status.open_to_work,
+          open_to_roles: status.open_to_roles || null,
+          is_hiring: status.is_hiring,
+          hiring_roles: status.hiring_roles || null,
+
           avatar_zoom: formData.avatar_zoom,
           avatar_position_x: formData.avatar_position_x,
           avatar_position_y: formData.avatar_position_y,

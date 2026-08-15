@@ -830,20 +830,6 @@ export default function CreateProduct() {
     );
   };
 
-  return (
-      <Alert variant="destructive" className="mb-4">
-        <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>
-          Your Stripe account isn't connected yet. You can still save a draft, but the product
-          can only go live once Stripe is connected.{' '}
-          <Link to="/seller/payment-settings" className="underline font-medium">
-            Open Payment Settings
-          </Link>
-          .
-        </AlertDescription>
-      </Alert>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-background py-8">

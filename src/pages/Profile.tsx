@@ -532,7 +532,24 @@ export default function Profile() {
                   </div>
                 </div>
 
+                {/* Headline */}
+                <div className="space-y-2">
+                  <Label htmlFor="headline" className="text-sm font-medium flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" /> Headline
+                  </Label>
+                  <Input
+                    id="headline"
+                    placeholder="Founder at DK AI Marketplace"
+                    maxLength={220}
+                    value={formData.headline}
+                    onChange={(e) => setFormData(prev => ({ ...prev, headline: e.target.value }))}
+                  />
+                  <p className="text-xs text-muted-foreground">A short, one-line professional title.</p>
+                </div>
+
                 <Separator />
+
+
 
                 {/* Bio - Optional */}
                 <div className="space-y-2">

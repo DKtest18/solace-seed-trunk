@@ -701,48 +701,8 @@ export default function Profile() {
 
                 <Separator />
 
-                {/* LinkedIn profile link */}
-                <div className="space-y-2">
-                  <Label htmlFor="linkedin_url" className="text-sm font-medium flex items-center gap-2">
-                    <Linkedin className="h-4 w-4 text-[#0A66C2]" /> LinkedIn profile
-                  </Label>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Input
-                      id="linkedin_url"
-                      type="url"
-                      placeholder="https://www.linkedin.com/in/your-name"
-                      value={formData.linkedin_url}
-                      onChange={(e) => setFormData(prev => ({ ...prev, linkedin_url: e.target.value }))}
-                      onBlur={() => {
-                        const normalized = normalizeLinkedInUrl(formData.linkedin_url);
-                        if (normalized) setFormData(prev => ({ ...prev, linkedin_url: normalized }));
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled={!formData.linkedin_url}
-                      onClick={() => {
-                        const normalized = normalizeLinkedInUrl(formData.linkedin_url);
-                        if (normalized) window.open(normalized, '_blank', 'noopener,noreferrer');
-                        else toast({ title: 'Invalid LinkedIn link', description: 'Enter a valid linkedin.com profile URL.', variant: 'destructive' });
-                      }}
-                      className="shrink-0 text-[#0A66C2] border-[#0A66C2]/30 hover:bg-[#0A66C2]/5"
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" /> Open LinkedIn
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Filled in automatically when LinkedIn provides it at sign-in. Shown as a LinkedIn button on your public profile and on your product pages.
-                  </p>
-                </div>
+                {/* Work Experience */}
 
-                <Separator />
-
-                {/* One-click import from a LinkedIn data export */}
-                <LinkedInImportCard onImported={applyLinkedInImport} />
-
-                <Separator />
 
                 {/* Work Experience */}
                 <ExperienceEditor items={experience} onChange={setExperience} />

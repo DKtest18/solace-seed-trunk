@@ -130,7 +130,7 @@ export function SellerAgreementBody({
         ))}
       </ul>
 
-      <div className="mt-6 rounded-lg border bg-muted/40 p-4">
+      <div id="seller-obligations-pdf-section" className="mt-6 rounded-lg border bg-muted/40 p-4 scroll-mt-4">
         <h3 className="text-sm font-semibold">Seller obligations</h3>
         <ul className="mt-2 space-y-2 list-disc list-inside text-sm leading-relaxed">
           {OBLIGATIONS.map((o) => (

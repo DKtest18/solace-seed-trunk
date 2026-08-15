@@ -68,7 +68,24 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
   const { data: restrictions, isLoading } = useSellerRestrictions();
   const [checked, setChecked] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const { data: pdfDoc } = useQuery({
+    queryKey: ['legal-doc', 'seller_obligations'],
+    queryFn: async () => {
+      const { data } = await db
+        .from('dkai_legal_documents')
+        .select('title, version, storage_path')
+        .eq('slug', 'seller_obligations')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return (data as any) ?? null;
+    },
+  });
 
   if (!user) return <>{children}</>;
 
@@ -82,6 +99,25 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
 
   if (isSellerAgreementCurrent(restrictions)) return <>{children}</>;
 
+  const handleDownload = async () => {
+    setErrorMessage(null);
+    if (!pdfDoc?.storage_path) {
+      setErrorMessage('Seller Obligations PDF is not configured yet. Please contact support.');
+      return;
+    }
+    setPdfBusy(true);
+    const { data, error } = await db.storage
+      .from('legal-documents')
+      .createSignedUrl(pdfDoc.storage_path, 300, { download: 'Seller_Obligations.pdf' });
+    setPdfBusy(false);
+    if (error || !data?.signedUrl) {
+      setErrorMessage(error?.message ?? 'Could not create download link.');
+      return;
+    }
+    window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    setDownloaded(true);
+  };
+
   const handleConfirm = async () => {
     setSaving(true);
     setErrorMessage(null);
@@ -91,6 +127,8 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
         seller_agreement_accepted: true,
         seller_agreement_version: SELLER_AGREEMENT_VERSION,
         seller_agreement_accepted_at: new Date().toISOString(),
+        seller_obligations_pdf_acknowledged: true,
+        seller_obligations_pdf_version: pdfDoc?.version ?? null,
       })
       .eq('id', user.id);
 
@@ -105,6 +143,7 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
     await queryClient.refetchQueries({ queryKey: ['seller-restrictions', user.id] });
     setSaving(false);
   };
+
 
   return (
     <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">

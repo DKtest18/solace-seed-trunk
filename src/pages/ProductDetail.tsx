@@ -13,7 +13,6 @@ import { ProductReviews } from '@/components/ProductReviews';
 import { ProductQA } from '@/components/ProductQA';
 import { RatingDisplay } from '@/components/RatingDisplay';
 import { ReportDialog } from '@/components/ReportDialog';
-import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { LinkedInVerifiedBadge } from '@/components/LinkedInVerifiedBadge';
 import { ProductMediaGallery } from '@/components/ProductMediaGallery';
 import { ReturnPolicyDisplay } from '@/components/ReturnPolicyDisplay';

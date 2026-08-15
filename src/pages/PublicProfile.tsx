@@ -115,12 +115,13 @@ export default function PublicProfile() {
         : await db.from('dkai_profiles').select(PUBLIC_PROFILE_COLUMNS).eq('username', username).single();
 
       if (error) throw error;
-      setProfile(profileData);
+      const publicProfile = profileData as unknown as Profile;
+      setProfile(publicProfile);
 
       const { data: productsData } = await db
         .from('dkai_products')
         .select('id, title, price, image_url, is_published, moderation_status, product_type, description')
-        .eq('seller_id', profileData.id)
+        .eq('seller_id', publicProfile.id)
         .eq('is_published', true)
         .eq('review_status', 'approved');
 

@@ -1,4 +1,5 @@
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useProductPurchasable } from '@/hooks/useProductPurchasable';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/dkaiDb';
@@ -44,6 +45,7 @@ export default function ProductDetail() {
   const [searchParams] = useSearchParams();
   const [reportOpen, setReportOpen] = useState(false);
   const [licenseTier, setLicenseTier] = useState<LicenseTier>('personal');
+  const { data: purchasable = true } = useProductPurchasable(id);
 
   // Capture referral ?ref=<code> for attribution + persist for checkout
   useEffect(() => {
@@ -433,12 +435,27 @@ export default function ProductDetail() {
                 const qty = (product as any)?.available_quantity;
                 const sold = (product as any)?.quantity_sold ?? 0;
                 const soldOut = qty != null && sold >= qty;
+                const notBuyable = !purchasable;
                 return (
                   <>
                     <LicenseSelector product={product} value={licenseTier} onChange={setLicenseTier} />
+                    {notBuyable && !soldOut && (
+                      <Alert className="mt-4">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription className="text-sm">
+                          This listing is published for viewing only. The seller has not connected a
+                          payout account (Stripe or PayPal) yet, so it cannot be purchased at the moment.
+                        </AlertDescription>
+                      </Alert>
+                    )}
                     <div className="pt-4 flex flex-wrap gap-3">
-                      <Button size="lg" className="flex-1 sm:flex-initial" onClick={handlePurchase} disabled={soldOut}>
-                        {soldOut ? 'Sold out' : 'Buy Now'}
+                      <Button
+                        size="lg"
+                        className="flex-1 sm:flex-initial"
+                        onClick={handlePurchase}
+                        disabled={soldOut || notBuyable}
+                      >
+                        {soldOut ? 'Sold out' : notBuyable ? 'Not available for purchase' : 'Buy Now'}
                       </Button>
                       <Button size="lg" variant="outline" onClick={() => user ? setReportOpen(true) : navigate('/login')} className="gap-2">
                         <Flag className="h-4 w-4" /> Report

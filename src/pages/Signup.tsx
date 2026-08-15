@@ -600,6 +600,32 @@ export default function Signup() {
           )}
         </div>
       </div>
+
+      {contentPolicyOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-xl bg-white shadow-2xl">
+            <div className="border-b px-6 py-4">
+              <h2 className="text-xl font-semibold text-gray-900">Content Policy</h2>
+            </div>
+            <div className="overflow-y-auto px-6 py-5">
+              <div className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
+                {contentPolicyText}
+              </div>
+            </div>
+            <div className="border-t px-6 py-4 flex justify-end">
+              <Button
+                variant="hero"
+                onClick={() => {
+                  setAcceptedGuidelines(true);
+                  setContentPolicyOpen(false);
+                }}
+              >
+                I Accept
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

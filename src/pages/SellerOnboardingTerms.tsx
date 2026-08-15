@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, CheckCircle2, FileText, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowDown, CheckCircle2, FileText, Loader2 } from 'lucide-react';
 import {
   SELLER_AGREEMENT_VERSION,
 } from '@/hooks/useSellerRestrictions';

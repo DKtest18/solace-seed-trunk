@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -7,56 +7,17 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, FileText, Download, CheckCircle2 } from 'lucide-react';
+import { Loader2, FileText } from 'lucide-react';
 import {
   SELLER_AGREEMENT_VERSION,
   isSellerAgreementCurrent,
   useSellerRestrictions,
 } from '@/hooks/useSellerRestrictions';
-
-const OBLIGATIONS: string[] = [
-  'Deliver exactly what your listing describes. You may not refuse delivery of a purchased product.',
-  'Only upload content you own or are fully licensed to sell. No malware, illegal, infringing, or adult content.',
-  'Answer buyer questions and support requests about your products within 48 hours.',
-  'Cooperate with refund reviews. No response within 48 hours means the case is decided in the buyer\u2019s favour.',
-  'Keep your own master copies of every file you upload \u2014 you are responsible for your backups.',
-  'Keep your payout details (Stripe / PayPal) accurate and taxes for your own sales are your responsibility.',
-  'Follow the Platform Rules and all applicable law in your country of residence.',
-];
-
-
-const CLAUSES: { heading: string; body: string }[] = [
-  {
-    heading: '1. Liability.',
-    body:
-      'DK AI Marketplace and Dari Kastrati are liable to you only to the extent permitted by applicable law. This excludes, in particular, damages arising from outages, data loss, or unauthorized access to the platform or to Supabase infrastructure, except to the extent such damages result from intent or gross negligence on the part of DK AI Marketplace.',
-  },
-  {
-    heading: '2. Content warranty & indemnification.',
-    body:
-      'You represent and warrant that you own, or hold all necessary rights and licenses to, all content, code, and materials you upload. You agree to indemnify and hold harmless DK AI Marketplace and Dari Kastrati against any third-party claims, damages, or costs arising from a breach of this warranty, to the extent permitted by applicable law.',
-  },
-  {
-    heading: '3. Review access.',
-    body:
-      'You grant DK AI Marketplace / Dari Kastrati access to the products, files, and information in your seller account for the purpose of reviewing them prior to publication.',
-  },
-  {
-    heading: '4. Publication.',
-    body:
-      'Submitted products are not visible or purchasable by buyers until they have been reviewed and approved by DK AI Marketplace.',
-  },
-  {
-    heading: '5. No employment relationship.',
-    body:
-      'This agreement does not create an employment, partnership, or agency relationship between you and DK AI Marketplace or Dari Kastrati. You act as an independent seller.',
-  },
-  {
-    heading: '6. Confidentiality.',
-    body:
-      'Any non-public information about the platform, its backend, or its operations that you encounter is confidential and may not be disclosed or used outside the scope of your seller activity.',
-  },
-];
+import {
+  SellerAgreementAcceptLabel,
+  SellerAgreementBody,
+  useSellerObligationsPdf,
+} from '@/components/seller/SellerAgreementContent';
 
 /**
  * Full-screen, non-dismissible consent gate for every /seller* route.
@@ -68,24 +29,8 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
   const { data: restrictions, isLoading } = useSellerRestrictions();
   const [checked, setChecked] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [downloaded, setDownloaded] = useState(false);
-  const [pdfBusy, setPdfBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const { data: pdfDoc } = useQuery({
-    queryKey: ['legal-doc', 'seller_obligations'],
-    queryFn: async () => {
-      const { data } = await db
-        .from('dkai_legal_documents')
-        .select('title, version, storage_path')
-        .eq('slug', 'seller_obligations')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return (data as any) ?? null;
-    },
-  });
+  const { pdfDoc, downloaded, pdfBusy, pdfError, download } = useSellerObligationsPdf();
 
   if (!user) return <>{children}</>;
 
@@ -99,52 +44,22 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
 
   if (isSellerAgreementCurrent(restrictions)) return <>{children}</>;
 
-  const handleDownload = async () => {
-    setErrorMessage(null);
-    setPdfBusy(true);
-
-    const candidates: string[] = [];
-    if (pdfDoc?.storage_path) candidates.push(pdfDoc.storage_path);
-    candidates.push('Seller_Obligations.pdf', 'seller-obligations/Seller_Obligations.pdf');
-
-    // Last resort: find any PDF at the bucket root (covers a differently named upload).
-    const { data: rootFiles } = await db.storage.from('legal-documents').list('', { limit: 100 });
-    for (const f of (rootFiles as any[]) ?? []) {
-      if (typeof f?.name === 'string' && f.name.toLowerCase().endsWith('.pdf')) candidates.push(f.name);
-    }
-
-    let lastError: string | null = null;
-    for (const path of Array.from(new Set(candidates))) {
-      const { data, error } = await db.storage
-        .from('legal-documents')
-        .createSignedUrl(path, 300, { download: 'Seller_Obligations.pdf' });
-      if (!error && data?.signedUrl) {
-        setPdfBusy(false);
-        window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
-        setDownloaded(true);
-        return;
-      }
-      lastError = error?.message ?? 'Could not create download link.';
-    }
-
-    setPdfBusy(false);
-    setErrorMessage(
-      `${lastError ?? 'Seller Obligations PDF not found.'} — check the file exists in the "legal-documents" bucket.`,
-    );
-  };
-
-
   const handleConfirm = async () => {
     setSaving(true);
     setErrorMessage(null);
+    const nowIso = new Date().toISOString();
     const { error } = await db
       .from('dkai_profiles')
       .update({
         seller_agreement_accepted: true,
         seller_agreement_version: SELLER_AGREEMENT_VERSION,
-        seller_agreement_accepted_at: new Date().toISOString(),
+        seller_agreement_accepted_at: nowIso,
         seller_obligations_pdf_acknowledged: true,
         seller_obligations_pdf_version: pdfDoc?.version ?? null,
+        // Accepting here also completes the "Seller Terms & Conditions" onboarding step.
+        terms_accepted: true,
+        terms_accepted_at: nowIso,
+        updated_at: nowIso,
       })
       .eq('id', user.id);
 
@@ -156,10 +71,12 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
     }
 
     await queryClient.invalidateQueries({ queryKey: ['seller-restrictions', user.id] });
+    await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
     await queryClient.refetchQueries({ queryKey: ['seller-restrictions', user.id] });
     setSaving(false);
   };
 
+  const shownError = errorMessage ?? pdfError;
 
   return (
     <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
@@ -177,52 +94,18 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
         </div>
 
         <ScrollArea className="flex-1 min-h-0 max-h-[60vh] px-6 py-4">
-          <p className="text-sm text-muted-foreground">
-            Before you can submit products to DK AI Marketplace, please confirm the following (this
-            agreement is subject to review by legal counsel and may be updated):
-          </p>
-          <ul className="mt-4 space-y-4">
-            {CLAUSES.map((c) => (
-              <li key={c.heading} className="text-sm leading-relaxed">
-                <strong>{c.heading}</strong> {c.body}
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-6 rounded-lg border bg-muted/40 p-4">
-            <h3 className="text-sm font-semibold">Seller obligations</h3>
-            <ul className="mt-2 space-y-2 list-disc list-inside text-sm leading-relaxed">
-              {OBLIGATIONS.map((o) => (
-                <li key={o}>{o}</li>
-              ))}
-            </ul>
-            <p className="mt-3 text-xs text-muted-foreground">
-              The full Seller Obligations document{pdfDoc?.version ? ` (version ${pdfDoc.version})` : ''} must be
-              downloaded and read before you can accept.
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-3 w-full"
-              onClick={handleDownload}
-              disabled={pdfBusy}
-            >
-              {pdfBusy ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : downloaded ? (
-                <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
-              ) : (
-                <Download className="h-4 w-4 mr-2" />
-              )}
-              {downloaded ? 'PDF downloaded — download again' : 'Download Seller Obligations (PDF)'}
-            </Button>
-          </div>
+          <SellerAgreementBody
+            pdfVersion={pdfDoc?.version}
+            downloaded={downloaded}
+            pdfBusy={pdfBusy}
+            onDownload={download}
+          />
         </ScrollArea>
 
         <div className="px-6 py-4 border-t space-y-4">
-          {errorMessage && (
+          {shownError && (
             <Alert variant="destructive">
-              <AlertDescription className="text-xs break-words font-mono">{errorMessage}</AlertDescription>
+              <AlertDescription className="text-xs break-words font-mono">{shownError}</AlertDescription>
             </Alert>
           )}
           {!downloaded && (
@@ -238,27 +121,17 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
               onCheckedChange={(v) => setChecked(v === true)}
             />
             <Label htmlFor="seller-agreement-accept" className="text-sm cursor-pointer">
-              I have downloaded and read the{' '}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleDownload();
-                }}
-                disabled={pdfBusy}
-                className="text-primary font-semibold underline underline-offset-2 hover:text-primary/80 disabled:opacity-60"
-              >
-                Seller Obligations
-              </button>{' '}
-              PDF as well as this agreement and the seller obligations listed above, and I accept
-              them in full.
+              <SellerAgreementAcceptLabel
+                htmlFor="seller-agreement-accept"
+                pdfBusy={pdfBusy}
+                onDownload={download}
+              />
             </Label>
           </div>
           <Button onClick={handleConfirm} disabled={!checked || !downloaded || saving} className="w-full">
             {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
             Confirm
           </Button>
-
         </div>
       </div>
     </div>

@@ -25,9 +25,11 @@ function formatSize(b: number) {
 export function AdminProductFileAccess({
   productId,
   disputeId,
+  mode = 'dispute',
 }: {
   productId: string;
   disputeId?: string;
+  mode?: 'dispute' | 'review';
 }) {
   const [files, setFiles] = useState<AdminFile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,21 +82,27 @@ export function AdminProductFileAccess({
   if (loading) return <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
   if (files.length === 0) return null;
 
+  const isReview = mode === 'review';
+
   return (
-    <Card className="border-destructive/40">
+    <Card className={isReview ? 'border-primary/40' : 'border-destructive/40'}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <ShieldAlert className="w-5 h-5 text-destructive" />
-          Admin file access (dispute use only)
+          <ShieldAlert className={isReview ? 'w-5 h-5 text-primary' : 'w-5 h-5 text-destructive'} />
+          {isReview ? 'Admin file access (product review)' : 'Admin file access (dispute use only)'}
         </CardTitle>
         <CardDescription>
-          Every access is audit-logged and visible to the seller. Use only when strictly required for dispute resolution.
+          {isReview
+            ? 'Download the files the seller uploaded for this product. Every access is audit-logged.'
+            : 'Every access is audit-logged and visible to the seller. Use only when strictly required for dispute resolution.'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
-        <Alert variant="destructive">
+        <Alert variant={isReview ? 'default' : 'destructive'}>
           <AlertDescription className="text-sm">
-            You must provide a justification (≥20 chars). Links expire after 15 minutes.
+            {isReview
+              ? 'Provide a short reason for the download. Links expire after 15 minutes and every access is logged.'
+              : 'You must provide a justification (≥20 chars). Links expire after 15 minutes.'}
           </AlertDescription>
         </Alert>
         {files.map(f => (
@@ -105,7 +113,7 @@ export function AdminProductFileAccess({
               <p className="text-xs text-muted-foreground">{formatSize(f.file_size)} · scan: {f.scan_status}</p>
             </div>
             <Button size="sm" variant="outline" onClick={() => setSelected(f)}>
-              <ExternalLink className="w-4 h-4 mr-2" /> Request access
+              <ExternalLink className="w-4 h-4 mr-2" /> {isReview ? 'Download file' : 'Request access'}
             </Button>
           </div>
         ))}
@@ -114,9 +122,11 @@ export function AdminProductFileAccess({
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Justify file access</DialogTitle>
+            <DialogTitle>{isReview ? 'Confirm file download' : 'Justify file access'}</DialogTitle>
             <DialogDescription>
-              Accessing <strong>{selected?.file_name}</strong>. The seller will be notified by email and this action will be logged with your account.
+              {isReview
+                ? <>You are about to download <strong>{selected?.file_name}</strong>. This action will be logged with your admin account.</>
+                : <>Accessing <strong>{selected?.file_name}</strong>. The seller will be notified by email and this action will be logged with your account.</>}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
@@ -124,7 +134,7 @@ export function AdminProductFileAccess({
             <Textarea
               id="justification"
               rows={5}
-              placeholder="Explain why this access is necessary for dispute resolution (min. 20 characters)…"
+              placeholder={isReview ? "Short reason for downloading this file during product review (min. 20 characters)…" : "Explain why this access is necessary for dispute resolution (min. 20 characters)…"}
               value={justification}
               onChange={(e) => setJustification(e.target.value)}
             />

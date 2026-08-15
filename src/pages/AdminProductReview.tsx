@@ -21,6 +21,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DemoVideoReviewPanel, hasDemoVideo } from '@/components/admin/DemoVideoReviewPanel';
+import { AdminProductFileAccess } from '@/components/admin/AdminProductFileAccess';
 import { formatMoney } from '@/lib/money';
 import { format } from 'date-fns';
 
@@ -228,6 +229,7 @@ export default function AdminProductReview() {
                         demoVideoUrl={p.demo_video_url}
                         demoVideoStoragePath={p.demo_video_storage_path}
                       />
+                      <AdminProductFileAccess productId={p.id} mode="review" />
                       {p.admin_review_note && (
                         <Alert>
                           <AlertDescription className="text-sm">

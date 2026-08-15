@@ -16,6 +16,8 @@ import { OnlineStatus } from '@/components/OnlineStatus';
 import { BlockUserButton } from '@/components/BlockUserButton';
 import { useUserBlocks } from '@/hooks/useUserBlocks';
 import { format } from 'date-fns';
+import { LinkedInVerifiedBadge } from '@/components/LinkedInVerifiedBadge';
+import { Linkedin } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -32,6 +34,8 @@ interface Profile {
   is_founding_seller?: boolean | null;
   skills?: string[] | null;
   headline?: string | null;
+  is_linkedin_verified?: boolean | null;
+  linkedin_url?: string | null;
 }
 
 interface Product {
@@ -223,6 +227,7 @@ export default function PublicProfile() {
                       {profile.full_name || profile.creator_name || 'Anonymous User'}
                     </h1>
                     <OnlineStatus userId={profile.id} />
+                    {profile.is_linkedin_verified && <LinkedInVerifiedBadge />}
                   </div>
                   <p className="text-muted-foreground mb-3">
                     {profile.headline || `@${profile.username || profile.id.slice(0, 8)}`}
@@ -286,6 +291,17 @@ export default function PublicProfile() {
                   <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-1 rounded-full">
                     <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> Founding seller
                   </span>
+                )}
+                {profile.linkedin_url && (
+                  <a
+                    href={profile.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="LinkedIn profile"
+                    className="inline-flex items-center gap-1 text-[#0A66C2] hover:underline"
+                  >
+                    <Linkedin className="h-4 w-4" /> LinkedIn
+                  </a>
                 )}
                 {profile.country && (
                   <span className="inline-flex items-center gap-1 text-muted-foreground">

@@ -12,6 +12,7 @@ import { Loader2, Mail, ShieldCheck, Check, X } from 'lucide-react';
 import { RulesAcceptanceStep } from '@/components/RulesAcceptanceStep';
 import { lovable } from '@/integrations/lovable/index';
 import dkLogo from '@/assets/dk-ai-logo.png';
+import { LinkedInAuthButton } from '@/components/auth/LinkedInAuthButton';
 
 type SignupStep = 'details' | 'verify-email' | 'accept-rules' | 'offer-2fa' | 'setup-2fa';
 
@@ -467,6 +468,15 @@ export default function Signup() {
               >
                 {loading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account...</>) : 'Create account'}
               </Button>
+
+              <div className="flex items-center gap-3 my-6">
+                <span className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground">or</span>
+                <span className="h-px flex-1 bg-border" />
+              </div>
+
+              <LinkedInAuthButton label="Continue with LinkedIn" redirectPath="/" />
+
 
               <p className="text-sm text-muted-foreground text-center mt-6">
                 Already have an account?{' '}

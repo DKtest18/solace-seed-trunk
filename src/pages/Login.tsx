@@ -8,6 +8,7 @@ import { db } from '@/lib/dkaiDb';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { lovable } from '@/integrations/lovable/index';
 import dkLogo from '@/assets/dk-ai-logo.png';
+import { LinkedInAuthButton } from '@/components/auth/LinkedInAuthButton';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -220,6 +221,14 @@ export default function Login() {
                 <Button type="submit" variant="hero" className="w-full mt-6" disabled={loading}>
                   {loading ? 'Signing in...' : 'Sign in'}
                 </Button>
+
+                <div className="flex items-center gap-3 my-6">
+                  <span className="h-px flex-1 bg-border" />
+                  <span className="text-xs text-muted-foreground">or</span>
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+
+                <LinkedInAuthButton redirectPath={safeRedirect ?? '/'} />
 
                 <p className="text-sm text-muted-foreground text-center mt-6">
                   Don't have an account?{' '}

@@ -17,7 +17,10 @@ import { BlockUserButton } from '@/components/BlockUserButton';
 import { useUserBlocks } from '@/hooks/useUserBlocks';
 import { format } from 'date-fns';
 import { LinkedInVerifiedBadge } from '@/components/LinkedInVerifiedBadge';
-import { Linkedin } from 'lucide-react';
+import { Linkedin, Briefcase, GraduationCap } from 'lucide-react';
+import { ProfileDetailSections } from '@/components/profile/ProfileDetailSections';
+import { EducationItem, ExperienceItem, parseJsonArray } from '@/types/profile';
+
 
 interface Profile {
   id: string;
@@ -25,6 +28,7 @@ interface Profile {
   full_name: string | null;
   creator_name?: string | null;
   bio: string | null;
+  expanded_bio?: string | null;
   avatar_url: string | null;
   banner_url: string | null;
   website_url: string | null;
@@ -32,11 +36,14 @@ interface Profile {
   created_at: string;
   is_verified?: boolean | null;
   is_founding_seller?: boolean | null;
-  skills?: string[] | null;
+  skills?: unknown;
+  experience?: unknown;
+  education?: unknown;
   headline?: string | null;
   is_linkedin_verified?: boolean | null;
   linkedin_url?: string | null;
 }
+
 
 interface Product {
   id: string;
@@ -181,7 +188,12 @@ export default function PublicProfile() {
     );
   }
 
-  const skills = profile.skills && profile.skills.length > 0 ? profile.skills : [];
+  const skills = parseJsonArray<string>(profile.skills);
+  const experience = parseJsonArray<ExperienceItem>(profile.experience);
+  const education = parseJsonArray<EducationItem>(profile.education);
+  const currentRole = experience.find((e) => e.is_current_role) || experience[0];
+  const latestSchool = education[0];
+
 
   const tabBtn = (key: TabKey, label: string, count?: number) => {
     const active = activeTab === key;
@@ -204,20 +216,27 @@ export default function PublicProfile() {
     <AppLayout>
       <div className="min-h-screen bg-background">
         <div className="max-w-5xl mx-auto px-6 pt-12 pb-16">
-          {/* Hero card */}
-          <Card className="p-8 flex flex-col md:flex-row items-start gap-6 rounded-2xl">
-            <a
-              href={`/profile/${profile.id}`}
-              data-userid={profile.id}
-              className="profile-link cursor-pointer hover:opacity-80 transition-opacity shrink-0 self-center md:self-start"
-            >
-              <Avatar className="w-24 h-24 ring-4 ring-background-soft">
-                <AvatarImage src={profile.avatar_url || undefined} />
-                <AvatarFallback className="bg-background-soft">
-                  <User className="h-10 w-10 text-muted-foreground" />
-                </AvatarFallback>
-              </Avatar>
-            </a>
+          {/* Hero card — LinkedIn style banner + overlapping avatar */}
+          <Card className="rounded-2xl overflow-hidden">
+            <div className="aspect-[4/1] w-full bg-background-soft">
+              {profile.banner_url && (
+                <img src={profile.banner_url} alt={`${profile.full_name || 'User'} banner`} className="h-full w-full object-cover" />
+              )}
+            </div>
+            <div className="px-6 sm:px-8 pb-8">
+              <a
+                href={`/profile/${profile.id}`}
+                data-userid={profile.id}
+                className="profile-link block w-fit -mt-14 sm:-mt-16 mb-4 cursor-pointer hover:opacity-80 transition-opacity"
+              >
+                <Avatar className="w-28 h-28 sm:w-32 sm:h-32 border-4 border-background shadow-lg">
+                  <AvatarImage src={profile.avatar_url || undefined} />
+                  <AvatarFallback className="bg-background-soft">
+                    <User className="h-12 w-12 text-muted-foreground" />
+                  </AvatarFallback>
+                </Avatar>
+              </a>
+
 
             <div className="flex-1 min-w-0 w-full">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -319,8 +338,27 @@ export default function PublicProfile() {
                   </a>
                 )}
               </div>
+
+                {(currentRole || latestSchool) && (
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mt-5 pt-5 border-t border-border">
+                    {currentRole && (
+                      <span className="inline-flex items-center gap-2 text-sm text-gray-700">
+                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+                        {currentRole.company || currentRole.title}
+                      </span>
+                    )}
+                    {latestSchool && (
+                      <span className="inline-flex items-center gap-2 text-sm text-gray-700">
+                        <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                        {latestSchool.school}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </Card>
+
 
           {/* Tabs */}
           <div className="flex gap-6 border-b border-border mt-8">
@@ -420,47 +458,45 @@ export default function PublicProfile() {
           )}
 
           {activeTab === 'about' && (
-            <div className="max-w-2xl py-8 font-body text-gray-700 leading-relaxed space-y-4">
-              <h2 className="font-display text-xl font-semibold text-gray-900">Bio</h2>
-              {profile.bio ? (
-                <p className="whitespace-pre-wrap">{profile.bio}</p>
-              ) : (
-                <p className="text-muted-foreground italic">No bio provided.</p>
-              )}
+            <div className="py-8 space-y-6">
+              <ProfileDetailSections
+                about={profile.expanded_bio || profile.bio}
+                experience={experience}
+                education={education}
+                skills={skills}
+              />
 
-              {skills.length > 0 && (
-                <>
-                  <h2 className="font-display text-xl font-semibold text-gray-900 mt-6">Skills</h2>
-                  <div className="flex flex-wrap gap-2">
-                    {skills.map((skill) => (
-                      <span key={skill} className="bg-primary-soft text-primary text-sm px-3 py-1 rounded-full">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </>
-              )}
-
-              <h2 className="font-display text-xl font-semibold text-gray-900 mt-6">Details</h2>
-              <ul className="space-y-2">
-                <li>
-                  <span className="text-muted-foreground">Member since:</span>{' '}
-                  {format(new Date(profile.created_at), 'MMMM yyyy')}
-                </li>
-                {profile.country && (
-                  <li><span className="text-muted-foreground">Country:</span> {profile.country}</li>
-                )}
-                {profile.website_url && (
+              <Card className="p-6 sm:p-8 rounded-2xl">
+                <h2 className="font-display text-xl font-semibold text-gray-900 mb-5">Details</h2>
+                <ul className="space-y-2 text-gray-700">
                   <li>
-                    <span className="text-muted-foreground">Website:</span>{' '}
-                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                      {profile.website_url}
-                    </a>
+                    <span className="text-muted-foreground">Member since:</span>{' '}
+                    {format(new Date(profile.created_at), 'MMMM yyyy')}
                   </li>
-                )}
-              </ul>
+                  {profile.country && (
+                    <li><span className="text-muted-foreground">Country:</span> {profile.country}</li>
+                  )}
+                  {profile.website_url && (
+                    <li>
+                      <span className="text-muted-foreground">Website:</span>{' '}
+                      <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                        {profile.website_url}
+                      </a>
+                    </li>
+                  )}
+                  {profile.linkedin_url && (
+                    <li>
+                      <span className="text-muted-foreground">LinkedIn:</span>{' '}
+                      <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-[#0A66C2] hover:underline">
+                        View profile
+                      </a>
+                    </li>
+                  )}
+                </ul>
+              </Card>
             </div>
           )}
+
         </div>
       </div>
 

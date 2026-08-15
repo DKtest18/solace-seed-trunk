@@ -12,12 +12,17 @@ import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, User, Globe, MapPin, Mail, Calendar, Camera, AlertTriangle, Crop, Trash2, ArrowLeft } from 'lucide-react';
+import { Loader2, User, Globe, MapPin, Mail, Calendar, Camera, AlertTriangle, Crop, Trash2, ArrowLeft, ImageIcon, Sparkles } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { AppLayout } from '@/components/AppLayout';
 import { useHasRole } from '@/hooks/useUserRole';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { AvatarCropEditor, getAvatarCropStyle } from '@/components/AvatarCropEditor';
+import { ExperienceEditor } from '@/components/profile/ExperienceEditor';
+import { EducationEditor } from '@/components/profile/EducationEditor';
+import { SkillsTagInput } from '@/components/profile/SkillsTagInput';
+import { EducationItem, ExperienceItem, parseJsonArray } from '@/types/profile';
+
 
 
 export default function Profile() {
@@ -35,35 +40,30 @@ export default function Profile() {
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [showCropEditor, setShowCropEditor] = useState(false);
 
-  const [originalData, setOriginalData] = useState({
+  const emptyProfile = {
     username: '',
     full_name: '',
+    headline: '',
     bio: '',
     website_url: '',
     country: '',
     avatar_url: '',
     expanded_bio: '',
-    banner_url: '',
     avatar_zoom: 1,
     avatar_position_x: 50,
     avatar_position_y: 50,
-  });
+  };
 
-  const [formData, setFormData] = useState({
-    username: '',
-    full_name: '',
-    bio: '',
-    website_url: '',
-    country: '',
-    avatar_url: '',
-    expanded_bio: '',
-    avatar_zoom: 1,
-    avatar_position_x: 50,
-    avatar_position_y: 50,
-  });
+  const [originalData, setOriginalData] = useState({ ...emptyProfile, banner_url: '' });
+  const [formData, setFormData] = useState({ ...emptyProfile });
 
   const [bannerUrl, setBannerUrl] = useState('');
   const [previousBannerUrl, setPreviousBannerUrl] = useState('');
+
+  const [experience, setExperience] = useState<ExperienceItem[]>([]);
+  const [education, setEducation] = useState<EducationItem[]>([]);
+  const [skills, setSkills] = useState<string[]>([]);
+  const [originalRich, setOriginalRich] = useState({ experience: '[]', education: '[]', skills: '[]' });
 
   useEffect(() => {
     if (!user) {
@@ -90,6 +90,7 @@ export default function Profile() {
     const profileData = {
       username: data.username || '',
       full_name: data.full_name || '',
+      headline: data.headline || '',
       bio: data.bio || '',
       website_url: data.website_url || '',
       country: data.country || '',
@@ -101,21 +102,23 @@ export default function Profile() {
       avatar_position_y: data.avatar_position_y ?? 50,
     };
 
-    setFormData({
-      username: profileData.username,
-      full_name: profileData.full_name,
-      bio: profileData.bio,
-      website_url: profileData.website_url,
-      country: profileData.country,
-      avatar_url: profileData.avatar_url,
-      expanded_bio: profileData.expanded_bio,
-      avatar_zoom: profileData.avatar_zoom,
-      avatar_position_x: profileData.avatar_position_x,
-      avatar_position_y: profileData.avatar_position_y,
-    });
+    const { banner_url, ...rest } = profileData;
+    setFormData(rest);
     setOriginalData(profileData);
-    setBannerUrl(data.banner_url || '');
-    setPreviousBannerUrl(data.banner_url || '');
+    setBannerUrl(banner_url);
+    setPreviousBannerUrl(banner_url);
+
+    const exp = parseJsonArray<ExperienceItem>(data.experience);
+    const edu = parseJsonArray<EducationItem>(data.education);
+    const sk = parseJsonArray<string>(data.skills);
+    setExperience(exp);
+    setEducation(edu);
+    setSkills(sk);
+    setOriginalRich({
+      experience: JSON.stringify(exp),
+      education: JSON.stringify(edu),
+      skills: JSON.stringify(sk),
+    });
     setHasUnsavedChanges(false);
   };
 
@@ -123,6 +126,7 @@ export default function Profile() {
     const hasChanges =
       formData.username !== originalData.username ||
       formData.full_name !== originalData.full_name ||
+      formData.headline !== originalData.headline ||
       formData.bio !== originalData.bio ||
       formData.website_url !== originalData.website_url ||
       formData.country !== originalData.country ||
@@ -131,10 +135,14 @@ export default function Profile() {
       formData.avatar_zoom !== originalData.avatar_zoom ||
       formData.avatar_position_x !== originalData.avatar_position_x ||
       formData.avatar_position_y !== originalData.avatar_position_y ||
-      bannerUrl !== originalData.banner_url;
+      bannerUrl !== originalData.banner_url ||
+      JSON.stringify(experience) !== originalRich.experience ||
+      JSON.stringify(education) !== originalRich.education ||
+      JSON.stringify(skills) !== originalRich.skills;
 
     setHasUnsavedChanges(hasChanges);
-  }, [formData, bannerUrl, originalData]);
+  }, [formData, bannerUrl, originalData, experience, education, skills, originalRich]);
+
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -193,8 +201,8 @@ export default function Profile() {
       return;
     }
 
-    const maxWidth = isAdmin ? 1536 : 1200;
-    const maxHeight = isAdmin ? 1024 : 400;
+    const maxWidth = isAdmin ? 1920 : 1600;
+    const maxHeight = isAdmin ? 1024 : 600;
 
     setUploadingBanner(true);
     try {
@@ -295,12 +303,16 @@ export default function Profile() {
         .update({
           username: formData.username || null,
           full_name: formData.full_name || null,
+          headline: formData.headline || null,
           bio: formData.bio || null,
           website_url: formData.website_url || null,
           country: formData.country || null,
           avatar_url: formData.avatar_url || null,
           expanded_bio: formData.expanded_bio || null,
           banner_url: bannerUrl || null,
+          experience,
+          education,
+          skills,
           avatar_zoom: formData.avatar_zoom,
           avatar_position_x: formData.avatar_position_x,
           avatar_position_y: formData.avatar_position_y,
@@ -314,6 +326,7 @@ export default function Profile() {
       const savedData = {
         username: updatedData.username || '',
         full_name: updatedData.full_name || '',
+        headline: updatedData.headline || '',
         bio: updatedData.bio || '',
         website_url: updatedData.website_url || '',
         country: updatedData.country || '',
@@ -324,21 +337,23 @@ export default function Profile() {
         avatar_position_x: updatedData.avatar_position_x ?? 50,
         avatar_position_y: updatedData.avatar_position_y ?? 50,
       };
-      setFormData({
-        username: savedData.username,
-        full_name: savedData.full_name,
-        bio: savedData.bio,
-        website_url: savedData.website_url,
-        country: savedData.country,
-        avatar_url: savedData.avatar_url,
-        expanded_bio: savedData.expanded_bio,
-        avatar_zoom: savedData.avatar_zoom,
-        avatar_position_x: savedData.avatar_position_x,
-        avatar_position_y: savedData.avatar_position_y,
-      });
+      const { banner_url, ...savedForm } = savedData;
+      setFormData(savedForm);
       setOriginalData(savedData);
-      setBannerUrl(savedData.banner_url);
-      setPreviousBannerUrl(savedData.banner_url);
+      setBannerUrl(banner_url);
+      setPreviousBannerUrl(banner_url);
+
+      const savedExp = parseJsonArray<ExperienceItem>(updatedData.experience);
+      const savedEdu = parseJsonArray<EducationItem>(updatedData.education);
+      const savedSkills = parseJsonArray<string>(updatedData.skills);
+      setExperience(savedExp);
+      setEducation(savedEdu);
+      setSkills(savedSkills);
+      setOriginalRich({
+        experience: JSON.stringify(savedExp),
+        education: JSON.stringify(savedEdu),
+        skills: JSON.stringify(savedSkills),
+      });
       setHasUnsavedChanges(false);
 
       toast({ title: 'Success', description: 'Profile saved successfully.' });
@@ -349,19 +364,6 @@ export default function Profile() {
       }
     } catch (error: any) {
       toast({ title: 'Error', description: error.message || 'Failed to update profile', variant: 'destructive' });
-      setFormData({
-        username: originalData.username,
-        full_name: originalData.full_name,
-        bio: originalData.bio,
-        website_url: originalData.website_url,
-        country: originalData.country,
-        avatar_url: originalData.avatar_url,
-        expanded_bio: originalData.expanded_bio,
-        avatar_zoom: originalData.avatar_zoom,
-        avatar_position_x: originalData.avatar_position_x,
-        avatar_position_y: originalData.avatar_position_y,
-      });
-      setBannerUrl(originalData.banner_url);
     } finally {
       setLoading(false);
     }
@@ -377,19 +379,13 @@ export default function Profile() {
   };
 
   const handleDiscardChanges = () => {
-    setFormData({
-      username: originalData.username,
-      full_name: originalData.full_name,
-      bio: originalData.bio,
-      website_url: originalData.website_url,
-      country: originalData.country,
-      avatar_url: originalData.avatar_url,
-      expanded_bio: originalData.expanded_bio,
-      avatar_zoom: originalData.avatar_zoom,
-      avatar_position_x: originalData.avatar_position_x,
-      avatar_position_y: originalData.avatar_position_y,
-    });
-    setBannerUrl(originalData.banner_url);
+    const { banner_url, ...form } = originalData;
+    setFormData(form);
+    setBannerUrl(banner_url);
+    setExperience(parseJsonArray<ExperienceItem>(JSON.parse(originalRich.experience)));
+    setEducation(parseJsonArray<EducationItem>(JSON.parse(originalRich.education)));
+    setSkills(parseJsonArray<string>(JSON.parse(originalRich.skills)));
+
     setHasUnsavedChanges(false);
     setShowUnsavedDialog(false);
     if (pendingNavigation) {
@@ -417,7 +413,7 @@ export default function Profile() {
             </Button>
           </div>
         )}
-        {/* Avatar (no banner) */}
+        {/* Banner + overlapping avatar (LinkedIn style) */}
         <div className="max-w-3xl mx-auto px-4 pt-8">
           <Input
             id="banner-upload"
@@ -428,50 +424,77 @@ export default function Profile() {
             disabled={uploadingBanner}
           />
 
-          <div className="flex flex-col items-center">
-            <div className="relative group">
-              <Avatar className="h-40 w-40 border-4 border-background shadow-xl overflow-hidden">
-                <AvatarImage
-                  src={formData.avatar_url}
-                  style={getAvatarCropStyle(formData.avatar_zoom, formData.avatar_position_x, formData.avatar_position_y)}
-                />
-                <AvatarFallback className="text-4xl">
-                  <User className="h-20 w-20" />
-                </AvatarFallback>
-              </Avatar>
-              <Label htmlFor="avatar-upload" className="absolute bottom-2 right-2 cursor-pointer">
-                <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors">
-                  {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
+          <Card className="overflow-hidden">
+            <div className="relative">
+              <div className="relative aspect-[4/1] w-full bg-background-soft">
+                {bannerUrl ? (
+                  <img src={bannerUrl} alt="Profile banner" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="h-full w-full flex flex-col items-center justify-center text-muted-foreground gap-1">
+                    <ImageIcon className="h-6 w-6" />
+                    <span className="text-xs">Add a banner image (4:1 recommended)</span>
+                  </div>
+                )}
+                <div className="absolute top-3 right-3 flex gap-2">
+                  <Label htmlFor="banner-upload" className="cursor-pointer">
+                    <div className="h-9 px-3 rounded-full bg-primary text-primary-foreground text-sm flex items-center gap-2 shadow-md hover:bg-primary/90 transition-colors">
+                      {uploadingBanner ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                      <span className="hidden sm:inline">{bannerUrl ? 'Change banner' : 'Upload banner'}</span>
+                    </div>
+                  </Label>
+                  {bannerUrl && (
+                    <button
+                      type="button"
+                      aria-label="Remove banner"
+                      onClick={() => setBannerUrl('')}
+                      className="h-9 w-9 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md hover:bg-destructive/90 transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
-              </Label>
-              {formData.avatar_url && (
-                <div className="absolute bottom-2 left-2 flex gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setShowCropEditor(true)}
-                    className="h-10 w-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center shadow-lg hover:bg-secondary/90 transition-colors"
-                  >
-                    <Crop className="h-5 w-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleAvatarDelete}
-                    className="h-10 w-10 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg hover:bg-destructive/90 transition-colors"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
+              </div>
+
+              {/* Avatar overlapping bottom-left */}
+              <div className="px-4 sm:px-6 pb-5">
+                <div className="relative -mt-12 sm:-mt-16 w-fit">
+                  <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-background shadow-xl overflow-hidden">
+                    <AvatarImage
+                      src={formData.avatar_url}
+                      style={getAvatarCropStyle(formData.avatar_zoom, formData.avatar_position_x, formData.avatar_position_y)}
+                    />
+                    <AvatarFallback className="text-3xl">
+                      <User className="h-12 w-12" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <Label htmlFor="avatar-upload" className="absolute bottom-0 right-0 cursor-pointer">
+                    <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors">
+                      {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                    </div>
+                  </Label>
+                  <Input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarUpload}
+                    disabled={uploading}
+                  />
                 </div>
-              )}
-              <Input
-                id="avatar-upload"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarUpload}
-                disabled={uploading}
-              />
+                {formData.avatar_url && (
+                  <div className="flex gap-2 mt-3">
+                    <Button type="button" variant="outline" size="sm" onClick={() => setShowCropEditor(true)}>
+                      <Crop className="h-4 w-4 mr-1" /> Adjust photo
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={handleAvatarDelete}>
+                      <Trash2 className="h-4 w-4 mr-1 text-destructive" /> Remove photo
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          </Card>
+
 
           {/* Profile Form - pushed below avatar */}
           <form onSubmit={handleSubmit} className="mt-8 pb-12">
@@ -509,7 +532,24 @@ export default function Profile() {
                   </div>
                 </div>
 
+                {/* Headline */}
+                <div className="space-y-2">
+                  <Label htmlFor="headline" className="text-sm font-medium flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" /> Headline
+                  </Label>
+                  <Input
+                    id="headline"
+                    placeholder="Founder at DK AI Marketplace"
+                    maxLength={220}
+                    value={formData.headline}
+                    onChange={(e) => setFormData(prev => ({ ...prev, headline: e.target.value }))}
+                  />
+                  <p className="text-xs text-muted-foreground">A short, one-line professional title.</p>
+                </div>
+
                 <Separator />
+
+
 
                 {/* Bio - Optional */}
                 <div className="space-y-2">
@@ -572,7 +612,26 @@ export default function Profile() {
 
                 <Separator />
 
+                {/* Work Experience */}
+                <ExperienceEditor items={experience} onChange={setExperience} />
+
+                <Separator />
+
+                {/* Education */}
+                <EducationEditor items={education} onChange={setEducation} />
+
+                <Separator />
+
+                {/* Skills */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Skills</Label>
+                  <SkillsTagInput skills={skills} onChange={setSkills} />
+                </div>
+
+                <Separator />
+
                 {/* Read-only info */}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Mail className="h-4 w-4" />

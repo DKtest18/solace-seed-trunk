@@ -221,6 +221,14 @@ export default function Login() {
                   {loading ? 'Signing in...' : 'Sign in'}
                 </Button>
 
+                <div className="flex items-center gap-3 my-6">
+                  <span className="h-px flex-1 bg-border" />
+                  <span className="text-xs text-muted-foreground">or</span>
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+
+                <LinkedInAuthButton redirectPath={safeRedirect ?? '/'} />
+
                 <p className="text-sm text-muted-foreground text-center mt-6">
                   Don't have an account?{' '}
                   <Link to="/signup" className="text-primary font-medium hover:underline">

@@ -82,15 +82,19 @@ export function AdminProductFileAccess({
   if (loading) return <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
   if (files.length === 0) return null;
 
+  const isReview = mode === 'review';
+
   return (
-    <Card className="border-destructive/40">
+    <Card className={isReview ? 'border-primary/40' : 'border-destructive/40'}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <ShieldAlert className="w-5 h-5 text-destructive" />
-          Admin file access (dispute use only)
+          <ShieldAlert className={isReview ? 'w-5 h-5 text-primary' : 'w-5 h-5 text-destructive'} />
+          {isReview ? 'Admin file access (product review)' : 'Admin file access (dispute use only)'}
         </CardTitle>
         <CardDescription>
-          Every access is audit-logged and visible to the seller. Use only when strictly required for dispute resolution.
+          {isReview
+            ? 'Download the files the seller uploaded for this product. Every access is audit-logged.'
+            : 'Every access is audit-logged and visible to the seller. Use only when strictly required for dispute resolution.'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">

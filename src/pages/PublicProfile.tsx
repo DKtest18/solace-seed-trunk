@@ -80,6 +80,13 @@ interface ReviewRow {
 
 type TabKey = 'products' | 'reviews' | 'about';
 
+const PUBLIC_PROFILE_COLUMNS = [
+  'id', 'username', 'full_name', 'headline', 'bio', 'expanded_bio',
+  'website_url', 'linkedin_url', 'is_linkedin_verified', 'country',
+  'avatar_url', 'banner_url', 'experience', 'education', 'skills',
+  'open_to_work', 'open_to_roles', 'is_hiring', 'hiring_roles', 'created_at',
+].join(', ');
+
 export default function PublicProfile() {
   const { username } = useParams();
   const { user } = useAuth();
@@ -89,7 +96,7 @@ export default function PublicProfile() {
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [reportModalOpen, setReportModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabKey>('products');
+  const [activeTab, setActiveTab] = useState<TabKey>('about');
   
   const { isBlocked, isBlockedByUser, hasBlockRelationship } = useUserBlocks();
 
@@ -104,8 +111,8 @@ export default function PublicProfile() {
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(username || '');
 
       const { data: profileData, error } = isUUID
-        ? await db.from('dkai_profiles').select('*').eq('id', username).single()
-        : await db.from('dkai_profiles').select('*').eq('username', username).single();
+        ? await db.from('dkai_profiles').select(PUBLIC_PROFILE_COLUMNS).eq('id', username).single()
+        : await db.from('dkai_profiles').select(PUBLIC_PROFILE_COLUMNS).eq('username', username).single();
 
       if (error) throw error;
       setProfile(profileData);
@@ -233,9 +240,8 @@ export default function PublicProfile() {
               )}
             </div>
             <div className="px-6 sm:px-8 pb-8">
-              <a
-                href={`/profile/${profile.id}`}
-                data-userid={profile.id}
+              <Link
+                to={`/profile/${profile.username || profile.id}`}
                 className="profile-link block w-fit -mt-14 sm:-mt-16 mb-4 cursor-pointer hover:opacity-80 transition-opacity"
               >
                 <ProfileStatusFrame
@@ -251,7 +257,7 @@ export default function PublicProfile() {
                     </AvatarFallback>
                   </Avatar>
                 </ProfileStatusFrame>
-              </a>
+              </Link>
 
 
 

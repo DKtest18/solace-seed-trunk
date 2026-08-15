@@ -14,6 +14,7 @@ import { ProductQA } from '@/components/ProductQA';
 import { RatingDisplay } from '@/components/RatingDisplay';
 import { ReportDialog } from '@/components/ReportDialog';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
+import { LinkedInVerifiedBadge } from '@/components/LinkedInVerifiedBadge';
 import { ProductMediaGallery } from '@/components/ProductMediaGallery';
 import { ReturnPolicyDisplay } from '@/components/ReturnPolicyDisplay';
 import { LicenseSelector, type LicenseTier } from '@/components/LicenseSelector';
@@ -92,7 +93,7 @@ export default function ProductDetail() {
       
       const { data, error } = await db
         .from('dkai_profiles')
-        .select('id, full_name, avatar_url, username, verified, seller_type, headline, linkedin_url, is_linkedin_verified')
+        .select('id, full_name, avatar_url, username, headline, linkedin_url, is_linkedin_verified')
         .eq('id', product.seller_id)
         .single();
 
@@ -466,7 +467,7 @@ export default function ProductDetail() {
                 <Card className="mt-6">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
-                      <Link to={`/profile/${sellerProfile.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                       <Link to={`/profile/${sellerProfile.username || sellerProfile.id}`} className="flex min-w-0 flex-1 items-center gap-3 hover:opacity-80 transition-opacity">
                         <Avatar className="h-12 w-12 cursor-pointer">
                           <AvatarImage src={sellerProfile.avatar_url || undefined} />
                           <AvatarFallback>
@@ -477,10 +478,7 @@ export default function ProductDetail() {
                           <p className="text-sm text-muted-foreground">Seller</p>
                           <p className="font-semibold hover:underline inline-flex items-center gap-1">
                             {sellerProfile.full_name || sellerProfile.username || 'Unknown'}
-                            <VerifiedBadge
-                              verified={(sellerProfile as any).verified}
-                              founding={(sellerProfile as any).seller_type === 'founding'}
-                            />
+                             {(sellerProfile as any).is_linkedin_verified && <LinkedInVerifiedBadge />}
                           </p>
                           {(sellerProfile as any).headline && (
                             <p className="text-xs text-muted-foreground line-clamp-1">

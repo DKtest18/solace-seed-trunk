@@ -16,6 +16,7 @@ import { useEffect, useState } from 'react';
 import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
+import { useSellerRestrictions } from '@/hooks/useSellerRestrictions';
 
 const sellerMenuItems = [
   { title: 'Dashboard', url: '/seller-dashboard', icon: LayoutDashboard, end: true },
@@ -25,18 +26,20 @@ const sellerMenuItems = [
   { title: 'Product Q&A', url: '/seller-dashboard/qa', icon: MessageSquare, showBadge: true },
   { title: 'Notifications', url: '/notifications', icon: Bell, showBadge: true },
   
-  { title: 'Earnings', url: '/earnings', icon: DollarSign },
-  { title: 'Payouts', url: '/payouts', icon: Wallet },
+  { title: 'Earnings', url: '/earnings', icon: DollarSign, payoutsRelated: true },
+  { title: 'Payouts', url: '/payouts', icon: Wallet, payoutsRelated: true },
   { title: 'Analytics', url: '/seller-dashboard/analytics', icon: BarChart3 },
   { title: 'Coupons', url: '/seller-dashboard/coupons', icon: Tag },
   { title: 'Storefront', url: '/seller-dashboard/storefront', icon: Palette },
-  { title: 'Payment Settings', url: '/seller-onboarding/payment', icon: Settings },
+  { title: 'Payment Settings', url: '/seller-onboarding/payment', icon: Settings, payoutsRelated: true },
 ];
 
 export function SellerSidebar() {
   const { state } = useSidebar();
   const { user } = useAuth();
   const location = useLocation();
+  const { data: restrictions } = useSellerRestrictions();
+  const payoutsRestricted = !!restrictions?.paymentSettingsRestricted;
   const isCollapsed = state === 'collapsed';
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
@@ -64,7 +67,7 @@ export function SellerSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {sellerMenuItems.map((item) => (
+              {sellerMenuItems.filter((item) => !(payoutsRestricted && (item as any).payoutsRelated)).map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
                     <NavLink 
@@ -98,6 +101,11 @@ export function SellerSidebar() {
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
+            {payoutsRestricted && !isCollapsed && (
+              <p className="px-3 pt-3 text-xs text-muted-foreground">
+                Payouts are not yet active for your account.
+              </p>
+            )}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

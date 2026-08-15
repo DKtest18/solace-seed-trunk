@@ -38,16 +38,19 @@ export function useSellerOnboardingProgress() {
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
+      const paymentRestricted = !!(profile as any)?.payment_settings_restricted;
+
       // Payment step is complete when EITHER provider is fully connected.
       let stripeConnected = false;
       try {
+        if (paymentRestricted) throw new Error('payment settings restricted');
         const stripeData = await fetchStripeConnectStatus();
         stripeConnected = isStripeConnectedForOnboarding(stripeData);
       } catch {
         // ignore
       }
       let paypalConnected = false;
-      if (!stripeConnected) {
+      if (!stripeConnected && !paymentRestricted) {
         try {
           paypalConnected = isPayPalConnectedForOnboarding(await fetchPayPalConnectStatus());
         } catch {
@@ -79,8 +82,21 @@ export function useSellerOnboardingProgress() {
         { id: '2fa', title: '2FA Setup', description: 'Optional: Add two-factor authentication for extra security', required: false, completed: !!profile?.is_2fa_enabled, route: '/settings' },
         { id: 'seller-identity-age', title: 'Seller Identity & Age Verification', description: 'Provide your seller details and confirm you are 18+', required: true, completed: identityAndAgeComplete, route: '/seller-onboarding/identity' },
         { id: 'seller-terms', title: 'Seller Terms & Conditions', description: 'Review and accept the seller agreement', required: true, completed: termsAccepted, route: '/seller-onboarding/terms' },
-        { id: 'payment', title: 'Payment Preferences', description: 'Connect Stripe or PayPal to receive payments', required: true, completed: paymentConnected, route: '/seller-onboarding/payment' },
       ];
+
+      // Connecting a payout provider is OPTIONAL: sellers can create their profile and
+      // submit products without any dkai_seller_payment_configs row. Restricted accounts
+      // never see the step at all.
+      if (!paymentRestricted) {
+        steps.push({
+          id: 'payment',
+          title: 'Payment Preferences (optional)',
+          description: 'Optional: connect Stripe or PayPal to receive payouts. You can skip this for now.',
+          required: false,
+          completed: paymentConnected,
+          route: '/seller-onboarding/payment',
+        });
+      }
 
       const requiredSteps = steps.filter((s) => s.required);
       const completedRequired = requiredSteps.filter((s) => s.completed).length;

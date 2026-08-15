@@ -25,7 +25,7 @@ import { AdminProductFileAccess } from '@/components/admin/AdminProductFileAcces
 import { formatMoney } from '@/lib/money';
 import { format } from 'date-fns';
 
-type ReviewStatus = 'pending_review' | 'draft' | 'approved' | 'delisted';
+type ReviewStatus = 'pending_review' | 'draft' | 'approved' | 'delisted' | 'all';
 
 const STATUS_LABEL: Record<string, string> = {
   pending_review: 'Pending review',
@@ -46,7 +46,7 @@ const PRODUCT_COLUMNS =
   'id, title, price, currency, category, description, seller_id, review_status, admin_review_note, ' +
   'submitted_at, created_at, demo_video_url, demo_video_storage_path, ' +
   'license_commercial_enabled, license_commercial_price, license_agency_enabled, license_agency_price, ' +
-  'license_exclusive_enabled, license_exclusive_price';
+  'license_exclusive_enabled, license_exclusive_price, is_published, is_active';
 
 function licenseTiers(p: any): string {
   const tiers: string[] = ['Standard'];
@@ -63,12 +63,12 @@ export default function AdminProductReview() {
   const { data: products, isLoading, error } = useQuery({
     queryKey: ['admin-product-review', tab],
     queryFn: async () => {
-      const { data, error } = await db
-        .from('dkai_products')
-        .select(PRODUCT_COLUMNS)
-        .eq('review_status', tab)
-        .order('submitted_at', { ascending: true, nullsFirst: false })
-        .order('created_at', { ascending: true });
+      // "all" shows every product ever created, including legacy rows whose
+      // review_status was never set (NULL) — so admins can audit what is live.
+      let q = db.from('dkai_products').select(PRODUCT_COLUMNS);
+      if (tab !== 'all') q = q.eq('review_status', tab);
+      const { data, error } = await q
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data || [];
     },
@@ -168,6 +168,7 @@ export default function AdminProductReview() {
             <TabsTrigger value="draft">Drafts</TabsTrigger>
             <TabsTrigger value="approved">Approved</TabsTrigger>
             <TabsTrigger value="delisted">Delisted</TabsTrigger>
+            <TabsTrigger value="all">All products</TabsTrigger>
           </TabsList>
 
           <TabsContent value={tab} className="mt-6 space-y-4">
@@ -199,8 +200,12 @@ export default function AdminProductReview() {
                           <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
                             {p.title || 'Untitled product'}
                             <Badge variant={STATUS_VARIANT[p.review_status] || 'secondary'}>
-                              {STATUS_LABEL[p.review_status] || p.review_status}
+                              {STATUS_LABEL[p.review_status] || p.review_status || 'No review status (legacy)'}
                             </Badge>
+                            <Badge variant={p.is_published ? 'outline' : 'secondary'}>
+                              {p.is_published ? 'Live on marketplace' : 'Not live'}
+                            </Badge>
+                            {p.is_active === false && <Badge variant="destructive">Deleted</Badge>}
                           </CardTitle>
                           <CardDescription className="mt-1">
                             {sellerName}

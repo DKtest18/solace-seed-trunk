@@ -63,12 +63,12 @@ export default function AdminProductReview() {
   const { data: products, isLoading, error } = useQuery({
     queryKey: ['admin-product-review', tab],
     queryFn: async () => {
-      const { data, error } = await db
-        .from('dkai_products')
-        .select(PRODUCT_COLUMNS)
-        .eq('review_status', tab)
-        .order('submitted_at', { ascending: true, nullsFirst: false })
-        .order('created_at', { ascending: true });
+      // "all" shows every product ever created, including legacy rows whose
+      // review_status was never set (NULL) — so admins can audit what is live.
+      let q = db.from('dkai_products').select(PRODUCT_COLUMNS);
+      if (tab !== 'all') q = q.eq('review_status', tab);
+      const { data, error } = await q
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data || [];
     },

@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
@@ -147,7 +146,7 @@ export default function SellerOnboardingTerms() {
                   <FileText className="w-4 h-4" />
                   <span className="font-medium text-sm">Seller Agreement</span>
                 </div>
-                <ScrollArea className="h-[420px] px-4 py-4">
+                <div className="h-[420px] overflow-y-auto overscroll-contain px-4 py-4">
                   <div className="pr-3">
                     <SellerAgreementBody
                       pdfVersion={pdfDoc?.version}
@@ -156,7 +155,7 @@ export default function SellerOnboardingTerms() {
                       onDownload={download}
                     />
                   </div>
-                </ScrollArea>
+                </div>
               </div>
 
               {pdfError && (

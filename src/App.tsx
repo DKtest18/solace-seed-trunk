@@ -67,6 +67,7 @@ import AdminPaymentSettings from "./pages/AdminPaymentSettings";
 import NotFound from "./pages/NotFound";
 import Legal from "./pages/Legal";
 import LegalOverview from "./pages/LegalOverview";
+import ContentPolicy from "./pages/ContentPolicy";
 import LicenseTerms from "./pages/LicenseTerms";
 import AdminReports from "./pages/AdminReports";
 import AdminEmailLogs from "./pages/AdminEmailLogs";

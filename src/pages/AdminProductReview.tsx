@@ -27,16 +27,35 @@ import { format } from 'date-fns';
 
 type ReviewStatus = 'pending_review' | 'draft' | 'approved' | 'delisted' | 'all';
 
+// Products submitted from the wizard / submit-product-for-review edge function use
+// 'submitted' / 'in_review'; older admin flows used 'pending_review'. Rejected products
+// come back as 'draft' / 'rejected' / 'changes_requested'. Each tab matches all synonyms
+// so nothing gets stuck invisible in the queue.
+const STATUS_GROUPS: Record<Exclude<ReviewStatus, 'all'>, string[]> = {
+  pending_review: ['pending_review', 'submitted', 'in_review'],
+  draft: ['draft', 'rejected', 'changes_requested'],
+  approved: ['approved', 'locked_exclusive'],
+  delisted: ['delisted'],
+};
+
 const STATUS_LABEL: Record<string, string> = {
   pending_review: 'Pending review',
+  submitted: 'Pending review (submitted)',
+  in_review: 'In review',
   draft: 'Draft',
+  rejected: 'Rejected',
+  changes_requested: 'Changes requested',
   approved: 'Approved',
   delisted: 'Delisted',
   locked_exclusive: 'Locked (exclusive)',
 };
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   pending_review: 'default',
+  submitted: 'default',
+  in_review: 'default',
   draft: 'secondary',
+  rejected: 'destructive',
+  changes_requested: 'secondary',
   approved: 'outline',
   delisted: 'destructive',
   locked_exclusive: 'outline',
@@ -66,7 +85,7 @@ export default function AdminProductReview() {
       // "all" shows every product ever created, including legacy rows whose
       // review_status was never set (NULL) — so admins can audit what is live.
       let q = db.from('dkai_products').select(PRODUCT_COLUMNS);
-      if (tab !== 'all') q = q.eq('review_status', tab);
+      if (tab !== 'all') q = q.in('review_status', STATUS_GROUPS[tab]);
       const { data, error } = await q
         .order('created_at', { ascending: false });
       if (error) throw error;

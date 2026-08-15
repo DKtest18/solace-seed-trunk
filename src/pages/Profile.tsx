@@ -14,6 +14,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, User, Globe, MapPin, Mail, Calendar, Camera, AlertTriangle, Crop, Trash2, ArrowLeft, ImageIcon, Sparkles } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+
 import { AppLayout } from '@/components/AppLayout';
 import { useHasRole } from '@/hooks/useUserRole';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -64,6 +66,11 @@ export default function Profile() {
   const [education, setEducation] = useState<EducationItem[]>([]);
   const [skills, setSkills] = useState<string[]>([]);
   const [originalRich, setOriginalRich] = useState({ experience: '[]', education: '[]', skills: '[]' });
+
+  const emptyStatus = { open_to_work: false, open_to_roles: '', is_hiring: false, hiring_roles: '' };
+  const [status, setStatus] = useState(emptyStatus);
+  const [originalStatus, setOriginalStatus] = useState(emptyStatus);
+
 
   useEffect(() => {
     if (!user) {
@@ -119,6 +126,15 @@ export default function Profile() {
       education: JSON.stringify(edu),
       skills: JSON.stringify(sk),
     });
+
+    const statusData = {
+      open_to_work: !!data.open_to_work,
+      open_to_roles: data.open_to_roles || '',
+      is_hiring: !!data.is_hiring,
+      hiring_roles: data.hiring_roles || '',
+    };
+    setStatus(statusData);
+    setOriginalStatus(statusData);
     setHasUnsavedChanges(false);
   };
 
@@ -138,10 +154,12 @@ export default function Profile() {
       bannerUrl !== originalData.banner_url ||
       JSON.stringify(experience) !== originalRich.experience ||
       JSON.stringify(education) !== originalRich.education ||
-      JSON.stringify(skills) !== originalRich.skills;
+      JSON.stringify(skills) !== originalRich.skills ||
+      JSON.stringify(status) !== JSON.stringify(originalStatus);
 
     setHasUnsavedChanges(hasChanges);
-  }, [formData, bannerUrl, originalData, experience, education, skills, originalRich]);
+  }, [formData, bannerUrl, originalData, experience, education, skills, originalRich, status, originalStatus]);
+
 
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -313,6 +331,11 @@ export default function Profile() {
           experience,
           education,
           skills,
+          open_to_work: status.open_to_work,
+          open_to_roles: status.open_to_roles || null,
+          is_hiring: status.is_hiring,
+          hiring_roles: status.hiring_roles || null,
+
           avatar_zoom: formData.avatar_zoom,
           avatar_position_x: formData.avatar_position_x,
           avatar_position_y: formData.avatar_position_y,
@@ -354,7 +377,16 @@ export default function Profile() {
         education: JSON.stringify(savedEdu),
         skills: JSON.stringify(savedSkills),
       });
+      const savedStatus = {
+        open_to_work: !!updatedData.open_to_work,
+        open_to_roles: updatedData.open_to_roles || '',
+        is_hiring: !!updatedData.is_hiring,
+        hiring_roles: updatedData.hiring_roles || '',
+      };
+      setStatus(savedStatus);
+      setOriginalStatus(savedStatus);
       setHasUnsavedChanges(false);
+
 
       toast({ title: 'Success', description: 'Profile saved successfully.' });
 
@@ -385,6 +417,8 @@ export default function Profile() {
     setExperience(parseJsonArray<ExperienceItem>(JSON.parse(originalRich.experience)));
     setEducation(parseJsonArray<EducationItem>(JSON.parse(originalRich.education)));
     setSkills(parseJsonArray<string>(JSON.parse(originalRich.skills)));
+    setStatus(originalStatus);
+
 
     setHasUnsavedChanges(false);
     setShowUnsavedDialog(false);
@@ -630,7 +664,58 @@ export default function Profile() {
 
                 <Separator />
 
+                {/* Profile status frame */}
+                <div className="space-y-4">
+                  <Label className="text-sm font-medium">Profile status frame</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Shows a badge around your profile photo, like LinkedIn's "Open to work" and "Hiring" frames.
+                  </p>
+
+                  <div className="flex items-start justify-between gap-4 rounded-lg border border-border p-4">
+                    <div className="space-y-1">
+                      <Label htmlFor="open_to_work" className="text-sm">Open to work</Label>
+                      <p className="text-xs text-muted-foreground">Let buyers and sellers know you're available.</p>
+                    </div>
+                    <Switch
+                      id="open_to_work"
+                      checked={status.open_to_work}
+                      onCheckedChange={(v) => setStatus(prev => ({ ...prev, open_to_work: v }))}
+                    />
+                  </div>
+                  {status.open_to_work && (
+                    <Input
+                      placeholder="Roles you're open to (e.g. AI Automation Consultant)"
+                      maxLength={160}
+                      value={status.open_to_roles}
+                      onChange={(e) => setStatus(prev => ({ ...prev, open_to_roles: e.target.value }))}
+                    />
+                  )}
+
+                  <div className="flex items-start justify-between gap-4 rounded-lg border border-border p-4">
+                    <div className="space-y-1">
+                      <Label htmlFor="is_hiring" className="text-sm">Hiring</Label>
+                      <p className="text-xs text-muted-foreground">Show that you're recruiting for your team.</p>
+                    </div>
+                    <Switch
+                      id="is_hiring"
+                      checked={status.is_hiring}
+                      onCheckedChange={(v) => setStatus(prev => ({ ...prev, is_hiring: v }))}
+                    />
+                  </div>
+                  {status.is_hiring && (
+                    <Input
+                      placeholder="Roles you're hiring for (e.g. Prompt Engineer)"
+                      maxLength={160}
+                      value={status.hiring_roles}
+                      onChange={(e) => setStatus(prev => ({ ...prev, hiring_roles: e.target.value }))}
+                    />
+                  )}
+                </div>
+
+                <Separator />
+
                 {/* Read-only info */}
+
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">

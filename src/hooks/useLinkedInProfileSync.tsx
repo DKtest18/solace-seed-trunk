@@ -31,7 +31,7 @@ export function useLinkedInProfileSync(user: User | null) {
       try {
         const { data: existing } = await db
           .from('dkai_profiles')
-          .select('id, full_name, avatar_url, linkedin_url, is_linkedin_verified')
+          .select('id, full_name, avatar_url, linkedin_url, headline, is_linkedin_verified')
           .eq('id', user.id)
           .maybeSingle();
 
@@ -41,11 +41,14 @@ export function useLinkedInProfileSync(user: User | null) {
           meta.name || meta.full_name ||
           [meta.given_name, meta.family_name].filter(Boolean).join(' ') || null;
         const avatarUrl: string | null = meta.picture || meta.avatar_url || null;
+        const headline: string | null = meta.headline || meta.title || null;
 
         const payload: Record<string, any> = { is_linkedin_verified: true };
         if (fullName && !existing?.full_name) payload.full_name = fullName;
         if (avatarUrl && !existing?.avatar_url) payload.avatar_url = avatarUrl;
         if (linkedinUrl && !existing?.linkedin_url) payload.linkedin_url = linkedinUrl;
+        if (headline && !existing?.headline) payload.headline = headline;
+
 
         if (existing) {
           await db.from('dkai_profiles').update(payload).eq('id', user.id);

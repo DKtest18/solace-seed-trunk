@@ -222,7 +222,7 @@ export async function parseLinkedInExport(file: File): Promise<LinkedInImportRes
     return result;
   }
 
-  const zip = await JSZip.loadAsync(file);
+  const zip = await JSZip.loadAsync(await file.arrayBuffer());
   const csvEntries = Object.values(zip.files)
     .filter((entry) => !entry.dir && entry.name.toLowerCase().endsWith('.csv'))
     .slice(0, 500);

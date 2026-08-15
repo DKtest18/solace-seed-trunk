@@ -93,14 +93,29 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
         aria-labelledby="seller-agreement-title"
         className="w-full max-w-2xl rounded-lg border bg-card shadow-xl flex flex-col max-h-[92vh]"
       >
-        <div className="px-6 pt-6 pb-3 border-b flex items-center gap-2">
-          <FileText className="h-5 w-5 text-primary" />
-          <h2 id="seller-agreement-title" className="text-xl font-bold">
-            Seller Agreement
-          </h2>
+        <div className="px-6 pt-6 pb-3 border-b flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" />
+            <h2 id="seller-agreement-title" className="text-xl font-bold">
+              Seller Agreement
+            </h2>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={scrollToPdf}
+            className="text-primary"
+          >
+            <ArrowDown className="h-4 w-4 mr-1" />
+            Jump to PDF
+          </Button>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 py-4">
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain scroll-smooth px-6 py-4"
+        >
           <SellerAgreementBody
             pdfVersion={pdfDoc?.version}
             downloaded={downloaded}

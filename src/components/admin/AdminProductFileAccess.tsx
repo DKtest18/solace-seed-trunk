@@ -98,9 +98,11 @@ export function AdminProductFileAccess({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
-        <Alert variant="destructive">
+        <Alert variant={isReview ? 'default' : 'destructive'}>
           <AlertDescription className="text-sm">
-            You must provide a justification (≥20 chars). Links expire after 15 minutes.
+            {isReview
+              ? 'Provide a short reason for the download. Links expire after 15 minutes and every access is logged.'
+              : 'You must provide a justification (≥20 chars). Links expire after 15 minutes.'}
           </AlertDescription>
         </Alert>
         {files.map(f => (

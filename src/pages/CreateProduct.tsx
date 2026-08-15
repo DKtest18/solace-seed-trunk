@@ -795,16 +795,42 @@ export default function CreateProduct() {
 
   // Inline notice only — Stripe connection lives on the account / Payment Settings page,
   // it is NOT a step in product creation anymore.
-  const StripeConnectionNotice = () => {
-    const { data: status } = useQuery({
+  const PayoutConnectionNotice = () => {
+    const { data: stripeStatus } = useQuery({
       queryKey: ['stripe-connect-status', user?.id],
       queryFn: fetchStripeConnectStatus,
       enabled: !!user,
       staleTime: 60_000,
     });
-    const connected = !!status && isStripeConnectedForOnboarding(status);
-    if (connected || !status) return null;
+    const { data: paypalStatus } = useQuery({
+      queryKey: ['paypal-connect-status', user?.id],
+      queryFn: fetchPayPalConnectStatus,
+      enabled: !!user,
+      staleTime: 60_000,
+    });
+
+    const stripeConnected = !!stripeStatus && isStripeConnectedForOnboarding(stripeStatus);
+    const paypalConnected = !!paypalStatus && isPayPalConnectedForOnboarding(paypalStatus);
+    if (stripeConnected || paypalConnected) return null;
+    if (!stripeStatus && !paypalStatus) return null;
+
     return (
+      <Alert className="mb-4">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          No payout account connected yet (Stripe or PayPal). You can still submit this product for
+          review and it will be shown in the marketplace to everyone — including visitors without an
+          account — but it <strong>cannot be bought</strong> until you connect Stripe or PayPal.{' '}
+          <Link to="/seller/payment-settings" className="underline font-medium">
+            Open Payment Settings
+          </Link>
+          .
+        </AlertDescription>
+      </Alert>
+    );
+  };
+
+  return (
       <Alert variant="destructive" className="mb-4">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
@@ -837,7 +863,7 @@ export default function CreateProduct() {
           )}
         </div>
 
-        <StripeConnectionNotice />
+        <PayoutConnectionNotice />
 
         <Card className="mb-6">
           <CardContent className="pt-6">

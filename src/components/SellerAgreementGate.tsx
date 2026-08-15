@@ -5,7 +5,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, FileText } from 'lucide-react';
 import {
@@ -93,14 +92,14 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
           </h2>
         </div>
 
-        <ScrollArea className="flex-1 min-h-0 max-h-[60vh] px-6 py-4">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 py-4">
           <SellerAgreementBody
             pdfVersion={pdfDoc?.version}
             downloaded={downloaded}
             pdfBusy={pdfBusy}
             onDownload={download}
           />
-        </ScrollArea>
+        </div>
 
         <div className="px-6 py-4 border-t space-y-4">
           {shownError && (

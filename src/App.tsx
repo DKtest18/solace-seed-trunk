@@ -67,6 +67,7 @@ import AdminPaymentSettings from "./pages/AdminPaymentSettings";
 import NotFound from "./pages/NotFound";
 import Legal from "./pages/Legal";
 import LegalOverview from "./pages/LegalOverview";
+import ContentPolicy from "./pages/ContentPolicy";
 import LicenseTerms from "./pages/LicenseTerms";
 import AdminReports from "./pages/AdminReports";
 import AdminEmailLogs from "./pages/AdminEmailLogs";
@@ -214,7 +215,10 @@ const App = () => (
             <Route path="/admin/payment-settings" element={<AdminRouteGuard><AdminPaymentSettings /></AdminRouteGuard>} />
             <Route path="/profile/:username" element={<PublicProfile />} />
             <Route path="/purchase-history" element={<WaitlistGuard><PurchaseHistory /></WaitlistGuard>} />
+            <Route path="/content-policy" element={<ContentPolicy />} />
+            <Route path="/legal/content-policy" element={<ContentPolicy />} />
             <Route path="/legal" element={<LegalOverview />} />
+
             <Route path="/legal/imprint" element={<Impressum />} />
             <Route path="/legal/licenses" element={<LicenseTerms />} />
             <Route path="/legal/refund" element={<RefundPolicy />} />

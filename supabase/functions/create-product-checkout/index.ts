@@ -1,5 +1,6 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
+import { isProductPurchasable } from '../_shared/purchasable.ts';
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -11,6 +12,10 @@ Deno.serve(async (req) => {
   try {
     const { productId, paymentMethod, shippingAddress } = await req.json();
     const admin = getServiceClient();
+
+    // PROVIDER-AGNOSTIC GUARD — fails closed before any payment object exists.
+    const guard = await isProductPurchasable(admin, productId);
+    if (!guard.ok) return errorResponse(guard.reason!, 400);
 
     // Get product details
     const { data: product, error: productError } = await admin

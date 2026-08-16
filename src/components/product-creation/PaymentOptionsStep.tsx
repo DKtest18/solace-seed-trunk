@@ -31,12 +31,27 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
 
   const isStripeConnected = !!status && isStripeConnectedForOnboarding(status);
 
-  // Auto-set card payment method once connected (effect avoids state-update during render).
+  // PayPal counts as a connected provider too.
+  const { data: paypalReady } = useQuery({
+    queryKey: ['paypal-ready', user?.id],
+    enabled: !!user,
+    staleTime: 60_000,
+    queryFn: async () => {
+      if (!user) return false;
+      const methods = await fetchSellerAcceptedMethods(user.id);
+      return methods.paypal;
+    },
+  });
+
+  const hasProvider = isStripeConnected || !!paypalReady;
+
+  // Payment method is always recorded so the wizard can be completed even
+  // without a connected provider (the product just cannot be purchased yet).
   useEffect(() => {
-    if (isStripeConnected && !data.payment_methods?.includes('card')) {
+    if (!data.payment_methods?.includes('card')) {
       onChange('payment_methods', ['card']);
     }
-  }, [isStripeConnected]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isStripeConnected, paypalReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) {
     return (
@@ -46,7 +61,7 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
     );
   }
 
-  if (!isStripeConnected) {
+  if (!hasProvider) {
     return (
       <div className="space-y-6">
         <div className="space-y-2">
@@ -56,26 +71,35 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
           </p>
         </div>
 
-        <Alert variant="destructive">
+        <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            You need to connect your Stripe account before you can list products for sale.
-            Payments are processed securely via Stripe Connect.
+            No payment provider connected yet. You can still submit this product for review, and once
+            approved it will be visible to everyone on the marketplace — but it cannot be purchased
+            until you connect Stripe or PayPal.
           </AlertDescription>
         </Alert>
 
         <Button
+          variant="outline"
           onClick={() =>
             navigate(`/seller/payment-settings?from=${encodeURIComponent('/create-product?step=8')}`)
           }
           className="w-full"
         >
           <ExternalLink className="h-4 w-4 mr-2" />
-          Connect Stripe Account
+          Connect Stripe or PayPal
         </Button>
+
+        {errors?.payment_methodsError && (
+          <Alert variant="destructive">
+            <AlertDescription>{errors.payment_methodsError}</AlertDescription>
+          </Alert>
+        )}
       </div>
     );
   }
+
 
   return (
     <div className="space-y-6">

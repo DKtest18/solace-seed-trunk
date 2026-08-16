@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
 import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/stripeConnectStatus';
+import { fetchSellerAcceptedMethods } from '@/lib/paypalCheckout';
 
 interface PaymentOptionsStepProps {
   data: { payment_methods?: string[] };

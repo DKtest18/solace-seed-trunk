@@ -10,9 +10,10 @@ import * as tus from 'tus-js-client';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-export const DEMO_VIDEO_BUCKET = 'product-media';
-/** 2.5 GB per demo video file (resumable TUS upload). */
-export const MAX_DEMO_VIDEO_BYTES = 2.5 * 1024 * 1024 * 1024;
+/** PRIVATE bucket — demo videos are never publicly readable. */
+export const DEMO_VIDEO_BUCKET = 'product-demo-videos';
+/** 2.4 GB per demo video file (2.5 GB project limit minus headroom). */
+export const MAX_DEMO_VIDEO_BYTES = 2.4 * 1024 * 1024 * 1024;
 export const MAX_DEMO_VIDEOS = 5;
 
 const SUPABASE_URL = 'https://dwqpkdatzdqhplgyhigg.supabase.co';
@@ -107,7 +108,7 @@ export function DemoVideoStep({ data, onChange, errors }: DemoVideoStepProps) {
       return;
     }
     if (file.size > MAX_DEMO_VIDEO_BYTES) {
-      setFileError('That file is larger than 2.5 GB. Please compress it or use a Loom link.');
+      setFileError('That file is larger than 2.4 GB. Please compress it or use a Loom link.');
       return;
     }
     if (paths.length >= MAX_DEMO_VIDEOS) {
@@ -122,7 +123,7 @@ export function DemoVideoStep({ data, onChange, errors }: DemoVideoStepProps) {
       const token = sessionData.session?.access_token;
       if (!token) throw new Error('Your session expired. Please sign in again.');
       const ext = file.name.split('.').pop() || 'mp4';
-      const path = `${user.id}/demo/${crypto.randomUUID()}.${ext}`;
+      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
       await uploadResumable(path, file, token);
       setPaths([...paths, `${DEMO_VIDEO_BUCKET}/${path}`]);
       setProgress(100);
@@ -179,7 +180,7 @@ export function DemoVideoStep({ data, onChange, errors }: DemoVideoStepProps) {
         </CollapsibleTrigger>
         <CollapsibleContent className="pt-4 space-y-3">
           <p className="text-sm text-muted-foreground">
-            Up to {MAX_DEMO_VIDEOS} video files, each up to 2.5 GB. Large uploads are resumable — if your
+            Up to {MAX_DEMO_VIDEOS} video files, each up to 2.4 GB. Large uploads are resumable — if your
             connection drops, picking the same file again continues where it stopped. Files stay private and
             are only shown to our review team.
           </p>

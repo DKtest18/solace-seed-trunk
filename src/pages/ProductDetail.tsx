@@ -457,7 +457,7 @@ export default function ProductDetail() {
                         onClick={handlePurchase}
                         disabled={soldOut || notBuyable}
                       >
-                        {soldOut ? 'Sold out' : notBuyable ? 'Not available for purchase' : 'Buy Now'}
+                        {soldOut ? 'Sold out' : notBuyable ? 'Not yet available for purchase — coming soon' : 'Buy Now'}
                       </Button>
                       <Button size="lg" variant="outline" onClick={() => user ? setReportOpen(true) : navigate('/login')} className="gap-2">
                         <Flag className="h-4 w-4" /> Report

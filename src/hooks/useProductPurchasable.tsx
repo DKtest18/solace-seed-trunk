@@ -15,15 +15,16 @@ export function useProductPurchasable(productId?: string) {
     queryKey: ['product-purchasable', productId],
     enabled: !!productId,
     staleTime: 60_000,
+    retry: 1,
     queryFn: async () => {
       const { data, error } = await db.rpc('dkai_product_purchasable', {
         p_product_id: productId,
       });
-      // Fail open on transport errors so a temporary glitch never hides the
-      // buy button for a properly connected seller; the edge function still
-      // enforces the rule server-side.
-      if (error) return true;
-      return data !== false;
+      // FAIL CLOSED: any error or indeterminate result means "not purchasable".
+      // A failed check must never expose a buy button; the edge functions
+      // enforce the same rule server-side.
+      if (error) return false;
+      return data === true;
     },
   });
 }

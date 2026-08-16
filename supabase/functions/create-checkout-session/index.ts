@@ -13,6 +13,7 @@
 
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
+import { isProductPurchasable } from '../_shared/purchasable.ts';
 
 // Fallback fee if seller profile has no platform_fee_percent set.
 const DEFAULT_PLATFORM_FEE_PERCENT = 5;
@@ -39,6 +40,11 @@ Deno.serve(async (req) => {
     if (!productId) return errorResponse('productId required', 400);
 
     const admin = getServiceClient();
+
+    // PROVIDER-AGNOSTIC GUARD — runs before any Stripe object or order row is
+    // created, so a direct API call cannot bypass the UI. Fails closed.
+    const guard = await isProductPurchasable(admin, productId);
+    if (!guard.ok) return errorResponse(guard.reason!, 400);
 
     const { data: product, error: pErr } = await admin
       .from('dkai_products')

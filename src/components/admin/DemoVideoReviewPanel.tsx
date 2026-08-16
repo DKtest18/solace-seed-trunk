@@ -55,7 +55,7 @@ export function DemoVideoReviewPanel({ demoVideoUrl, demoVideoStoragePath, demoV
       for (const path of paths) {
         const [bucket, ...rest] = path.split('/');
         const objectPath = rest.join('/') || bucket;
-        const realBucket = rest.length ? bucket : 'product-media';
+        const realBucket = rest.length ? bucket : 'product-demo-videos';
         const { data, error } = await supabase.storage
           .from(realBucket)
           .createSignedUrl(objectPath, 60 * 60);

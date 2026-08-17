@@ -18,6 +18,7 @@ import { useHasRole } from '@/hooks/useUserRole';
 import { LinkedInConnectCard } from '@/components/settings/LinkedInConnectCard';
 import { AccountDeletionSettings } from '@/components/settings/AccountDeletionSettings';
 import { PrivacyDataSettings } from '@/components/settings/PrivacyDataSettings';
+import { TwoFactorSettings } from '@/components/security/TwoFactorSettings';
 
 export default function ProfileSettings() {
   const { user } = useAuth();
@@ -236,7 +237,8 @@ export default function ProfileSettings() {
           </TabsList>
 
           <div className="min-w-0">
-          <TabsContent value="security" className="mt-0">
+          <TabsContent value="security" className="mt-0 space-y-6">
+            <TwoFactorSettings />
             <Card className="bg-white border border-border rounded-xl p-6 shadow-none">
               <CardHeader className="p-0 mb-6">
                 <CardTitle className="font-display text-xl font-semibold mb-1 flex items-center gap-2">

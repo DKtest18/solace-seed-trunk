@@ -167,3 +167,9 @@ verify_jwt = false
 [functions.open-dispute]
 verify_jwt = false
 
+
+[functions.mfa-recovery-codes]
+verify_jwt = false
+
+[functions.mfa-redeem-recovery-code]
+verify_jwt = false

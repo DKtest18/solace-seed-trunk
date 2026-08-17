@@ -219,6 +219,11 @@ const sections: { title: string; body: JSX.Element }[] = [
             Section 3.2.
           </li>
         </ul>
+        <p className="mt-4">
+          Platform operators may access account records — including account names, email addresses,
+          sign-up and sign-in dates, and product counts — for operational, security, and review
+          purposes. Accounts may be suspended or deleted where a documented reason exists.
+        </p>
       </>
     ),
   },

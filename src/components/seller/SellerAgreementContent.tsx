@@ -45,6 +45,11 @@ export const CLAUSES: { heading: string; body: string }[] = [
     body:
       'Any non-public information about the platform, its backend, or its operations that you encounter is confidential and may not be disclosed or used outside the scope of your seller activity.',
   },
+  {
+    heading: '7. Demo videos and archived review material.',
+    body:
+      'Demo videos and any other material you submit for pre-publication review are stored by the Platform, including in archived form after review is complete, so that the Platform can document how a listing was assessed. To the extent permitted by applicable law, DK AI Marketplace and Dari Kastrati accept no liability for the loss, deletion, corruption, or unauthorized access to this archived review material, except where such loss results from intent or gross negligence on the part of DK AI Marketplace. You should retain your own copy of any demo video you submit.',
+  },
 ];
 
 /** Shared Seller Obligations PDF lookup + signed-URL download logic. */

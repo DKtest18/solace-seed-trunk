@@ -106,6 +106,8 @@ import { SellerLayout } from "@/components/SellerLayout";
 import SellerSetupRequirements from "./pages/SellerSetupRequirements";
 import BuyerHandoverCredentials from "./pages/BuyerHandoverCredentials";
 import SellerCredentialAccess from "./pages/SellerCredentialAccess";
+import AdminAccounts from "./pages/AdminAccounts";
+import { MfaChallengeGate } from "@/components/MfaChallengeGate";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -125,7 +127,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <>
+          <MfaChallengeGate>
             <RouteSeo />
             <>
 
@@ -139,6 +141,7 @@ const App = () => (
             <Route path="/admin/product-review" element={<AdminRouteGuard><AdminProductReview /></AdminRouteGuard>} />
             <Route path="/admin/products" element={<Navigate to="/admin/product-review" replace />} />
             <Route path="/admin/users" element={<AdminRouteGuard><AdminUsers /></AdminRouteGuard>} />
+            <Route path="/admin/accounts" element={<AdminRouteGuard><AdminAccounts /></AdminRouteGuard>} />
             <Route path="/" element={<Index />} />
             <Route path="/waitlist" element={<Waitlist />} />
             <Route path="/blog/top-ai-agent-marketplaces" element={<BlogTopAiAgentMarketplaces />} />

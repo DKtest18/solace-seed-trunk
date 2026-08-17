@@ -247,7 +247,7 @@ const App = () => (
               <Footer />
             </>
 
-          </>
+          </MfaChallengeGate>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

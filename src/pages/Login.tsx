@@ -56,13 +56,17 @@ export default function Login() {
 
       const { data: profile } = await db
         .from('dkai_profiles')
-        .select('is_2fa_enabled, is_banned, ban_expires_at, is_deleted')
+        .select('is_2fa_enabled, is_banned, banned_at, ban_expires_at, is_deleted')
         .eq('id', user.id)
         .single();
 
       if (profile?.is_deleted) {
         await supabase.auth.signOut();
         throw new Error('This account has been deleted. Contact support at support@dkaimarketplace.com');
+      }
+      if (profile?.banned_at && !profile?.is_banned) {
+        await supabase.auth.signOut();
+        throw new Error('Your account has been suspended. Contact support at support@dkaimarketplace.com');
       }
       if (profile?.is_banned) {
         const banExpires = profile.ban_expires_at ? new Date(profile.ban_expires_at) : null;

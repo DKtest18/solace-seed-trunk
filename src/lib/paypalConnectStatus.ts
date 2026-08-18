@@ -100,9 +100,27 @@ export async function fetchPayPalConnectStatus(): Promise<PayPalConnectStatus> {
 }
 
 
+/** Origin the deployed function accepts when the current host isn't allow-listed. */
+const PAYPAL_CANONICAL_ORIGIN = 'https://dkaimarketplace.com';
+
+function normalizeOnboardingOrigin(origin: string): string {
+  try {
+    const { protocol, hostname } = new URL(origin);
+    const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+    if (isLocal) return origin;
+    // Preview/sandbox hosts are rejected by the function's origin allow-list.
+    if (protocol !== 'https:' || hostname.endsWith('.lovable.app')) {
+      return PAYPAL_CANONICAL_ORIGIN;
+    }
+    return origin;
+  } catch {
+    return PAYPAL_CANONICAL_ORIGIN;
+  }
+}
+
 export async function createPayPalOnboardingLink(origin: string): Promise<string> {
   const { data, error } = await supabase.functions.invoke('paypal-connect-onboarding', {
-    body: { origin },
+    body: { origin: normalizeOnboardingOrigin(origin) },
   });
   if (error || !(data as any)?.url) {
     const detail = await readFunctionErrorMessage(error);

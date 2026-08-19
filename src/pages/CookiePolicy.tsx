@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 
 export default function CookiePolicy() {
-  const today = new Date().toLocaleDateString();
   return (
     <main className="max-w-3xl mx-auto py-12 px-6">
       <Button variant="ghost" asChild className="mb-4">
@@ -15,7 +14,7 @@ export default function CookiePolicy() {
           <Printer className="h-4 w-4" /> Print
         </Button>
       </div>
-      <p className="text-muted-foreground mb-8">Last updated: {today}</p>
+      <p className="text-muted-foreground mb-8">Last updated: 19.8.2026</p>
 
       <article className="space-y-8 text-foreground leading-relaxed">
         <section>
@@ -31,16 +30,16 @@ export default function CookiePolicy() {
 
           <h3 className="font-semibold mt-4 mb-1">A) Strictly necessary cookies (no consent required)</h3>
           <ul className="list-disc pl-6 text-muted-foreground space-y-1">
-            <li><code>supabase-auth-token</code> – authentication (session, 1 year)</li>
-            <li><code>supabase-auth-refresh</code> – token refresh (1 year)</li>
-            <li><code>csrf-token</code> – protection against CSRF (session)</li>
+            <li><code>supabase-auth-token</code>: authentication (session, 1 year)</li>
+            <li><code>supabase-auth-refresh</code>: token refresh (1 year)</li>
+            <li><code>csrf-token</code>: protection against CSRF (session)</li>
           </ul>
 
           <h3 className="font-semibold mt-4 mb-1">B) Functional cookies (consent required)</h3>
           <ul className="list-disc pl-6 text-muted-foreground space-y-1">
-            <li><code>language-preference</code> – language (12 months)</li>
-            <li><code>theme-preference</code> – light/dark mode (12 months)</li>
-            <li><code>cookie-consent-preferences</code> – your cookie choices (24 months)</li>
+            <li><code>language-preference</code>: language (12 months)</li>
+            <li><code>theme-preference</code>: light/dark mode (12 months)</li>
+            <li><code>cookie-consent-preferences</code>: your cookie choices (24 months)</li>
           </ul>
 
           <h3 className="font-semibold mt-4 mb-1">C) Analytics cookies (consent required)</h3>
@@ -54,11 +53,12 @@ export default function CookiePolicy() {
           <h2 className="text-2xl font-semibold mb-2">3. Third-party cookies</h2>
           <ul className="list-disc pl-6 text-muted-foreground space-y-1">
             <li>
-              Stripe Payments: stripe.com sets its own cookies during checkout (
-              <a href="https://stripe.com/cookies-policy" target="_blank" rel="noreferrer" className="text-primary underline">
-                stripe.com/cookies-policy
-              </a>
-              )
+              Stripe: stripe.com sets its own cookies during checkout (see Stripe&apos;s cookie
+              policy on stripe.com)
+            </li>
+            <li>
+              PayPal: paypal.com sets its own cookies during checkout (see PayPal&apos;s privacy and
+              cookie statements on paypal.com)
             </li>
             <li>No Google Analytics, no Facebook Pixel, no advertising trackers.</li>
           </ul>
@@ -98,11 +98,12 @@ export default function CookiePolicy() {
           Questions? Email{" "}
           <a href="mailto:support@dkaimarketplace.com" className="text-primary underline">
             support@dkaimarketplace.com
-          </a>{" "}
-          – Read also:{" "}
+          </a>
+          . Read also:{" "}
           <Link to="/privacy" className="text-primary underline">
             Privacy Policy
           </Link>
+          .
         </p>
       </article>
     </main>

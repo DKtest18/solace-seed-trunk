@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-const LAST_UPDATED = "1 July 2026";
+const LAST_UPDATED = "19.8.2026";
 
 const sections = [
   { id: "controller", title: "1. Controller" },
@@ -108,7 +108,7 @@ const Privacy = () => {
               <h3 className="font-display text-lg font-semibold mt-6 mb-2">Account data</h3>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
                 <li>E-mail address</li>
-                <li>Password (stored encrypted via bcrypt through Supabase)</li>
+                <li>Password (stored hashed via bcrypt through Supabase)</li>
                 <li>First and last name (optional)</li>
                 <li>Profile picture (optional)</li>
               </ul>
@@ -116,8 +116,17 @@ const Privacy = () => {
               <h3 className="font-display text-lg font-semibold mt-6 mb-2">Seller profile data</h3>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
                 <li>Biography, skills, specialities</li>
-                <li>Stripe Connect account ID (for payments)</li>
+                <li>Stripe Connect account ID (for Stripe payouts)</li>
+                <li>PayPal merchant ID and onboarding status (for PayPal payouts)</li>
                 <li>Ratings and reviews</li>
+              </ul>
+
+              <h3 className="font-display text-lg font-semibold mt-6 mb-2">Product review data</h3>
+              <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
+                <li>
+                  Demo videos and review material submitted with products, stored including in
+                  archived form after review to document how a listing was assessed
+                </li>
               </ul>
 
               <h3 className="font-display text-lg font-semibold mt-6 mb-2">Transaction data</h3>
@@ -127,12 +136,28 @@ const Privacy = () => {
                 <li>Communication between buyers and sellers</li>
               </ul>
 
+              <h3 className="font-display text-lg font-semibold mt-6 mb-2">
+                Setup handover data (where a product requires it)
+              </h3>
+              <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
+                <li>
+                  Credentials the buyer submits for product setup (e.g. API keys), encrypted
+                  (AES-256-GCM); decryption is possible only server-side, access is logged, entries
+                  are deleted after the access window or on completion of handover. These values are
+                  accessible only to the seller of the product and the submitting buyer, not to the
+                  platform operator.
+                </li>
+              </ul>
+
               <h3 className="font-display text-lg font-semibold mt-6 mb-2">Payment data</h3>
               <div className="bg-muted/50 border-l-4 border-primary p-4 my-4">
                 <ul className="list-disc list-inside ml-4 space-y-2">
-                  <li>Processed exclusively by Stripe</li>
-                  <li>We do NOT store card details</li>
-                  <li>We see only the last 4 digits for accounting purposes</li>
+                  <li>Processed exclusively by Stripe and PayPal</li>
+                  <li>We do NOT store card details or full bank details</li>
+                  <li>
+                    We see only the last 4 digits (where provided by the processor) for accounting
+                    purposes
+                  </li>
                 </ul>
               </div>
 
@@ -146,8 +171,8 @@ const Privacy = () => {
 
               <h3 className="font-display text-lg font-semibold mt-6 mb-2">Two-factor authentication data (when enabled)</h3>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>TOTP secret (AES-GCM encrypted)</li>
-                <li>Backup codes (SHA-256 hashed)</li>
+                <li>TOTP secret (managed by Supabase Auth, encrypted)</li>
+                <li>Recovery codes (stored as salted hashes only, single use)</li>
               </ul>
             </section>
 
@@ -155,13 +180,19 @@ const Privacy = () => {
               <h2 className="font-display text-2xl font-semibold mt-10 mb-4">5. Purposes</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
                 <li>Providing the marketplace service</li>
-                <li>Payment processing via Stripe</li>
+                <li>Payment processing via Stripe and PayPal</li>
                 <li>Sending transactional e-mails</li>
+                <li>Product review before publication</li>
                 <li>Protection against fraud and abuse</li>
                 <li>Compliance with legal retention obligations</li>
                 <li>Service improvement (in aggregated / anonymised form)</li>
                 <li>Direct communication on the platform</li>
               </ul>
+              <p className="text-base leading-relaxed text-foreground mb-4">
+                Platform operators may access account records (account names, e-mail addresses,
+                sign-up and sign-in dates, product counts) for operational, security, and review
+                purposes. Accounts may be suspended or deleted where a documented reason exists.
+              </p>
             </section>
 
             <section id="recipients">
@@ -179,7 +210,7 @@ const Privacy = () => {
                   supabase.com/legal/dpa
                 </a>
                 <br />
-                Data categories: account, profile, transactions
+                Data categories: account, profile, transactions, product files, review material
               </p>
 
               <h3 className="font-display text-lg font-semibold mt-6 mb-2">b) Stripe Payments Europe Ltd.</h3>
@@ -194,7 +225,17 @@ const Privacy = () => {
                 Data categories: payment, transaction, identity
               </p>
 
-              <h3 className="font-display text-lg font-semibold mt-6 mb-2">c) Resend (e-mail service)</h3>
+              <h3 className="font-display text-lg font-semibold mt-6 mb-2">
+                c) PayPal (Europe) S.à r.l. et Cie, S.C.A.
+              </h3>
+              <p className="text-base leading-relaxed text-foreground mb-4">
+                Purpose: payment processing, seller payouts<br />
+                Location: Luxembourg (EU), USA<br />
+                Privacy: paypal.com/privacy<br />
+                Data categories: payment, transaction, identity
+              </p>
+
+              <h3 className="font-display text-lg font-semibold mt-6 mb-2">d) Resend (e-mail service)</h3>
               <p className="text-base leading-relaxed text-foreground mb-4">
                 Purpose: sending transactional e-mails<br />
                 Location: USA<br />
@@ -219,6 +260,14 @@ const Privacy = () => {
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
                 <li>Account data: until account deletion + 30-day grace period</li>
                 <li>Transaction data: 10 years (Swiss accounting, CO Art. 958f)</li>
+                <li>
+                  Setup handover credentials: until the access window expires or handover completes,
+                  then deleted
+                </li>
+                <li>
+                  Demo videos and review material: for the life of the listing and in archived form
+                  thereafter, to document the review
+                </li>
                 <li>Server logs: 90 days</li>
                 <li>E-mail logs: 12 months</li>
                 <li>Cookies: see Cookie Policy (max. 24 months)</li>
@@ -252,7 +301,7 @@ const Privacy = () => {
                     </a>{" "}
                     (subject: <span className="font-mono text-sm">Data protection request</span>)
                   </li>
-                  <li>Self-service: Settings &rarr; Privacy</li>
+                  <li>Self-service: Settings, Privacy</li>
                   <li>Response time: within 30 days</li>
                 </ul>
               </div>
@@ -298,12 +347,22 @@ const Privacy = () => {
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
                 <li>TLS encryption</li>
                 <li>Database encryption at Supabase</li>
-                <li>Two-factor authentication available</li>
-                <li>Sensitive data encrypted with AES-GCM</li>
+                <li>Two-factor authentication available for every account</li>
+                <li>
+                  Buyer setup credentials encrypted with AES-256-GCM, server-side decryption only,
+                  access logged, automatic deletion
+                </li>
                 <li>Passwords hashed via bcrypt</li>
-                <li>Regular security audits</li>
-                <li>Stripe-certified payment processing (PCI DSS)</li>
+                <li>Row-level security on database access</li>
+                <li>Stripe and PayPal certified payment processing (PCI DSS)</li>
               </ul>
+              <p className="text-base leading-relaxed text-foreground mb-4">
+                No security measure is absolute. To the maximum extent permitted by applicable law,
+                DK AI Marketplace and Dari Kastrati are not liable for damage caused by unauthorized
+                access to, or failure of, platform or third-party infrastructure, except where it
+                results from our intent or gross negligence. Our statutory duties in the event of a
+                data breach (section 14) remain unaffected.
+              </p>
             </section>
 
             <section id="breaches">
@@ -312,7 +371,7 @@ const Privacy = () => {
                 In the event of a data breach we notify:
               </p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>The competent supervisory authority within 72 hours</li>
+                <li>The competent supervisory authority as required by law</li>
                 <li>
                   Affected users without undue delay when there is a high risk (Art. 24 revFADP,
                   Art. 34 GDPR)

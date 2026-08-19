@@ -14,7 +14,7 @@ export default function LicenseTerms() {
         <div className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 mb-6 flex items-start gap-2 text-sm">
           <AlertTriangle className="w-4 h-4 mt-0.5 text-amber-600" />
           <span>
-            <strong>Not legal advice — subject to review by a Swiss lawyer.</strong> This page
+            <strong>Not legal advice, subject to review by a Swiss lawyer.</strong> This page
             summarises DK AI Marketplace license tiers in plain language. Individual sellers may
             add their own product-specific terms in addition to (but not overriding) these.
           </span>
@@ -24,8 +24,9 @@ export default function LicenseTerms() {
         <p className="text-muted-foreground mb-8">
           Every product on DK AI Marketplace is sold under one of the license tiers below. The
           buyer chooses the tier at checkout, and the resulting order acts as the license
-          reference. <strong>Resale of a product on DK AI Marketplace or on any other marketplace
-          is never permitted, regardless of tier.</strong>
+          reference. The license is granted by the seller, not by DK AI Marketplace.{' '}
+          <strong>Resale of a product on DK AI Marketplace or on any other marketplace is never
+          permitted, regardless of tier.</strong>
         </p>
 
         <section className="space-y-6">
@@ -65,7 +66,7 @@ export default function LicenseTerms() {
               <li>Full transfer of rights from the seller to the buyer.</li>
               <li>The product is permanently removed from the marketplace after transfer.</li>
               <li>
-                Licenses issued to earlier buyers under lower tiers remain valid — the assignment
+                Licenses issued to earlier buyers under lower tiers remain valid; the assignment
                 is subject to those pre-existing licenses.
               </li>
               <li>See the IP Assignment Agreement generated at checkout for the exact rights transferred.</li>
@@ -79,6 +80,14 @@ export default function LicenseTerms() {
             By offering a product on any tier, the seller warrants that they own or control all
             rights they purport to grant, that the product does not infringe third-party
             intellectual property, and that sublicensing beyond the granted tier is not permitted.
+          </p>
+
+          <h2 className="text-lg font-semibold pt-3">Platform role and liability</h2>
+          <p>
+            DK AI Marketplace and Dari Kastrati are not a party to the license and give no warranty
+            for any product, its quality, security, legality, or fitness for purpose. To the maximum
+            extent permitted by applicable law, any claim arising from a product or its license is
+            directed at the seller, not at the platform.
           </p>
 
           <h2 className="text-lg font-semibold pt-3">Governing law &amp; jurisdiction</h2>

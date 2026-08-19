@@ -237,7 +237,15 @@ export function MfaChallengeGate({ children }: { children: ReactNode }) {
               >
                 Back to authenticator code
               </button>
+              <p className="text-xs text-muted-foreground text-center">
+                If you don&apos;t have access anymore, write an email to{' '}
+                <a href="mailto:support@dkaimarketplace.com" className="text-primary hover:underline">
+                  support@dkaimarketplace.com
+                </a>
+                .
+              </p>
             </>
+
           )}
 
           <Button variant="ghost" className="w-full" onClick={() => signOut()}>

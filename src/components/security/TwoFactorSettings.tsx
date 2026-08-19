@@ -143,7 +143,11 @@ export function TwoFactorSettings() {
       const { error: unenrollError } = await supabase.auth.mfa.unenroll({ factorId: id });
       if (unenrollError) throw unenrollError;
 
-      await supabase.functions.invoke('mfa-recovery-codes', { body: { action: 'clear' } });
+      try {
+        await supabase.functions.invoke('mfa-recovery-codes', { body: { action: 'clear' } });
+      } catch {
+        // Non-critical: the factor is already unenrolled.
+      }
 
       setDisableCode('');
       setStage('idle');
@@ -224,8 +228,10 @@ export function TwoFactorSettings() {
                   body: { count: 8 },
                 });
                 setBusy(false);
-                if (e) return setError(e.message);
-                if (!data?.codes) return setError(data?.error ?? 'Could not generate codes.');
+                if (e || !data?.codes)
+                  return setError(
+                    'Could not generate recovery codes right now. Please try again later or contact support@dkaimarketplace.com.',
+                  );
                 setRecoveryCodes(data.codes);
                 setSavedConfirmed(false);
                 setStage('recovery');

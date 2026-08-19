@@ -80,16 +80,23 @@ export default function Login() {
         }
       }
 
-      if (profile?.is_2fa_enabled) {
+      // --- Two-factor check (Supabase Auth native MFA) ---------------------
+      // Authoritative: does this account have a verified TOTP factor, and is
+      // the current session still at aal1? If so, STOP here.
+      const mfaRequired = await isMfaChallengeRequired();
+
+      if (mfaRequired) {
         setTempUserId(user.id);
         setTempEmail(email);
         setStep('2fa');
+        setTwoFACode('');
         setFailedAttempts(0);
         setLoading(false);
-      } else {
-        toast({ title: 'Welcome back!', description: 'You have successfully signed in.' });
-        await checkUserRoleAndRedirect(user.id);
+        return;
       }
+
+      toast({ title: 'Welcome back!', description: 'You have successfully signed in.' });
+      await checkUserRoleAndRedirect(user.id);
     } catch (error: any) {
       toast({
         title: 'Error',

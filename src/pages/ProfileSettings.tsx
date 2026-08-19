@@ -221,8 +221,6 @@ export default function ProfileSettings() {
                 )}
               </CardContent>
             </Card>
-
-            <LinkedInConnectCard />
           </TabsContent>
 
 

@@ -40,7 +40,7 @@ export function TwoFactorSettings() {
       autoDownloadedRef.current = true;
       downloadCodes();
     }
-  }, [stage, recoveryCodes]);
+  }, [stage, recoveryCodes, downloadCodes]);
 
   const startEnroll = async () => {
     setBusy(true);

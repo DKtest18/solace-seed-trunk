@@ -182,18 +182,6 @@ export function TwoFactorSettings() {
     }
   };
 
-  const downloadCodes = () => {
-    const text = `DK AI Marketplace — 2FA recovery codes\n\n${recoveryCodes.join(
-      '\n',
-    )}\n\nEach code works exactly once.`;
-    const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'dkai-recovery-codes.txt';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <Card>
       <CardHeader>

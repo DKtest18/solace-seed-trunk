@@ -83,17 +83,26 @@ export function useMfaStatus() {
         currentLevel = null;
       }
 
-      const nextLevel = verified.length > 0 ? 'aal2' : currentLevel;
+      // The account has 2FA if EITHER source says so (server wins when the
+      // client list is stale/empty).
+      const hasVerifiedFactor = serverHasVerified === true || verified.length > 0;
+
+      const factors = verified.length
+        ? verified.map((f: any) => ({ id: f.id, friendly_name: f.friendly_name }))
+        : serverFactorIds.map((id) => ({ id, friendly_name: null }));
+
+      const nextLevel = hasVerifiedFactor ? 'aal2' : currentLevel;
 
       return {
-        factors: verified.map((f: any) => ({ id: f.id, friendly_name: f.friendly_name })),
-        hasVerifiedFactor: verified.length > 0,
+        factors,
+        hasVerifiedFactor,
         currentLevel,
         nextLevel,
         // Account has 2FA and this session is not aal2 (including when the aal
         // claim could not be read) => challenge required.
-        challengeRequired: verified.length > 0 && currentLevel !== 'aal2',
+        challengeRequired: hasVerifiedFactor && currentLevel !== 'aal2',
       };
+
     },
   });
 }

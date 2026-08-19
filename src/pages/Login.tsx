@@ -10,6 +10,51 @@ import { lovable } from '@/integrations/lovable/index';
 import dkLogo from '@/assets/dk-ai-logo.png';
 import { LinkedInAuthButton } from '@/components/auth/LinkedInAuthButton';
 
+/**
+ * Authoritative two-factor check right after sign-in.
+ * Returns true when the account has a verified TOTP factor but the current
+ * session is still aal1 (i.e. the 2FA code has NOT been entered yet).
+ * Fails CLOSED: any uncertainty results in the challenge being shown.
+ */
+async function isMfaChallengeRequired(): Promise<boolean> {
+  let hasVerifiedFactor = false;
+
+  // 1) Server-side truth (SECURITY DEFINER RPC reading auth.mfa_factors).
+  try {
+    const { data, error } = await (supabase as any).rpc('dkai_my_mfa_state');
+    if (!error && data) {
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row?.has_verified_factor) hasVerifiedFactor = true;
+    }
+  } catch {
+    /* ignore — client list below is the fallback */
+  }
+
+  // 2) Client factor list (GET /user).
+  try {
+    const { data } = await supabase.auth.mfa.listFactors();
+    const all = [...(((data as any)?.totp) ?? []), ...(((data as any)?.all) ?? [])];
+    if (all.some((f: any) => f?.status === 'verified')) hasVerifiedFactor = true;
+  } catch {
+    /* ignore */
+  }
+
+  if (!hasVerifiedFactor) return false;
+
+  // Current assurance level from the JWT `aal` claim.
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token;
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(
+      atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')),
+    );
+    return payload?.aal !== 'aal2';
+  } catch {
+    return true;
+  }
+}
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

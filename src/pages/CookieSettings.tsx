@@ -46,7 +46,7 @@ export default function CookieSettings() {
       <p className="text-muted-foreground mb-8">
         Manage how DK AI Marketplace uses cookies on your device. See our{" "}
         <Link to="/cookies" className="text-primary underline">
-          Cookie policy
+          Cookie Policy
         </Link>{" "}
         for details.
       </p>
@@ -68,12 +68,18 @@ export default function CookieSettings() {
         <Row label="Marketing" description="Not used on DK AI Marketplace." checked={false} disabled />
       </div>
 
+      <p className="text-sm text-muted-foreground mt-6">
+        Third-party cookies from our payment providers (Stripe, PayPal) are set during checkout
+        under their own policies.
+      </p>
+
       <div className="flex gap-2 mt-6">
         <Button onClick={handleSave}>Save changes</Button>
         <Button variant="outline" onClick={handleReset}>
           Reset to defaults
         </Button>
       </div>
+
     </main>
   );
 }

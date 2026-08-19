@@ -34,8 +34,10 @@ export default function Login() {
   const safeRedirect = redirectTo && redirectTo.startsWith('/') ? redirectTo : null;
 
   useEffect(() => {
-    if (user) navigate(safeRedirect ?? '/', { replace: true });
-  }, [user, navigate, safeRedirect]);
+    // Never auto-redirect while a 2FA challenge is pending: the session exists
+    // but is still aal1, so login is NOT complete.
+    if (user && step === 'credentials') navigate(safeRedirect ?? '/', { replace: true });
+  }, [user, navigate, safeRedirect, step]);
 
   const checkUserRoleAndRedirect = async (userId: string) => {
     const { data: roles } = await supabase

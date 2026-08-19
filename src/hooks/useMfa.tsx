@@ -30,14 +30,40 @@ export function useMfaStatus() {
     refetchOnWindowFocus: true,
     retry: 1,
     queryFn: async () => {
-      // listFactors() calls GET /user, so this is the authoritative,
-      // network-fresh factor list (the cached session.user may not carry
-      // `factors` at all, which is what made getAuthenticatorAssuranceLevel()
-      // report nextLevel = aal1 and skip the challenge).
-      const { data: factorData, error: factorError } = await supabase.auth.mfa.listFactors();
-      if (factorError) throw factorError;
+      // 1) Authoritative server check: a SECURITY DEFINER function that reads
+      //    auth.mfa_factors for auth.uid(). This works even when the client
+      //    factor list is empty/cached (the bug that let 2FA accounts skip the
+      //    challenge, especially for accounts enrolled before this release).
+      let serverHasVerified: boolean | null = null;
+      let serverFactorIds: string[] = [];
+      try {
+        const { data: rpcData, error: rpcError } = await (supabase as any).rpc('dkai_my_mfa_state');
+        if (!rpcError && rpcData) {
+          const row = Array.isArray(rpcData) ? rpcData[0] : rpcData;
+          if (row) {
+            serverHasVerified = !!row.has_verified_factor;
+            serverFactorIds = (row.factor_ids ?? []).map((x: any) => String(x));
+          }
+        }
+      } catch {
+        serverHasVerified = null;
+      }
 
-      const verified = (factorData?.totp ?? []).filter((f: any) => f.status === 'verified');
+      // 2) Client factor list (GET /user).
+      const { data: factorData, error: factorError } = await supabase.auth.mfa.listFactors();
+      if (factorError && serverHasVerified === null) throw factorError;
+
+      const allFactors: any[] = [
+        ...((factorData as any)?.totp ?? []),
+        ...((factorData as any)?.all ?? []),
+      ];
+      const seen = new Set<string>();
+      const verified = allFactors.filter((f: any) => {
+        if (!f?.id || seen.has(f.id)) return false;
+        seen.add(f.id);
+        return f.status === 'verified';
+      });
+
 
       // Current assurance level comes from the JWT `aal` claim — the only
       // value the server actually honours.

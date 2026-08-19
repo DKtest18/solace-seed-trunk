@@ -155,10 +155,11 @@ export default function Login() {
 
   const handleVerify2FA = async () => {
     if (twoFACode.length !== 6) {
-      toast({ title: 'Invalid code', description: 'Please enter a 6-digit code.', variant: 'destructive' });
+      setTwoFAError('Please enter a 6-digit code.');
       return;
     }
     setLoading(true);
+    setTwoFAError(null);
     try {
       // Native Supabase MFA: challenge + verify the enrolled TOTP factor.
       // Success upgrades the session to aal2 — that is what the server honours.
@@ -199,16 +200,13 @@ export default function Login() {
         await supabase.auth.signOut();
         setStep('credentials');
         setFailedAttempts(0);
+        setTwoFAError(null);
         toast({ title: 'Too many failed attempts', description: 'Account temporarily locked. Please try again later.', variant: 'destructive' });
         return;
       }
-      toast({
-        title: 'Invalid code',
-        description: `${failureMessage ?? 'Incorrect code.'} ${5 - newAttempts} attempts remaining.`,
-        variant: 'destructive',
-      });
+      setTwoFAError(`${failureMessage ?? 'Incorrect code.'} ${5 - newAttempts} attempts remaining.`);
     } catch (error: any) {
-      toast({ title: 'Error', description: error.message || 'Failed to verify code. Please try again.', variant: 'destructive' });
+      setTwoFAError(error.message || 'Failed to verify code. Please try again.');
     } finally {
       setLoading(false);
     }

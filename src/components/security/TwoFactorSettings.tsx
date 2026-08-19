@@ -80,19 +80,36 @@ export function TwoFactorSettings() {
       });
       if (verifyError) throw verifyError;
 
-      // Recovery codes are mandatory: issued server-side, only hashes stored.
-      const { data: rc, error: rcError } = await supabase.functions.invoke('mfa-recovery-codes', {
-        body: { count: 8 },
-      });
-      if (rcError) throw rcError;
-      if (!rc?.codes) throw new Error(rc?.error ?? 'Could not generate recovery codes.');
+      // Activation itself is complete at this point (native Supabase MFA).
+      // Recovery codes are a best-effort extra: if the helper function is not
+      // reachable, 2FA still stays enabled instead of dead-ending the user.
+      let codes: string[] | null = null;
+      try {
+        const { data: rc, error: rcError } = await supabase.functions.invoke('mfa-recovery-codes', {
+          body: { count: 8 },
+        });
+        if (!rcError && rc?.codes) codes = rc.codes as string[];
+      } catch {
+        codes = null;
+      }
 
-      setRecoveryCodes(rc.codes);
-      setSavedConfirmed(false);
-      setStage('recovery');
       setCode('');
       invalidateMfa();
-      toast({ title: '2FA activated', description: 'Save your recovery codes now.' });
+      await refetch();
+
+      if (codes) {
+        setRecoveryCodes(codes);
+        setSavedConfirmed(false);
+        setStage('recovery');
+        toast({ title: '2FA activated', description: 'Save your recovery codes now.' });
+      } else {
+        setStage('idle');
+        setError(
+          'Two-factor authentication is active, but recovery codes could not be generated right now. Use "Regenerate recovery codes" later, or contact support@dkaimarketplace.com.',
+        );
+        toast({ title: '2FA activated', description: 'Two-factor authentication is now on.' });
+      }
+
     } catch (e: any) {
       setError(e?.message ?? String(e));
     } finally {
@@ -126,7 +143,11 @@ export function TwoFactorSettings() {
       const { error: unenrollError } = await supabase.auth.mfa.unenroll({ factorId: id });
       if (unenrollError) throw unenrollError;
 
-      await supabase.functions.invoke('mfa-recovery-codes', { body: { action: 'clear' } });
+      try {
+        await supabase.functions.invoke('mfa-recovery-codes', { body: { action: 'clear' } });
+      } catch {
+        // Non-critical: the factor is already unenrolled.
+      }
 
       setDisableCode('');
       setStage('idle');
@@ -207,8 +228,10 @@ export function TwoFactorSettings() {
                   body: { count: 8 },
                 });
                 setBusy(false);
-                if (e) return setError(e.message);
-                if (!data?.codes) return setError(data?.error ?? 'Could not generate codes.');
+                if (e || !data?.codes)
+                  return setError(
+                    'Could not generate recovery codes right now. Please try again later or contact support@dkaimarketplace.com.',
+                  );
                 setRecoveryCodes(data.codes);
                 setSavedConfirmed(false);
                 setStage('recovery');

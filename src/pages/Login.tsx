@@ -346,6 +346,10 @@ export default function Login() {
                 </InputOTP>
               </div>
 
+              <p className="text-sm text-muted-foreground text-center mb-6">
+                If you don't have access anymore, write an email to support@dkaimarketplace.com
+              </p>
+
               <Button
                 variant="hero"
                 onClick={handleVerify2FA}
@@ -362,7 +366,13 @@ export default function Login() {
                 Use backup code instead
               </button>
               <button
-                onClick={() => { setStep('credentials'); setTwoFACode(''); }}
+                onClick={async () => {
+                  // Abandoning the challenge must drop the half-authenticated session.
+                  await supabase.auth.signOut();
+                  setTwoFACode('');
+                  setFailedAttempts(0);
+                  setStep('credentials');
+                }}
                 className="w-full text-sm text-muted-foreground hover:text-gray-900 mt-2"
               >
                 Back to login

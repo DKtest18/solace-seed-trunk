@@ -61,6 +61,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'credentials' | '2fa' | 'backup'>('credentials');
   const [twoFACode, setTwoFACode] = useState('');
+  const [twoFAError, setTwoFAError] = useState<string | null>(null);
   const [backupCode, setBackupCode] = useState('');
   const [tempUserId, setTempUserId] = useState('');
   const [tempEmail, setTempEmail] = useState('');
@@ -154,10 +155,11 @@ export default function Login() {
 
   const handleVerify2FA = async () => {
     if (twoFACode.length !== 6) {
-      toast({ title: 'Invalid code', description: 'Please enter a 6-digit code.', variant: 'destructive' });
+      setTwoFAError('Please enter a 6-digit code.');
       return;
     }
     setLoading(true);
+    setTwoFAError(null);
     try {
       // Native Supabase MFA: challenge + verify the enrolled TOTP factor.
       // Success upgrades the session to aal2 — that is what the server honours.
@@ -198,16 +200,13 @@ export default function Login() {
         await supabase.auth.signOut();
         setStep('credentials');
         setFailedAttempts(0);
+        setTwoFAError(null);
         toast({ title: 'Too many failed attempts', description: 'Account temporarily locked. Please try again later.', variant: 'destructive' });
         return;
       }
-      toast({
-        title: 'Invalid code',
-        description: `${failureMessage ?? 'Incorrect code.'} ${5 - newAttempts} attempts remaining.`,
-        variant: 'destructive',
-      });
+      setTwoFAError(`${failureMessage ?? 'Incorrect code.'} ${5 - newAttempts} attempts remaining.`);
     } catch (error: any) {
-      toast({ title: 'Error', description: error.message || 'Failed to verify code. Please try again.', variant: 'destructive' });
+      setTwoFAError(error.message || 'Failed to verify code. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -336,28 +335,42 @@ export default function Login() {
                 Enter the 6-digit code from your authenticator app.
               </p>
 
-              <div className="flex justify-center mb-6">
-                <InputOTP maxLength={6} value={twoFACode} onChange={setTwoFACode}>
-                  <InputOTPGroup>
-                    {[0, 1, 2, 3, 4, 5].map((i) => (
-                      <InputOTPSlot key={i} index={i} className="w-11 h-12 rounded-lg border border-border text-center text-lg font-medium" />
-                    ))}
-                  </InputOTPGroup>
-                </InputOTP>
-              </div>
-
-              <p className="text-sm text-muted-foreground text-center mb-6">
-                If you don't have access anymore, write an email to support@dkaimarketplace.com
-              </p>
-
-              <Button
-                variant="hero"
-                onClick={handleVerify2FA}
-                className="w-full"
-                disabled={loading || twoFACode.length !== 6}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleVerify2FA();
+                }}
+                className="space-y-4"
               >
-                {loading ? 'Verifying...' : 'Verify and sign in'}
-              </Button>
+                <div className="flex justify-center">
+                  <InputOTP maxLength={6} value={twoFACode} onChange={setTwoFACode}>
+                    <InputOTPGroup>
+                      {[0, 1, 2, 3, 4, 5].map((i) => (
+                        <InputOTPSlot key={i} index={i} className="w-11 h-12 rounded-lg border border-border text-center text-lg font-medium" />
+                      ))}
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+
+                {twoFAError && (
+                  <p className="text-sm text-destructive text-center" role="alert" aria-live="assertive">
+                    {twoFAError}
+                  </p>
+                )}
+
+                <p className="text-sm text-muted-foreground text-center">
+                  If you don't have access anymore, write an email to support@dkaimarketplace.com
+                </p>
+
+                <Button
+                  type="submit"
+                  variant="hero"
+                  className="w-full"
+                  disabled={loading || twoFACode.length !== 6}
+                >
+                  {loading ? 'Verifying...' : 'Verify and sign in'}
+                </Button>
+              </form>
 
               <button
                 onClick={() => setStep('backup')}
@@ -370,6 +383,7 @@ export default function Login() {
                   // Abandoning the challenge must drop the half-authenticated session.
                   await supabase.auth.signOut();
                   setTwoFACode('');
+                  setTwoFAError(null);
                   setFailedAttempts(0);
                   setStep('credentials');
                 }}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import QRCode from 'react-qr-code';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';

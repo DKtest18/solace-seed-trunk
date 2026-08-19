@@ -114,31 +114,60 @@ export default function Login() {
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('verify-2fa-code', { body: { code: twoFACode } });
-      if (error) throw error;
-      if (data?.valid) {
+      // Native Supabase MFA: challenge + verify the enrolled TOTP factor.
+      // Success upgrades the session to aal2 — that is what the server honours.
+      const { data: factorData } = await supabase.auth.mfa.listFactors();
+      const factorId =
+        ((factorData as any)?.totp ?? []).find((f: any) => f.status === 'verified')?.id ??
+        ((factorData as any)?.all ?? []).find((f: any) => f.status === 'verified')?.id;
+
+      let verified = false;
+      let failureMessage: string | null = null;
+
+      if (factorId) {
+        const { error } = await supabase.auth.mfa.challengeAndVerify({
+          factorId,
+          code: twoFACode,
+        });
+        if (error) failureMessage = error.message;
+        else verified = true;
+      } else {
+        // Legacy fallback for accounts still on the custom TOTP table.
+        const { data, error } = await supabase.functions.invoke('verify-2fa-code', {
+          body: { code: twoFACode },
+        });
+        if (error) failureMessage = error.message;
+        else verified = !!data?.valid;
+      }
+
+      if (verified) {
         toast({ title: 'Welcome back!', description: 'You have successfully signed in.' });
         await checkUserRoleAndRedirect(tempUserId);
-      } else {
-        const newAttempts = failedAttempts + 1;
-        setFailedAttempts(newAttempts);
-        if (newAttempts >= 5) {
-          await supabase.auth.signOut();
-          setStep('credentials');
-          setTwoFACode('');
-          setFailedAttempts(0);
-          toast({ title: 'Too many failed attempts', description: 'Account temporarily locked. Please try again later.', variant: 'destructive' });
-          return;
-        }
-        toast({ title: 'Invalid code', description: `Incorrect code. ${5 - newAttempts} attempts remaining.`, variant: 'destructive' });
-        setTwoFACode('');
+        return;
       }
+
+      const newAttempts = failedAttempts + 1;
+      setFailedAttempts(newAttempts);
+      setTwoFACode('');
+      if (newAttempts >= 5) {
+        await supabase.auth.signOut();
+        setStep('credentials');
+        setFailedAttempts(0);
+        toast({ title: 'Too many failed attempts', description: 'Account temporarily locked. Please try again later.', variant: 'destructive' });
+        return;
+      }
+      toast({
+        title: 'Invalid code',
+        description: `${failureMessage ?? 'Incorrect code.'} ${5 - newAttempts} attempts remaining.`,
+        variant: 'destructive',
+      });
     } catch (error: any) {
       toast({ title: 'Error', description: error.message || 'Failed to verify code. Please try again.', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleVerifyBackupCode = async () => {
     if (!backupCode || backupCode.length !== 8) {

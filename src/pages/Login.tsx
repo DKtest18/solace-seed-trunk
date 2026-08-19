@@ -61,6 +61,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'credentials' | '2fa' | 'backup'>('credentials');
   const [twoFACode, setTwoFACode] = useState('');
+  const [twoFAError, setTwoFAError] = useState<string | null>(null);
   const [backupCode, setBackupCode] = useState('');
   const [tempUserId, setTempUserId] = useState('');
   const [tempEmail, setTempEmail] = useState('');

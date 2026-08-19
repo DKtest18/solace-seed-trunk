@@ -11,10 +11,11 @@ const sections = [
     title: "1. Our role",
     body: (
       <p>
-        DK AI Marketplace (Dari Kastrati, Einzelunternehmen, Lucerne, Switzerland) operates a
-        marketplace connecting independent third-party sellers with buyers. Payments are processed
-        by Stripe and PayPal and go directly to the seller. We act as an intermediary and support
-        layer, not as the seller of the products.
+        DK AI Marketplace (Dari Kastrati, Einzelunternehmen, Adligenswil, Lucerne, Switzerland)
+        operates a marketplace connecting independent third-party sellers with buyers. Payments are
+        processed by Stripe and PayPal and go directly to the seller&apos;s connected payment
+        account. We act as an intermediary and support layer, not as the seller of the products.
+        Each purchase contract is between the buyer and the seller.
       </p>
     ),
   },
@@ -23,7 +24,7 @@ const sections = [
     body: (
       <>
         <p>
-          Refunds are reviewed by DK AI Marketplace support and may be granted where:
+          Refunds are reviewed by DK AI Marketplace support and may be granted only where:
         </p>
         <ul className="list-disc pl-5 mt-2 space-y-1">
           <li>the product was not delivered within the seller&apos;s stated delivery time, or</li>
@@ -34,7 +35,9 @@ const sections = [
           <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary hover:underline">
             {SUPPORT_EMAIL}
           </a>
-          .
+          . No refund is granted for change of mind, for missing requirements that were clearly
+          stated in the listing, for features that were never advertised, or for problems caused by
+          the buyer&apos;s own environment.
         </p>
       </>
     ),
@@ -45,8 +48,9 @@ const sections = [
       <p>
         Because products are digital and delivered immediately, buyers are asked at checkout to
         consent to immediate delivery and to acknowledge that the statutory 14-day right of
-        withdrawal is waived once download or access begins. This does not affect the
-        support-reviewed refund grounds in section 2.
+        withdrawal lapses once download or access begins. This does not affect the support-reviewed
+        refund grounds in section 2, and mandatory consumer rights in the buyer&apos;s country of
+        residence remain unaffected.
       </p>
     ),
   },
@@ -67,7 +71,8 @@ const sections = [
       <p>
         Where a refund is approved, it is debited from the seller&apos;s payment balance (Stripe or
         PayPal). The seller bears the cost of approved refunds and chargebacks on their sales. DK AI
-        Marketplace facilitates and processes the refund but does not itself sell the product.
+        Marketplace facilitates and processes the refund but does not itself sell the product and
+        does not fund refunds from its own means.
       </p>
     ),
   },
@@ -76,7 +81,7 @@ const sections = [
     body: (
       <p>
         The seller has 48 hours to respond to a refund request or dispute with evidence of delivery.
-        If the seller does not respond in time, the case is decided in the buyer&apos;s favor.
+        If the seller does not respond in time, the case is decided in the buyer&apos;s favour.
       </p>
     ),
   },
@@ -86,13 +91,26 @@ const sections = [
       <p>
         If a buyer opens a chargeback with their card issuer or PayPal instead of using this
         process, the disputed amount and any fees are recovered from the seller&apos;s balance.
-        Sellers agree to indemnify DK AI Marketplace for chargebacks, refunds, and losses arising
-        from their sales, to the extent permitted by law.
+        Sellers agree to indemnify DK AI Marketplace and Dari Kastrati for chargebacks, refunds, and
+        losses arising from their sales, to the extent permitted by law.
       </p>
     ),
   },
   {
-    title: "8. Contact",
+    title: "8. No compensation beyond refunds",
+    body: (
+      <p>
+        To the maximum extent permitted by applicable law, refunds under this policy are the sole
+        remedy available through the platform. DK AI Marketplace and Dari Kastrati do not pay
+        compensation for indirect or consequential loss, loss of profit, loss of data, business
+        interruption, or damage arising from platform downtime, technical faults, or unauthorized
+        access to platform or third-party infrastructure, except where such damage results from our
+        intent or gross negligence. Mandatory statutory rights remain unaffected.
+      </p>
+    ),
+  },
+  {
+    title: "9. Contact",
     body: (
       <p>
         All refund and dispute matters:{" "}

@@ -19,7 +19,7 @@ const LOCKOUT_MS = 5 * 60 * 1000;
  * regardless of whether the session came from email+password or LinkedIn OAuth.
  */
 export function MfaChallengeGate({ children }: { children: ReactNode }) {
-  const { user, signOut } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const { data: mfa, isLoading, error: statusError, refetch } = useMfaStatus();
   const invalidateMfa = useInvalidateMfaStatus();
 

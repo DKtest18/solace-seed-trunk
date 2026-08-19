@@ -10,6 +10,51 @@ import { lovable } from '@/integrations/lovable/index';
 import dkLogo from '@/assets/dk-ai-logo.png';
 import { LinkedInAuthButton } from '@/components/auth/LinkedInAuthButton';
 
+/**
+ * Authoritative two-factor check right after sign-in.
+ * Returns true when the account has a verified TOTP factor but the current
+ * session is still aal1 (i.e. the 2FA code has NOT been entered yet).
+ * Fails CLOSED: any uncertainty results in the challenge being shown.
+ */
+async function isMfaChallengeRequired(): Promise<boolean> {
+  let hasVerifiedFactor = false;
+
+  // 1) Server-side truth (SECURITY DEFINER RPC reading auth.mfa_factors).
+  try {
+    const { data, error } = await (supabase as any).rpc('dkai_my_mfa_state');
+    if (!error && data) {
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row?.has_verified_factor) hasVerifiedFactor = true;
+    }
+  } catch {
+    /* ignore — client list below is the fallback */
+  }
+
+  // 2) Client factor list (GET /user).
+  try {
+    const { data } = await supabase.auth.mfa.listFactors();
+    const all = [...(((data as any)?.totp) ?? []), ...(((data as any)?.all) ?? [])];
+    if (all.some((f: any) => f?.status === 'verified')) hasVerifiedFactor = true;
+  } catch {
+    /* ignore */
+  }
+
+  if (!hasVerifiedFactor) return false;
+
+  // Current assurance level from the JWT `aal` claim.
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token;
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(
+      atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')),
+    );
+    return payload?.aal !== 'aal2';
+  } catch {
+    return true;
+  }
+}
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,8 +79,10 @@ export default function Login() {
   const safeRedirect = redirectTo && redirectTo.startsWith('/') ? redirectTo : null;
 
   useEffect(() => {
-    if (user) navigate(safeRedirect ?? '/', { replace: true });
-  }, [user, navigate, safeRedirect]);
+    // Never auto-redirect while a 2FA challenge is pending: the session exists
+    // but is still aal1, so login is NOT complete.
+    if (user && step === 'credentials') navigate(safeRedirect ?? '/', { replace: true });
+  }, [user, navigate, safeRedirect, step]);
 
   const checkUserRoleAndRedirect = async (userId: string) => {
     const { data: roles } = await supabase
@@ -78,16 +125,23 @@ export default function Login() {
         }
       }
 
-      if (profile?.is_2fa_enabled) {
+      // --- Two-factor check (Supabase Auth native MFA) ---------------------
+      // Authoritative: does this account have a verified TOTP factor, and is
+      // the current session still at aal1? If so, STOP here.
+      const mfaRequired = await isMfaChallengeRequired();
+
+      if (mfaRequired) {
         setTempUserId(user.id);
         setTempEmail(email);
         setStep('2fa');
+        setTwoFACode('');
         setFailedAttempts(0);
         setLoading(false);
-      } else {
-        toast({ title: 'Welcome back!', description: 'You have successfully signed in.' });
-        await checkUserRoleAndRedirect(user.id);
+        return;
       }
+
+      toast({ title: 'Welcome back!', description: 'You have successfully signed in.' });
+      await checkUserRoleAndRedirect(user.id);
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -105,31 +159,60 @@ export default function Login() {
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('verify-2fa-code', { body: { code: twoFACode } });
-      if (error) throw error;
-      if (data?.valid) {
+      // Native Supabase MFA: challenge + verify the enrolled TOTP factor.
+      // Success upgrades the session to aal2 — that is what the server honours.
+      const { data: factorData } = await supabase.auth.mfa.listFactors();
+      const factorId =
+        ((factorData as any)?.totp ?? []).find((f: any) => f.status === 'verified')?.id ??
+        ((factorData as any)?.all ?? []).find((f: any) => f.status === 'verified')?.id;
+
+      let verified = false;
+      let failureMessage: string | null = null;
+
+      if (factorId) {
+        const { error } = await supabase.auth.mfa.challengeAndVerify({
+          factorId,
+          code: twoFACode,
+        });
+        if (error) failureMessage = error.message;
+        else verified = true;
+      } else {
+        // Legacy fallback for accounts still on the custom TOTP table.
+        const { data, error } = await supabase.functions.invoke('verify-2fa-code', {
+          body: { code: twoFACode },
+        });
+        if (error) failureMessage = error.message;
+        else verified = !!data?.valid;
+      }
+
+      if (verified) {
         toast({ title: 'Welcome back!', description: 'You have successfully signed in.' });
         await checkUserRoleAndRedirect(tempUserId);
-      } else {
-        const newAttempts = failedAttempts + 1;
-        setFailedAttempts(newAttempts);
-        if (newAttempts >= 5) {
-          await supabase.auth.signOut();
-          setStep('credentials');
-          setTwoFACode('');
-          setFailedAttempts(0);
-          toast({ title: 'Too many failed attempts', description: 'Account temporarily locked. Please try again later.', variant: 'destructive' });
-          return;
-        }
-        toast({ title: 'Invalid code', description: `Incorrect code. ${5 - newAttempts} attempts remaining.`, variant: 'destructive' });
-        setTwoFACode('');
+        return;
       }
+
+      const newAttempts = failedAttempts + 1;
+      setFailedAttempts(newAttempts);
+      setTwoFACode('');
+      if (newAttempts >= 5) {
+        await supabase.auth.signOut();
+        setStep('credentials');
+        setFailedAttempts(0);
+        toast({ title: 'Too many failed attempts', description: 'Account temporarily locked. Please try again later.', variant: 'destructive' });
+        return;
+      }
+      toast({
+        title: 'Invalid code',
+        description: `${failureMessage ?? 'Incorrect code.'} ${5 - newAttempts} attempts remaining.`,
+        variant: 'destructive',
+      });
     } catch (error: any) {
       toast({ title: 'Error', description: error.message || 'Failed to verify code. Please try again.', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleVerifyBackupCode = async () => {
     if (!backupCode || backupCode.length !== 8) {
@@ -263,6 +346,10 @@ export default function Login() {
                 </InputOTP>
               </div>
 
+              <p className="text-sm text-muted-foreground text-center mb-6">
+                If you don't have access anymore, write an email to support@dkaimarketplace.com
+              </p>
+
               <Button
                 variant="hero"
                 onClick={handleVerify2FA}
@@ -279,7 +366,13 @@ export default function Login() {
                 Use backup code instead
               </button>
               <button
-                onClick={() => { setStep('credentials'); setTwoFACode(''); }}
+                onClick={async () => {
+                  // Abandoning the challenge must drop the half-authenticated session.
+                  await supabase.auth.signOut();
+                  setTwoFACode('');
+                  setFailedAttempts(0);
+                  setStep('credentials');
+                }}
                 className="w-full text-sm text-muted-foreground hover:text-gray-900 mt-2"
               >
                 Back to login

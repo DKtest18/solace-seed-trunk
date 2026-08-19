@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-const LAST_UPDATED = "1 July 2026";
+const LAST_UPDATED = "19.8.2026";
 
 const sections = [
   { id: "scope", title: "1. Scope" },
@@ -58,13 +58,13 @@ export default function TermsOfService() {
 
             <div className="bg-primary/10 border border-primary/30 p-6 mb-8 rounded-lg">
               <p className="text-base leading-relaxed text-foreground">
-                <strong>Quick summary:</strong> These are the rules for using DK AI Marketplace.
-                By signing up you agree to them. Launch promo: 0% platform fee for the first 20
-                sales on the platform. After that, a small platform fee (default 5%) applies.
-                Payments are processed by Stripe or PayPal and go directly to the seller's connected payment account;
-                Stripe's standard payment processing fees apply and are borne by the seller.
-                Swiss law applies, and we are a marketplace (not a party to your transactions).
-                Full details below.
+                <strong>Quick summary:</strong> These are the rules for using DK AI Marketplace. By
+                signing up you agree to them. Launch promo: 0% platform fee for the first 20 sales
+                on the platform. After that, a small platform fee (default 5%) applies. Payments are
+                processed by Stripe or PayPal and go directly to the seller's connected payment
+                account; the provider's standard processing fees apply and are borne by the seller.
+                Swiss law applies, and we are a marketplace (not a party to your transactions). Full
+                details below.
               </p>
             </div>
 
@@ -102,7 +102,7 @@ export default function TermsOfService() {
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
                 <li><strong>&quot;Platform&quot;</strong> = dkaimarketplace.com including all services</li>
                 <li><strong>&quot;User&quot;</strong> = any natural or legal person with an account</li>
-                <li><strong>&quot;Buyer&quot;</strong> = user who purchases products</li>
+                <li><strong>&quot;Buyer&quot;</strong> = a person who purchases products, with or without an account (guest checkout)</li>
                 <li><strong>&quot;Seller&quot;</strong> = user who offers products</li>
                 <li><strong>&quot;Product&quot;</strong> = digital AI products, agents, templates, workflows</li>
                 <li><strong>&quot;Service&quot;</strong> = custom commission orders, expert calls</li>
@@ -122,8 +122,8 @@ export default function TermsOfService() {
             <section id="account">
               <h2 className="font-display text-2xl font-semibold mt-10 mb-4">4. Account Registration</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>E-mail address and secure password</li>
-                <li>You are responsible for your credentials</li>
+                <li>E-mail address and secure password; two-factor authentication is available and recommended</li>
+                <li>You are responsible for your credentials and for all activity under your account</li>
                 <li>Notify us immediately if you suspect misuse</li>
                 <li>We may refuse or close accounts</li>
               </ul>
@@ -137,28 +137,35 @@ export default function TermsOfService() {
               <p className="text-base leading-relaxed text-foreground mb-2 font-semibold">We provide:</p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
                 <li>The platform itself</li>
-                <li>Payment processing via Stripe Connect (direct charges to the seller's account)</li>
+                <li>Payment processing via our providers: Stripe Connect (direct charges to the seller's account) and PayPal</li>
                 <li>A dispute-handling system</li>
-                <li>Content moderation</li>
+                <li>Content moderation and pre-publication product review</li>
               </ul>
               <p className="text-base leading-relaxed text-foreground mb-2 font-semibold">We do NOT provide:</p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
                 <li>Any quality guarantee for offered products</li>
                 <li>Liability for seller-supplied content</li>
                 <li>Any uptime or availability guarantee</li>
+                <li>Any guarantee of sales, revenue, traffic, or visibility for sellers</li>
               </ul>
             </section>
 
             <section id="seller-obligations">
               <h2 className="font-display text-2xl font-semibold mt-10 mb-4">6. Seller Obligations</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Set up your own Stripe Connect account</li>
-                <li>Describe products truthfully</li>
+                <li>
+                  Connect your own payment account with at least one supported provider (Stripe or
+                  PayPal) to receive payouts. You may submit products for review before connecting a
+                  provider; approved products are then publicly visible but cannot be purchased until
+                  a provider is connected
+                </li>
+                <li>Describe products truthfully and include the required demo video with every product</li>
                 <li>Deliver within the promised timeframe</li>
-                <li>Respond to messages within 72 hours</li>
+                <li>Respond to messages within 72 hours; respond to refund requests and disputes within 48 hours (see section 11)</li>
                 <li>Only offer products for which you hold the necessary rights</li>
                 <li>Comply with all legal requirements (taxes, etc.)</li>
                 <li>Comply with EU AI Act transparency for AI products</li>
+                <li>Accept the Seller Agreement and Seller Rules before publishing</li>
               </ul>
             </section>
 
@@ -166,29 +173,33 @@ export default function TermsOfService() {
               <h2 className="font-display text-2xl font-semibold mt-10 mb-4">7. Buyer Obligations</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
                 <li>Provide truthful information</li>
-                <li>Check product suitability yourself</li>
+                <li>Check product suitability yourself before purchase</li>
                 <li>Pay in full and on time</li>
                 <li>Communicate custom order specifications clearly</li>
+                <li>
+                  Where a product requires setup credentials, provide them through the platform's
+                  encrypted handover, and rotate them after setup
+                </li>
               </ul>
             </section>
 
             <section id="payments">
               <h2 className="font-display text-2xl font-semibold mt-10 mb-4">8. Payments</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>All payments run through Stripe</li>
-                <li>We do not store card details</li>
+                <li>All payments run through our payment providers, Stripe or PayPal</li>
+                <li>We do not store card details or full bank details</li>
                 <li>Payments are captured at checkout (custom orders: upon acceptance)</li>
-                <li>Payments go directly to the seller's connected payment account — Stripe (direct charges) or PayPal</li>
-                <li>Stripe's standard payment processing fees apply and are borne by the seller</li>
+                <li>Payments go directly to the seller's connected payment account (Stripe direct charges, or PayPal); we do not hold seller funds</li>
+                <li>The provider's standard processing fees apply and are borne by the seller</li>
               </ul>
             </section>
 
             <section id="platform-fee">
               <h2 className="font-display text-2xl font-semibold mt-10 mb-4">9. Platform Fee</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Launch promo: 0% platform fee for the first 20 sales on the platform — sellers keep 100% (minus Stripe processing fees)</li>
-                <li>Afterwards: platform fee (default 5%) per transaction</li>
-                <li>Stripe processing fees always apply separately and are borne by the seller</li>
+                <li>Launch promo: 0% platform fee for the first 20 sales on the platform, platform-wide, first come first served; sellers keep 100% (minus payment processing fees)</li>
+                <li>Afterwards: platform fee (default 5%) per transaction, announced at least 30 days before it takes effect</li>
+                <li>Payment processing fees always apply separately and are borne by the seller</li>
               </ul>
             </section>
 
@@ -207,9 +218,9 @@ export default function TermsOfService() {
             <section id="refunds">
               <h2 className="font-display text-2xl font-semibold mt-10 mb-4">11. Refunds</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Because digital products are delivered immediately, the statutory right of
-                withdrawal does not apply (Art. 16 lit. m EU Directive 2011/83/EU). Buyers
-                confirm this at checkout.
+                Because digital products are delivered immediately, buyers consent at checkout to
+                immediate delivery and acknowledge that the statutory right of withdrawal lapses once
+                download or access begins (Art. 16 lit. m EU Directive 2011/83/EU, where applicable).
               </p>
               <p className="text-base leading-relaxed text-foreground mb-2 font-semibold">Refunds are granted only through DK AI Marketplace support review, for:</p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
@@ -217,7 +228,13 @@ export default function TermsOfService() {
                 <li>Product materially not as described in the listing</li>
               </ul>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Refund requests must be filed within 14 days of purchase. Approved refunds are for the full purchase price and are issued via Stripe to the buyer&apos;s original payment method, typically within 24–72 hours of approval.
+                Refund requests must be filed within 14 days of purchase. The seller must respond
+                within 48 hours; otherwise the case is decided in the buyer&apos;s favour. Approved
+                refunds are for the full purchase price, funded from the seller&apos;s provider
+                balance, and issued via the original payment method (Stripe or PayPal), typically
+                within 24-72 hours of approval. Refunds under this section are the sole remedy
+                available through the platform; section 16 applies otherwise. Mandatory consumer
+                rights remain unaffected.
               </p>
             </section>
 
@@ -235,9 +252,13 @@ export default function TermsOfService() {
               <h2 className="font-display text-2xl font-semibold mt-10 mb-4">13. Intellectual Property</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
                 <li>You keep all rights to your content</li>
-                <li>You grant us a non-exclusive licence to display it</li>
+                <li>You grant us a non-exclusive licence to display, market, and deliver it on the platform</li>
                 <li>You warrant that you hold all necessary rights</li>
                 <li>Infringement leads to account suspension and damages</li>
+                <li>
+                  Demo videos and review material you submit are stored by us, including in archived
+                  form after review, to document how a listing was assessed; keep your own copies
+                </li>
               </ul>
             </section>
 
@@ -258,8 +279,9 @@ export default function TermsOfService() {
             <section id="moderation">
               <h2 className="font-display text-2xl font-semibold mt-10 mb-4">15. Content Moderation</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
+                <li>Every product is reviewed before publication; we may approve, request changes, or decline</li>
                 <li>We may remove content without prior notice</li>
-                <li>We may suspend accounts for violations</li>
+                <li>We may suspend accounts for violations; suspensions and deletions are recorded with a reason</li>
                 <li>Permanent bans for repeated or serious violations</li>
                 <li>Outstanding payouts are reviewed on a case-by-case basis</li>
               </ul>
@@ -267,20 +289,31 @@ export default function TermsOfService() {
 
             <section id="liability">
               <h2 className="font-display text-2xl font-semibold mt-10 mb-4">16. Limitation of Liability</h2>
-              <p className="text-base leading-relaxed text-foreground mb-2">To the extent permitted by law:</p>
+              <p className="text-base leading-relaxed text-foreground mb-2">To the maximum extent permitted by applicable law:</p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
                 <li>We are not liable for the content or actions of other users</li>
-                <li>No liability for lost profits or consequential damages</li>
-                <li>Liability capped at the fees paid to us in the last 12 months</li>
-                <li>In case of intent or gross negligence: unlimited</li>
+                <li>No liability for lost profits, lost sales, lost data, business interruption, or consequential damages</li>
+                <li>
+                  No liability for damage arising from unauthorized access to, hacking of, or failure
+                  of the platform or third-party infrastructure (including Supabase, Stripe, PayPal,
+                  hosting and model providers), and no compensation is paid for such events
+                </li>
+                <li>No liability for interruptions or unavailability of the platform</li>
+                <li>Liability is capped at the fees paid to us in the last 12 months</li>
+                <li>
+                  In case of intent or gross negligence, and wherever liability cannot lawfully be
+                  excluded, liability remains unlimited
+                </li>
               </ul>
             </section>
 
             <section id="indemnification">
               <h2 className="font-display text-2xl font-semibold mt-10 mb-4">17. Indemnification</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                You shall indemnify us against all third-party claims arising out of your use of
-                the platform, including reasonable legal fees.
+                You shall indemnify us, including Dari Kastrati personally as operator, against all
+                third-party claims arising out of your use of the platform, your products, or your
+                breach of these terms, including reasonable legal fees, to the extent permitted by
+                law.
               </p>
             </section>
 
@@ -305,7 +338,8 @@ export default function TermsOfService() {
                 <li>Without reason: with 30 days' notice</li>
               </ul>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Outstanding payment obligations survive termination.
+                Outstanding payment obligations survive termination. Obligations relating to
+                completed sales (support, refunds) continue for a reasonable period.
               </p>
             </section>
 
@@ -321,8 +355,8 @@ export default function TermsOfService() {
             <section id="jurisdiction">
               <h2 className="font-display text-2xl font-semibold mt-10 mb-4">21. Jurisdiction</h2>
               <p className="text-base leading-relaxed text-foreground mb-4">
-                Exclusive place of jurisdiction is the Canton of Lucerne, Switzerland. We may also
-                sue consumers at their place of residence.
+                Exclusive place of jurisdiction is the Canton of Lucerne, Switzerland, unless
+                mandatory law provides otherwise.
               </p>
             </section>
 
@@ -355,20 +389,19 @@ export default function TermsOfService() {
                 DK AI Marketplace<br />
                 Udligenswilerstrasse 15<br />
                 6043 Adligenswil, Switzerland<br />
-                E-mail:{" "}
+                Business and legal matters:{" "}
                 <a href="mailto:management@dkaimarketplace.com" className="text-primary hover:underline">
                   management@dkaimarketplace.com
+                </a>
+                <br />
+                Support:{" "}
+                <a href="mailto:support@dkaimarketplace.com" className="text-primary hover:underline">
+                  support@dkaimarketplace.com
                 </a>
               </p>
             </section>
 
             <div className="mt-12 pt-8 border-t border-border">
-              <p className="text-base text-foreground mb-2">
-                Questions? Email{" "}
-                <a href="mailto:support@dkaimarketplace.com" className="text-primary hover:underline">
-                  support@dkaimarketplace.com
-                </a>
-              </p>
               <p className="text-base text-foreground">
                 Read also:{" "}
                 <Link to="/privacy" className="text-primary hover:underline">

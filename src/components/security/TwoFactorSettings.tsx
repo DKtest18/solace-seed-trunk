@@ -34,6 +34,18 @@ export function TwoFactorSettings() {
   const [savedConfirmed, setSavedConfirmed] = useState(false);
   const autoDownloadedRef = useRef(false);
 
+  const downloadCodes = () => {
+    const text = `DK AI Marketplace — 2FA recovery codes\n\n${recoveryCodes.join(
+      '\n',
+    )}\n\nEach code works exactly once.`;
+    const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'dkai-recovery-codes.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   // Automatically download recovery codes the first time they are shown.
   useEffect(() => {
     if (stage === 'recovery' && recoveryCodes.length > 0 && !autoDownloadedRef.current) {

@@ -32,6 +32,15 @@ export function TwoFactorSettings() {
   const [disableCode, setDisableCode] = useState('');
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
   const [savedConfirmed, setSavedConfirmed] = useState(false);
+  const autoDownloadedRef = useRef(false);
+
+  // Automatically download recovery codes the first time they are shown.
+  useEffect(() => {
+    if (stage === 'recovery' && recoveryCodes.length > 0 && !autoDownloadedRef.current) {
+      autoDownloadedRef.current = true;
+      downloadCodes();
+    }
+  }, [stage, recoveryCodes]);
 
   const startEnroll = async () => {
     setBusy(true);

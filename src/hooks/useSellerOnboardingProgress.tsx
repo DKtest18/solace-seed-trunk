@@ -79,7 +79,7 @@ export function useSellerOnboardingProgress() {
       const steps: OnboardingStep[] = [
         { id: 'profile', title: 'Profile Information', description: 'Set your Display Name and Username', required: true, completed: profileComplete, route: '/profile?from=checklist' },
         { id: 'email', title: 'Email Verification', description: 'Verify your email address', required: true, completed: !!user.email_confirmed_at, route: '/settings' },
-        { id: '2fa', title: '2FA Setup', description: 'Optional: Add two-factor authentication for extra security', required: false, completed: !!profile?.is_2fa_enabled, route: '/settings' },
+        { id: '2fa', title: '2FA Setup', description: 'Add two-factor authentication — required for selling', required: true, completed: hasVerifiedMfa, route: '/settings' },
         { id: 'seller-identity-age', title: 'Seller Identity & Age Verification', description: 'Provide your seller details and confirm you are 18+', required: true, completed: identityAndAgeComplete, route: '/seller-onboarding/identity' },
         { id: 'seller-terms', title: 'Seller Terms & Conditions', description: 'Review and accept the seller agreement', required: true, completed: termsAccepted, route: '/seller-onboarding/terms' },
       ];

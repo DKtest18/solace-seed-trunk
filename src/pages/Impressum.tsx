@@ -35,12 +35,21 @@ export default function Impressum() {
           </h2>
           <div className="text-base leading-relaxed text-muted-foreground">
             <p>
-              E-mail:{" "}
+              Business, legal and operator matters:{" "}
               <a
                 href="mailto:management@dkaimarketplace.com"
                 className="text-primary hover:underline"
               >
                 management@dkaimarketplace.com
+              </a>
+            </p>
+            <p>
+              Support:{" "}
+              <a
+                href="mailto:support@dkaimarketplace.com"
+                className="text-primary hover:underline"
+              >
+                support@dkaimarketplace.com
               </a>
             </p>
           </div>
@@ -76,10 +85,25 @@ export default function Impressum() {
           </div>
         </section>
 
+        <section>
+          <h2 className="font-display text-xl font-semibold mt-8 mb-3 text-foreground">
+            Disclaimer
+          </h2>
+          <div className="text-base leading-relaxed text-muted-foreground">
+            <p>
+              The content of this website is provided with care but without any warranty of
+              accuracy, completeness, or timeliness. Products offered on the marketplace are
+              supplied by independent third-party sellers, who are solely responsible for them. To
+              the maximum extent permitted by applicable law, DK AI Marketplace and Dari Kastrati
+              accept no liability for the content of external links or for damage arising from the
+              use of this website, except where such damage results from intent or gross negligence
+              on our part.
+            </p>
+          </div>
+        </section>
+
         <div className="mt-12 pt-6 border-t border-border">
-          <p className="text-sm text-muted-foreground">
-            Last updated: {new Date().toLocaleDateString()}
-          </p>
+          <p className="text-sm text-muted-foreground">Last updated: 19.8.2026</p>
         </div>
       </div>
     </AppLayout>

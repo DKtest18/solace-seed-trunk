@@ -76,6 +76,25 @@ export function useSellerOnboardingProgress() {
       // Step 1 (identity + age) is complete only when both are persisted.
       const identityAndAgeComplete = identityFieldsFilled && ageComplete;
 
+      // 2FA: authoritative native-MFA status (server RPC first, client factors as fallback).
+      let hasVerifiedMfa = false;
+      try {
+        const { data: mfaRow } = await (supabase as any).rpc('dkai_my_mfa_state');
+        const row = Array.isArray(mfaRow) ? mfaRow[0] : mfaRow;
+        if (row) hasVerifiedMfa = !!row.has_verified_factor;
+      } catch {
+        // ignore
+      }
+      if (!hasVerifiedMfa) {
+        try {
+          const { data: factors } = await supabase.auth.mfa.listFactors();
+          const all: any[] = [...((factors as any)?.totp ?? []), ...((factors as any)?.all ?? [])];
+          hasVerifiedMfa = all.some((f) => f?.status === 'verified');
+        } catch {
+          // ignore
+        }
+      }
+
       const steps: OnboardingStep[] = [
         { id: 'profile', title: 'Profile Information', description: 'Set your Display Name and Username', required: true, completed: profileComplete, route: '/profile?from=checklist' },
         { id: 'email', title: 'Email Verification', description: 'Verify your email address', required: true, completed: !!user.email_confirmed_at, route: '/settings' },

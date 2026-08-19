@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import QRCode from 'react-qr-code';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,27 @@ export function TwoFactorSettings() {
   const [disableCode, setDisableCode] = useState('');
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
   const [savedConfirmed, setSavedConfirmed] = useState(false);
+  const autoDownloadedRef = useRef(false);
+
+  const downloadCodes = () => {
+    const text = `DK AI Marketplace — 2FA recovery codes\n\n${recoveryCodes.join(
+      '\n',
+    )}\n\nEach code works exactly once.`;
+    const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'dkai-recovery-codes.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Automatically download recovery codes the first time they are shown.
+  useEffect(() => {
+    if (stage === 'recovery' && recoveryCodes.length > 0 && !autoDownloadedRef.current) {
+      autoDownloadedRef.current = true;
+      downloadCodes();
+    }
+  }, [stage, recoveryCodes, downloadCodes]);
 
   const startEnroll = async () => {
     setBusy(true);
@@ -159,18 +180,6 @@ export function TwoFactorSettings() {
     } finally {
       setBusy(false);
     }
-  };
-
-  const downloadCodes = () => {
-    const text = `DK AI Marketplace — 2FA recovery codes\n\n${recoveryCodes.join(
-      '\n',
-    )}\n\nEach code works exactly once.`;
-    const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'dkai-recovery-codes.txt';
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   return (

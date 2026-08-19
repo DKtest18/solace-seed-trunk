@@ -15,7 +15,7 @@ import QRCode from 'react-qr-code';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useHasRole } from '@/hooks/useUserRole';
 
-import { LinkedInConnectCard } from '@/components/settings/LinkedInConnectCard';
+
 import { AccountDeletionSettings } from '@/components/settings/AccountDeletionSettings';
 import { PrivacyDataSettings } from '@/components/settings/PrivacyDataSettings';
 import { TwoFactorSettings } from '@/components/security/TwoFactorSettings';
@@ -221,8 +221,6 @@ export default function ProfileSettings() {
                 )}
               </CardContent>
             </Card>
-
-            <LinkedInConnectCard />
           </TabsContent>
 
 

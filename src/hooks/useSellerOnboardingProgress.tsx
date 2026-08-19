@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/stripeConnectStatus';
 import { fetchPayPalConnectStatus, isPayPalConnectedForOnboarding } from '@/lib/paypalConnectStatus';
@@ -76,10 +77,29 @@ export function useSellerOnboardingProgress() {
       // Step 1 (identity + age) is complete only when both are persisted.
       const identityAndAgeComplete = identityFieldsFilled && ageComplete;
 
+      // 2FA: authoritative native-MFA status (server RPC first, client factors as fallback).
+      let hasVerifiedMfa = false;
+      try {
+        const { data: mfaRow } = await (supabase as any).rpc('dkai_my_mfa_state');
+        const row = Array.isArray(mfaRow) ? mfaRow[0] : mfaRow;
+        if (row) hasVerifiedMfa = !!row.has_verified_factor;
+      } catch {
+        // ignore
+      }
+      if (!hasVerifiedMfa) {
+        try {
+          const { data: factors } = await supabase.auth.mfa.listFactors();
+          const all: any[] = [...((factors as any)?.totp ?? []), ...((factors as any)?.all ?? [])];
+          hasVerifiedMfa = all.some((f) => f?.status === 'verified');
+        } catch {
+          // ignore
+        }
+      }
+
       const steps: OnboardingStep[] = [
         { id: 'profile', title: 'Profile Information', description: 'Set your Display Name and Username', required: true, completed: profileComplete, route: '/profile?from=checklist' },
         { id: 'email', title: 'Email Verification', description: 'Verify your email address', required: true, completed: !!user.email_confirmed_at, route: '/settings' },
-        { id: '2fa', title: '2FA Setup', description: 'Optional: Add two-factor authentication for extra security', required: false, completed: !!profile?.is_2fa_enabled, route: '/settings' },
+        { id: '2fa', title: '2FA Setup', description: 'Add two-factor authentication — required for selling', required: true, completed: hasVerifiedMfa, route: '/settings' },
         { id: 'seller-identity-age', title: 'Seller Identity & Age Verification', description: 'Provide your seller details and confirm you are 18+', required: true, completed: identityAndAgeComplete, route: '/seller-onboarding/identity' },
         { id: 'seller-terms', title: 'Seller Terms & Conditions', description: 'Review and accept the seller agreement', required: true, completed: termsAccepted, route: '/seller-onboarding/terms' },
       ];

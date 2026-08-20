@@ -151,7 +151,7 @@ export default function Index() {
         <div className="grid md:grid-cols-3 gap-6">
           {[
             { icon: Search, title: 'Find it', text: 'Browse reviewed AI agents, workflows and prompts from real builders.' },
-            { icon: CreditCard, title: 'Buy it (no account needed)', text: 'Secure checkout via Stripe or PayPal — no sign-up required, no hidden fees.' },
+            { icon: CreditCard, title: 'Buy it (no account needed)', text: 'Secure Stripe checkout — no sign-up required, no hidden fees. PayPal coming soon.' },
             { icon: Download, title: 'Get it instantly', text: 'Downloads, access details and setup delivered right after payment.' },
           ].map((s, i) => (
             <div key={i} className="home-glass p-8">
@@ -176,8 +176,8 @@ export default function Index() {
           {[
             { icon: Shield, title: 'Buyer Protection', text: 'support-reviewed refunds if a product is not delivered or is materially not as described. Requests within 14 days of purchase.' },
             { icon: ShieldCheck, title: 'Admin-Reviewed Products', text: 'Every product is manually reviewed before it goes live.' },
-            { icon: BadgeCheck, title: 'Verified Sellers', text: 'Identity and payout account confirmed for every seller.' },
-            { icon: Wallet, title: 'Direct Payouts', text: "Payments flow straight to the seller's connected Stripe or PayPal account — no detours." },
+            { icon: BadgeCheck, title: 'Verified Sellers', text: 'Identity verified for every seller. Products go live only after review.' },
+            { icon: Wallet, title: 'Direct Payouts', text: "Payments flow straight to the seller's connected Stripe account — no detours. PayPal payouts coming soon." },
           ].map((t, i) => (
             <div key={i} className="home-glass p-6">
               <t.icon className="h-6 w-6 text-[#60A5FA] mb-4" />
@@ -195,7 +195,7 @@ export default function Index() {
             <span className="home-headline-grad">Sell your AI products</span>
           </h2>
           <p className="text-[#94A3B8] max-w-xl mx-auto mb-8">
-            Become a verified seller and reach a buy-ready community — with direct payouts via Stripe or PayPal and a fair fee structure.
+            Become a verified seller and reach a buy-ready community — with direct Stripe payouts (PayPal coming soon) and a fair fee structure.
           </p>
           <Link
             to="/seller-onboarding"

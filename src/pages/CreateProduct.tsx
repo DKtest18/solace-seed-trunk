@@ -314,6 +314,9 @@ export default function CreateProduct() {
     file_size_bytes: uploadedFile?.size || null,
     file_scan_status: uploadedFile?.scanStatus || null,
     seller_accepted_terms: formData.seller_accepted_terms,
+    seller_rules_confirmed: !!formData.seller_rules_confirmed,
+    seller_rules_confirmed_at: formData.seller_rules_confirmed ? new Date().toISOString() : null,
+
     return_allowed: formData.return_allowed,
     return_window_days: formData.return_allowed ? formData.return_window_days : 1,
     return_fee_enabled: formData.return_fee_enabled,

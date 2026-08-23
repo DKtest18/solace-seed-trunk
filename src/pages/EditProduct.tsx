@@ -666,8 +666,11 @@ export default function EditProduct() {
             <div className="mb-8">
               <div className="flex justify-between mb-2 overflow-x-auto pb-2">
                 {STEPS.map((step) => (
-                  <div
+                  <button
+                    type="button"
                     key={step.id}
+                    onClick={() => setCurrentStep(step.id)}
+                    title={step.description}
                     className={`flex flex-col items-center min-w-[60px] ${
                       step.id === currentStep
                         ? 'text-primary'
@@ -688,7 +691,7 @@ export default function EditProduct() {
                       {step.id < currentStep ? <CheckCircle className="h-5 w-5" /> : step.id}
                     </div>
                     <span className="text-xs font-medium text-center">{step.title}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
               <Progress value={progress} className="h-2" />

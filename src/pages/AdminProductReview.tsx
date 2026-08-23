@@ -234,13 +234,19 @@ export default function AdminProductReview() {
                             {p.category ? ` · ${p.category}` : ''}
                           </CardDescription>
                         </div>
-                        <Button asChild variant="outline" size="sm">
-                          <Link to={`/product/${p.id}`} target="_blank">
-                            <Eye className="w-4 h-4 mr-1" /> Preview
-                          </Link>
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button variant="secondary" size="sm" onClick={() => setSubmissionProduct(p)}>
+                            <FileSearch className="w-4 h-4 mr-1" /> View full submission (11 steps)
+                          </Button>
+                          <Button asChild variant="outline" size="sm">
+                            <Link to={`/product/${p.id}`} target="_blank">
+                              <Eye className="w-4 h-4 mr-1" /> Preview
+                            </Link>
+                          </Button>
+                        </div>
                       </div>
                     </CardHeader>
+
                     <CardContent className="space-y-4">
                       {p.description && (
                         <p className="text-sm text-foreground line-clamp-3 whitespace-pre-wrap">

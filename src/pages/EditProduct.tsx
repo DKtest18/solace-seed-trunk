@@ -145,7 +145,7 @@ export default function EditProduct() {
     uploading: deliveryUploading,
     load: loadDeliveryFiles,
     addFile: addDeliveryFile,
-    removeFile: removeDeliveryFile,
+    remove: removeDeliveryFile,
   } = useDeliveryFiles(async () => id ?? null);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});

@@ -1,11 +1,14 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Textarea } from '@/components/ui/textarea';
 import { AlertCircle, ShieldCheck, Clock, Info, Mail } from 'lucide-react';
 
 interface ReturnPolicyStepProps {
   data: {
     seller_ack_refund_policy?: boolean;
+    return_conditions?: string;
+    refund_policy?: string;
     seller_ack_subscription?: boolean;
     seller_ack_manual_delivery?: boolean;
     seller_ack_setup_credentials?: boolean;
@@ -102,6 +105,40 @@ export function ReturnPolicyStep({ data, onChange, errors }: ReturnPolicyStepPro
           <AckRow id="ack-exclusive" checked={!!data.seller_ack_exclusive} onChange={(v) => onChange('seller_ack_exclusive', v)}
             text="I understand an exclusive sale permanently delists this product and I may never sell it again anywhere." />
         )}
+      </div>
+
+      {/* Free-text detail the admin reviewer sees on the submission */}
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="return-conditions" className="mb-1 block">
+            Return conditions <span className="text-muted-foreground font-normal">(optional)</span>
+          </Label>
+          <p className="text-xs text-muted-foreground mb-2">
+            Any product-specific conditions a buyer should know before requesting a refund.
+          </p>
+          <Textarea
+            id="return-conditions"
+            rows={4}
+            value={data.return_conditions ?? ''}
+            onChange={(e) => onChange('return_conditions', e.target.value)}
+            placeholder="e.g. Refunds cover non-delivery or a materially different workflow. Custom API keys must be revoked first."
+          />
+        </div>
+        <div>
+          <Label htmlFor="refund-policy-notes" className="mb-1 block">
+            Additional refund policy notes <span className="text-muted-foreground font-normal">(optional)</span>
+          </Label>
+          <p className="text-xs text-muted-foreground mb-2">
+            Extra detail for buyers and for the review team. The platform policy above always applies.
+          </p>
+          <Textarea
+            id="refund-policy-notes"
+            rows={4}
+            value={data.refund_policy ?? ''}
+            onChange={(e) => onChange('refund_policy', e.target.value)}
+            placeholder="e.g. I respond to refund requests within 12 hours and provide replacement setups where possible."
+          />
+        </div>
       </div>
 
       {errors.returnPolicyError && (

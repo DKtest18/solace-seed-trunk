@@ -325,10 +325,13 @@ export default function CreateProduct() {
     payment_methods: formData.payment_methods,
     faqs: formData.faqs,
     delivery_mode: formData.delivery_mode,
-    delivery_time_hours: formData.delivery_mode === 'manual' ? (formData.delivery_time_hours ?? 24) : null,
-    file_storage_key: uploadedFile?.path || null,
-    file_size_bytes: uploadedFile?.size || null,
-    file_scan_status: uploadedFile?.scanStatus || null,
+    // Delivery time applies to manual delivery and seller setup; only instant
+    // download has no window.
+    delivery_time_hours:
+      formData.delivery_mode === 'instant' ? null : (formData.delivery_time_hours ?? 24),
+    file_storage_key: primaryDeliveryFile()?.path || null,
+    file_size_bytes: primaryDeliveryFile()?.size || null,
+    file_scan_status: primaryDeliveryFile()?.scanStatus || null,
     seller_accepted_terms: formData.seller_accepted_terms,
     seller_rules_confirmed: !!formData.seller_rules_confirmed,
     seller_rules_confirmed_at: formData.seller_rules_confirmed ? new Date().toISOString() : null,

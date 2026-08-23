@@ -565,7 +565,11 @@ export default function CreateProduct() {
         if (!formData.seller_accepted_terms) {
           newErrors.seller_accepted_termsError = 'You must accept the seller terms to continue';
         }
+        if (!formData.seller_rules_confirmed) {
+          newErrors.seller_rules_confirmedError = 'You must confirm this product complies with the Seller Rules & Obligations';
+        }
         break;
+
     }
 
     setErrors(newErrors);

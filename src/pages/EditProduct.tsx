@@ -266,7 +266,9 @@ export default function EditProduct() {
           try {
             await loadDeliveryFiles(id);
           } catch (e) {
-            console.warn('Could not load delivery files', e);
+            const message = e instanceof Error ? e.message : String(e);
+            console.error('Could not load delivery files', e);
+            toast.error(`Could not load saved delivery files: ${message}`);
           }
         }
 

@@ -97,18 +97,20 @@ export function useDeliveryFiles(ensureDraftId: () => Promise<string | null>) {
           throw new Error(`File record save failed: ${insertError?.message || 'No row returned'}`);
         }
 
-        const { error: productError } = await db
+        const { data: updatedProduct, error: productError } = await db
           .from('dkai_products')
           .update({
             file_storage_key: filePath,
             file_size_bytes: file.size,
             file_scan_status: 'clean',
           })
-          .eq('id', productId);
-        if (productError) {
+          .eq('id', productId)
+          .select('id')
+          .single();
+        if (productError || !updatedProduct) {
           await db.from('dkai_product_files').delete().eq('id', fileId);
           await supabase.storage.from('product-files').remove([filePath]);
-          throw new Error(`Product file metadata save failed: ${productError.message}`);
+          throw new Error(`Product file metadata save failed: ${productError?.message || 'The product row was not updated'}`);
         }
 
         const row: DeliveryFileRow = {

@@ -113,8 +113,10 @@ export default function AdminProductReview() {
   });
 
   const [rejectProduct, setRejectProduct] = useState<any>(null);
+  const [submissionProduct, setSubmissionProduct] = useState<any>(null);
   const [note, setNote] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
+
 
   // Optimistically drop a product from the current list, then refetch to confirm.
   const dropFromList = (productId: string) => {

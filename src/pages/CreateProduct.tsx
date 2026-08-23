@@ -164,6 +164,7 @@ export default function CreateProduct() {
   const ensureDraftIdForUpload = () => ensureDraftRef.current();
   const {
     files: deliveryFiles,
+    filesRef: deliveryFilesRef,
     uploading: deliveryUploading,
     load: loadDeliveryFiles,
     addFile: addDeliveryFile,
@@ -173,6 +174,27 @@ export default function CreateProduct() {
   
   const [productFile, setProductFile] = useState<File | null>(null);
   const [uploadedFile, setUploadedFile] = useState<any>(null);
+  // React state updates are async: persistDraft() used to run before
+  // setUploadedFile() had committed, so file_storage_key / file_size_bytes /
+  // file_scan_status were written as NULL. The ref is the authoritative value
+  // for every draft write.
+  const uploadedFileRef = useRef<any>(null);
+  const rememberUploadedFile = (f: any) => {
+    uploadedFileRef.current = f;
+    setUploadedFile(f);
+  };
+  /**
+   * The primary delivery file recorded on the product row. Falls back to the
+   * first successfully uploaded row in dkai_product_files so the admin review
+   * page never shows "Not provided by seller" for files that do exist.
+   */
+  const primaryDeliveryFile = () => {
+    if (uploadedFileRef.current?.path) return uploadedFileRef.current;
+    const row = (deliveryFilesRef.current ?? []).find((f) => f.file_path && !f.uploading && !f.error);
+    return row
+      ? { path: row.file_path, name: row.file_name, size: row.file_size, scanStatus: row.scan_status }
+      : null;
+  };
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'scanning' | 'clean' | 'infected'>('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -268,7 +290,7 @@ export default function CreateProduct() {
             toast.error(`Could not load your delivery files: ${e?.message || e}`);
           }
           if (data.file_storage_key) {
-            setUploadedFile({
+            rememberUploadedFile({
               path: data.file_storage_key,
               name: data.file_storage_key.split('/').pop() ?? 'file',
               size: data.file_size_bytes ?? 0,
@@ -316,10 +338,13 @@ export default function CreateProduct() {
     payment_methods: formData.payment_methods,
     faqs: formData.faqs,
     delivery_mode: formData.delivery_mode,
-    delivery_time_hours: formData.delivery_mode === 'manual' ? (formData.delivery_time_hours ?? 24) : null,
-    file_storage_key: uploadedFile?.path || null,
-    file_size_bytes: uploadedFile?.size || null,
-    file_scan_status: uploadedFile?.scanStatus || null,
+    // Delivery time applies to manual delivery and seller setup; only instant
+    // download has no window.
+    delivery_time_hours:
+      formData.delivery_mode === 'instant' ? null : (formData.delivery_time_hours ?? 24),
+    file_storage_key: primaryDeliveryFile()?.path || null,
+    file_size_bytes: primaryDeliveryFile()?.size || null,
+    file_scan_status: primaryDeliveryFile()?.scanStatus || null,
     seller_accepted_terms: formData.seller_accepted_terms,
     seller_rules_confirmed: !!formData.seller_rules_confirmed,
     seller_rules_confirmed_at: formData.seller_rules_confirmed ? new Date().toISOString() : null,
@@ -661,7 +686,7 @@ export default function CreateProduct() {
 
       if (scanError) throw scanError;
 
-      setUploadedFile({ 
+      rememberUploadedFile({ 
         path: filePath, 
         name: file.name, 
         size: file.size,
@@ -980,7 +1005,7 @@ export default function CreateProduct() {
                   onAddFile={async (file) => {
                     try {
                       const row = await addDeliveryFile(file);
-                      setUploadedFile({
+                      rememberUploadedFile({
                         path: row.file_path,
                         name: row.file_name,
                         size: row.file_size,

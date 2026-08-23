@@ -47,7 +47,7 @@ function reviewStatusOf(p: any): string {
 
 /**
  * Same condition the public marketplace query uses:
- * is_published === true AND review_status === 'approved'.
+ * is_published === true AND review_status is publicly listed (REVIEW_STATUS_GROUPS.LIVE).
  */
 export function isBuyable(p: any): boolean {
   return p?.is_published === true && (REVIEW_STATUS_GROUPS.LIVE as string[]).includes(reviewStatusOf(p));
@@ -229,7 +229,7 @@ export default function SellerProducts() {
                 In inspection — will be published within 0–24h if approved.
               </p>
             )}
-            {p.admin_review_note && reviewStatusOf(p) === 'draft' && (
+            {p.admin_review_note && (REVIEW_STATUS_GROUPS.NEEDS_SELLER_ACTION as string[]).includes(reviewStatusOf(p)) && (
               <p className="mt-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1">
                 <strong>Changes requested:</strong> {p.admin_review_note}
               </p>

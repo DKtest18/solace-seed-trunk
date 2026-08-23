@@ -17,6 +17,31 @@
 -- =============================================================================
 
 -- 1) Media table -------------------------------------------------------------
+ALTER TABLE public.dkai_profiles
+  ADD COLUMN IF NOT EXISTS seller_agreement_accepted boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS seller_agreement_version text,
+  ADD COLUMN IF NOT EXISTS seller_agreement_accepted_at timestamptz,
+  ADD COLUMN IF NOT EXISTS seller_obligations_pdf_acknowledged boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS seller_obligations_pdf_version text,
+  ADD COLUMN IF NOT EXISTS terms_accepted boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS terms_accepted_at timestamptz;
+
+-- The account-level acceptance screen writes these fields as the signed-in
+-- profile owner. Without these explicit Data API grants, the UI can appear to
+-- accept the agreement while the profile remains on an old version, causing
+-- every product draft insert to fail with seller_agreement_not_accepted.
+GRANT UPDATE (
+  seller_agreement_accepted,
+  seller_agreement_version,
+  seller_agreement_accepted_at,
+  seller_obligations_pdf_acknowledged,
+  seller_obligations_pdf_version,
+  terms_accepted,
+  terms_accepted_at,
+  updated_at
+) ON public.dkai_profiles TO authenticated;
+GRANT ALL ON public.dkai_profiles TO service_role;
+
 CREATE TABLE IF NOT EXISTS public.dkai_product_media (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   product_id uuid NOT NULL REFERENCES public.dkai_products(id) ON DELETE CASCADE,
@@ -53,14 +78,32 @@ DROP POLICY IF EXISTS "Sellers insert own product media" ON public.dkai_product_
 CREATE POLICY "Sellers insert own product media"
   ON public.dkai_product_media FOR INSERT
   TO authenticated
-  WITH CHECK (seller_id = auth.uid());
+  WITH CHECK (
+    seller_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM public.dkai_products p
+      WHERE p.id = product_id AND p.seller_id = auth.uid()
+    )
+  );
 
 DROP POLICY IF EXISTS "Sellers update own product media" ON public.dkai_product_media;
 CREATE POLICY "Sellers update own product media"
   ON public.dkai_product_media FOR UPDATE
   TO authenticated
-  USING (seller_id = auth.uid())
-  WITH CHECK (seller_id = auth.uid());
+  USING (
+    seller_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM public.dkai_products p
+      WHERE p.id = product_id AND p.seller_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    seller_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM public.dkai_products p
+      WHERE p.id = product_id AND p.seller_id = auth.uid()
+    )
+  );
 
 DROP POLICY IF EXISTS "Sellers delete own product media" ON public.dkai_product_media;
 CREATE POLICY "Sellers delete own product media"

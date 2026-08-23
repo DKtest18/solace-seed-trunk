@@ -59,7 +59,7 @@ export function normalizeReviewStatus(value: unknown): ReviewStatusValue {
     case 'needs_changes':
       return REVIEW_STATUS.CHANGES_REQUESTED;
     default:
-      return (REVIEW_STATUS_VALUES as string[]).includes(v)
+      return (REVIEW_STATUS_VALUES as readonly string[]).includes(v)
         ? (v as ReviewStatusValue)
         : REVIEW_STATUS.DRAFT;
   }
@@ -67,5 +67,5 @@ export function normalizeReviewStatus(value: unknown): ReviewStatusValue {
 
 /** True when the product may be shown publicly on the marketplace. */
 export function isPubliclyListed(value: unknown): boolean {
-  return (REVIEW_STATUS_GROUPS.LIVE as string[]).includes(normalizeReviewStatus(value));
+  return (REVIEW_STATUS_GROUPS.LIVE as readonly string[]).includes(normalizeReviewStatus(value));
 }

@@ -119,6 +119,39 @@ export function TermsAcceptanceStep({ data, onChange, errors }: TermsAcceptanceS
       )}
 
       <div className="space-y-4">
+        <div className="flex items-start space-x-2 border rounded-lg p-4 bg-primary/5 border-primary/20">
+          <Checkbox
+            id="seller-rules-confirm"
+            checked={!!data.seller_rules_confirmed}
+            onCheckedChange={(checked) => onChange('seller_rules_confirmed', checked === true)}
+          />
+          <div className="space-y-1">
+            <Label htmlFor="seller-rules-confirm" className="text-sm font-medium cursor-pointer">
+              I confirm this product complies with the{' '}
+              <a
+                href="/seller-guidelines"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline underline-offset-2"
+              >
+                Seller Rules &amp; Obligations
+              </a>
+              .
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              You already accepted the Seller Rules &amp; Obligations on your account. This
+              confirmation applies to this specific product.
+            </p>
+          </div>
+        </div>
+
+        {errors.seller_rules_confirmedError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{errors.seller_rules_confirmedError}</AlertDescription>
+          </Alert>
+        )}
+
         <div className="flex items-start space-x-2">
           <Checkbox 
             id="terms-accept" 

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
 
-import { useRulesAcceptance } from '@/hooks/useRulesAcceptance';
+import { isSellerAgreementCurrent, useSellerRestrictions } from '@/hooks/useSellerRestrictions';
 import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -27,7 +27,6 @@ import { DemoVideoStep, isValidDemoVideoUrl, parseDemoVideoPaths } from '@/compo
 import { DeliveryFilesStep } from '@/components/product-creation/DeliveryFilesStep';
 import { ReturnPolicyStep } from '@/components/product-creation/ReturnPolicyStep';
 import { TermsAcceptanceStep } from '@/components/product-creation/TermsAcceptanceStep';
-import { RulesAcceptanceStep } from '@/components/RulesAcceptanceStep';
 import { ArrowLeft, ArrowRight, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/stripeConnectStatus';
 import { fetchPayPalConnectStatus, isPayPalConnectedForOnboarding } from '@/lib/paypalConnectStatus';
@@ -51,7 +50,7 @@ export default function CreateProduct() {
   const { hasRole: isSeller, isLoading: roleLoading } = useHasRole('seller');
   const { hasRole: isAdmin } = useHasRole('admin');
   
-  const { sellerRulesAccepted, loadingSellerRules, acceptRules, isAccepting } = useRulesAcceptance();
+  const { data: restrictions, isLoading: loadingRestrictions } = useSellerRestrictions();
   const navigate = useNavigate();
 
   const [searchParams] = useSearchParams();
@@ -66,7 +65,6 @@ export default function CreateProduct() {
   const draftCreationRef = useRef<Promise<string | null> | null>(null);
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [showSubmittedDialog, setShowSubmittedDialog] = useState(false);
-  const [showSellerRules, setShowSellerRules] = useState(false);
 
   // Sync step from URL param
   useEffect(() => {
@@ -76,13 +74,6 @@ export default function CreateProduct() {
       setCurrentStep(step);
     }
   }, [searchParams]);
-
-  // Check if seller rules need acceptance
-  useEffect(() => {
-    if (!loadingSellerRules && !sellerRulesAccepted && (isSeller || isAdmin)) {
-      setShowSellerRules(true);
-    }
-  }, [loadingSellerRules, sellerRulesAccepted, isSeller, isAdmin]);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -119,6 +110,8 @@ export default function CreateProduct() {
     delivery_mode: 'instant' as string,
     delivery_time_hours: null as number | null,
     seller_accepted_terms: false,
+    seller_rules_confirmed: false,
+
     return_allowed: false,
     return_window_days: 1,
     return_fee_enabled: false,
@@ -222,6 +215,8 @@ export default function CreateProduct() {
             delivery_mode: data.delivery_mode ?? prev.delivery_mode,
             delivery_time_hours: data.delivery_time_hours ?? prev.delivery_time_hours,
             seller_accepted_terms: !!data.seller_accepted_terms,
+            seller_rules_confirmed: !!data.seller_rules_confirmed,
+
             return_allowed: !!data.return_allowed,
             return_window_days: data.return_window_days ?? 1,
             return_fee_enabled: !!data.return_fee_enabled,
@@ -310,6 +305,9 @@ export default function CreateProduct() {
     file_size_bytes: uploadedFile?.size || null,
     file_scan_status: uploadedFile?.scanStatus || null,
     seller_accepted_terms: formData.seller_accepted_terms,
+    seller_rules_confirmed: !!formData.seller_rules_confirmed,
+    seller_rules_confirmed_at: formData.seller_rules_confirmed ? new Date().toISOString() : null,
+
     return_allowed: formData.return_allowed,
     return_window_days: formData.return_allowed ? formData.return_window_days : 1,
     return_fee_enabled: formData.return_fee_enabled,
@@ -558,7 +556,11 @@ export default function CreateProduct() {
         if (!formData.seller_accepted_terms) {
           newErrors.seller_accepted_termsError = 'You must accept the seller terms to continue';
         }
+        if (!formData.seller_rules_confirmed) {
+          newErrors.seller_rules_confirmedError = 'You must confirm this product complies with the Seller Rules & Obligations';
+        }
         break;
+
     }
 
     setErrors(newErrors);
@@ -753,35 +755,35 @@ export default function CreateProduct() {
     );
   }
 
-  // Show seller rules acceptance if not yet accepted
-  if (showSellerRules && !sellerRulesAccepted) {
+  // Account-level Seller Agreement is the binding acceptance. If it's missing or
+  // outdated, route the seller to the account-level gate instead of showing the
+  // full rules text again here.
+  if (!loadingRestrictions && !isSellerAgreementCurrent(restrictions)) {
     return (
       <div className="min-h-screen bg-background py-8">
         <div className="container mx-auto px-4 max-w-2xl">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold mb-2">Accept Seller Rules</h1>
-            <p className="text-muted-foreground">
-              You must accept the seller rules before publishing products.
-            </p>
-          </div>
-          <RulesAcceptanceStep
-            ruleType="seller"
-            loading={isAccepting}
-            onAccept={async () => {
-              try {
-                await acceptRules({ ruleType: 'seller' });
-                toast.success('Seller rules accepted!');
-                setShowSellerRules(false);
-              } catch (error) {
-                toast.error('Failed to accept rules. Please try again.');
-              }
-            }}
-            onBack={() => navigate('/seller-dashboard')}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle>Seller Agreement required</CardTitle>
+              <CardDescription>
+                Before creating a product you need to accept the current Seller Agreement &
+                Seller Rules & Obligations on your account.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button onClick={() => navigate('/seller-onboarding/terms')} className="w-full">
+                Review &amp; accept Seller Agreement
+              </Button>
+              <Button onClick={() => navigate('/seller-dashboard')} variant="outline" className="w-full">
+                Back to dashboard
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
   }
+
 
   const progress = (currentStep / STEPS.length) * 100;
 

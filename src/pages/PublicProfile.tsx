@@ -22,6 +22,7 @@ import { ProfileDetailSections } from '@/components/profile/ProfileDetailSection
 import { ProfileStatusFrame } from '@/components/profile/ProfileStatusFrame';
 import { EducationItem, ExperienceItem, parseJsonArray } from '@/types/profile';
 import { normalizeLinkedInUrl } from '@/lib/profileUrls';
+import { REVIEW_STATUS } from '@/lib/reviewStatus';
 
 
 
@@ -123,7 +124,7 @@ export default function PublicProfile() {
         .select('id, title, price, image_url, is_published, moderation_status, product_type, description')
         .eq('seller_id', publicProfile.id)
         .eq('is_published', true)
-        .eq('review_status', 'approved');
+        .eq('review_status', REVIEW_STATUS.APPROVED);
 
       const list = (productsData || []) as Product[];
       setProducts(list);

@@ -71,7 +71,7 @@ export function ProductDeliveryFilesManager({
     e.target.value = '';
     if (!file) return;
     if (file.size > MAX_SIZE) {
-      toast({ title: 'File too large', description: 'Max 500 MB', variant: 'destructive' });
+      toast({ title: 'File too large', description: 'Files up to 2 GB are supported', variant: 'destructive' });
       return;
     }
     setUploading(true);

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
+import { REVIEW_STATUS } from '@/lib/reviewStatus';
 
 export function useProductsWithRatings() {
   return useQuery({
@@ -9,7 +10,7 @@ export function useProductsWithRatings() {
         .from('dkai_products')
         .select('*')
         .eq('is_published', true)
-        .eq('review_status', 'approved')
+        .eq('review_status', REVIEW_STATUS.APPROVED)
         .eq('exclusive_locked', false)
         .order('created_at', { ascending: false });
 

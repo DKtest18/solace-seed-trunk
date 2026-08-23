@@ -4,6 +4,7 @@ import { ShoppingBag, Search, CreditCard, Download, Shield, ShieldCheck, BadgeCh
 import { db } from '@/lib/dkaiDb';
 import { formatMoney } from '@/lib/money';
 import './index-home.css';
+import { REVIEW_STATUS } from '@/lib/reviewStatus';
 
 const CATEGORIES = ['AI Agents', 'Automations', 'Workflows', 'Prompts', 'Templates', 'Datasets'];
 
@@ -24,7 +25,7 @@ function useHomeProducts() {
         .from('dkai_products')
         .select('id,title,price,currency,image_url')
         .eq('is_published', true)
-        .eq('review_status', 'approved')
+        .eq('review_status', REVIEW_STATUS.APPROVED)
         .eq('exclusive_locked', false)
         .order('trending_score', { ascending: false, nullsFirst: false })
         .limit(5);

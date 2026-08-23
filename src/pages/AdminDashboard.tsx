@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2, ShieldCheck, Users, Package, DollarSign, CheckCircle, XCircle, MessageSquare, AlertTriangle, Flag, CreditCard, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { REVIEW_STATUS } from '@/lib/reviewStatus';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -166,11 +167,15 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
       };
 
       if (status === 'approved') {
+        // The marketplace filters on review_status, so moderation must move it too —
+        // otherwise is_published=true products stayed invisible.
+        updateData.review_status = REVIEW_STATUS.APPROVED;
         updateData.is_published = true;
         updateData.approved_at = new Date().toISOString();
         updateData.approved_by = user?.id;
         updateData.admin_rejection_reason = null;
       } else {
+        updateData.review_status = REVIEW_STATUS.CHANGES_REQUESTED;
         updateData.is_published = false;
         updateData.admin_rejection_reason = notes;
         updateData.approved_at = null;

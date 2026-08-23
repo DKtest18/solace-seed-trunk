@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { normalizeReviewStatus } from '@/lib/reviewStatus';
 
 const STEPS = [
   { id: 1, title: 'Basic Info', description: 'Product details' },
@@ -287,7 +288,7 @@ export default function EditProduct() {
             : null
         );
         setFileSizeBytes(Number(product.file_size_bytes) || 0);
-        setReviewStatus((product.review_status as ReviewStatus) || 'draft');
+        setReviewStatus(normalizeReviewStatus(product.review_status) as ReviewStatus);
         setReviewNotes(product.review_notes || null);
         setRequiresAccessReview(!!product.requires_access_review);
 

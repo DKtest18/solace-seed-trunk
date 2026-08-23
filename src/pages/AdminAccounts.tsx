@@ -28,6 +28,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Loader2, Search, Ban, Trash2, ArrowUpDown, ExternalLink } from 'lucide-react';
+import { REVIEW_STATUS_GROUPS, REVIEW_STATUS_LABEL, normalizeReviewStatus } from '@/lib/reviewStatus';
 
 interface AccountRow {
   user_id: string;
@@ -179,8 +180,14 @@ export default function AdminAccounts() {
     }
   };
 
-  const canOpenProduct = (p: any) =>
-    p.review_status === 'approved' || p.review_status === 'pending' || p.review_status === 'in_review';
+  // A product page only exists once it is live or under review. 'pending' was
+  // checked here previously but nothing ever writes it.
+  const canOpenProduct = (p: any) => {
+    const status = normalizeReviewStatus(p.review_status);
+    return (
+      ([...REVIEW_STATUS_GROUPS.LIVE, ...REVIEW_STATUS_GROUPS.PENDING] as string[]).includes(status)
+    );
+  };
 
   return (
     <AppLayout>
@@ -345,7 +352,7 @@ export default function AdminAccounts() {
                     <li key={p.id} className="flex items-center justify-between gap-2">
                       <span className="truncate">{p.title}</span>
                       <span className="flex items-center gap-2">
-                        <Badge variant="outline">{p.review_status ?? 'draft'}</Badge>
+                        <Badge variant="outline">{REVIEW_STATUS_LABEL[normalizeReviewStatus(p.review_status)]}</Badge>
                         {canOpenProduct(p) ? (
                           <Link
                             to={`/product/${p.id}`}

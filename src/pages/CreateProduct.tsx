@@ -31,6 +31,7 @@ import { TermsAcceptanceStep } from '@/components/product-creation/TermsAcceptan
 import { ArrowLeft, ArrowRight, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/stripeConnectStatus';
 import { fetchPayPalConnectStatus, isPayPalConnectedForOnboarding } from '@/lib/paypalConnectStatus';
+import { REVIEW_STATUS } from '@/lib/reviewStatus';
 
 const STEPS = [
   { id: 1, title: 'Basic Info', description: 'Product details' },
@@ -755,7 +756,7 @@ export default function CreateProduct() {
         approval_status: 'pending',
         // CRITICAL: admin queue filters on review_status. Without these the
         // submission never appears in /admin/waitlist.
-        review_status: 'submitted',
+        review_status: REVIEW_STATUS.SUBMITTED,
         submitted_at: new Date().toISOString(),
       };
       if (imageUrl) submitPayload.image_url = imageUrl;

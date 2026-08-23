@@ -19,6 +19,7 @@ import {
 } from 'recharts';
 import { format, subDays, startOfDay, endOfDay, parseISO } from 'date-fns';
 import { toast } from 'sonner';
+import { REVIEW_STATUS } from '@/lib/reviewStatus';
 
 // High-contrast color scheme: Green = profit, Red = costs, Blue = revenue
 const CHART_COLORS = {
@@ -85,7 +86,7 @@ export default function Statistics() {
         .from('dkai_products')
         .select('id, product_type, title, total_sales, trending_score, recent_7day_sales, average_rating, category_id, product_categories(name)')
         .eq('is_published', true)
-        .eq('review_status', 'approved');
+        .eq('review_status', REVIEW_STATUS.APPROVED);
 
       if (productsError) throw productsError;
 

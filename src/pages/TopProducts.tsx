@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2, TrendingUp, Star, Package, Flame, Award, Tag } from 'lucide-react';
 import { RatingDisplay } from '@/components/RatingDisplay';
 import { AppLayout } from '@/components/AppLayout';
+import { REVIEW_STATUS } from '@/lib/reviewStatus';
 
 type SortOption = 'most-sales' | 'highest-rated' | 'price-low' | 'price-high' | 'newest' | 'trending';
 
@@ -69,7 +70,7 @@ export default function TopProducts() {
           )
         `)
         .eq('is_published', true)
-        .eq('review_status', 'approved');
+        .eq('review_status', REVIEW_STATUS.APPROVED);
 
       // Apply sorting
       switch (sortBy) {

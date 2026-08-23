@@ -20,6 +20,7 @@ import { User, Plus, Settings, LogOut, ShoppingBag, DollarSign, Heart, MessageSq
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/dkaiDb';
 import { NotificationCenter } from '@/components/NotificationCenter';
+import { REVIEW_STATUS_GROUPS } from '@/lib/reviewStatus';
 
 const navLinks = [
   { to: '/', label: 'Home', end: true },
@@ -45,7 +46,7 @@ export function Navbar() {
       const { count } = await db
         .from('dkai_products')
         .select('id', { count: 'exact', head: true })
-        .in('review_status', ['submitted', 'in_review', 'pending_review']);
+        .in('review_status', REVIEW_STATUS_GROUPS.PENDING);
       setPendingProducts(count || 0);
     };
     loadPending();

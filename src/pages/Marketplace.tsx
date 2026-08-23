@@ -18,6 +18,7 @@ import { WishlistButton } from '@/components/WishlistButton';
 import { trackProductClick } from '@/utils/analytics';
 import { AppLayout } from '@/components/AppLayout';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
+import { REVIEW_STATUS } from '@/lib/reviewStatus';
 
 type LicenseKey = 'personal' | 'commercial' | 'agency' | 'exclusive';
 
@@ -96,7 +97,7 @@ export default function Marketplace() {
           .from('dkai_products')
           .select('tags')
           .eq('is_published', true)
-          .eq('review_status', 'approved')
+          .eq('review_status', REVIEW_STATUS.APPROVED)
           .eq('exclusive_locked', false);
         if (error) return [] as string[];
         const tags = new Set<string>();

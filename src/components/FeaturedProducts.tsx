@@ -11,6 +11,7 @@ import { db } from '@/lib/dkaiDb';
 import { RatingDisplay } from '@/components/RatingDisplay';
 import { TrendingUp } from 'lucide-react';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
+import { REVIEW_STATUS } from '@/lib/reviewStatus';
 
 export function FeaturedProducts() {
   const plugin = useRef(
@@ -25,7 +26,7 @@ export function FeaturedProducts() {
         .from('dkai_products')
         .select('*')
         .eq('is_published', true)
-        .eq('review_status', 'approved')
+        .eq('review_status', REVIEW_STATUS.APPROVED)
         .eq('exclusive_locked', false)
         .order('trending_score', { ascending: false, nullsFirst: false })
         .limit(8);

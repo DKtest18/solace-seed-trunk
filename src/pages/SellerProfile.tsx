@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ExternalLink, Star, Package, DollarSign } from 'lucide-react';
 import { ProductRating } from '@/components/ProductRating';
+import { REVIEW_STATUS } from '@/lib/reviewStatus';
 
 export default function SellerProfile() {
   const { sellerId } = useParams();
@@ -37,7 +38,7 @@ export default function SellerProfile() {
         .select('*')
         .eq('seller_id', sellerId)
         .eq('is_published', true)
-        .eq('review_status', 'approved')
+        .eq('review_status', REVIEW_STATUS.APPROVED)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

@@ -14,6 +14,7 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 import { isProductPurchasable } from '../_shared/purchasable.ts';
+import { REVIEW_STATUS } from '../_shared/review-status.ts';
 
 // Fallback fee if seller profile has no platform_fee_percent set.
 const DEFAULT_PLATFORM_FEE_PERCENT = 5;
@@ -52,7 +53,7 @@ Deno.serve(async (req) => {
       .eq('id', productId)
       .single();
     if (pErr || !product) return errorResponse('Product not found', 404);
-    if (product.review_status !== 'approved') return errorResponse('Product not available', 400);
+    if (product.review_status !== REVIEW_STATUS.APPROVED) return errorResponse('Product not available', 400);
 
     const tier: 'tier1' | 'tier2' | 'tier3' =
       (product.delivery_tier as any) || 'tier1';

@@ -3,6 +3,7 @@
 // Records reviewed_by/reviewed_at + emits email to the seller.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { REVIEW_STATUS, REVIEW_STATUS_GROUPS, type ReviewStatusValue } from '../_shared/review-status.ts';
 
 type Action = 'start' | 'approve' | 'request_changes' | 'reject';
 
@@ -44,19 +45,19 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!product) return json({ error: 'Product not found' }, 404);
 
-    let newStatus: string;
+    let newStatus: ReviewStatusValue;
     let emailType: string | null = null;
     let extraUpdates: Record<string, unknown> = {};
 
     switch (action) {
       case 'start':
-        if (!['submitted', 'in_review'].includes(product.review_status)) {
+        if (!(REVIEW_STATUS_GROUPS.PENDING as readonly string[]).includes(product.review_status)) {
           return json({ error: 'Only submitted products can enter review.' }, 400);
         }
-        newStatus = 'in_review';
+        newStatus = REVIEW_STATUS.IN_REVIEW;
         break;
       case 'approve':
-        newStatus = 'approved';
+        newStatus = REVIEW_STATUS.APPROVED;
         extraUpdates = {
           reviewed_by: u.user.id,
           reviewed_at: new Date().toISOString(),
@@ -65,7 +66,7 @@ Deno.serve(async (req) => {
         emailType = 'product_approved';
         break;
       case 'request_changes':
-        newStatus = 'changes_requested';
+        newStatus = REVIEW_STATUS.CHANGES_REQUESTED;
         extraUpdates = {
           reviewed_by: u.user.id,
           reviewed_at: new Date().toISOString(),
@@ -74,7 +75,7 @@ Deno.serve(async (req) => {
         emailType = 'product_changes_requested';
         break;
       case 'reject':
-        newStatus = 'rejected';
+        newStatus = REVIEW_STATUS.REJECTED;
         extraUpdates = {
           reviewed_by: u.user.id,
           reviewed_at: new Date().toISOString(),

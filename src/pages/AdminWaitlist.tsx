@@ -19,7 +19,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { DemoVideoReviewPanel, hasDemoVideo } from '@/components/admin/DemoVideoReviewPanel';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { REVIEW_STATUS_GROUPS, type ReviewStatusValue } from '@/lib/reviewStatus';
+import { REVIEW_STATUS, REVIEW_STATUS_GROUPS, type ReviewStatusValue } from '@/lib/reviewStatus';
 
 type ProductRow = {
   id: string;
@@ -62,7 +62,7 @@ function AdminProductQueueContent() {
     queryKey: ['admin-product-queue', tab],
     queryFn: async () => {
       const statuses =
-        tab === 'submitted' ? REVIEW_STATUS_GROUPS.PENDING
+        tab === 'submitted' ? [REVIEW_STATUS.SUBMITTED]
         : tab === 'approved' ? REVIEW_STATUS_GROUPS.LIVE
         : REVIEW_STATUS_GROUPS.NEEDS_SELLER_ACTION;
       const { data, error } = await db
@@ -92,7 +92,7 @@ function AdminProductQueueContent() {
         return count || 0;
       };
       const [submitted, approved, rejected] = await Promise.all([
-        fetchCount([...REVIEW_STATUS_GROUPS.PENDING]),
+        fetchCount([REVIEW_STATUS.SUBMITTED]),
         fetchCount([...REVIEW_STATUS_GROUPS.LIVE]),
         fetchCount([...REVIEW_STATUS_GROUPS.NEEDS_SELLER_ACTION]),
       ]);

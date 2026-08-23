@@ -40,7 +40,7 @@ type QueueTab = 'pending' | 'draft' | 'needs_changes' | 'approved' | 'delisted' 
 // Tab -> canonical review_status values. All values come from REVIEW_STATUS, so a
 // tab can never filter on a status nothing writes.
 const STATUS_GROUPS: Record<Exclude<QueueTab, 'all'>, string[]> = {
-  pending: [...REVIEW_STATUS_GROUPS.PENDING],
+  pending: [REVIEW_STATUS.SUBMITTED],
   draft: [...REVIEW_STATUS_GROUPS.DRAFT],
   needs_changes: [...REVIEW_STATUS_GROUPS.NEEDS_SELLER_ACTION],
   approved: [...REVIEW_STATUS_GROUPS.LIVE],
@@ -71,6 +71,7 @@ export default function AdminProductReview() {
       let q = db.from('dkai_products').select(PRODUCT_COLUMNS);
       if (tab !== 'all') q = q.in('review_status', STATUS_GROUPS[tab]);
       const { data, error } = await q
+        .order('submitted_at', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data || [];

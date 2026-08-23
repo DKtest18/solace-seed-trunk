@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, File as FileIcon, Trash2, Loader2, CheckCircle, AlertCircle, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { uploadDeliveryFile, deleteDeliveryFile, resubmitProductForReview } from '@/lib/deliveryFileUpload';
+import { REVIEW_STATUS } from '@/lib/reviewStatus';
 
 interface ProductFile {
   id: string;
@@ -133,7 +134,7 @@ export function ProductDeliveryFilesManager({
         </div>
       </div>
 
-      {!!reviewStatus && reviewStatus !== 'draft' && (
+      {!!reviewStatus && reviewStatus !== REVIEW_STATUS.DRAFT && (
         <div className="flex flex-col gap-2 rounded-lg border bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
             You can add or replace delivery files after submission. Send the product back to review

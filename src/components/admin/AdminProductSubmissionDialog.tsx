@@ -3,9 +3,11 @@ import { db } from '@/lib/dkaiDb';
 import { mediaPublicUrl } from '@/hooks/useProductMedia';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Download } from 'lucide-react';
+
 import { DemoVideoReviewPanel } from '@/components/admin/DemoVideoReviewPanel';
 import { AdminProductFileAccess } from '@/components/admin/AdminProductFileAccess';
 import { formatMoney } from '@/lib/money';

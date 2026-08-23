@@ -8,13 +8,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, ShieldCheck, AlertTriangle, Clock, FileUp } from 'lucide-react';
 
-export type ReviewStatus =
-  | 'draft'
-  | 'submitted'
-  | 'in_review'
-  | 'approved'
-  | 'rejected'
-  | 'changes_requested';
+import {
+  REVIEW_STATUS,
+  REVIEW_STATUS_LABEL,
+  REVIEW_STATUS_VARIANT,
+  normalizeReviewStatus,
+  type ReviewStatusValue,
+} from '@/lib/reviewStatus';
+
+export type ReviewStatus = ReviewStatusValue;
 
 interface Props {
   productId: string;
@@ -25,14 +27,11 @@ interface Props {
   onSubmitted: () => void;
 }
 
-const STATUS_META: Record<ReviewStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  draft: { label: 'Draft', variant: 'outline' },
-  submitted: { label: 'Submitted', variant: 'default' },
-  in_review: { label: 'In Review', variant: 'secondary' },
-  approved: { label: 'Approved — Live', variant: 'default' },
-  rejected: { label: 'Rejected', variant: 'destructive' },
-  changes_requested: { label: 'Changes Requested', variant: 'secondary' },
-};
+const canSubmitStatuses: string[] = [
+  REVIEW_STATUS.DRAFT,
+  REVIEW_STATUS.CHANGES_REQUESTED,
+  REVIEW_STATUS.REJECTED,
+];
 
 export function ProductReviewStatusCard({
   productId,
@@ -46,7 +45,8 @@ export function ProductReviewStatusCard({
   const [sampleFile, setSampleFile] = useState<File | null>(null);
 
   const needsSample = deliveryTier === 'tier3';
-  const canSubmit = ['draft', 'changes_requested', 'rejected'].includes(reviewStatus);
+  const status = normalizeReviewStatus(reviewStatus);
+  const canSubmit = canSubmitStatuses.includes(status);
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -82,13 +82,13 @@ export function ProductReviewStatusCard({
     }
   };
 
-  const meta = STATUS_META[reviewStatus];
+
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-sm font-medium">Review status:</span>
-        <Badge variant={meta.variant}>{meta.label}</Badge>
+        <Badge variant={REVIEW_STATUS_VARIANT[status]}>{REVIEW_STATUS_LABEL[status]}</Badge>
         {requiresAccessReview && (
           <Badge variant="outline" className="gap-1">
             <ShieldCheck className="w-3 h-3" /> Access review may be required
@@ -96,7 +96,7 @@ export function ProductReviewStatusCard({
         )}
       </div>
 
-      {reviewStatus === 'approved' && (
+      {status === REVIEW_STATUS.APPROVED && (
         <Alert>
           <ShieldCheck className="h-4 w-4" />
           <AlertTitle>Live on the marketplace</AlertTitle>
@@ -104,7 +104,7 @@ export function ProductReviewStatusCard({
         </Alert>
       )}
 
-      {(reviewStatus === 'submitted' || reviewStatus === 'in_review') && (
+      {(status === REVIEW_STATUS.SUBMITTED || status === REVIEW_STATUS.IN_REVIEW) && (
         <Alert>
           <Clock className="h-4 w-4" />
           <AlertTitle>Under review</AlertTitle>
@@ -116,11 +116,11 @@ export function ProductReviewStatusCard({
         </Alert>
       )}
 
-      {(reviewStatus === 'changes_requested' || reviewStatus === 'rejected') && reviewNotes && (
-        <Alert variant={reviewStatus === 'rejected' ? 'destructive' : 'default'}>
+      {(status === REVIEW_STATUS.CHANGES_REQUESTED || status === REVIEW_STATUS.REJECTED) && reviewNotes && (
+        <Alert variant={status === REVIEW_STATUS.REJECTED ? 'destructive' : 'default'}>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>
-            {reviewStatus === 'rejected' ? 'Rejected' : 'Changes requested'}
+            {status === REVIEW_STATUS.REJECTED ? 'Rejected' : 'Changes requested'}
           </AlertTitle>
           <AlertDescription className="whitespace-pre-wrap">{reviewNotes}</AlertDescription>
         </Alert>
@@ -148,7 +148,7 @@ export function ProductReviewStatusCard({
             ) : (
               <FileUp className="mr-2 h-4 w-4" />
             )}
-            {reviewStatus === 'draft' ? 'Submit for review' : 'Resubmit for review'}
+            {status === REVIEW_STATUS.DRAFT ? 'Submit for review' : 'Resubmit for review'}
           </Button>
         </div>
       )}

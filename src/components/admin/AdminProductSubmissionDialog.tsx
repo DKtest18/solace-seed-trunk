@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/dkaiDb';
 import { mediaPublicUrl } from '@/hooks/useProductMedia';
+import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,25 @@ interface MediaRow {
   id: string;
   storage_path: string;
   media_type: string;
-  position?: number | null;
+  sort_order?: number | null;
+}
+
+/**
+ * Gallery media lives in the `product-images` / `product-media` buckets. Public
+ * URLs work while those buckets are public, but a private bucket (or a future
+ * policy change) would break playback and downloads silently — so we always try
+ * a signed URL first and fall back to the public URL.
+ */
+async function resolveMediaUrl(storagePath: string) {
+  const [bucket, ...rest] = storagePath.split('/');
+  const key = rest.join('/');
+  try {
+    const { data } = await supabase.storage.from(bucket).createSignedUrl(key, 60 * 60);
+    if (data?.signedUrl) return data.signedUrl;
+  } catch {
+    /* fall through */
+  }
+  return mediaPublicUrl(storagePath);
 }
 
 
@@ -92,17 +111,31 @@ export function AdminProductSubmissionDialog({
   const p = product ?? {};
   const cur = p.currency;
   const [media, setMedia] = useState<MediaRow[] | null>(null);
+  const [mediaError, setMediaError] = useState<string | null>(null);
+  const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!open || !p.id) return;
     let cancelled = false;
     (async () => {
-      const { data } = await db
+      const { data, error } = await db
         .from('dkai_product_media')
-        .select('id, storage_path, media_type, position')
+        .select('id, storage_path, media_type, sort_order')
         .eq('product_id', p.id)
-        .order('position', { ascending: true });
-      if (!cancelled) setMedia((data as MediaRow[]) ?? []);
+        .order('sort_order', { ascending: true });
+      if (cancelled) return;
+      if (error) {
+        setMediaError(error.message);
+        setMedia([]);
+        return;
+      }
+      const rows = (data as MediaRow[]) ?? [];
+      setMediaError(null);
+      setMedia(rows);
+      const entries = await Promise.all(
+        rows.map(async (r) => [r.id, await resolveMediaUrl(r.storage_path)] as const),
+      );
+      if (!cancelled) setMediaUrls(Object.fromEntries(entries));
     })();
     return () => {
       cancelled = true;
@@ -142,17 +175,19 @@ export function AdminProductSubmissionDialog({
           <Step n={3} title="Images & Gallery Media">
             {media === null ? (
               <div className="flex py-4 justify-center"><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /></div>
+            ) : mediaError ? (
+              <p className="text-sm text-destructive py-2">Could not load gallery media: {mediaError}</p>
             ) : media.length === 0 ? (
               <p className="text-sm text-muted-foreground italic py-2">No gallery media uploaded.</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 py-2">
                 {media.map((m, idx) => {
-                  const url = mediaPublicUrl(m.storage_path);
+                  const url = mediaUrls[m.id] ?? mediaPublicUrl(m.storage_path);
                   const name = m.storage_path.split('/').pop() || `media-${idx + 1}`;
                   return (
                     <div key={m.id} className="space-y-1">
                       {m.media_type === 'video' ? (
-                        <video src={url} controls className="w-full rounded border" />
+                        <video src={url} controls playsInline preload="metadata" className="w-full rounded border" />
                       ) : (
                         <a href={url} target="_blank" rel="noreferrer">
                           <img src={url} alt={p.title || 'Product media'} className="w-full h-32 object-cover rounded border" />
@@ -178,7 +213,10 @@ export function AdminProductSubmissionDialog({
                   variant="secondary"
                   onClick={() =>
                     media.forEach((m, i) =>
-                      downloadUrl(mediaPublicUrl(m.storage_path), m.storage_path.split('/').pop() || `media-${i + 1}`)
+                      downloadUrl(
+                        mediaUrls[m.id] ?? mediaPublicUrl(m.storage_path),
+                        m.storage_path.split('/').pop() || `media-${i + 1}`,
+                      )
                     )
                   }
                 >

@@ -19,8 +19,12 @@ import { PricingStep } from '@/components/product-creation/PricingStep';
 import { FeaturesTagsStep } from '@/components/product-creation/FeaturesTagsStep';
 import { PurposeAudienceStep } from '@/components/product-creation/PurposeAudienceStep';
 import { AdditionalDetailsStep } from '@/components/product-creation/AdditionalDetailsStep';
-import { PaymentOptionsStep } from '@/components/product-creation/PaymentOptionsStep';
 import { FAQStep } from '@/components/product-creation/FAQStep';
+import { useDeliveryFiles } from '@/hooks/useDeliveryFiles';
+import { DeliveryFilesStep } from '@/components/product-creation/DeliveryFilesStep';
+import { ReturnPolicyStep } from '@/components/product-creation/ReturnPolicyStep';
+import { TermsAcceptanceStep } from '@/components/product-creation/TermsAcceptanceStep';
+import { DemoVideoStep, parseDemoVideoPaths } from '@/components/product-creation/DemoVideoStep';
 import { ArrowLeft, ArrowRight, Loader2, CheckCircle, Trash2, Eye, EyeOff } from 'lucide-react';
 import {
   AlertDialog,
@@ -43,7 +47,10 @@ const STEPS = [
   { id: 5, title: 'Features & Tags', description: 'Highlight benefits' },
   { id: 6, title: 'Details', description: 'Additional info' },
   { id: 7, title: 'FAQ', description: 'Common questions' },
-  { id: 8, title: 'Payment Options', description: 'Payment methods' },
+  { id: 8, title: 'Delivery Files', description: 'Workflows, tutorials & files' },
+  { id: 9, title: 'Return Policy', description: 'Return rules' },
+  { id: 10, title: 'Terms', description: 'Accept seller terms' },
+  { id: 11, title: 'Demo Video', description: 'Required demo' },
 ];
 
 export default function EditProduct() {
@@ -114,6 +121,16 @@ export default function EditProduct() {
     seller_ack_setup_credentials: false,
     seller_ack_agency: false,
     seller_ack_exclusive: false,
+    return_allowed: false,
+    return_window_days: 1,
+    return_fee_enabled: false,
+    return_fee_percentage: 0,
+    return_conditions: '',
+    seller_accepted_terms: false,
+    seller_rules_confirmed: false,
+    demo_video_url: '',
+    demo_video_storage_path: '',
+    demo_video_paths: [] as string[],
   });
 
   const {
@@ -123,6 +140,13 @@ export default function EditProduct() {
     remove: removeMediaItem,
     reorder: reorderMedia,
   } = useProductMedia(user?.id);
+  const {
+    files: deliveryFiles,
+    uploading: deliveryUploading,
+    load: loadDeliveryFiles,
+    addFile: addDeliveryFile,
+    removeFile: removeDeliveryFile,
+  } = useDeliveryFiles(async () => id ?? null);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -221,13 +245,30 @@ export default function EditProduct() {
           seller_ack_setup_credentials: !!product.seller_ack_setup_credentials,
           seller_ack_agency: !!product.seller_ack_agency,
           seller_ack_exclusive: !!product.seller_ack_exclusive,
+          return_allowed: !!product.return_allowed,
+          return_window_days: product.return_window_days ?? 1,
+          return_fee_enabled: !!product.return_fee_enabled,
+          return_fee_percentage: product.return_fee_percentage ?? 0,
+          return_conditions: product.return_conditions || '',
+          seller_accepted_terms: !!product.seller_accepted_terms,
+          seller_rules_confirmed: !!product.seller_rules_confirmed,
+          demo_video_url: product.demo_video_url || '',
+          demo_video_storage_path: product.demo_video_storage_path || '',
+          demo_video_paths: parseDemoVideoPaths(product.demo_video_paths ?? product.demo_video_storage_path),
         });
 
         if (product.image_url) {
           setExistingImageUrl(product.image_url);
         }
 
-        if (id) await loadMedia(id);
+        if (id) {
+          await loadMedia(id);
+          try {
+            await loadDeliveryFiles(id);
+          } catch (e) {
+            console.warn('Could not load delivery files', e);
+          }
+        }
 
         // Delivery tier + related fields
         if (product.delivery_tier) setDeliveryTier(product.delivery_tier as DeliveryTier);
@@ -331,9 +372,13 @@ export default function EditProduct() {
         }
         break;
 
-      case 8:
-        if (!formData.payment_methods || formData.payment_methods.length === 0) {
-          newErrors.payment_methodsError = 'Please select at least one payment method';
+      case 10:
+        if (!formData.seller_accepted_terms) {
+          newErrors.seller_accepted_termsError = 'You must accept the seller terms to continue';
+        }
+        if (!formData.seller_rules_confirmed) {
+          newErrors.seller_rules_confirmedError =
+            'You must confirm this product complies with the Seller Rules & Obligations';
         }
         break;
     }
@@ -500,6 +545,17 @@ export default function EditProduct() {
           delivery_tier_overridden: deliveryTier !== deliveryRecommended,
           max_sales: maxSales,
           delivery_method_note: deliveryTier === 'tier3' ? deliveryNote : null,
+          return_allowed: !!formData.return_allowed,
+          return_window_days: formData.return_allowed ? formData.return_window_days : 1,
+          return_fee_enabled: !!formData.return_fee_enabled,
+          return_fee_percentage: formData.return_fee_enabled ? formData.return_fee_percentage : 0,
+          return_conditions: formData.return_conditions || null,
+          seller_accepted_terms: !!formData.seller_accepted_terms,
+          seller_rules_confirmed: !!formData.seller_rules_confirmed,
+          demo_video_url: formData.demo_video_url?.trim() || null,
+          demo_video_storage_path:
+            (formData.demo_video_paths?.[0] || formData.demo_video_storage_path || '').trim() || null,
+          demo_video_paths: formData.demo_video_paths ?? [],
         })
         .eq('id', id);
 
@@ -685,7 +741,63 @@ export default function EditProduct() {
                 <FAQStep data={formData} onChange={handleChange} errors={errors} />
               )}
               {currentStep === 8 && (
-                <PaymentOptionsStep data={formData} onChange={handleChange} errors={errors} />
+                <DeliveryFilesStep
+                  data={{
+                    delivery_mode: formData.delivery_mode,
+                    delivery_time_hours: formData.delivery_time_hours,
+                    available_quantity: formData.available_quantity,
+                    product_type: formData.product_type,
+                    license_exclusive_enabled: formData.license_exclusive_enabled,
+                    setup_requirements: formData.setup_requirements,
+                    setup_access_window_hours: formData.setup_access_window_hours,
+                    setup_no_credentials: formData.setup_no_credentials,
+                  }}
+                  onChange={handleChange}
+                  deliveryFiles={deliveryFiles}
+                  uploading={deliveryUploading}
+                  onAddFile={async (file) => {
+                    try {
+                      const row = await addDeliveryFile(file);
+                      await db
+                        .from('dkai_products')
+                        .update({
+                          file_storage_key: row.file_path,
+                          file_size_bytes: row.file_size,
+                          file_scan_status: row.scan_status,
+                        })
+                        .eq('id', id);
+                      setFileSizeBytes(Number(row.file_size) || 0);
+                      toast.success(`${row.file_name} uploaded and saved to this product`);
+                    } catch (e: any) {
+                      toast.error(e?.message || 'Upload failed');
+                    }
+                  }}
+                  onRemoveFile={async (fileId) => {
+                    try {
+                      await removeDeliveryFile(fileId);
+                    } catch (e: any) {
+                      toast.error(e?.message || 'Could not delete the file');
+                    }
+                  }}
+                  errors={errors}
+                />
+              )}
+              {currentStep === 9 && (
+                <ReturnPolicyStep data={formData} onChange={handleChange} errors={errors} />
+              )}
+              {currentStep === 10 && (
+                <TermsAcceptanceStep data={formData} onChange={handleChange} errors={errors} />
+              )}
+              {currentStep === 11 && (
+                <DemoVideoStep
+                  data={{
+                    demo_video_url: formData.demo_video_url,
+                    demo_video_storage_path: formData.demo_video_storage_path,
+                    demo_video_paths: formData.demo_video_paths,
+                  }}
+                  onChange={handleChange}
+                  errors={errors}
+                />
               )}
             </div>
 

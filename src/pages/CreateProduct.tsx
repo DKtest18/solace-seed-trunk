@@ -119,6 +119,8 @@ export default function CreateProduct() {
     delivery_mode: 'instant' as string,
     delivery_time_hours: null as number | null,
     seller_accepted_terms: false,
+    seller_rules_confirmed: false,
+
     return_allowed: false,
     return_window_days: 1,
     return_fee_enabled: false,

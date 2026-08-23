@@ -130,16 +130,21 @@ export default function Index() {
       <section className="relative py-10 border-y border-white/10 bg-[#0A0E1A]/80">
         <div className="home-marquee">
           <div className="home-marquee-track">
-            {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((c, i) => (
-              <span
-                key={i}
-                className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm text-[#F1F5F9]/90"
-              >
-                {c}
-              </span>
+            {[0, 1].map((g) => (
+              <div className="home-marquee-group" key={g} aria-hidden={g === 1}>
+                {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((c, i) => (
+                  <span
+                    key={`${g}-${i}`}
+                    className="inline-flex items-center whitespace-nowrap rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm text-[#F1F5F9]/90"
+                  >
+                    {c}
+                  </span>
+                ))}
+              </div>
             ))}
           </div>
         </div>
+
       </section>
 
       {/* HOW IT WORKS */}

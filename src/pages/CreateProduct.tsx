@@ -158,7 +158,10 @@ export default function CreateProduct() {
     remove: removeMediaItem,
     reorder: reorderMedia,
   } = useProductMedia(user?.id);
-  const ensureDraftIdForUpload = async () => draftIdRef.current ?? (await persistDraftRef.current());
+  // Delivery-file uploads need the draft row to exist first; the concrete
+  // helper is defined further down, so route through a ref.
+  const ensureDraftRef = useRef<() => Promise<string | null>>(async () => null);
+  const ensureDraftIdForUpload = () => ensureDraftRef.current();
   const {
     files: deliveryFiles,
     uploading: deliveryUploading,
@@ -424,6 +427,8 @@ export default function CreateProduct() {
       draftCreationRef.current = null;
     }
   };
+
+  ensureDraftRef.current = ensureDraftForMedia;
 
   const handleSaveAndExit = async () => {
     setIsSavingDraft(true);

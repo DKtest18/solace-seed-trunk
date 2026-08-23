@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, ExternalLink, Video } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { downloadUrl } from '@/lib/downloadFile';
+import { AlertCircle, Download, ExternalLink, Video } from 'lucide-react';
+
 
 function youtubeId(url: string): string | null {
   const m =
@@ -113,8 +116,16 @@ export function DemoVideoReviewPanel({ demoVideoUrl, demoVideoStoragePath, demoV
             <p className="text-xs text-muted-foreground">Uploaded video {i + 1} of {signedUrls.length}</p>
           )}
           <video src={signedUrl} controls preload="metadata" className="w-full max-w-xl rounded-md" />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => downloadUrl(signedUrl, paths[i]?.split('/').pop() || `demo-video-${i + 1}.mp4`)}
+          >
+            <Download className="w-3.5 h-3.5 mr-1.5" /> Download video
+          </Button>
         </div>
       ))}
+
       {error && (
         <p className="text-sm text-destructive">Could not load uploaded video: {error}</p>
       )}

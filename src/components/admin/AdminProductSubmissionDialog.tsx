@@ -3,9 +3,13 @@ import { db } from '@/lib/dkaiDb';
 import { mediaPublicUrl } from '@/hooks/useProductMedia';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Download } from 'lucide-react';
+import { downloadUrl } from '@/lib/downloadFile';
+
+
 import { DemoVideoReviewPanel } from '@/components/admin/DemoVideoReviewPanel';
 import { AdminProductFileAccess } from '@/components/admin/AdminProductFileAccess';
 import { formatMoney } from '@/lib/money';
@@ -17,6 +21,8 @@ interface MediaRow {
   media_type: string;
   position?: number | null;
 }
+
+
 
 function Val({ v, currency }: { v: any; currency?: string }) {
   if (v === null || v === undefined || v === '' || (Array.isArray(v) && v.length === 0)) {
@@ -140,24 +146,67 @@ export function AdminProductSubmissionDialog({
               <p className="text-sm text-muted-foreground italic py-2">No gallery media uploaded.</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 py-2">
-                {media.map((m) => {
+                {media.map((m, idx) => {
                   const url = mediaPublicUrl(m.storage_path);
-                  return m.media_type === 'video' ? (
-                    <video key={m.id} src={url} controls className="w-full rounded border" />
-                  ) : (
-                    <a key={m.id} href={url} target="_blank" rel="noreferrer">
-                      <img src={url} alt={p.title || 'Product media'} className="w-full h-32 object-cover rounded border" />
-                    </a>
+                  const name = m.storage_path.split('/').pop() || `media-${idx + 1}`;
+                  return (
+                    <div key={m.id} className="space-y-1">
+                      {m.media_type === 'video' ? (
+                        <video src={url} controls className="w-full rounded border" />
+                      ) : (
+                        <a href={url} target="_blank" rel="noreferrer">
+                          <img src={url} alt={p.title || 'Product media'} className="w-full h-32 object-cover rounded border" />
+                        </a>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => downloadUrl(url, name)}
+                      >
+                        <Download className="w-3.5 h-3.5 mr-1.5" /> Download
+                      </Button>
+                    </div>
                   );
                 })}
               </div>
             )}
+            {media && media.length > 1 && (
+              <div className="pb-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() =>
+                    media.forEach((m, i) =>
+                      downloadUrl(mediaPublicUrl(m.storage_path), m.storage_path.split('/').pop() || `media-${i + 1}`)
+                    )
+                  }
+                >
+                  <Download className="w-3.5 h-3.5 mr-1.5" /> Download all gallery media
+                </Button>
+              </div>
+            )}
             <Row label="Cover image URL" value={p.image_url} />
+            {p.image_url && (
+              <div className="py-2">
+                <Button size="sm" variant="outline" onClick={() => downloadUrl(p.image_url, 'cover-image')}>
+                  <Download className="w-3.5 h-3.5 mr-1.5" /> Download cover image
+                </Button>
+              </div>
+            )}
             <Row label="Sample preview URL" value={p.sample_preview_url} />
+            {p.sample_preview_url && (
+              <div className="py-2">
+                <Button size="sm" variant="outline" onClick={() => downloadUrl(p.sample_preview_url, 'sample-preview')}>
+                  <Download className="w-3.5 h-3.5 mr-1.5" /> Download sample preview
+                </Button>
+              </div>
+            )}
             <Row label="Sample preview type" value={p.sample_preview_type} />
             <Row label="Sample output text" value={p.sample_output_text} />
             <Row label="Sample is watermarked" value={!!p.sample_is_watermarked} />
           </Step>
+
 
           <Step n={4} title="Pricing & Licenses">
             <Row label="Pricing model" value={p.pricing_model} />
@@ -228,7 +277,9 @@ export function AdminProductSubmissionDialog({
           </Step>
 
           <Step n={9} title="Return Policy">
-            <Row label="Returns allowed" value={!!p.return_allowed} />
+            {/* Returns are platform-mandated: every seller must accept them, so this is always Yes */}
+            <Row label="Returns allowed" value={true} />
+
             <Row label="Return window (days)" value={p.return_window_days} />
             <Row label="Return fee enabled" value={!!p.return_fee_enabled} />
             <Row label="Return fee (%)" value={p.return_fee_percentage} />

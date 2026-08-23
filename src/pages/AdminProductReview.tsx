@@ -22,7 +22,9 @@ import { Loader2, Eye, FileSearch } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DemoVideoReviewPanel, hasDemoVideo } from '@/components/admin/DemoVideoReviewPanel';
 import { AdminProductFileAccess } from '@/components/admin/AdminProductFileAccess';
+import { AdminProductSubmissionDialog } from '@/components/admin/AdminProductSubmissionDialog';
 import { formatMoney } from '@/lib/money';
+
 import { format } from 'date-fns';
 
 type ReviewStatus = 'pending_review' | 'draft' | 'approved' | 'delisted' | 'all';

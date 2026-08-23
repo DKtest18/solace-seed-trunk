@@ -68,7 +68,9 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
         terms_accepted_at: nowIso,
         updated_at: nowIso,
       })
-      .eq('id', user.id);
+      .eq('id', user.id)
+      .select('id, seller_agreement_accepted, seller_agreement_version')
+      .maybeSingle();
 
     if (error) {
       // Raw Supabase error on purpose — this must stay debuggable.

@@ -77,7 +77,7 @@ export default function SellerOnboardingTerms() {
     setLoading(true);
     try {
       const nowIso = new Date().toISOString();
-      const { error } = await db
+      const { data: savedProfile, error } = await db
         .from('dkai_profiles')
         .update({
           terms_accepted: true,
@@ -89,8 +89,16 @@ export default function SellerOnboardingTerms() {
           seller_obligations_pdf_version: pdfDoc?.version ?? null,
           updated_at: nowIso,
         })
-        .eq('id', uid);
+        .eq('id', uid)
+        .select('id, seller_agreement_accepted, seller_agreement_version')
+        .maybeSingle();
       if (error) throw error;
+      if (
+        !savedProfile?.seller_agreement_accepted ||
+        savedProfile.seller_agreement_version !== SELLER_AGREEMENT_VERSION
+      ) {
+        throw new Error('Seller agreement acceptance was not saved. Please try again.');
+      }
 
       await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
       await queryClient.invalidateQueries({ queryKey: ['seller-restrictions', uid] });

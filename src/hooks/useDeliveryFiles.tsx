@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+
 import { db } from '@/lib/dkaiDb';
+import { uploadDeliveryFile, deleteDeliveryFile } from '@/lib/deliveryFileUpload';
 
 export interface DeliveryFileRow {
   id: string;
@@ -30,6 +31,7 @@ function sanitizeFileName(name: string) {
 export function useDeliveryFiles(ensureDraftId: () => Promise<string | null>) {
   const [files, setFiles] = useState<DeliveryFileRow[]>([]);
   const filesRef = useRef<DeliveryFileRow[]>([]);
+  const currentProductRef = useRef<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
   const apply = useCallback((next: DeliveryFileRow[]) => {
@@ -39,6 +41,7 @@ export function useDeliveryFiles(ensureDraftId: () => Promise<string | null>) {
 
   const load = useCallback(
     async (productId: string) => {
+      currentProductRef.current = productId;
       const { data, error } = await db
         .from('dkai_product_files')
         .select('id, file_name, file_size, file_path, scan_status')
@@ -63,55 +66,8 @@ export function useDeliveryFiles(ensureDraftId: () => Promise<string | null>) {
         const productId = await ensureDraftId();
         if (!productId) throw new Error('Could not create the product draft, so the file could not be attached.');
 
-        const { data: authData, error: authError } = await supabase.auth.getUser();
-        if (authError) throw authError;
-        const ownerId = authData.user?.id;
-        if (!ownerId) throw new Error('Your session expired. Please sign in again before uploading.');
-
-        const fileId = crypto.randomUUID();
-        const filePath = `${ownerId}/${productId}/${fileId}-${sanitizeFileName(file.name)}`;
-        const { error: uploadError } = await supabase.storage
-          .from('product-files')
-          .upload(filePath, file, {
-            contentType: file.type || 'application/octet-stream',
-            upsert: false,
-          });
-        if (uploadError) throw new Error(`Storage upload failed: ${uploadError.message}`);
-
-        const { data: inserted, error: insertError } = await db
-          .from('dkai_product_files')
-          .insert({
-            id: fileId,
-            product_id: productId,
-            file_path: filePath,
-            file_name: file.name,
-            file_size: file.size,
-            mime_type: file.type || 'application/octet-stream',
-            scan_status: 'clean',
-            uploaded_by: ownerId,
-          })
-          .select('id, file_name, file_size, file_path, scan_status')
-          .single();
-        if (insertError || !inserted) {
-          await supabase.storage.from('product-files').remove([filePath]);
-          throw new Error(`File record save failed: ${insertError?.message || 'No row returned'}`);
-        }
-
-        const { data: updatedProduct, error: productError } = await db
-          .from('dkai_products')
-          .update({
-            file_storage_key: filePath,
-            file_size_bytes: file.size,
-            file_scan_status: 'clean',
-          })
-          .eq('id', productId)
-          .select('id')
-          .single();
-        if (productError || !updatedProduct) {
-          await db.from('dkai_product_files').delete().eq('id', fileId);
-          await supabase.storage.from('product-files').remove([filePath]);
-          throw new Error(`Product file metadata save failed: ${productError?.message || 'The product row was not updated'}`);
-        }
+        const inserted = await uploadDeliveryFile(productId, file);
+        currentProductRef.current = productId;
 
         const row: DeliveryFileRow = {
           id: inserted.id,
@@ -145,11 +101,14 @@ export function useDeliveryFiles(ensureDraftId: () => Promise<string | null>) {
         apply(filesRef.current.filter((f) => f.id !== id));
         return;
       }
-      const { error } = await db.from('dkai_product_files').delete().eq('id', id);
-      if (error) throw error;
+      const row = filesRef.current.find((f) => f.id === id);
+      const productId = currentProductRef.current ?? (await ensureDraftId());
+      if (!productId) throw new Error('Product draft is missing, so the file could not be deleted.');
+      void row;
+      await deleteDeliveryFile(productId, id);
       apply(filesRef.current.filter((f) => f.id !== id));
     },
-    [apply],
+    [apply, ensureDraftId],
   );
 
   return { files, filesRef, uploading, load, addFile, remove };

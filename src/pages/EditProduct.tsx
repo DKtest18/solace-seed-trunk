@@ -859,7 +859,11 @@ export default function EditProduct() {
                     Private files buyers download after purchase. Virus-scanned automatically.
                     {' '}A clean delivery file is required before this product can be published.
                   </p>
-                  <ProductDeliveryFilesManager productId={id} />
+                  <ProductDeliveryFilesManager
+                    productId={id}
+                    reviewStatus={reviewStatus}
+                    onResubmitted={() => setReviewRefreshKey((k) => k + 1)}
+                  />
                 </div>
               )}
             </CardContent>

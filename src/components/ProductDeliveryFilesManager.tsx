@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, File as FileIcon, Trash2, Loader2, CheckCircle, AlertCircle, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { uploadDeliveryFile, deleteDeliveryFile, resubmitProductForReview } from '@/lib/deliveryFileUpload';
 
 interface ProductFile {
   id: string;
@@ -16,7 +17,7 @@ interface ProductFile {
   created_at: string;
 }
 
-const MAX_SIZE = 500 * 1024 * 1024;
+const MAX_SIZE = 2 * 1024 * 1024 * 1024;
 
 function formatSize(b: number) {
   if (b < 1024) return `${b} B`;
@@ -29,10 +30,20 @@ function sanitizeFileName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/_{2,}/g, '_').slice(0, 120);
 }
 
-export function ProductDeliveryFilesManager({ productId }: { productId: string }) {
+export function ProductDeliveryFilesManager({
+  productId,
+  reviewStatus,
+  onResubmitted,
+}: {
+  productId: string;
+  reviewStatus?: string | null;
+  onResubmitted?: () => void;
+}) {
   const [files, setFiles] = useState<ProductFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [resubmitting, setResubmitting] = useState(false);
+  const [dirty, setDirty] = useState(false);
   const { toast } = useToast();
 
   const load = async () => {
@@ -65,46 +76,8 @@ export function ProductDeliveryFilesManager({ productId }: { productId: string }
     }
     setUploading(true);
     try {
-      const { data: authData, error: authError } = await supabase.auth.getUser();
-      if (authError) throw authError;
-      const ownerId = authData.user?.id;
-      if (!ownerId) throw new Error('Your session expired. Please sign in again before uploading.');
-
-      const fileId = crypto.randomUUID();
-      const filePath = `${ownerId}/${productId}/${fileId}-${sanitizeFileName(file.name)}`;
-      const { error: uploadError } = await supabase.storage.from('product-files').upload(filePath, file, {
-        contentType: file.type || 'application/octet-stream',
-        upsert: false,
-      });
-      if (uploadError) throw new Error(`Storage upload failed: ${uploadError.message}`);
-
-      const { error: insertError } = await (supabase as any).from('dkai_product_files').insert({
-        id: fileId,
-        product_id: productId,
-        file_name: file.name,
-        file_size: file.size,
-        file_path: filePath,
-        mime_type: file.type || 'application/octet-stream',
-        scan_status: 'clean',
-        uploaded_by: ownerId,
-      });
-      if (insertError) {
-        await supabase.storage.from('product-files').remove([filePath]);
-        throw new Error(`File record save failed: ${insertError.message}`);
-      }
-
-      const { data: updatedProduct, error: productError } = await (supabase as any)
-        .from('dkai_products')
-        .update({ file_storage_key: filePath, file_size_bytes: file.size, file_scan_status: 'clean' })
-        .eq('id', productId)
-        .select('id')
-        .single();
-      if (productError || !updatedProduct) {
-        await (supabase as any).from('dkai_product_files').delete().eq('id', fileId);
-        await supabase.storage.from('product-files').remove([filePath]);
-        throw new Error(`Product file metadata save failed: ${productError?.message || 'The product row was not updated'}`);
-      }
-
+      await uploadDeliveryFile(productId, file);
+      setDirty(true);
       toast({ title: 'Uploaded and saved', description: file.name });
       await load();
     } catch (err: any) {
@@ -114,14 +87,29 @@ export function ProductDeliveryFilesManager({ productId }: { productId: string }
     }
   };
 
+  const handleResubmit = async () => {
+    setResubmitting(true);
+    try {
+      await resubmitProductForReview(productId);
+      setDirty(false);
+      toast({ title: 'Sent for review', description: 'Your updated files were submitted to the review team.' });
+      onResubmitted?.();
+    } catch (err: any) {
+      toast({ title: 'Resubmission failed', description: err.message, variant: 'destructive' });
+    } finally {
+      setResubmitting(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this file? Buyers will no longer be able to download it.')) return;
-    const { error } = await (supabase as any).from('dkai_product_files').delete().eq('id', id);
-    if (error) {
-      toast({ title: 'Delete failed', description: error.message, variant: 'destructive' });
-    } else {
+    try {
+      await deleteDeliveryFile(productId, id);
+      setDirty(true);
       toast({ title: 'File deleted' });
       load();
+    } catch (err: any) {
+      toast({ title: 'Delete failed', description: err.message, variant: 'destructive' });
     }
   };
 
@@ -144,6 +132,19 @@ export function ProductDeliveryFilesManager({ productId }: { productId: string }
           </Button>
         </div>
       </div>
+
+      {!!reviewStatus && reviewStatus !== 'draft' && (
+        <div className="flex flex-col gap-2 rounded-lg border bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted-foreground">
+            You can add or replace delivery files after submission. Send the product back to review
+            so our team checks the new files.
+          </p>
+          <Button onClick={handleResubmit} disabled={resubmitting || uploading || files.length === 0}>
+            {resubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+            {dirty ? 'Save & resend for review' : 'Resend for review'}
+          </Button>
+        </div>
+      )}
 
       <Alert>
         <ShieldCheck className="h-4 w-4" />

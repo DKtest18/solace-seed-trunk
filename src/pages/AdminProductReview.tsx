@@ -163,13 +163,14 @@ export default function AdminProductReview() {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-display font-semibold mb-2">Product Review Queue</h1>
         <p className="text-muted-foreground mb-6">
-          Every product is reviewed before going live. Approve it, or send it back to the seller as a
-          draft with a note describing the changes you need.
+          Every product is reviewed before going live. Approve it, or send it back to the seller with
+          a note describing the changes you need.
         </p>
 
-        <Tabs value={tab} onValueChange={(v) => setTab(v as ReviewStatus)}>
+        <Tabs value={tab} onValueChange={(v) => setTab(v as QueueTab)}>
           <TabsList>
-            <TabsTrigger value="pending_review">Pending review</TabsTrigger>
+            <TabsTrigger value="pending">Pending review</TabsTrigger>
+            <TabsTrigger value="needs_changes">Changes requested</TabsTrigger>
             <TabsTrigger value="draft">Drafts</TabsTrigger>
             <TabsTrigger value="approved">Approved</TabsTrigger>
             <TabsTrigger value="delisted">Delisted</TabsTrigger>

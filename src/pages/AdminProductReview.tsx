@@ -27,40 +27,24 @@ import { formatMoney } from '@/lib/money';
 
 import { format } from 'date-fns';
 
-type ReviewStatus = 'pending_review' | 'draft' | 'approved' | 'delisted' | 'all';
+import {
+  REVIEW_STATUS,
+  REVIEW_STATUS_GROUPS,
+  REVIEW_STATUS_LABEL as STATUS_LABEL,
+  REVIEW_STATUS_VARIANT as STATUS_VARIANT,
+  normalizeReviewStatus,
+} from '@/lib/reviewStatus';
 
-// Products submitted from the wizard / submit-product-for-review edge function use
-// 'submitted' / 'in_review'; older admin flows used 'pending_review'. Rejected products
-// come back as 'draft' / 'rejected' / 'changes_requested'. Each tab matches all synonyms
-// so nothing gets stuck invisible in the queue.
-const STATUS_GROUPS: Record<Exclude<ReviewStatus, 'all'>, string[]> = {
-  pending_review: ['pending_review', 'submitted', 'in_review'],
-  draft: ['draft', 'rejected', 'changes_requested'],
-  approved: ['approved', 'locked_exclusive'],
-  delisted: ['delisted'],
-};
+type QueueTab = 'pending' | 'draft' | 'needs_changes' | 'approved' | 'delisted' | 'all';
 
-const STATUS_LABEL: Record<string, string> = {
-  pending_review: 'Pending review',
-  submitted: 'Pending review (submitted)',
-  in_review: 'In review',
-  draft: 'Draft',
-  rejected: 'Rejected',
-  changes_requested: 'Changes requested',
-  approved: 'Approved',
-  delisted: 'Delisted',
-  locked_exclusive: 'Locked (exclusive)',
-};
-const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  pending_review: 'default',
-  submitted: 'default',
-  in_review: 'default',
-  draft: 'secondary',
-  rejected: 'destructive',
-  changes_requested: 'secondary',
-  approved: 'outline',
-  delisted: 'destructive',
-  locked_exclusive: 'outline',
+// Tab -> canonical review_status values. All values come from REVIEW_STATUS, so a
+// tab can never filter on a status nothing writes.
+const STATUS_GROUPS: Record<Exclude<QueueTab, 'all'>, string[]> = {
+  pending: [...REVIEW_STATUS_GROUPS.PENDING],
+  draft: [...REVIEW_STATUS_GROUPS.DRAFT],
+  needs_changes: [...REVIEW_STATUS_GROUPS.NEEDS_SELLER_ACTION],
+  approved: [...REVIEW_STATUS_GROUPS.LIVE],
+  delisted: [...REVIEW_STATUS_GROUPS.DELISTED],
 };
 
 // Select everything so the queue never breaks when a column is missing
@@ -76,7 +60,7 @@ function licenseTiers(p: any): string {
 }
 
 export default function AdminProductReview() {
-  const [tab, setTab] = useState<ReviewStatus>('pending_review');
+  const [tab, setTab] = useState<QueueTab>('pending');
   const qc = useQueryClient();
 
   const { data: products, isLoading, error } = useQuery({
@@ -132,7 +116,7 @@ export default function AdminProductReview() {
     try {
       const { error } = await db
         .from('dkai_products')
-        .update({ review_status: 'approved' })
+        .update({ review_status: REVIEW_STATUS.APPROVED })
         .eq('id', p.id);
       if (error) {
         toast.error(error.message);
@@ -158,14 +142,14 @@ export default function AdminProductReview() {
     try {
       const { error } = await db
         .from('dkai_products')
-        .update({ review_status: 'draft', admin_review_note: text })
+        .update({ review_status: REVIEW_STATUS.CHANGES_REQUESTED, admin_review_note: text })
         .eq('id', p.id);
       if (error) {
         toast.error(error.message);
         return;
       }
       dropFromList(p.id);
-      toast.success(`Sent back to the seller as a draft with your note.`);
+      toast.success(`Sent back to the seller with your note (changes requested).`);
       setRejectProduct(null);
       setNote('');
     } finally {
@@ -220,8 +204,8 @@ export default function AdminProductReview() {
                         <div>
                           <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
                             {p.title || 'Untitled product'}
-                            <Badge variant={STATUS_VARIANT[p.review_status] || 'secondary'}>
-                              {STATUS_LABEL[p.review_status] || p.review_status || 'No review status (legacy)'}
+                            <Badge variant={STATUS_VARIANT[normalizeReviewStatus(p.review_status)] || 'secondary'}>
+                              {STATUS_LABEL[normalizeReviewStatus(p.review_status)]}
                             </Badge>
                             <Badge variant={p.is_published ? 'outline' : 'secondary'}>
                               {p.is_published ? 'Live on marketplace' : 'Not live'}
@@ -271,7 +255,7 @@ export default function AdminProductReview() {
                         </Alert>
                       )}
                       <div className="flex gap-2 flex-wrap">
-                        {p.review_status !== 'approved' && (
+                        {normalizeReviewStatus(p.review_status) !== REVIEW_STATUS.APPROVED && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -294,7 +278,7 @@ export default function AdminProductReview() {
                             </Tooltip>
                           </TooltipProvider>
                         )}
-                        {p.review_status !== 'draft' && (
+                        {normalizeReviewStatus(p.review_status) !== REVIEW_STATUS.CHANGES_REQUESTED && (
                           <Button
                             size="sm"
                             variant="destructive"

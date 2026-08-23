@@ -140,24 +140,67 @@ export function AdminProductSubmissionDialog({
               <p className="text-sm text-muted-foreground italic py-2">No gallery media uploaded.</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 py-2">
-                {media.map((m) => {
+                {media.map((m, idx) => {
                   const url = mediaPublicUrl(m.storage_path);
-                  return m.media_type === 'video' ? (
-                    <video key={m.id} src={url} controls className="w-full rounded border" />
-                  ) : (
-                    <a key={m.id} href={url} target="_blank" rel="noreferrer">
-                      <img src={url} alt={p.title || 'Product media'} className="w-full h-32 object-cover rounded border" />
-                    </a>
+                  const name = m.storage_path.split('/').pop() || `media-${idx + 1}`;
+                  return (
+                    <div key={m.id} className="space-y-1">
+                      {m.media_type === 'video' ? (
+                        <video src={url} controls className="w-full rounded border" />
+                      ) : (
+                        <a href={url} target="_blank" rel="noreferrer">
+                          <img src={url} alt={p.title || 'Product media'} className="w-full h-32 object-cover rounded border" />
+                        </a>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => downloadUrl(url, name)}
+                      >
+                        <Download className="w-3.5 h-3.5 mr-1.5" /> Download
+                      </Button>
+                    </div>
                   );
                 })}
               </div>
             )}
+            {media && media.length > 1 && (
+              <div className="pb-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() =>
+                    media.forEach((m, i) =>
+                      downloadUrl(mediaPublicUrl(m.storage_path), m.storage_path.split('/').pop() || `media-${i + 1}`)
+                    )
+                  }
+                >
+                  <Download className="w-3.5 h-3.5 mr-1.5" /> Download all gallery media
+                </Button>
+              </div>
+            )}
             <Row label="Cover image URL" value={p.image_url} />
+            {p.image_url && (
+              <div className="py-2">
+                <Button size="sm" variant="outline" onClick={() => downloadUrl(p.image_url, 'cover-image')}>
+                  <Download className="w-3.5 h-3.5 mr-1.5" /> Download cover image
+                </Button>
+              </div>
+            )}
             <Row label="Sample preview URL" value={p.sample_preview_url} />
+            {p.sample_preview_url && (
+              <div className="py-2">
+                <Button size="sm" variant="outline" onClick={() => downloadUrl(p.sample_preview_url, 'sample-preview')}>
+                  <Download className="w-3.5 h-3.5 mr-1.5" /> Download sample preview
+                </Button>
+              </div>
+            )}
             <Row label="Sample preview type" value={p.sample_preview_type} />
             <Row label="Sample output text" value={p.sample_output_text} />
             <Row label="Sample is watermarked" value={!!p.sample_is_watermarked} />
           </Step>
+
 
           <Step n={4} title="Pricing & Licenses">
             <Row label="Pricing model" value={p.pricing_model} />

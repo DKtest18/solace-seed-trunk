@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHasRole } from '@/hooks/useUserRole';
 
-import { useRulesAcceptance } from '@/hooks/useRulesAcceptance';
+import { isSellerAgreementCurrent, useSellerRestrictions } from '@/hooks/useSellerRestrictions';
 import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -27,7 +27,6 @@ import { DemoVideoStep, isValidDemoVideoUrl, parseDemoVideoPaths } from '@/compo
 import { DeliveryFilesStep } from '@/components/product-creation/DeliveryFilesStep';
 import { ReturnPolicyStep } from '@/components/product-creation/ReturnPolicyStep';
 import { TermsAcceptanceStep } from '@/components/product-creation/TermsAcceptanceStep';
-import { RulesAcceptanceStep } from '@/components/RulesAcceptanceStep';
 import { ArrowLeft, ArrowRight, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/stripeConnectStatus';
 import { fetchPayPalConnectStatus, isPayPalConnectedForOnboarding } from '@/lib/paypalConnectStatus';
@@ -51,7 +50,7 @@ export default function CreateProduct() {
   const { hasRole: isSeller, isLoading: roleLoading } = useHasRole('seller');
   const { hasRole: isAdmin } = useHasRole('admin');
   
-  const { sellerRulesAccepted, loadingSellerRules, acceptRules, isAccepting } = useRulesAcceptance();
+  const { data: restrictions, isLoading: loadingRestrictions } = useSellerRestrictions();
   const navigate = useNavigate();
 
   const [searchParams] = useSearchParams();
@@ -66,7 +65,6 @@ export default function CreateProduct() {
   const draftCreationRef = useRef<Promise<string | null> | null>(null);
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [showSubmittedDialog, setShowSubmittedDialog] = useState(false);
-  const [showSellerRules, setShowSellerRules] = useState(false);
 
   // Sync step from URL param
   useEffect(() => {
@@ -76,13 +74,6 @@ export default function CreateProduct() {
       setCurrentStep(step);
     }
   }, [searchParams]);
-
-  // Check if seller rules need acceptance
-  useEffect(() => {
-    if (!loadingSellerRules && !sellerRulesAccepted && (isSeller || isAdmin)) {
-      setShowSellerRules(true);
-    }
-  }, [loadingSellerRules, sellerRulesAccepted, isSeller, isAdmin]);
 
   const [formData, setFormData] = useState({
     title: '',

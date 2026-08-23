@@ -293,7 +293,9 @@ export function AdminProductSubmissionDialog({
           </Step>
 
           <Step n={9} title="Return Policy">
-            <Row label="Returns allowed" value={!!p.return_allowed} />
+            {/* Returns are platform-mandated: every seller must accept them, so this is always Yes */}
+            <Row label="Returns allowed" value={true} />
+
             <Row label="Return window (days)" value={p.return_window_days} />
             <Row label="Return fee enabled" value={!!p.return_fee_enabled} />
             <Row label="Return fee (%)" value={p.return_fee_percentage} />

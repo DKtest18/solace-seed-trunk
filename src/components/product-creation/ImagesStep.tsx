@@ -40,11 +40,13 @@ function validateVideoFile(file: File): { isValid: boolean; error?: string } {
   if (file.size > MAX_PRODUCT_VIDEO_BYTES) {
     return { isValid: false, error: 'Gallery videos must be under 500MB (use the Demo Video step for larger files)' };
   }
-  const validTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
-  if (!validTypes.includes(file.type)) {
-    return { isValid: false, error: 'Only MP4, WebM and MOV videos are allowed' };
+  const type = (file.type || '').toLowerCase();
+  const okByExt = /\.(mp4|webm|mov|m4v|avi|mkv|ogv|ogg)$/i.test(file.name);
+  if (!type.startsWith('video/') && !okByExt) {
+    return { isValid: false, error: 'Unsupported video format. Use MP4, WebM, MOV, M4V, AVI, MKV or OGG' };
   }
   return { isValid: true };
+
 }
 
 /** Reads the video duration in the browser. Returns null when it can't be determined. */
@@ -224,7 +226,7 @@ export function ImagesStep({ media, onAddFile, onRemove, onReorder, errors }: Im
             ref={inputRef}
             type="file"
             multiple
-            accept="image/jpeg,image/jpg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+            accept="image/*,video/*,.jpg,.jpeg,.png,.webp,.gif,.avif,.bmp,.tif,.tiff,.heic,.heif,.svg,.mp4,.webm,.mov,.m4v,.avi,.mkv,.ogv"
             onChange={handleFileChange}
             className="hidden"
           />

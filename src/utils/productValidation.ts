@@ -37,17 +37,46 @@ export function validatePrice(price: number): { isValid: boolean; error?: string
   return { isValid: true };
 }
 
-export function validateImageFile(file: File): { isValid: boolean; error?: string } {
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-  const maxSize = 10 * 1024 * 1024; // 10MB
+export const ALLOWED_IMAGE_MIME_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/pjpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/avif',
+  'image/bmp',
+  'image/tiff',
+  'image/heic',
+  'image/heif',
+  'image/heic-sequence',
+  'image/heif-sequence',
+  'image/svg+xml',
+];
 
-  if (!allowedTypes.includes(file.type)) {
-    return { isValid: false, error: 'Invalid file type. Only JPEG, PNG, and WEBP images are allowed' };
+const IMAGE_EXTENSION_FALLBACK =
+  /\.(jpe?g|png|webp|gif|avif|bmp|tiff?|heic|heif|svg)$/i;
+
+export function validateImageFile(file: File): { isValid: boolean; error?: string } {
+  const maxSize = 25 * 1024 * 1024; // 25MB
+
+  const type = (file.type || '').toLowerCase();
+  const typeOk =
+    ALLOWED_IMAGE_MIME_TYPES.includes(type) ||
+    (type === '' && IMAGE_EXTENSION_FALLBACK.test(file.name)) ||
+    (type.startsWith('image/') && IMAGE_EXTENSION_FALLBACK.test(file.name));
+
+  if (!typeOk) {
+    return {
+      isValid: false,
+      error: `Unsupported image format (${file.type || 'unknown'}). Allowed: JPG, PNG, WEBP, GIF, AVIF, BMP, TIFF, HEIC/HEIF, SVG`,
+    };
   }
 
   if (file.size > maxSize) {
-    return { isValid: false, error: 'File is too large. Maximum size is 10MB' };
+    return { isValid: false, error: 'File is too large. Maximum size is 25MB' };
   }
+
 
   return { isValid: true };
 }

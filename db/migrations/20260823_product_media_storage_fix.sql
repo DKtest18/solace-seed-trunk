@@ -111,4 +111,41 @@ CREATE POLICY "Owners delete product media files"
 ALTER TABLE public.dkai_products
   ADD COLUMN IF NOT EXISTS image_url text;
 
+-- 4) Replace stale agreement triggers with the current authoritative check. --
+-- Some older deployments raised the bare `seller_agreement_not_accepted`
+-- error even after the UI had moved to agreement v4. Keep one trigger and one
+-- shared version value so draft creation and media upload agree with the app.
+CREATE OR REPLACE FUNCTION public.dkai_require_seller_agreement()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  accepted boolean;
+  accepted_version text;
+BEGIN
+  SELECT p.seller_agreement_accepted, p.seller_agreement_version
+    INTO accepted, accepted_version
+  FROM public.dkai_profiles p
+  WHERE p.id = NEW.seller_id;
+
+  IF coalesce(accepted, false) IS NOT TRUE
+     OR coalesce(accepted_version, '') <> '2026-08-17-v4' THEN
+    RAISE EXCEPTION 'seller_agreement_not_accepted'
+      USING ERRCODE = 'P0001',
+            HINT = 'Accept Seller Agreement version 2026-08-17-v4 before creating or updating a product.';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS dkai_products_require_seller_agreement ON public.dkai_products;
+CREATE TRIGGER dkai_products_require_seller_agreement
+  BEFORE INSERT OR UPDATE OF title, description, price, review_status
+  ON public.dkai_products
+  FOR EACH ROW
+  EXECUTE FUNCTION public.dkai_require_seller_agreement();
+
 NOTIFY pgrst, 'reload schema';

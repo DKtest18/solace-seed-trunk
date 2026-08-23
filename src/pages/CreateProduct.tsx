@@ -164,6 +164,7 @@ export default function CreateProduct() {
   const ensureDraftIdForUpload = () => ensureDraftRef.current();
   const {
     files: deliveryFiles,
+    filesRef: deliveryFilesRef,
     uploading: deliveryUploading,
     load: loadDeliveryFiles,
     addFile: addDeliveryFile,
@@ -181,6 +182,18 @@ export default function CreateProduct() {
   const rememberUploadedFile = (f: any) => {
     uploadedFileRef.current = f;
     setUploadedFile(f);
+  };
+  /**
+   * The primary delivery file recorded on the product row. Falls back to the
+   * first successfully uploaded row in dkai_product_files so the admin review
+   * page never shows "Not provided by seller" for files that do exist.
+   */
+  const primaryDeliveryFile = () => {
+    if (uploadedFileRef.current?.path) return uploadedFileRef.current;
+    const row = (deliveryFilesRef.current ?? []).find((f) => f.file_path && !f.uploading && !f.error);
+    return row
+      ? { path: row.file_path, name: row.file_name, size: row.file_size, scanStatus: row.scan_status }
+      : null;
   };
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'scanning' | 'clean' | 'infected'>('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});

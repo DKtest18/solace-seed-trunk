@@ -26,7 +26,7 @@ interface MediaRow {
 
 function Val({ v, currency }: { v: any; currency?: string }) {
   if (v === null || v === undefined || v === '' || (Array.isArray(v) && v.length === 0)) {
-    return <span className="text-muted-foreground italic">not provided</span>;
+    return <span className="text-muted-foreground italic">Not provided by seller</span>;
   }
   if (typeof v === 'boolean') {
     return v ? (
@@ -267,9 +267,9 @@ export function AdminProductSubmissionDialog({
           <Step n={8} title="Delivery Files">
             <Row label="Delivery mode" value={p.delivery_mode} />
             <Row label="Delivery time (hours)" value={p.delivery_time_hours} />
-            <Row label="Uploaded file storage key" value={p.file_storage_key} />
-            <Row label="File size (bytes)" value={p.file_size_bytes} />
-            <Row label="File scan status" value={p.file_scan_status} />
+            <Row label="Primary file storage key" value={p.file_storage_key} />
+            <Row label="Primary file size (bytes)" value={p.file_size_bytes} />
+            <Row label="Primary file scan status" value={p.file_scan_status} />
             <Row label="Accepted payment methods" value={p.payment_methods} />
             <div className="pt-3">
               <AdminProductFileAccess productId={p.id} mode="review" />
@@ -284,7 +284,18 @@ export function AdminProductSubmissionDialog({
             <Row label="Return fee enabled" value={!!p.return_fee_enabled} />
             <Row label="Return fee (%)" value={p.return_fee_percentage} />
             <Row label="Return conditions" value={p.return_conditions} />
-            <Row label="Refund policy" value={p.refund_policy} />
+            <Row label="Refund policy notes" value={p.refund_policy} />
+            <Row
+              label="Refund policy accepted"
+              value={
+                p.seller_ack_refund_policy
+                  ? `Yes${p.seller_ack_refund_policy_at ? ` — ${format(new Date(p.seller_ack_refund_policy_at), 'dd MMM yyyy HH:mm')}` : ''}`
+                  : false
+              }
+            />
+            <Row label="Subscription cancellation acknowledged" value={!!p.seller_ack_subscription} />
+            <Row label="Delivery commitment acknowledged" value={!!p.seller_ack_manual_delivery} />
+            <Row label="Credential handling acknowledged" value={!!p.seller_ack_setup_credentials} />
           </Step>
 
           <Step n={10} title="Terms & Acceptances">

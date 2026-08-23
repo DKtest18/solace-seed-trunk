@@ -33,6 +33,7 @@ export function AdminProductFileAccess({
 }) {
   const [files, setFiles] = useState<AdminFile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selected, setSelected] = useState<AdminFile | null>(null);
   const [justification, setJustification] = useState('');
   const [busy, setBusy] = useState(false);
@@ -40,11 +41,12 @@ export function AdminProductFileAccess({
 
   useEffect(() => {
     (async () => {
-      const { data } = await (supabase as any)
+      const { data, error } = await (supabase as any)
         .from('dkai_product_files')
         .select('id, file_name, file_size, scan_status')
         .eq('product_id', productId)
         .order('created_at', { ascending: false });
+      if (error) setLoadError(error.message);
       setFiles((data as AdminFile[]) ?? []);
       setLoading(false);
     })();
@@ -80,7 +82,23 @@ export function AdminProductFileAccess({
   };
 
   if (loading) return <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
-  if (files.length === 0) return null;
+  if (loadError) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription className="text-sm">Could not load delivery files: {loadError}</AlertDescription>
+      </Alert>
+    );
+  }
+  if (files.length === 0) {
+    if (mode !== 'review') return null;
+    return (
+      <Alert>
+        <AlertDescription className="text-sm">
+          The seller has not uploaded any delivery files for this product.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   const isReview = mode === 'review';
 

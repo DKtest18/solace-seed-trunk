@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
 import { SetupRequirementsInline, type Spec } from './SetupRequirementsInline';
 
-interface DeliveryFile { file: File; label: string; }
+import type { DeliveryFileRow } from '@/hooks/useDeliveryFiles';
 
 interface DeliveryFilesStepProps {
   data: {
@@ -21,9 +21,10 @@ interface DeliveryFilesStepProps {
     setup_no_credentials?: boolean;
   };
   onChange: (field: string, value: any) => void;
-  deliveryFiles: DeliveryFile[];
-  onAddFile: (file: DeliveryFile) => void;
-  onRemoveFile: (index: number) => void;
+  deliveryFiles: DeliveryFileRow[];
+  onAddFile: (file: File) => void;
+  onRemoveFile: (id: string) => void;
+  uploading?: boolean;
   errors: Record<string, string>;
 }
 
@@ -38,9 +39,10 @@ const SUGGESTED_BY_TYPE: Record<string, string[]> = {
   template: ['Template file', 'How-to guide', 'Screenshots'],
 };
 
-export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, onRemoveFile, errors }: DeliveryFilesStepProps) {
+export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, onRemoveFile, uploading, errors }: DeliveryFilesStepProps) {
   const { feePct, sellerPct } = usePlatformFee();
   const [dragActive, setDragActive] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
 
   const mode = ['instant', 'manual', 'setup'].includes(data.delivery_mode) ? data.delivery_mode : 'instant';
   const suggestions = SUGGESTED_BY_TYPE[(data.product_type || 'agent').toLowerCase()] || SUGGESTED_BY_TYPE.agent;
@@ -59,9 +61,16 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
     e.target.value = '';
   };
   const processFile = (file: File) => {
-    if (deliveryFiles.length >= MAX_FILES) return;
-    if (file.size > MAX_FILE_SIZE) return;
-    onAddFile({ file, label: file.name });
+    if (deliveryFiles.length >= MAX_FILES) {
+      setLocalError(`You can upload at most ${MAX_FILES} files. "${file.name}" was not added.`);
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      setLocalError(`"${file.name}" is ${(file.size / 1024 / 1024).toFixed(1)} MB — the limit is 100 MB per file.`);
+      return;
+    }
+    setLocalError(null);
+    onAddFile(file);
   };
   const fmt = (b: number) => b < 1024 ? b + ' B' : b < 1024 * 1024 ? (b / 1024).toFixed(1) + ' KB' : (b / (1024 * 1024)).toFixed(1) + ' MB';
 
@@ -193,21 +202,33 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
           <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
           <p className="text-sm font-medium">Drag & drop files here or click to browse</p>
           <p className="text-xs text-muted-foreground mt-1">PDF, ZIP, JSON, TXT, DOCX, images, videos, and more</p>
-          <input type="file" id="delivery-files-input" className="hidden" multiple onChange={handleFileInput} />
+          <input type="file" id="delivery-files-input" className="hidden" multiple onChange={handleFileInput} disabled={uploading} />
         </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Files are uploaded and saved to your product immediately — they are stored privately and only
+          reachable through short-lived signed links.
+        </p>
       </div>
+
+      {localError && (
+        <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>{localError}</AlertDescription></Alert>
+      )}
 
       {deliveryFiles.length > 0 && (
         <div className="space-y-2">
           <Label>Uploaded Files ({deliveryFiles.length}/{MAX_FILES})</Label>
-          {deliveryFiles.map((df, index) => (
-            <div key={index} className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
+          {deliveryFiles.map((df) => (
+            <div key={df.id} className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
               <File className="h-5 w-5 text-primary flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{df.file.name}</p>
-                <p className="text-xs text-muted-foreground">{fmt(df.file.size)}</p>
+                <p className="text-sm font-medium truncate">{df.file_name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {fmt(df.file_size)}
+                  {df.uploading ? ' · uploading…' : df.error ? '' : ' · saved'}
+                </p>
+                {df.error && <p className="text-xs text-destructive break-words mt-1">{df.error}</p>}
               </div>
-              <Button variant="ghost" size="icon" onClick={() => onRemoveFile(index)}><X className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" onClick={() => onRemoveFile(df.id)} disabled={df.uploading}><X className="h-4 w-4" /></Button>
             </div>
           ))}
         </div>

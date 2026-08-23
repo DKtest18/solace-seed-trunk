@@ -317,6 +317,16 @@ export default function AdminProductReview() {
         </Tabs>
       </div>
 
+      {submissionProduct && (
+        <AdminProductSubmissionDialog
+          product={submissionProduct}
+          open={!!submissionProduct}
+          onOpenChange={(o) => !o && setSubmissionProduct(null)}
+        />
+      )}
+
+
+
       <Dialog
         open={!!rejectProduct}
         onOpenChange={(o) => {

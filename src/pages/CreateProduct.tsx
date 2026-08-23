@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { BasicInfoStep } from '@/components/product-creation/BasicInfoStep';
+import { useDeliveryFiles } from '@/hooks/useDeliveryFiles';
 import { useProductMedia } from '@/hooks/useProductMedia';
 import { ImagesStep } from '@/components/product-creation/ImagesStep';
 import { PricingStep } from '@/components/product-creation/PricingStep';
@@ -157,7 +158,14 @@ export default function CreateProduct() {
     remove: removeMediaItem,
     reorder: reorderMedia,
   } = useProductMedia(user?.id);
-  const [deliveryFiles, setDeliveryFiles] = useState<Array<{ file: File; label: string }>>([]);
+  const ensureDraftIdForUpload = async () => draftIdRef.current ?? (await persistDraftRef.current());
+  const {
+    files: deliveryFiles,
+    uploading: deliveryUploading,
+    load: loadDeliveryFiles,
+    addFile: addDeliveryFile,
+    remove: removeDeliveryFile,
+  } = useDeliveryFiles(ensureDraftIdForUpload);
 
   
   const [productFile, setProductFile] = useState<File | null>(null);
@@ -251,6 +259,11 @@ export default function CreateProduct() {
             demo_video_paths: parseDemoVideoPaths(data.demo_video_paths ?? data.demo_video_storage_path),
           }));
           await loadMedia(data.id);
+          try {
+            await loadDeliveryFiles(data.id);
+          } catch (e: any) {
+            toast.error(`Could not load your delivery files: ${e?.message || e}`);
+          }
           if (data.file_storage_key) {
             setUploadedFile({
               path: data.file_storage_key,
@@ -313,6 +326,7 @@ export default function CreateProduct() {
     return_fee_enabled: formData.return_fee_enabled,
     return_fee_percentage: formData.return_fee_enabled ? formData.return_fee_percentage : 0,
     return_conditions: formData.return_conditions || null,
+    seller_ack_refund_policy_at: formData.seller_ack_refund_policy ? new Date().toISOString() : null,
     // Tiered licenses (Personal = existing price/currency; higher tiers optional)
     license_personal_enabled: true,
     license_personal_price: formData.price ? parseFloat(formData.price) : 0,
@@ -528,7 +542,11 @@ export default function CreateProduct() {
         if (!['instant', 'manual', 'setup'].includes(formData.delivery_mode)) {
           newErrors.deliveryModeError = 'Choose Instant download, Manual delivery, or Setup by seller';
         }
-        if (formData.delivery_mode === 'instant' && deliveryFiles.length === 0 && !uploadedFile) {
+        if (
+          formData.delivery_mode === 'instant' &&
+          deliveryFiles.filter((f) => !f.uploading && !f.error).length === 0 &&
+          !uploadedFile
+        ) {
           newErrors.deliveryFilesError = 'Instant download requires at least one uploaded file';
         }
         if (formData.delivery_mode === 'manual') {
@@ -953,8 +971,30 @@ export default function CreateProduct() {
                   }}
                   onChange={handleChange}
                   deliveryFiles={deliveryFiles}
-                  onAddFile={(df) => setDeliveryFiles([...deliveryFiles, df])}
-                  onRemoveFile={(index) => setDeliveryFiles(deliveryFiles.filter((_, i) => i !== index))}
+                  uploading={deliveryUploading}
+                  onAddFile={async (file) => {
+                    try {
+                      const row = await addDeliveryFile(file);
+                      setUploadedFile({
+                        path: row.file_path,
+                        name: row.file_name,
+                        size: row.file_size,
+                        scanStatus: row.scan_status,
+                      });
+                      setUploadStatus((row.scan_status as any) || 'clean');
+                      await persistDraft();
+                      toast.success(`${row.file_name} uploaded and saved to this product`);
+                    } catch (e: any) {
+                      toast.error(e?.message || 'Upload failed');
+                    }
+                  }}
+                  onRemoveFile={async (id) => {
+                    try {
+                      await removeDeliveryFile(id);
+                    } catch (e: any) {
+                      toast.error(e?.message || 'Could not delete the file');
+                    }
+                  }}
                   errors={errors}
                 />
               )}

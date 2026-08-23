@@ -764,35 +764,35 @@ export default function CreateProduct() {
     );
   }
 
-  // Show seller rules acceptance if not yet accepted
-  if (showSellerRules && !sellerRulesAccepted) {
+  // Account-level Seller Agreement is the binding acceptance. If it's missing or
+  // outdated, route the seller to the account-level gate instead of showing the
+  // full rules text again here.
+  if (!loadingRestrictions && !isSellerAgreementCurrent(restrictions)) {
     return (
       <div className="min-h-screen bg-background py-8">
         <div className="container mx-auto px-4 max-w-2xl">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold mb-2">Accept Seller Rules</h1>
-            <p className="text-muted-foreground">
-              You must accept the seller rules before publishing products.
-            </p>
-          </div>
-          <RulesAcceptanceStep
-            ruleType="seller"
-            loading={isAccepting}
-            onAccept={async () => {
-              try {
-                await acceptRules({ ruleType: 'seller' });
-                toast.success('Seller rules accepted!');
-                setShowSellerRules(false);
-              } catch (error) {
-                toast.error('Failed to accept rules. Please try again.');
-              }
-            }}
-            onBack={() => navigate('/seller-dashboard')}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle>Seller Agreement required</CardTitle>
+              <CardDescription>
+                Before creating a product you need to accept the current Seller Agreement &
+                Seller Rules & Obligations on your account.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button onClick={() => navigate('/seller-onboarding/terms')} className="w-full">
+                Review &amp; accept Seller Agreement
+              </Button>
+              <Button onClick={() => navigate('/seller-dashboard')} variant="outline" className="w-full">
+                Back to dashboard
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
   }
+
 
   const progress = (currentStep / STEPS.length) * 100;
 

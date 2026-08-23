@@ -222,6 +222,8 @@ export default function CreateProduct() {
             delivery_mode: data.delivery_mode ?? prev.delivery_mode,
             delivery_time_hours: data.delivery_time_hours ?? prev.delivery_time_hours,
             seller_accepted_terms: !!data.seller_accepted_terms,
+            seller_rules_confirmed: !!data.seller_rules_confirmed,
+
             return_allowed: !!data.return_allowed,
             return_window_days: data.return_window_days ?? 1,
             return_fee_enabled: !!data.return_fee_enabled,

@@ -19,6 +19,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { DemoVideoReviewPanel, hasDemoVideo } from '@/components/admin/DemoVideoReviewPanel';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { REVIEW_STATUS_GROUPS, type ReviewStatusValue } from '@/lib/reviewStatus';
 
 type ProductRow = {
   id: string;
@@ -26,7 +27,7 @@ type ProductRow = {
   price: number | null;
   category: string | null;
   seller_id: string;
-  review_status: 'submitted' | 'in_review' | 'approved' | 'rejected' | 'changes_requested';
+  review_status: ReviewStatusValue;
   submitted_at: string | null;
   reviewed_at: string | null;
   review_notes: string | null;
@@ -61,9 +62,9 @@ function AdminProductQueueContent() {
     queryKey: ['admin-product-queue', tab],
     queryFn: async () => {
       const statuses =
-        tab === 'submitted' ? ['submitted', 'in_review']
-        : tab === 'approved' ? ['approved']
-        : ['rejected', 'changes_requested'];
+        tab === 'submitted' ? REVIEW_STATUS_GROUPS.PENDING
+        : tab === 'approved' ? REVIEW_STATUS_GROUPS.LIVE
+        : REVIEW_STATUS_GROUPS.NEEDS_SELLER_ACTION;
       const { data, error } = await db
         .from('dkai_products')
         .select('id, title, price, category, seller_id, review_status, submitted_at, reviewed_at, review_notes, created_at, is_published, demo_video_url, demo_video_storage_path')
@@ -83,7 +84,7 @@ function AdminProductQueueContent() {
   const { data: counts } = useQuery({
     queryKey: ['admin-product-queue-counts'],
     queryFn: async () => {
-      const fetchCount = async (statuses: string[]) => {
+      const fetchCount = async (statuses: readonly string[]) => {
         const { count } = await db
           .from('dkai_products')
           .select('id', { count: 'exact', head: true })
@@ -91,9 +92,9 @@ function AdminProductQueueContent() {
         return count || 0;
       };
       const [submitted, approved, rejected] = await Promise.all([
-        fetchCount(['submitted', 'in_review']),
-        fetchCount(['approved']),
-        fetchCount(['rejected', 'changes_requested']),
+        fetchCount([...REVIEW_STATUS_GROUPS.PENDING]),
+        fetchCount([...REVIEW_STATUS_GROUPS.LIVE]),
+        fetchCount([...REVIEW_STATUS_GROUPS.NEEDS_SELLER_ACTION]),
       ]);
       return { submitted, approved, rejected };
     },

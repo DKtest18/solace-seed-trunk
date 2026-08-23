@@ -37,11 +37,12 @@ import {
 import { db } from '@/lib/dkaiDb';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
 import { toast } from 'sonner';
+import { REVIEW_STATUS, REVIEW_STATUS_GROUPS, normalizeReviewStatus } from '@/lib/reviewStatus';
 
 type Bucket = 'draft' | 'in_review' | 'approved_pending_publish' | 'published' | 'rejected' | 'deleted';
 
 function reviewStatusOf(p: any): string {
-  return String(p.review_status || p.approval_status || p.status || '').toLowerCase();
+  return normalizeReviewStatus(p.review_status ?? p.approval_status ?? p.status);
 }
 
 /**
@@ -49,17 +50,17 @@ function reviewStatusOf(p: any): string {
  * is_published === true AND review_status === 'approved'.
  */
 export function isBuyable(p: any): boolean {
-  return p?.is_published === true && reviewStatusOf(p) === 'approved';
+  return p?.is_published === true && (REVIEW_STATUS_GROUPS.LIVE as string[]).includes(reviewStatusOf(p));
 }
 
 function classifyProduct(p: any): Bucket {
   if (p.is_active === false || p.deleted_at) return 'deleted';
   const status = (p.status || '').toLowerCase();
   const review = reviewStatusOf(p);
-  if (review === 'rejected') return 'rejected';
-  if (status === 'draft' || review === 'draft') return 'draft';
+  if ((REVIEW_STATUS_GROUPS.NEEDS_SELLER_ACTION as string[]).includes(review)) return 'rejected';
+  if (status === REVIEW_STATUS.DRAFT || review === REVIEW_STATUS.DRAFT) return 'draft';
   if (isBuyable(p)) return 'published';
-  if (review === 'approved') return 'approved_pending_publish';
+  if ((REVIEW_STATUS_GROUPS.LIVE as string[]).includes(review)) return 'approved_pending_publish';
   return 'in_review';
 }
 

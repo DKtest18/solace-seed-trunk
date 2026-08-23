@@ -34,6 +34,8 @@ interface ImagesStepProps {
   errors: Record<string, string>;
 }
 
+export const MAX_PRODUCT_VIDEO_SECONDS = 180; // 3 minutes per gallery video
+
 function validateVideoFile(file: File): { isValid: boolean; error?: string } {
   if (file.size > MAX_PRODUCT_VIDEO_BYTES) {
     return { isValid: false, error: 'Gallery videos must be under 500MB (use the Demo Video step for larger files)' };
@@ -43,6 +45,22 @@ function validateVideoFile(file: File): { isValid: boolean; error?: string } {
     return { isValid: false, error: 'Only MP4, WebM and MOV videos are allowed' };
   }
   return { isValid: true };
+}
+
+/** Reads the video duration in the browser. Returns null when it can't be determined. */
+async function readVideoDuration(file: File): Promise<number | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    const done = (value: number | null) => {
+      URL.revokeObjectURL(url);
+      resolve(value);
+    };
+    video.onloadedmetadata = () => done(Number.isFinite(video.duration) ? video.duration : null);
+    video.onerror = () => done(null);
+    video.src = url;
+  });
 }
 
 export function ImagesStep({ media, onAddFile, onRemove, onReorder, errors }: ImagesStepProps) {
@@ -55,17 +73,24 @@ export function ImagesStep({ media, onAddFile, onRemove, onReorder, errors }: Im
         toast.error(`Maximum ${MAX_PRODUCT_MEDIA} media files allowed`);
         return;
       }
-      const validation = file.type.startsWith('video/')
-        ? validateVideoFile(file)
-        : validateImageFile(file);
+      const isVideo = file.type.startsWith('video/');
+      const validation = isVideo ? validateVideoFile(file) : validateImageFile(file);
       if (!validation.isValid) {
         toast.error(validation.error);
         return;
+      }
+      if (isVideo) {
+        const duration = await readVideoDuration(file);
+        if (duration !== null && duration > MAX_PRODUCT_VIDEO_SECONDS + 1) {
+          toast.error('Gallery videos must be 3 minutes or shorter');
+          return;
+        }
       }
       await onAddFile(file);
     },
     [media.length, onAddFile],
   );
+
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -107,7 +132,7 @@ export function ImagesStep({ media, onAddFile, onRemove, onReorder, errors }: Im
       <div className="space-y-2">
         <Label>Product Media</Label>
         <p className="text-sm text-muted-foreground">
-          Upload up to {MAX_PRODUCT_MEDIA} images and videos. The first item is the cover.
+          Upload up to {MAX_PRODUCT_MEDIA} images and videos (videos max 3 minutes). The first item is the cover.
           Files are saved to your draft immediately, so they stay here when you leave and come back.
           You can also paste images from the clipboard.
         </p>
@@ -191,7 +216,7 @@ export function ImagesStep({ media, onAddFile, onRemove, onReorder, errors }: Im
               {busy ? 'Uploading…' : 'Click to upload or paste image'}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Images: JPEG, PNG, WEBP up to 10MB · Videos: MP4, WebM, MOV up to 500MB
+              Images: JPEG, PNG, WEBP up to 10MB · Videos: MP4, WebM, MOV up to 500MB · max 3 minutes
             </p>
           </div>
           <Input

@@ -277,7 +277,7 @@ export default function CreateProduct() {
             toast.error(`Could not load your delivery files: ${e?.message || e}`);
           }
           if (data.file_storage_key) {
-            setUploadedFile({
+            rememberUploadedFile({
               path: data.file_storage_key,
               name: data.file_storage_key.split('/').pop() ?? 'file',
               size: data.file_size_bytes ?? 0,
@@ -670,7 +670,7 @@ export default function CreateProduct() {
 
       if (scanError) throw scanError;
 
-      setUploadedFile({ 
+      rememberUploadedFile({ 
         path: filePath, 
         name: file.name, 
         size: file.size,
@@ -989,7 +989,7 @@ export default function CreateProduct() {
                   onAddFile={async (file) => {
                     try {
                       const row = await addDeliveryFile(file);
-                      setUploadedFile({
+                      rememberUploadedFile({
                         path: row.file_path,
                         name: row.file_name,
                         size: row.file_size,

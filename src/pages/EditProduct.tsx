@@ -266,7 +266,9 @@ export default function EditProduct() {
           try {
             await loadDeliveryFiles(id);
           } catch (e) {
-            console.warn('Could not load delivery files', e);
+            const message = e instanceof Error ? e.message : String(e);
+            console.error('Could not load delivery files', e);
+            toast.error(`Could not load saved delivery files: ${message}`);
           }
         }
 
@@ -762,14 +764,6 @@ export default function EditProduct() {
                   onAddFile={async (file) => {
                     try {
                       const row = await addDeliveryFile(file);
-                      await db
-                        .from('dkai_products')
-                        .update({
-                          file_storage_key: row.file_path,
-                          file_size_bytes: row.file_size,
-                          file_scan_status: row.scan_status,
-                        })
-                        .eq('id', id);
                       setFileSizeBytes(Number(row.file_size) || 0);
                       toast.success(`${row.file_name} uploaded and saved to this product`);
                     } catch (e: any) {

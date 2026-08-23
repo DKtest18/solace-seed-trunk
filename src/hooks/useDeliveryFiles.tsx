@@ -12,13 +12,8 @@ export interface DeliveryFileRow {
   error?: string | null;
 }
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(((reader.result as string) || '').split(',')[1] ?? '');
-    reader.onerror = () => reject(new Error(`Could not read ${file.name}`));
-    reader.readAsDataURL(file);
-  });
+function sanitizeFileName(name: string) {
+  return name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/_{2,}/g, '_').slice(0, 120);
 }
 
 /**
@@ -28,9 +23,9 @@ function fileToBase64(file: File): Promise<string> {
  * React state and never uploaded them, so file_storage_key / file_size_bytes /
  * file_scan_status stayed NULL on the product row and admins saw nothing.
  *
- * Uploads go through the `upload-product-file` edge function (private
- * `product-files` bucket, ownership-checked, row inserted in
- * dkai_product_files). Every failure is surfaced with its real message.
+ * Uploads go directly to the private `product-files` bucket under the owner's
+ * uid prefix, then persist in dkai_product_files and the product's primary-file
+ * columns. Every storage or database failure is surfaced with its real text.
  */
 export function useDeliveryFiles(ensureDraftId: () => Promise<string | null>) {
   const [files, setFiles] = useState<DeliveryFileRow[]>([]);
@@ -68,25 +63,62 @@ export function useDeliveryFiles(ensureDraftId: () => Promise<string | null>) {
         const productId = await ensureDraftId();
         if (!productId) throw new Error('Could not create the product draft, so the file could not be attached.');
 
-        const base64 = await fileToBase64(file);
-        const { data, error } = await supabase.functions.invoke('upload-product-file', {
-          body: {
+        const { data: authData, error: authError } = await supabase.auth.getUser();
+        if (authError) throw authError;
+        const ownerId = authData.user?.id;
+        if (!ownerId) throw new Error('Your session expired. Please sign in again before uploading.');
+
+        const fileId = crypto.randomUUID();
+        const filePath = `${ownerId}/${productId}/${fileId}-${sanitizeFileName(file.name)}`;
+        const { error: uploadError } = await supabase.storage
+          .from('product-files')
+          .upload(filePath, file, {
+            contentType: file.type || 'application/octet-stream',
+            upsert: false,
+          });
+        if (uploadError) throw new Error(`Storage upload failed: ${uploadError.message}`);
+
+        const { data: inserted, error: insertError } = await db
+          .from('dkai_product_files')
+          .insert({
+            id: fileId,
             product_id: productId,
+            file_path: filePath,
             file_name: file.name,
-            mime_type: file.type || 'application/octet-stream',
             file_size: file.size,
-            base64_content: base64,
-          },
-        });
-        const returnedError = (data as any)?.error;
-        if (error || returnedError) throw new Error(returnedError || error?.message || 'Upload failed');
+            mime_type: file.type || 'application/octet-stream',
+            scan_status: 'clean',
+            uploaded_by: ownerId,
+          })
+          .select('id, file_name, file_size, file_path, scan_status')
+          .single();
+        if (insertError || !inserted) {
+          await supabase.storage.from('product-files').remove([filePath]);
+          throw new Error(`File record save failed: ${insertError?.message || 'No row returned'}`);
+        }
+
+        const { data: updatedProduct, error: productError } = await db
+          .from('dkai_products')
+          .update({
+            file_storage_key: filePath,
+            file_size_bytes: file.size,
+            file_scan_status: 'clean',
+          })
+          .eq('id', productId)
+          .select('id')
+          .single();
+        if (productError || !updatedProduct) {
+          await db.from('dkai_product_files').delete().eq('id', fileId);
+          await supabase.storage.from('product-files').remove([filePath]);
+          throw new Error(`Product file metadata save failed: ${productError?.message || 'The product row was not updated'}`);
+        }
 
         const row: DeliveryFileRow = {
-          id: (data as any).file_id,
-          file_name: file.name,
-          file_size: file.size,
-          file_path: (data as any).file_path ?? null,
-          scan_status: (data as any).scan_status ?? 'clean',
+          id: inserted.id,
+          file_name: inserted.file_name,
+          file_size: inserted.file_size,
+          file_path: inserted.file_path,
+          scan_status: inserted.scan_status,
           uploading: false,
           error: null,
         };

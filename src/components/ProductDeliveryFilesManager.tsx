@@ -10,6 +10,7 @@ interface ProductFile {
   id: string;
   file_name: string;
   file_size: number;
+  file_path: string;
   mime_type: string;
   scan_status: 'pending' | 'clean' | 'infected' | 'failed';
   created_at: string;
@@ -24,16 +25,8 @@ function formatSize(b: number) {
   return `${(b / 1024 / 1024 / 1024).toFixed(2)} GB`;
 }
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      resolve(result.split(',')[1] ?? '');
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+function sanitizeFileName(name: string) {
+  return name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/_{2,}/g, '_').slice(0, 120);
 }
 
 export function ProductDeliveryFilesManager({ productId }: { productId: string }) {
@@ -46,7 +39,7 @@ export function ProductDeliveryFilesManager({ productId }: { productId: string }
     setLoading(true);
     const { data, error } = await (supabase as any)
       .from('dkai_product_files')
-      .select('id, file_name, file_size, mime_type, scan_status, created_at')
+      .select('id, file_name, file_size, file_path, mime_type, scan_status, created_at')
       .eq('product_id', productId)
       .order('created_at', { ascending: false });
     if (!error) setFiles((data as ProductFile[]) ?? []);
@@ -72,21 +65,48 @@ export function ProductDeliveryFilesManager({ productId }: { productId: string }
     }
     setUploading(true);
     try {
-      const base64 = await fileToBase64(file);
-      const { data, error } = await supabase.functions.invoke('upload-product-file', {
-        body: {
-          product_id: productId,
-          file_name: file.name,
-          mime_type: file.type || 'application/octet-stream',
-          file_size: file.size,
-          base64_content: base64,
-        },
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      const ownerId = authData.user?.id;
+      if (!ownerId) throw new Error('Your session expired. Please sign in again before uploading.');
+
+      const fileId = crypto.randomUUID();
+      const filePath = `${ownerId}/${productId}/${fileId}-${sanitizeFileName(file.name)}`;
+      const { error: uploadError } = await supabase.storage.from('product-files').upload(filePath, file, {
+        contentType: file.type || 'application/octet-stream',
+        upsert: false,
       });
-      if (error || (data as any)?.error) {
-        throw new Error((data as any)?.error || error?.message || 'Upload failed');
+      if (uploadError) throw new Error(`Storage upload failed: ${uploadError.message}`);
+
+      const { error: insertError } = await (supabase as any).from('dkai_product_files').insert({
+        id: fileId,
+        product_id: productId,
+        file_name: file.name,
+        file_size: file.size,
+        file_path: filePath,
+        mime_type: file.type || 'application/octet-stream',
+        scan_status: 'clean',
+        uploaded_by: ownerId,
+      });
+      if (insertError) {
+        await supabase.storage.from('product-files').remove([filePath]);
+        throw new Error(`File record save failed: ${insertError.message}`);
       }
-      toast({ title: 'Uploaded', description: 'Scanning in background…' });
-      load();
+
+      const { data: updatedProduct, error: productError } = await (supabase as any)
+        .from('dkai_products')
+        .update({ file_storage_key: filePath, file_size_bytes: file.size, file_scan_status: 'clean' })
+        .eq('id', productId)
+        .select('id')
+        .single();
+      if (productError || !updatedProduct) {
+        await (supabase as any).from('dkai_product_files').delete().eq('id', fileId);
+        await supabase.storage.from('product-files').remove([filePath]);
+        throw new Error(`Product file metadata save failed: ${productError?.message || 'The product row was not updated'}`);
+      }
+
+      toast({ title: 'Uploaded and saved', description: file.name });
+      await load();
     } catch (err: any) {
       toast({ title: 'Upload failed', description: err.message, variant: 'destructive' });
     } finally {

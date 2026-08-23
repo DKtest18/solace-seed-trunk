@@ -226,7 +226,7 @@ export function ImagesStep({ media, onAddFile, onRemove, onReorder, errors }: Im
             ref={inputRef}
             type="file"
             multiple
-            accept="image/jpeg,image/jpg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+            accept="image/*,video/*,.jpg,.jpeg,.png,.webp,.gif,.avif,.bmp,.tif,.tiff,.heic,.heif,.svg,.mp4,.webm,.mov,.m4v,.avi,.mkv,.ogv"
             onChange={handleFileChange}
             className="hidden"
           />

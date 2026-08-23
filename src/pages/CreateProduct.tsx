@@ -350,7 +350,8 @@ export default function CreateProduct() {
     seller_ack_exclusive: !!formData.seller_ack_exclusive,
     demo_video_url: formData.demo_video_url?.trim() || null,
     demo_video_storage_path: (formData.demo_video_paths?.[0] || formData.demo_video_storage_path || '').trim() || null,
-    demo_video_paths: formData.demo_video_paths?.length ? formData.demo_video_paths : null,
+    // The database column is NOT NULL; drafts without demo videos use an empty JSON array.
+    demo_video_paths: formData.demo_video_paths ?? [],
     status: 'draft',
     is_published: false,
   });

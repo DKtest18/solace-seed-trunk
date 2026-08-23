@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, CheckCircle2, XCircle, Download } from 'lucide-react';
+import { downloadUrl } from '@/lib/downloadFile';
+
 
 import { DemoVideoReviewPanel } from '@/components/admin/DemoVideoReviewPanel';
 import { AdminProductFileAccess } from '@/components/admin/AdminProductFileAccess';

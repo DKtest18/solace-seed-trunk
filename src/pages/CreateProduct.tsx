@@ -173,6 +173,15 @@ export default function CreateProduct() {
   
   const [productFile, setProductFile] = useState<File | null>(null);
   const [uploadedFile, setUploadedFile] = useState<any>(null);
+  // React state updates are async: persistDraft() used to run before
+  // setUploadedFile() had committed, so file_storage_key / file_size_bytes /
+  // file_scan_status were written as NULL. The ref is the authoritative value
+  // for every draft write.
+  const uploadedFileRef = useRef<any>(null);
+  const rememberUploadedFile = (f: any) => {
+    uploadedFileRef.current = f;
+    setUploadedFile(f);
+  };
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'scanning' | 'clean' | 'infected'>('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});
 

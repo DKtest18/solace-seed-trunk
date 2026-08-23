@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, ExternalLink, Video } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { downloadUrl } from '@/lib/downloadFile';
+import { AlertCircle, Download, ExternalLink, Video } from 'lucide-react';
+
 
 function youtubeId(url: string): string | null {
   const m =

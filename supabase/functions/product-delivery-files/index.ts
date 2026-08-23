@@ -7,7 +7,7 @@
 //                   mirrors the primary-file columns onto dkai_products
 //   list         -> delivery files of a product (seller or admin)
 //   delete       -> removes a file from storage + db, re-points primary columns
-//   resubmit     -> sets review_status back to 'submitted' after file changes
+//   resubmit     -> sends the product back to review after file changes
 //
 // Security: bearer JWT required; only the product's seller (or an admin) may
 // touch a product's files. The `product-files` bucket stays PRIVATE — buyers get
@@ -15,6 +15,7 @@
 // `admin-access-file`.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { REVIEW_STATUS } from '../_shared/review-status.ts';
 
 const BUCKET = 'product-files';
 const MAX_SIZE = 2 * 1024 * 1024 * 1024; // 2 GB per delivery file
@@ -207,7 +208,7 @@ Deno.serve(async (req) => {
       const { error: re } = await admin
         .from('dkai_products')
         .update({
-          review_status: 'submitted',
+          review_status: REVIEW_STATUS.SUBMITTED,
           submitted_at: new Date().toISOString(),
           review_notes: null,
           status: 'pending',
@@ -231,7 +232,7 @@ Deno.serve(async (req) => {
         console.warn('notification failed (non-blocking)', e);
       }
 
-      return json({ ok: true, review_status: 'submitted' });
+      return json({ ok: true, review_status: REVIEW_STATUS.SUBMITTED });
     }
 
     return json({ error: `Unknown action: ${action}` }, 400);

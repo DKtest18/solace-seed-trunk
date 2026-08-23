@@ -38,7 +38,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { normalizeReviewStatus } from '@/lib/reviewStatus';
+import { REVIEW_STATUS, normalizeReviewStatus } from '@/lib/reviewStatus';
 
 const STEPS = [
   { id: 1, title: 'Basic Info', description: 'Product details' },
@@ -161,7 +161,7 @@ export default function EditProduct() {
   const [fileSizeBytes, setFileSizeBytes] = useState<number>(0);
 
   // Review status state
-  const [reviewStatus, setReviewStatus] = useState<ReviewStatus>('draft');
+  const [reviewStatus, setReviewStatus] = useState<ReviewStatus>(REVIEW_STATUS.DRAFT);
   const [reviewNotes, setReviewNotes] = useState<string | null>(null);
   const [requiresAccessReview, setRequiresAccessReview] = useState(false);
   const [reviewRefreshKey, setReviewRefreshKey] = useState(0);
@@ -632,7 +632,7 @@ export default function EditProduct() {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            {reviewStatus === 'approved' && (
+            {reviewStatus === REVIEW_STATUS.APPROVED && (
               <div className="flex items-center gap-2">
                 <Switch
                   id="publish-toggle"

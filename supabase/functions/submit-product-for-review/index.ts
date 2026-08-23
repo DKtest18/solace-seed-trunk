@@ -1,10 +1,11 @@
 // Seller submits a product for review.
 // - Validates ownership and required fields
 // - Computes `requires_access_review` from delivery_tier / price / file size / category
-// - Sets review_status='submitted', submitted_at=now()
+// - Sets the canonical submitted review status and submitted_at=now()
 // - Triggers product_submitted_for_review notification email
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { REVIEW_STATUS, REVIEW_STATUS_GROUPS } from '../_shared/review-status.ts';
 
 const SENSITIVE_CATEGORIES = ['adult', 'security', 'surveillance', 'biometric', 'medical', 'financial-advice'];
 
@@ -36,7 +37,7 @@ Deno.serve(async (req) => {
     if (!product.title || product.price == null) {
       return json({ error: 'Product must have a title and price before submitting.' }, 400);
     }
-    if (['submitted', 'in_review', 'approved'].includes(product.review_status)) {
+    if ([...REVIEW_STATUS_GROUPS.PENDING, REVIEW_STATUS.APPROVED].includes(product.review_status)) {
       return json({ error: `Product is already ${product.review_status}.` }, 400);
     }
 
@@ -65,7 +66,7 @@ Deno.serve(async (req) => {
     const { error: ue2 } = await admin
       .from('dkai_products')
       .update({
-        review_status: 'submitted',
+        review_status: REVIEW_STATUS.SUBMITTED,
         submitted_at: new Date().toISOString(),
         requires_access_review: requiresAccess,
         review_notes: null,
@@ -97,7 +98,7 @@ Deno.serve(async (req) => {
       console.warn('notification failed (non-blocking)', e);
     }
 
-    return json({ ok: true, review_status: 'submitted', requires_access_review: requiresAccess });
+    return json({ ok: true, review_status: REVIEW_STATUS.SUBMITTED, requires_access_review: requiresAccess });
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
   }

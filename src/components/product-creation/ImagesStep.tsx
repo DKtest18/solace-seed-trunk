@@ -132,7 +132,7 @@ export function ImagesStep({ media, onAddFile, onRemove, onReorder, errors }: Im
       <div className="space-y-2">
         <Label>Product Media</Label>
         <p className="text-sm text-muted-foreground">
-          Upload up to {MAX_PRODUCT_MEDIA} images and videos. The first item is the cover.
+          Upload up to {MAX_PRODUCT_MEDIA} images and videos (videos max 3 minutes). The first item is the cover.
           Files are saved to your draft immediately, so they stay here when you leave and come back.
           You can also paste images from the clipboard.
         </p>
@@ -216,7 +216,7 @@ export function ImagesStep({ media, onAddFile, onRemove, onReorder, errors }: Im
               {busy ? 'Uploading…' : 'Click to upload or paste image'}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Images: JPEG, PNG, WEBP up to 10MB · Videos: MP4, WebM, MOV up to 500MB
+              Images: JPEG, PNG, WEBP up to 10MB · Videos: MP4, WebM, MOV up to 500MB · max 3 minutes
             </p>
           </div>
           <Input

@@ -18,11 +18,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Eye } from 'lucide-react';
+import { Loader2, Eye, FileSearch } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DemoVideoReviewPanel, hasDemoVideo } from '@/components/admin/DemoVideoReviewPanel';
 import { AdminProductFileAccess } from '@/components/admin/AdminProductFileAccess';
+import { AdminProductSubmissionDialog } from '@/components/admin/AdminProductSubmissionDialog';
 import { formatMoney } from '@/lib/money';
+
 import { format } from 'date-fns';
 
 type ReviewStatus = 'pending_review' | 'draft' | 'approved' | 'delisted' | 'all';
@@ -113,8 +115,10 @@ export default function AdminProductReview() {
   });
 
   const [rejectProduct, setRejectProduct] = useState<any>(null);
+  const [submissionProduct, setSubmissionProduct] = useState<any>(null);
   const [note, setNote] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
+
 
   // Optimistically drop a product from the current list, then refetch to confirm.
   const dropFromList = (productId: string) => {
@@ -234,13 +238,19 @@ export default function AdminProductReview() {
                             {p.category ? ` · ${p.category}` : ''}
                           </CardDescription>
                         </div>
-                        <Button asChild variant="outline" size="sm">
-                          <Link to={`/product/${p.id}`} target="_blank">
-                            <Eye className="w-4 h-4 mr-1" /> Preview
-                          </Link>
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button variant="secondary" size="sm" onClick={() => setSubmissionProduct(p)}>
+                            <FileSearch className="w-4 h-4 mr-1" /> View full submission (11 steps)
+                          </Button>
+                          <Button asChild variant="outline" size="sm">
+                            <Link to={`/product/${p.id}`} target="_blank">
+                              <Eye className="w-4 h-4 mr-1" /> Preview
+                            </Link>
+                          </Button>
+                        </div>
                       </div>
                     </CardHeader>
+
                     <CardContent className="space-y-4">
                       {p.description && (
                         <p className="text-sm text-foreground line-clamp-3 whitespace-pre-wrap">
@@ -306,6 +316,16 @@ export default function AdminProductReview() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {submissionProduct && (
+        <AdminProductSubmissionDialog
+          product={submissionProduct}
+          open={!!submissionProduct}
+          onOpenChange={(o) => !o && setSubmissionProduct(null)}
+        />
+      )}
+
+
 
       <Dialog
         open={!!rejectProduct}

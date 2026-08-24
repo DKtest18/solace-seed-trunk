@@ -51,7 +51,11 @@ export async function acceptSellerAgreement(
     .select('id, seller_agreement_accepted, seller_agreement_version')
     .maybeSingle();
 
-  if (!error && updated?.seller_agreement_accepted) return { ok: true };
+  if (
+    !error
+    && updated?.seller_agreement_accepted
+    && updated?.seller_agreement_version === version
+  ) return { ok: true };
 
   const { error: upsertError } = await db
     .from('dkai_profiles')

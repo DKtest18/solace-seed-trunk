@@ -11,10 +11,10 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, FileText, ArrowDown } from 'lucide-react';
 import {
-  SELLER_AGREEMENT_VERSION,
   isSellerAgreementCurrent,
   useSellerRestrictions,
 } from '@/hooks/useSellerRestrictions';
+import { SELLER_AGREEMENT_VERSION } from '@/lib/sellerAgreement';
 import {
   SellerAgreementAcceptLabel,
   SellerAgreementBody,

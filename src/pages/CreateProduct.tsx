@@ -32,6 +32,7 @@ import { ArrowLeft, ArrowRight, Loader2, CheckCircle, AlertTriangle } from 'luci
 import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/stripeConnectStatus';
 import { fetchPayPalConnectStatus, isPayPalConnectedForOnboarding } from '@/lib/paypalConnectStatus';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
+import { hasCurrentSellerAgreement } from '@/lib/sellerAgreement';
 
 const STEPS = [
   { id: 1, title: 'Basic Info', description: 'Product details' },
@@ -375,10 +376,7 @@ export default function CreateProduct() {
       .eq('id', user.id)
       .maybeSingle();
     if (agreementError) throw agreementError;
-    if (
-      !agreementProfile?.seller_agreement_accepted ||
-      agreementProfile.seller_agreement_version !== '2026-08-17-v4'
-    ) {
+    if (!hasCurrentSellerAgreement(agreementProfile)) {
       navigate('/seller-onboarding/terms');
       throw new Error('Please accept the current Seller Agreement before uploading product media.');
     }

@@ -208,22 +208,33 @@ BEGIN
 END $$;
 
 DO $$
+DECLARE
+  constraint_name text;
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'dkai_product_files_seller_id_fkey') THEN
-    ALTER TABLE public.dkai_product_files
-      ADD CONSTRAINT dkai_product_files_seller_id_fkey
-      FOREIGN KEY (seller_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'dkai_product_files_product_id_fkey') THEN
-    ALTER TABLE public.dkai_product_files
-      ADD CONSTRAINT dkai_product_files_product_id_fkey
-      FOREIGN KEY (product_id) REFERENCES public.dkai_products(id) ON DELETE CASCADE;
-  END IF;
+  FOR constraint_name IN
+    SELECT c.conname
+    FROM pg_constraint c
+    JOIN pg_attribute a
+      ON a.attrelid = c.conrelid AND a.attnum = ANY (c.conkey)
+    WHERE c.conrelid = 'public.dkai_product_files'::regclass
+      AND c.contype = 'f'
+      AND a.attname IN ('product_id', 'seller_id')
+  LOOP
+    EXECUTE format('ALTER TABLE public.dkai_product_files DROP CONSTRAINT %I', constraint_name);
+  END LOOP;
 END $$;
 
 ALTER TABLE public.dkai_product_files
+  ADD CONSTRAINT dkai_product_files_product_id_fkey
+    FOREIGN KEY (product_id) REFERENCES public.dkai_products(id) ON DELETE CASCADE,
+  ADD CONSTRAINT dkai_product_files_seller_id_fkey
+    FOREIGN KEY (seller_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+ALTER TABLE public.dkai_product_files
+  DROP CONSTRAINT IF EXISTS dkai_product_files_file_size_check,
   DROP CONSTRAINT IF EXISTS dkai_product_files_scan_status_check;
 ALTER TABLE public.dkai_product_files
+  ADD CONSTRAINT dkai_product_files_file_size_check CHECK (file_size >= 0),
   ADD CONSTRAINT dkai_product_files_scan_status_check
   CHECK (scan_status IN ('pending', 'clean', 'infected', 'failed'));
 

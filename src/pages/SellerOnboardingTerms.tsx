@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { resolveNextOnboardingRoute } from '@/lib/sellerOnboardingNav';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
+import { acceptSellerAgreement } from '@/lib/sellerAgreementAccept';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, ArrowDown, CheckCircle2, FileText, Loader2 } from 'lucide-react';
 import {
@@ -76,29 +77,11 @@ export default function SellerOnboardingTerms() {
 
     setLoading(true);
     try {
-      const nowIso = new Date().toISOString();
-      const { data: savedProfile, error } = await db
-        .from('dkai_profiles')
-        .update({
-          terms_accepted: true,
-          terms_accepted_at: nowIso,
-          seller_agreement_accepted: true,
-          seller_agreement_version: SELLER_AGREEMENT_VERSION,
-          seller_agreement_accepted_at: nowIso,
-          seller_obligations_pdf_acknowledged: true,
-          seller_obligations_pdf_version: pdfDoc?.version ?? null,
-          updated_at: nowIso,
-        })
-        .eq('id', uid)
-        .select('id, seller_agreement_accepted, seller_agreement_version')
-        .maybeSingle();
-      if (error) throw error;
-      if (
-        !savedProfile?.seller_agreement_accepted ||
-        savedProfile.seller_agreement_version !== SELLER_AGREEMENT_VERSION
-      ) {
-        throw new Error('Seller agreement acceptance was not saved. Please try again.');
+      const result = await acceptSellerAgreement(uid, SELLER_AGREEMENT_VERSION, pdfDoc?.version ?? null);
+      if (!result.ok) {
+        throw new Error(result.error || 'Seller agreement acceptance was not saved. Please try again.');
       }
+
 
       await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
       await queryClient.invalidateQueries({ queryKey: ['seller-restrictions', uid] });

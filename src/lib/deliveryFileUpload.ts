@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import * as tus from 'tus-js-client';
 
 export interface DeliveryFileRecord {
   id: string;
@@ -12,6 +13,7 @@ export interface DeliveryFileRecord {
 
 const BUCKET = 'product-deliveries';
 export const MAX_DELIVERY_FILE_SIZE = 2 * 1024 * 1024 * 1024;
+const SUPABASE_URL = 'https://dwqpkdatzdqhplgyhigg.supabase.co';
 
 export function sanitizeDeliveryFileName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/_{2,}/g, '_').slice(0, 120);
@@ -26,6 +28,33 @@ function isTransportError(error: any) {
     /not found/i.test(msg) ||
     /404/.test(msg)
   );
+}
+
+async function uploadResumable(path: string, file: File, token: string) {
+  await new Promise<void>((resolve, reject) => {
+    const upload = new tus.Upload(file, {
+      endpoint: `${SUPABASE_URL}/storage/v1/upload/resumable`,
+      retryDelays: [0, 1000, 3000, 5000, 10000],
+      headers: { authorization: `Bearer ${token}`, 'x-upsert': 'false' },
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+      chunkSize: 6 * 1024 * 1024,
+      metadata: {
+        bucketName: BUCKET,
+        objectName: path,
+        contentType: file.type || 'application/octet-stream',
+        cacheControl: '3600',
+      },
+      onError: (error) => reject(error instanceof Error ? error : new Error(String(error))),
+      onSuccess: () => resolve(),
+    });
+    upload.findPreviousUploads()
+      .then((previous) => {
+        if (previous.length > 0) upload.resumeFromPreviousUpload(previous[0]);
+        upload.start();
+      })
+      .catch(() => upload.start());
+  });
 }
 
 /**
@@ -46,6 +75,11 @@ export async function uploadDeliveryFile(
   if (authError) throw authError;
   const userId = authData.user?.id;
   if (!userId) throw new Error('Your session expired. Please sign in again before uploading.');
+  if (file.size > MAX_DELIVERY_FILE_SIZE) {
+    throw new Error(
+      `This file is too large to upload directly. The limit is ${formatBytes(MAX_DELIVERY_FILE_SIZE)} and the file is ${formatBytes(file.size)}. Please email support@dkaimarketplace.com and we will help you deliver it. We reply within 24 to 48 hours.`,
+    );
+  }
 
   const mimeType = file.type || 'application/octet-stream';
 
@@ -65,11 +99,11 @@ export async function uploadDeliveryFile(
     if (signError) throw signError;
     if ((signData as any)?.error) throw new Error((signData as any).error);
 
-    const { path, token, file_id } = signData as any;
-    const { error: uploadError } = await supabase.storage
-      .from(BUCKET)
-      .uploadToSignedUrl(path, token, file, { contentType: mimeType });
-    if (uploadError) throw new Error(`Storage upload failed: ${uploadError.message}`);
+    const { path, file_id } = signData as any;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) throw new Error('Your session expired. Please sign in again before uploading.');
+    await uploadResumable(path, file, accessToken);
 
     const { data: commitData, error: commitError } = await supabase.functions.invoke(
       'product-delivery-files',
@@ -104,6 +138,7 @@ export async function uploadDeliveryFile(
         id: fileId,
         product_id: productId,
         seller_id: userId,
+        storage_bucket: BUCKET,
         storage_path: filePath,
         original_filename: file.name,
         file_size: file.size,
@@ -119,6 +154,11 @@ export async function uploadDeliveryFile(
 
     return inserted as DeliveryFileRecord;
   }
+}
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
 }
 
 /** Deletes a delivery file (server-side when possible, else under RLS). */

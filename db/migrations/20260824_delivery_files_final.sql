@@ -29,6 +29,41 @@ ALTER TABLE public.dkai_products
   ADD COLUMN IF NOT EXISTS file_size_bytes bigint,
   ADD COLUMN IF NOT EXISTS file_scan_status text;
 
+-- Canonical review states. Normalize first so unrelated future product updates
+-- can never fail because an old row retained a legacy or blank value.
+ALTER TABLE public.dkai_products
+  DROP CONSTRAINT IF EXISTS dkai_products_review_status_check;
+
+UPDATE public.dkai_products
+SET review_status = lower(btrim(review_status))
+WHERE review_status IS NOT NULL;
+
+UPDATE public.dkai_products SET review_status = 'in_review'
+WHERE review_status IN ('pending', 'pending_review', 'reviewing', 'under_review');
+UPDATE public.dkai_products SET review_status = 'changes_requested'
+WHERE review_status IN ('changes-requested', 'needs_changes', 'needs-changes', 'revision_requested');
+UPDATE public.dkai_products SET review_status = 'rejected'
+WHERE review_status IN ('declined', 'denied');
+UPDATE public.dkai_products SET review_status = 'approved'
+WHERE review_status IN ('published', 'live');
+UPDATE public.dkai_products SET review_status = 'delisted'
+WHERE review_status IN ('removed', 'unlisted');
+UPDATE public.dkai_products SET review_status = 'draft'
+WHERE review_status IS NULL OR review_status = '' OR review_status NOT IN (
+  'draft', 'submitted', 'in_review', 'approved', 'rejected',
+  'changes_requested', 'locked_exclusive', 'delisted'
+);
+
+ALTER TABLE public.dkai_products
+  ALTER COLUMN review_status SET DEFAULT 'draft',
+  ALTER COLUMN review_status SET NOT NULL;
+ALTER TABLE public.dkai_products
+  ADD CONSTRAINT dkai_products_review_status_check
+  CHECK (review_status IN (
+    'draft', 'submitted', 'in_review', 'approved', 'rejected',
+    'changes_requested', 'locked_exclusive', 'delisted'
+  ));
+
 GRANT UPDATE (file_storage_key, file_size_bytes, file_scan_status)
   ON public.dkai_products TO authenticated;
 
@@ -166,7 +201,7 @@ CREATE INDEX IF NOT EXISTS dkai_product_files_product_uploaded_idx
 CREATE INDEX IF NOT EXISTS dkai_product_files_seller_idx
   ON public.dkai_product_files (seller_id);
 CREATE UNIQUE INDEX IF NOT EXISTS dkai_product_files_storage_path_uidx
-  ON public.dkai_product_files (storage_path);
+  ON public.dkai_product_files (storage_bucket, storage_path);
 
 -- Enforce ten records per product even under direct API writes.
 CREATE OR REPLACE FUNCTION public.dkai_enforce_product_file_limit()
@@ -264,6 +299,10 @@ CREATE INDEX IF NOT EXISTS dkai_file_access_log_user_time_idx
   ON public.dkai_file_access_log (user_id, signed_url_generated_at DESC);
 CREATE INDEX IF NOT EXISTS dkai_file_access_log_file_idx
   ON public.dkai_file_access_log (product_file_id);
+
+-- Keep the current admin review queue fast and deterministic.
+CREATE INDEX IF NOT EXISTS dkai_products_review_queue_idx
+  ON public.dkai_products (review_status, submitted_at DESC, created_at DESC);
 
 -- Storage bucket creation/configuration is intentionally performed with the
 -- Storage API/dashboard, not by writing storage.buckets directly. Validate it.

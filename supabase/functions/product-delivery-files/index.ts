@@ -2,7 +2,7 @@
 // for review or already approved.
 //
 // Actions (POST JSON { action, ... }):
-//   sign_upload  -> { path, token }  signed upload URL for the private bucket
+//   sign_upload  -> reserves a private uid-prefixed path for resumable upload
 //   commit       -> registers the uploaded object in dkai_product_files
 //   list         -> delivery files of a product (seller or admin)
 //   delete       -> removes a file from storage + db, re-points primary columns
@@ -106,11 +106,7 @@ Deno.serve(async (req) => {
 
       const fileId = crypto.randomUUID();
       const path = `${userId}/${sanitize(fileName)}`;
-      const { data: signed, error: se } = await admin.storage
-        .from(BUCKET)
-        .createSignedUploadUrl(path);
-      if (se || !signed) return json({ error: se?.message ?? 'Could not create upload URL' }, 500);
-      return json({ file_id: fileId, path, token: signed.token, signed_url: signed.signedUrl });
+      return json({ file_id: fileId, path });
     }
 
     if (action === 'commit') {

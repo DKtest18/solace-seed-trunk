@@ -26,11 +26,11 @@ export async function acceptSellerAgreement(
   });
 
   if (!rpc.error) {
-    const row = Array.isArray(rpc.data) ? rpc.data[0] : rpc.data;
-    if (row?.seller_agreement_accepted && row?.seller_agreement_version === SELLER_AGREEMENT_VERSION) {
-      return { ok: true };
-    }
+    const row: any = Array.isArray(rpc.data) ? rpc.data[0] : rpc.data;
+    // The RPC returns jsonb now; older deployments returned a row set.
+    if (row?.seller_agreement_accepted === true) return { ok: true };
   }
+
 
   const nowIso = new Date().toISOString();
   const payload = {

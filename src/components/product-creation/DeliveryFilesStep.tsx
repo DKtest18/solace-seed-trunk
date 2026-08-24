@@ -44,6 +44,7 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
   const { feePct, sellerPct } = usePlatformFee();
   const [dragActive, setDragActive] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [oversizeError, setOversizeError] = useState<{ limit: number; actual: number } | null>(null);
 
   const mode = ['instant', 'manual', 'setup'].includes(data.delivery_mode) ? data.delivery_mode : 'instant';
   const suggestions = SUGGESTED_BY_TYPE[(data.product_type || 'agent').toLowerCase()] || SUGGESTED_BY_TYPE.agent;
@@ -63,14 +64,17 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
   };
   const processFile = (file: File) => {
     if (deliveryFiles.length >= MAX_FILES) {
+      setOversizeError(null);
       setLocalError(`You can upload at most ${MAX_FILES} files. "${file.name}" was not added.`);
       return;
     }
     if (file.size > MAX_FILE_SIZE) {
-      setLocalError(`This file is too large to upload directly. The limit is ${fmt(MAX_FILE_SIZE)} and “${file.name}” is ${fmt(file.size)}. Please email support@dkaimarketplace.com and we will help you deliver it. We reply within 24 to 48 hours.`);
+      setLocalError(null);
+      setOversizeError({ limit: MAX_FILE_SIZE, actual: file.size });
       return;
     }
     setLocalError(null);
+    setOversizeError(null);
     onAddFile(file);
   };
   const fmt = (b: number) => b < 1024 ? b + ' B' : b < 1024 * 1024 ? (b / 1024).toFixed(1) + ' KB' : (b / (1024 * 1024)).toFixed(1) + ' MB';
@@ -212,8 +216,14 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
       </div>
 
       {localError && (
+        <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>{localError}</AlertDescription></Alert>
+      )}
+
+      {oversizeError && (
         <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>
-          {localError} {localError.includes('too large') && <a className="underline" href="mailto:support@dkaimarketplace.com">Email support@dkaimarketplace.com</a>}
+          This file is too large to upload directly. The limit is {fmt(oversizeError.limit)} and the file is {fmt(oversizeError.actual)}. Please email{' '}
+          <a className="underline" href="mailto:support@dkaimarketplace.com">support@dkaimarketplace.com</a>{' '}
+          and we will help you deliver it. We reply within 24 to 48 hours.
         </AlertDescription></Alert>
       )}
 

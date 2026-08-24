@@ -21,6 +21,24 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'Required column public.dkai_products.seller_id does not exist';
   END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'dkai_products' AND column_name = 'review_status'
+  ) THEN
+    RAISE EXCEPTION 'Required column public.dkai_products.review_status does not exist';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'dkai_products' AND column_name = 'submitted_at'
+  ) THEN
+    RAISE EXCEPTION 'Required column public.dkai_products.submitted_at does not exist';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'dkai_products' AND column_name = 'created_at'
+  ) THEN
+    RAISE EXCEPTION 'Required column public.dkai_products.created_at does not exist';
+  END IF;
 END $$;
 
 -- Compatibility summary fields used by existing admin/product views.
@@ -128,6 +146,18 @@ UPDATE public.dkai_product_files
 SET storage_bucket = 'product-deliveries'
 WHERE storage_bucket IS NULL;
 
+UPDATE public.dkai_product_files
+SET file_size = 0
+WHERE file_size IS NULL;
+
+UPDATE public.dkai_product_files
+SET uploaded_at = now()
+WHERE uploaded_at IS NULL;
+
+UPDATE public.dkai_product_files
+SET scan_status = 'pending'
+WHERE scan_status IS NULL OR scan_status NOT IN ('pending', 'clean', 'infected', 'failed');
+
 UPDATE public.dkai_product_files f
 SET seller_id = p.seller_id
 FROM public.dkai_products p
@@ -189,12 +219,13 @@ BEGIN
       ADD CONSTRAINT dkai_product_files_product_id_fkey
       FOREIGN KEY (product_id) REFERENCES public.dkai_products(id) ON DELETE CASCADE;
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'dkai_product_files_scan_status_check') THEN
-    ALTER TABLE public.dkai_product_files
-      ADD CONSTRAINT dkai_product_files_scan_status_check
-      CHECK (scan_status IN ('pending', 'clean', 'infected', 'failed'));
-  END IF;
 END $$;
+
+ALTER TABLE public.dkai_product_files
+  DROP CONSTRAINT IF EXISTS dkai_product_files_scan_status_check;
+ALTER TABLE public.dkai_product_files
+  ADD CONSTRAINT dkai_product_files_scan_status_check
+  CHECK (scan_status IN ('pending', 'clean', 'infected', 'failed'));
 
 CREATE INDEX IF NOT EXISTS dkai_product_files_product_uploaded_idx
   ON public.dkai_product_files (product_id, uploaded_at DESC);

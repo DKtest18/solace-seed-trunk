@@ -55,7 +55,7 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
     );
   }
 
-  if (isSellerAgreementCurrent(restrictions)) return <>{children}</>;
+  if (accepted || isSellerAgreementCurrent(restrictions)) return <>{children}</>;
 
   const handleConfirm = async () => {
     setSaving(true);

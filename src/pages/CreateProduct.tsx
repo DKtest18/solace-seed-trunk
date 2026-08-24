@@ -33,6 +33,7 @@ import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/
 import { fetchPayPalConnectStatus, isPayPalConnectedForOnboarding } from '@/lib/paypalConnectStatus';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
 import { hasCurrentSellerAgreement } from '@/lib/sellerAgreement';
+import { getSellerAgreementState } from '@/lib/sellerAgreementAccept';
 
 const STEPS = [
   { id: 1, title: 'Basic Info', description: 'Product details' },

@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { resolveNextOnboardingRoute } from '@/lib/sellerOnboardingNav';
 import { useToast } from '@/hooks/use-toast';
-import { db } from '@/lib/dkaiDb';
 import { acceptSellerAgreement, getSellerAgreementState } from '@/lib/sellerAgreementAccept';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, ArrowDown, CheckCircle2, FileText, Loader2 } from 'lucide-react';

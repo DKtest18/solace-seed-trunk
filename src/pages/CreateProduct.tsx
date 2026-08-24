@@ -173,29 +173,6 @@ export default function CreateProduct() {
   } = useDeliveryFiles(ensureDraftIdForUpload);
 
   
-  const [uploadedFile, setUploadedFile] = useState<any>(null);
-  // React state updates are async: persistDraft() used to run before
-  // setUploadedFile() had committed, so file_storage_key / file_size_bytes /
-  // file_scan_status were written as NULL. The ref is the authoritative value
-  // for every draft write.
-  const uploadedFileRef = useRef<any>(null);
-  const rememberUploadedFile = (f: any) => {
-    uploadedFileRef.current = f;
-    setUploadedFile(f);
-  };
-  /**
-   * The primary delivery file recorded on the product row. Falls back to the
-   * first successfully uploaded row in dkai_product_files so the admin review
-   * page never shows "Not provided by seller" for files that do exist.
-   */
-  const primaryDeliveryFile = () => {
-    if (uploadedFileRef.current?.path) return uploadedFileRef.current;
-    const row = (deliveryFilesRef.current ?? []).find((f) => f.storage_path && !f.uploading && !f.error);
-    return row
-      ? { path: row.storage_path, name: row.original_filename, size: row.file_size, scanStatus: row.scan_status }
-      : null;
-  };
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'scanning' | 'clean' | 'infected'>('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Load existing draft (latest 'draft' row for this seller) on mount
@@ -288,15 +265,6 @@ export default function CreateProduct() {
             await loadDeliveryFiles(data.id);
           } catch (e: any) {
             toast.error(`Could not load your delivery files: ${e?.message || e}`);
-          }
-          if (data.file_storage_key) {
-            rememberUploadedFile({
-              path: data.file_storage_key,
-              name: data.file_storage_key.split('/').pop() ?? 'file',
-              size: data.file_size_bytes ?? 0,
-              scanStatus: data.file_scan_status ?? 'clean',
-            });
-            setUploadStatus(data.file_scan_status ?? 'clean');
           }
         }
       } catch (e) {
@@ -571,8 +539,7 @@ export default function CreateProduct() {
         }
         if (
           formData.delivery_mode === 'instant' &&
-          deliveryFiles.filter((f) => !f.uploading && !f.error).length === 0 &&
-          !uploadedFile
+          deliveryFiles.filter((f) => !f.uploading && !f.error).length === 0
         ) {
           newErrors.deliveryFilesError = 'Instant download requires at least one uploaded file';
         }
@@ -959,16 +926,9 @@ export default function CreateProduct() {
                   onAddFile={async (file) => {
                     try {
                       const row = await addDeliveryFile(file);
-                      rememberUploadedFile({
-                        path: row.storage_path,
-                        name: row.original_filename,
-                        size: row.file_size,
-                        scanStatus: row.scan_status,
-                      });
-                      setUploadStatus((row.scan_status as any) || 'clean');
                       toast.success(`${row.original_filename} uploaded and saved to this product`);
                     } catch (e: any) {
-                      toast.error(e?.message || 'Upload failed');
+                      toast.error(e?.message || String(e));
                     }
                   }}
                   onRemoveFile={async (id) => {

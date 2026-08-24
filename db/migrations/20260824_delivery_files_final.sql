@@ -200,7 +200,8 @@ CREATE INDEX IF NOT EXISTS dkai_product_files_product_uploaded_idx
   ON public.dkai_product_files (product_id, uploaded_at DESC);
 CREATE INDEX IF NOT EXISTS dkai_product_files_seller_idx
   ON public.dkai_product_files (seller_id);
-CREATE UNIQUE INDEX IF NOT EXISTS dkai_product_files_storage_path_uidx
+DROP INDEX IF EXISTS public.dkai_product_files_storage_path_uidx;
+CREATE UNIQUE INDEX dkai_product_files_storage_path_uidx
   ON public.dkai_product_files (storage_bucket, storage_path);
 
 -- Enforce ten records per product even under direct API writes.

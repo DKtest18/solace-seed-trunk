@@ -60,8 +60,8 @@ async function uploadResumable(path: string, file: File, token: string) {
 /**
  * Uploads a delivery file for a product and persists it server-side.
  *
- * Primary path: `product-delivery-files` edge function — it issues a signed
- * upload URL for the PRIVATE bucket and commits the row with the service role,
+  * Primary path: `product-delivery-files` reserves a private uid-prefixed path,
+  * the browser uploads it resumably, and the function commits the database row,
  * which also works after the product was submitted for review or approved.
  *
  * Fallback path (function not deployed / unreachable): direct storage upload +
@@ -127,10 +127,10 @@ export async function uploadDeliveryFile(
     // ---- fallback: direct upload under RLS ----
     const fileId = crypto.randomUUID();
     const filePath = `${userId}/${sanitizeDeliveryFileName(file.name)}`;
-    const { error: uploadError } = await supabase.storage
-      .from(BUCKET)
-      .upload(filePath, file, { contentType: mimeType, upsert: false });
-    if (uploadError) throw new Error(`Storage upload failed: ${uploadError.message}`);
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) throw new Error('Your session expired. Please sign in again before uploading.');
+    await uploadResumable(filePath, file, accessToken);
 
     const { data: inserted, error: insertError } = await (supabase as any)
       .from('dkai_product_files')

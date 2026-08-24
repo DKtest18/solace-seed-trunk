@@ -25,8 +25,8 @@ function sanitizeFileName(name: string) {
  * file_scan_status stayed NULL on the product row and admins saw nothing.
  *
  * Uploads go directly to the private `product-deliveries` bucket under the owner's
- * uid prefix, then persist in dkai_product_files and the product's primary-file
- * columns. Every storage or database failure is surfaced with its real text.
+ * uid prefix, then persist in dkai_product_files. Delivery uploads never update
+ * the product row or its review status. Every failure surfaces its real text.
  */
 export function useDeliveryFiles(ensureDraftId: () => Promise<string | null>) {
   const [files, setFiles] = useState<DeliveryFileRow[]>([]);

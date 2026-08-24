@@ -41,11 +41,57 @@ BEGIN
   END IF;
 END $$;
 
+-- The demo-video rule must never block unrelated maintenance UPDATEs on legacy
+-- rows. A CHECK constraint is re-evaluated on every UPDATE of a row, even when
+-- it was added NOT VALID, so replace it with a trigger that only fires when a
+-- product is actually being published (or its demo video fields change).
+ALTER TABLE public.dkai_products
+  DROP CONSTRAINT IF EXISTS dkai_products_demo_video_required;
+
+CREATE OR REPLACE FUNCTION public.dkai_require_demo_video_on_publish()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  has_video boolean;
+BEGIN
+  IF COALESCE(NEW.is_published, false) = false THEN
+    RETURN NEW;
+  END IF;
+
+  IF TG_OP = 'UPDATE'
+     AND COALESCE(OLD.is_published, false) = true
+     AND OLD.demo_video_url IS NOT DISTINCT FROM NEW.demo_video_url
+     AND OLD.demo_video_storage_path IS NOT DISTINCT FROM NEW.demo_video_storage_path
+     AND OLD.demo_video_paths IS NOT DISTINCT FROM NEW.demo_video_paths THEN
+    RETURN NEW; -- already published, demo video fields untouched
+  END IF;
+
+  has_video :=
+    NULLIF(btrim(COALESCE(NEW.demo_video_url, '')), '') IS NOT NULL
+    OR NULLIF(btrim(COALESCE(NEW.demo_video_storage_path, '')), '') IS NOT NULL
+    OR COALESCE(jsonb_array_length(COALESCE(NEW.demo_video_paths, '[]'::jsonb)), 0) > 0;
+
+  IF NOT has_video THEN
+    RAISE EXCEPTION 'A demo video is required before publishing this product'
+      USING ERRCODE = 'check_violation';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS dkai_products_demo_video_required_trg ON public.dkai_products;
+CREATE TRIGGER dkai_products_demo_video_required_trg
+  BEFORE INSERT OR UPDATE ON public.dkai_products
+  FOR EACH ROW EXECUTE FUNCTION public.dkai_require_demo_video_on_publish();
+
 -- Compatibility summary fields used by existing admin/product views.
 ALTER TABLE public.dkai_products
   ADD COLUMN IF NOT EXISTS file_storage_key text,
   ADD COLUMN IF NOT EXISTS file_size_bytes bigint,
   ADD COLUMN IF NOT EXISTS file_scan_status text;
+
 
 -- Canonical review states. Normalize first so unrelated future product updates
 -- can never fail because an old row retained a legacy or blank value.

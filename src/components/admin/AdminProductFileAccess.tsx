@@ -8,10 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { File as FileIcon, ShieldAlert, Loader2, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { downloadUrl } from '@/lib/downloadFile';
 
 interface AdminFile {
   id: string;
-  file_name: string;
+  original_filename: string;
   file_size: number;
   scan_status: string;
 }
@@ -43,9 +44,9 @@ export function AdminProductFileAccess({
     (async () => {
       const { data, error } = await (supabase as any)
         .from('dkai_product_files')
-        .select('id, file_name, file_size, scan_status')
+        .select('id, original_filename, file_size, scan_status')
         .eq('product_id', productId)
-        .order('created_at', { ascending: false });
+        .order('uploaded_at', { ascending: false });
       if (error) setLoadError(error.message);
       setFiles((data as AdminFile[]) ?? []);
       setLoading(false);
@@ -65,12 +66,13 @@ export function AdminProductFileAccess({
           product_file_id: selected.id,
           justification: justification.trim(),
           dispute_id: disputeId ?? null,
+          access_type: mode === 'review' ? 'admin_review_access' : 'admin_dispute_access',
         },
       });
       if (error || (data as any)?.error) {
         throw new Error((data as any)?.error || error?.message || 'Access denied');
       }
-      window.open((data as any).signed_url, '_blank');
+       await downloadUrl((data as any).signed_url, selected.original_filename);
       toast({ title: 'Access granted', description: 'Link valid for 15 minutes. This access has been logged.' });
       setSelected(null);
       setJustification('');
@@ -127,7 +129,7 @@ export function AdminProductFileAccess({
           <div key={f.id} className="flex items-center gap-3 p-3 border rounded-lg">
             <FileIcon className="w-5 h-5 text-primary flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{f.file_name}</p>
+               <p className="text-sm font-medium truncate">{f.original_filename}</p>
               <p className="text-xs text-muted-foreground">{formatSize(f.file_size)} · scan: {f.scan_status}</p>
             </div>
             <Button size="sm" variant="outline" onClick={() => setSelected(f)}>
@@ -143,8 +145,8 @@ export function AdminProductFileAccess({
             <DialogTitle>{isReview ? 'Confirm file download' : 'Justify file access'}</DialogTitle>
             <DialogDescription>
               {isReview
-                ? <>You are about to download <strong>{selected?.file_name}</strong>. This action will be logged with your admin account.</>
-                : <>Accessing <strong>{selected?.file_name}</strong>. The seller will be notified by email and this action will be logged with your account.</>}
+                ? <>You are about to download <strong>{selected?.original_filename}</strong>. This action will be logged with your admin account.</>
+                : <>Accessing <strong>{selected?.original_filename}</strong>. The seller will be notified by email and this action will be logged with your account.</>}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">

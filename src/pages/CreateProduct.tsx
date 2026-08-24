@@ -173,30 +173,6 @@ export default function CreateProduct() {
   } = useDeliveryFiles(ensureDraftIdForUpload);
 
   
-  const [productFile, setProductFile] = useState<File | null>(null);
-  const [uploadedFile, setUploadedFile] = useState<any>(null);
-  // React state updates are async: persistDraft() used to run before
-  // setUploadedFile() had committed, so file_storage_key / file_size_bytes /
-  // file_scan_status were written as NULL. The ref is the authoritative value
-  // for every draft write.
-  const uploadedFileRef = useRef<any>(null);
-  const rememberUploadedFile = (f: any) => {
-    uploadedFileRef.current = f;
-    setUploadedFile(f);
-  };
-  /**
-   * The primary delivery file recorded on the product row. Falls back to the
-   * first successfully uploaded row in dkai_product_files so the admin review
-   * page never shows "Not provided by seller" for files that do exist.
-   */
-  const primaryDeliveryFile = () => {
-    if (uploadedFileRef.current?.path) return uploadedFileRef.current;
-    const row = (deliveryFilesRef.current ?? []).find((f) => f.file_path && !f.uploading && !f.error);
-    return row
-      ? { path: row.file_path, name: row.file_name, size: row.file_size, scanStatus: row.scan_status }
-      : null;
-  };
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'scanning' | 'clean' | 'infected'>('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Load existing draft (latest 'draft' row for this seller) on mount
@@ -290,15 +266,6 @@ export default function CreateProduct() {
           } catch (e: any) {
             toast.error(`Could not load your delivery files: ${e?.message || e}`);
           }
-          if (data.file_storage_key) {
-            rememberUploadedFile({
-              path: data.file_storage_key,
-              name: data.file_storage_key.split('/').pop() ?? 'file',
-              size: data.file_size_bytes ?? 0,
-              scanStatus: data.file_scan_status ?? 'clean',
-            });
-            setUploadStatus(data.file_scan_status ?? 'clean');
-          }
         }
       } catch (e) {
         console.error('Failed to load draft', e);
@@ -343,9 +310,6 @@ export default function CreateProduct() {
     // download has no window.
     delivery_time_hours:
       formData.delivery_mode === 'instant' ? null : (formData.delivery_time_hours ?? 24),
-    file_storage_key: primaryDeliveryFile()?.path || null,
-    file_size_bytes: primaryDeliveryFile()?.size || null,
-    file_scan_status: primaryDeliveryFile()?.scanStatus || null,
     seller_accepted_terms: formData.seller_accepted_terms,
     seller_rules_confirmed: !!formData.seller_rules_confirmed,
     seller_rules_confirmed_at: formData.seller_rules_confirmed ? new Date().toISOString() : null,
@@ -575,8 +539,7 @@ export default function CreateProduct() {
         }
         if (
           formData.delivery_mode === 'instant' &&
-          deliveryFiles.filter((f) => !f.uploading && !f.error).length === 0 &&
-          !uploadedFile
+          deliveryFiles.filter((f) => !f.uploading && !f.error).length === 0
         ) {
           newErrors.deliveryFilesError = 'Instant download requires at least one uploaded file';
         }
@@ -662,49 +625,6 @@ export default function CreateProduct() {
     }
     setErrors({});
     setCurrentStep(Math.min(Math.max(target, 1), STEPS.length));
-  };
-
-  const handleFileSelect = async (file: File) => {
-    setProductFile(file);
-    setUploadStatus('uploading');
-
-    try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${user?.id}/${crypto.randomUUID()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('product-files')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      setUploadStatus('scanning');
-
-      // Call scan function
-      const { data: scanData, error: scanError } = await supabase.functions.invoke('scan-product-file', {
-        body: { filePath, fileName: file.name, fileSize: file.size },
-      });
-
-      if (scanError) throw scanError;
-
-      rememberUploadedFile({ 
-        path: filePath, 
-        name: file.name, 
-        size: file.size,
-        scanStatus: scanData.scanStatus || 'clean'
-      });
-      setUploadStatus(scanData.scanStatus || 'clean');
-
-      if (scanData.scanStatus === 'clean') {
-        toast.success('File uploaded and scanned successfully');
-      } else {
-        toast.error('File failed security scan');
-      }
-    } catch (error: any) {
-      console.error('Error uploading file:', error);
-      toast.error(error.message || 'Failed to upload file');
-      setUploadStatus('idle');
-    }
   };
 
   const hasDemoVideo =
@@ -1006,17 +926,9 @@ export default function CreateProduct() {
                   onAddFile={async (file) => {
                     try {
                       const row = await addDeliveryFile(file);
-                      rememberUploadedFile({
-                        path: row.file_path,
-                        name: row.file_name,
-                        size: row.file_size,
-                        scanStatus: row.scan_status,
-                      });
-                      setUploadStatus((row.scan_status as any) || 'clean');
-                      await persistDraft();
-                      toast.success(`${row.file_name} uploaded and saved to this product`);
+                      toast.success(`${row.original_filename} uploaded and saved to this product`);
                     } catch (e: any) {
-                      toast.error(e?.message || 'Upload failed');
+                      toast.error(e?.message || String(e));
                     }
                   }}
                   onRemoveFile={async (id) => {

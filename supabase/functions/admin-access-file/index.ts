@@ -1,7 +1,7 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
-const BUCKET = 'product-files';
+const BUCKET = 'product-deliveries';
 const ADMIN_TTL = 900; // 15 minutes
 
 Deno.serve(async (req) => {
@@ -12,11 +12,14 @@ Deno.serve(async (req) => {
   if (error || !user) return errorResponse('Unauthorized', 401);
 
   try {
-    const { product_file_id, justification } = await req.json();
+    const { product_file_id, justification, access_type } = await req.json();
     if (!product_file_id) return errorResponse('product_file_id required', 400);
     if (!justification || typeof justification !== 'string' || justification.trim().length < 20) {
       return errorResponse('Justification required (min 20 chars)', 400);
     }
+    const auditType = access_type === 'admin_review_access'
+      ? 'admin_review_access'
+      : 'admin_dispute_access';
 
     const admin = getServiceClient();
 
@@ -27,20 +30,20 @@ Deno.serve(async (req) => {
 
     const { data: file, error: fErr } = await admin
       .from('dkai_product_files')
-      .select('id, file_path, file_name, uploaded_by')
+      .select('id, storage_bucket, storage_path, original_filename, seller_id')
       .eq('id', product_file_id)
       .single();
     if (fErr || !file) return errorResponse('File not found', 404);
 
     const { data: signed, error: sErr } = await admin.storage
-      .from(BUCKET)
-      .createSignedUrl(file.file_path, ADMIN_TTL, { download: file.file_name });
+      .from(file.storage_bucket ?? BUCKET)
+      .createSignedUrl(file.storage_path, ADMIN_TTL, { download: file.original_filename });
     if (sErr || !signed) return errorResponse('Failed to sign URL', 500);
 
     const { data: logRow } = await admin.from('dkai_file_access_log').insert({
       user_id: user.id,
       product_file_id: file.id,
-      access_type: 'admin_dispute_access',
+      access_type: auditType,
       justification: justification.trim(),
       ip_address: req.headers.get('x-forwarded-for') ?? null,
       user_agent: req.headers.get('user-agent') ?? null,
@@ -51,7 +54,7 @@ Deno.serve(async (req) => {
       const { data: seller } = await admin
         .from('dkai_profiles')
         .select('email, full_name')
-        .eq('user_id', file.uploaded_by)
+        .eq('user_id', file.seller_id)
         .maybeSingle();
       if (seller?.email) {
         const url = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-notification-email`;
@@ -64,7 +67,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             to: seller.email,
             type: 'admin_accessed_file',
-            data: { file_name: file.file_name, justification: justification.trim() },
+            data: { file_name: file.original_filename, justification: justification.trim() },
           }),
         }).catch(() => {});
       }

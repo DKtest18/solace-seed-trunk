@@ -1,22 +1,8 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
-const BUCKET = 'product-files';
-const MAX_SIZE = 500 * 1024 * 1024; // 500 MB
-
-const ALLOWED_MIME = new Set([
-  'application/zip', 'application/x-zip-compressed',
-  'application/pdf', 'application/json',
-  'application/octet-stream', 'application/x-yaml', 'text/yaml',
-  'text/plain', 'text/csv', 'text/markdown',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'image/png', 'image/jpeg', 'image/webp', 'image/gif',
-  'video/mp4', 'video/webm',
-]);
-
-const DANGEROUS_EXT = new Set(['exe','dll','bat','cmd','com','msi','scr','vbs','js','jse','ws','wsf','ps1','sh','jar','app','apk','deb','rpm','pkg','dmg','reg','hta']);
+const BUCKET = 'product-deliveries';
+const MAX_SIZE = 2 * 1024 * 1024 * 1024; // 2 GB
 
 function sanitizeName(n: string) {
   return n.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/_{2,}/g, '_').slice(0, 120);
@@ -38,11 +24,6 @@ Deno.serve(async (req) => {
     if (typeof file_size !== 'number' || file_size <= 0 || file_size > MAX_SIZE) {
       return errorResponse(`File size invalid or exceeds ${MAX_SIZE / 1024 / 1024}MB`, 400);
     }
-    if (!ALLOWED_MIME.has(mime_type)) {
-      return errorResponse(`Disallowed mime type: ${mime_type}`, 400);
-    }
-    const ext = file_name.split('.').pop()?.toLowerCase() ?? '';
-    if (DANGEROUS_EXT.has(ext)) return errorResponse(`Disallowed file extension: .${ext}`, 400);
     if (file_name.includes('..') || file_name.includes('/') || file_name.includes('\\')) {
       return errorResponse('Invalid filename', 400);
     }
@@ -73,7 +54,7 @@ Deno.serve(async (req) => {
 
     const fileId = crypto.randomUUID();
     const safe = sanitizeName(file_name);
-    const filePath = `products/${product_id}/${fileId}-${safe}`;
+    const filePath = `${user.id}/${safe}`;
 
     const { error: upErr } = await admin.storage.from(BUCKET).upload(filePath, bytes, {
       contentType: mime_type,
@@ -89,12 +70,12 @@ Deno.serve(async (req) => {
       .insert({
         id: fileId,
         product_id,
-        file_path: filePath,
-        file_name,
+        seller_id: user.id,
+        storage_path: filePath,
+        original_filename: file_name,
         file_size,
         mime_type,
         scan_status: 'clean',
-        uploaded_by: user.id,
       })
       .select()
       .single();
@@ -104,7 +85,7 @@ Deno.serve(async (req) => {
       return errorResponse(`DB insert failed: ${insErr.message}`, 500);
     }
 
-    return jsonResponse({ file_id: row.id, file_path: filePath, scan_status: 'clean' });
+    return jsonResponse({ file_id: row.id, storage_path: filePath, scan_status: 'clean' });
   } catch (err) {
     return errorResponse((err as Error).message, 500);
   }

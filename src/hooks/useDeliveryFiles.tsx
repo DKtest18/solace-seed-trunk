@@ -5,9 +5,9 @@ import { uploadDeliveryFile, deleteDeliveryFile } from '@/lib/deliveryFileUpload
 
 export interface DeliveryFileRow {
   id: string;
-  file_name: string;
+  original_filename: string;
   file_size: number;
-  file_path: string | null;
+  storage_path: string | null;
   scan_status: string;
   uploading?: boolean;
   error?: string | null;
@@ -24,9 +24,9 @@ function sanitizeFileName(name: string) {
  * React state and never uploaded them, so file_storage_key / file_size_bytes /
  * file_scan_status stayed NULL on the product row and admins saw nothing.
  *
- * Uploads go directly to the private `product-files` bucket under the owner's
- * uid prefix, then persist in dkai_product_files and the product's primary-file
- * columns. Every storage or database failure is surfaced with its real text.
+ * Uploads go directly to the private `product-deliveries` bucket under the owner's
+ * uid prefix, then persist in dkai_product_files. Delivery uploads never update
+ * the product row or its review status. Every failure surfaces its real text.
  */
 export function useDeliveryFiles(ensureDraftId: () => Promise<string | null>) {
   const [files, setFiles] = useState<DeliveryFileRow[]>([]);
@@ -44,9 +44,9 @@ export function useDeliveryFiles(ensureDraftId: () => Promise<string | null>) {
       currentProductRef.current = productId;
       const { data, error } = await db
         .from('dkai_product_files')
-        .select('id, file_name, file_size, file_path, scan_status')
+        .select('id, original_filename, file_size, storage_path, scan_status')
         .eq('product_id', productId)
-        .order('created_at', { ascending: true });
+        .order('uploaded_at', { ascending: true });
       if (error) throw error;
       apply(((data as DeliveryFileRow[]) ?? []).map((r) => ({ ...r, uploading: false, error: null })));
     },
@@ -59,7 +59,7 @@ export function useDeliveryFiles(ensureDraftId: () => Promise<string | null>) {
       const tempId = `temp-${crypto.randomUUID()}`;
       apply([
         ...filesRef.current,
-        { id: tempId, file_name: file.name, file_size: file.size, file_path: null, scan_status: 'pending', uploading: true, error: null },
+        { id: tempId, original_filename: file.name, file_size: file.size, storage_path: null, scan_status: 'pending', uploading: true, error: null },
       ]);
       setUploading(true);
       try {
@@ -71,9 +71,9 @@ export function useDeliveryFiles(ensureDraftId: () => Promise<string | null>) {
 
         const row: DeliveryFileRow = {
           id: inserted.id,
-          file_name: inserted.file_name,
+          original_filename: inserted.original_filename,
           file_size: inserted.file_size,
-          file_path: inserted.file_path,
+          storage_path: inserted.storage_path,
           scan_status: inserted.scan_status,
           uploading: false,
           error: null,

@@ -62,7 +62,7 @@ function AdminProductQueueContent() {
     queryKey: ['admin-product-queue', tab],
     queryFn: async () => {
       const statuses =
-        tab === 'submitted' ? [REVIEW_STATUS.SUBMITTED]
+        tab === 'submitted' ? REVIEW_STATUS_GROUPS.PENDING
         : tab === 'approved' ? REVIEW_STATUS_GROUPS.LIVE
         : REVIEW_STATUS_GROUPS.NEEDS_SELLER_ACTION;
       const { data, error } = await db
@@ -70,6 +70,7 @@ function AdminProductQueueContent() {
         .select('id, title, price, category, seller_id, review_status, submitted_at, reviewed_at, review_notes, created_at, is_published, demo_video_url, demo_video_storage_path')
         .in('review_status', statuses)
         .order('submitted_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false })
         .limit(200);
       if (error) {
         console.error('[AdminWaitlist] query error', error);
@@ -92,7 +93,7 @@ function AdminProductQueueContent() {
         return count || 0;
       };
       const [submitted, approved, rejected] = await Promise.all([
-        fetchCount([REVIEW_STATUS.SUBMITTED]),
+        fetchCount([...REVIEW_STATUS_GROUPS.PENDING]),
         fetchCount([...REVIEW_STATUS_GROUPS.LIVE]),
         fetchCount([...REVIEW_STATUS_GROUPS.NEEDS_SELLER_ACTION]),
       ]);

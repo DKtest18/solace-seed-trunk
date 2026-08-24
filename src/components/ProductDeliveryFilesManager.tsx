@@ -5,20 +5,20 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, File as FileIcon, Trash2, Loader2, CheckCircle, AlertCircle, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { uploadDeliveryFile, deleteDeliveryFile, resubmitProductForReview } from '@/lib/deliveryFileUpload';
+import { uploadDeliveryFile, deleteDeliveryFile, resubmitProductForReview, MAX_DELIVERY_FILE_SIZE } from '@/lib/deliveryFileUpload';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
 
 interface ProductFile {
   id: string;
-  file_name: string;
+  original_filename: string;
   file_size: number;
-  file_path: string;
+  storage_path: string;
   mime_type: string;
   scan_status: 'pending' | 'clean' | 'infected' | 'failed';
-  created_at: string;
+  uploaded_at: string;
 }
 
-const MAX_SIZE = 2 * 1024 * 1024 * 1024;
+const MAX_SIZE = MAX_DELIVERY_FILE_SIZE;
 
 function formatSize(b: number) {
   if (b < 1024) return `${b} B`;
@@ -45,15 +45,16 @@ export function ProductDeliveryFilesManager({
   const [uploading, setUploading] = useState(false);
   const [resubmitting, setResubmitting] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [sizeError, setSizeError] = useState<{ limit: number; actual: number } | null>(null);
   const { toast } = useToast();
 
   const load = async () => {
     setLoading(true);
     const { data, error } = await (supabase as any)
       .from('dkai_product_files')
-      .select('id, file_name, file_size, file_path, mime_type, scan_status, created_at')
+      .select('id, original_filename, file_size, storage_path, mime_type, scan_status, uploaded_at')
       .eq('product_id', productId)
-      .order('created_at', { ascending: false });
+      .order('uploaded_at', { ascending: false });
     if (!error) setFiles((data as ProductFile[]) ?? []);
     setLoading(false);
   };
@@ -72,9 +73,10 @@ export function ProductDeliveryFilesManager({
     e.target.value = '';
     if (!file) return;
     if (file.size > MAX_SIZE) {
-      toast({ title: 'File too large', description: 'Files up to 2 GB are supported', variant: 'destructive' });
+      setSizeError({ limit: MAX_SIZE, actual: file.size });
       return;
     }
+    setSizeError(null);
     setUploading(true);
     try {
       await uploadDeliveryFile(productId, file);
@@ -154,6 +156,17 @@ export function ProductDeliveryFilesManager({
         </AlertDescription>
       </Alert>
 
+      {sizeError && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="text-sm">
+            This file is too large to upload directly. The limit is {formatSize(sizeError.limit)} and the file is {formatSize(sizeError.actual)}. Please email{' '}
+            <a className="underline" href="mailto:support@dkaimarketplace.com">support@dkaimarketplace.com</a>{' '}
+            and we will help you deliver it. We reply within 24 to 48 hours.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
       ) : files.length === 0 ? (
@@ -166,8 +179,8 @@ export function ProductDeliveryFilesManager({
             <div key={f.id} className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
               <FileIcon className="w-5 h-5 text-primary flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{f.file_name}</p>
-                <p className="text-xs text-muted-foreground">{formatSize(f.file_size)} · {new Date(f.created_at).toLocaleString()}</p>
+                 <p className="text-sm font-medium truncate">{f.original_filename}</p>
+                 <p className="text-xs text-muted-foreground">{formatSize(f.file_size)} · {new Date(f.uploaded_at).toLocaleString()}</p>
               </div>
               {f.scan_status === 'pending' && (
                 <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">

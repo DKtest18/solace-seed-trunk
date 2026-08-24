@@ -40,7 +40,7 @@ type QueueTab = 'pending' | 'draft' | 'needs_changes' | 'approved' | 'delisted' 
 // Tab -> canonical review_status values. All values come from REVIEW_STATUS, so a
 // tab can never filter on a status nothing writes.
 const STATUS_GROUPS: Record<Exclude<QueueTab, 'all'>, string[]> = {
-  pending: [REVIEW_STATUS.SUBMITTED],
+  pending: [...REVIEW_STATUS_GROUPS.PENDING],
   draft: [...REVIEW_STATUS_GROUPS.DRAFT],
   needs_changes: [...REVIEW_STATUS_GROUPS.NEEDS_SELLER_ACTION],
   approved: [...REVIEW_STATUS_GROUPS.LIVE],

@@ -1,7 +1,7 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
-const BUCKET = 'product-files';
+const BUCKET = 'product-deliveries';
 const RATE_LIMIT = 20; // per hour per user
 const URL_TTL = 3600;  // 1 hour
 
@@ -13,7 +13,31 @@ Deno.serve(async (req) => {
   if (error || !user) return errorResponse('Unauthorized', 401);
 
   try {
-    const { product_file_id } = await req.json();
+    const { product_file_id, product_id, action } = await req.json();
+    if (action === 'list') {
+      if (!product_id) return errorResponse('product_id required', 400);
+
+      const admin = getServiceClient();
+      const { data: order } = await admin
+        .from('dkai_orders')
+        .select('id')
+        .eq('buyer_id', user.id)
+        .eq('product_id', product_id)
+        .in('status', ['paid', 'completed', 'delivered'])
+        .limit(1)
+        .maybeSingle();
+      if (!order) return errorResponse('Purchase not found or not eligible for download', 403);
+
+      const { data: files, error: listError } = await admin
+        .from('dkai_product_files')
+        .select('id, original_filename, file_size, scan_status')
+        .eq('product_id', product_id)
+        .eq('scan_status', 'clean')
+        .order('uploaded_at', { ascending: true });
+      if (listError) return errorResponse(listError.message, 500);
+      return jsonResponse({ files: files ?? [] });
+    }
+
     if (!product_file_id) return errorResponse('product_file_id required', 400);
 
     const admin = getServiceClient();
@@ -32,7 +56,7 @@ Deno.serve(async (req) => {
 
     const { data: file, error: fErr } = await admin
       .from('dkai_product_files')
-      .select('id, product_id, file_path, file_name, scan_status, uploaded_by')
+      .select('id, product_id, storage_bucket, storage_path, original_filename, scan_status, seller_id')
       .eq('id', product_file_id)
       .single();
     if (fErr || !file) return errorResponse('File not found', 404);
@@ -42,7 +66,7 @@ Deno.serve(async (req) => {
     }
 
     // Authorize: seller, admin, or buyer with paid order
-    let allowed = file.uploaded_by === user.id;
+    let allowed = file.seller_id === user.id;
     if (!allowed) {
       const { data: roleRow } = await admin
         .from('dkai_user_roles')
@@ -63,8 +87,8 @@ Deno.serve(async (req) => {
     if (!allowed) return errorResponse('Forbidden', 403);
 
     const { data: signed, error: sErr } = await admin.storage
-      .from(BUCKET)
-      .createSignedUrl(file.file_path, URL_TTL, { download: file.file_name });
+      .from(file.storage_bucket ?? BUCKET)
+      .createSignedUrl(file.storage_path, URL_TTL, { download: file.original_filename });
     if (sErr || !signed) return errorResponse('Failed to sign URL', 500);
 
     await admin.from('dkai_file_access_log').insert({

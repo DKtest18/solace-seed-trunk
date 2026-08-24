@@ -1,16 +1,19 @@
 import { supabase } from '@/integrations/supabase/client';
+import * as tus from 'tus-js-client';
 
 export interface DeliveryFileRecord {
   id: string;
-  file_name: string;
+  original_filename: string;
   file_size: number;
-  file_path: string;
+  storage_path: string;
   mime_type?: string;
   scan_status: string;
-  created_at?: string;
+  uploaded_at?: string;
 }
 
-const BUCKET = 'product-files';
+const BUCKET = 'product-deliveries';
+export const MAX_DELIVERY_FILE_SIZE = 2 * 1024 * 1024 * 1024;
+const SUPABASE_URL = 'https://dwqpkdatzdqhplgyhigg.supabase.co';
 
 export function sanitizeDeliveryFileName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/_{2,}/g, '_').slice(0, 120);
@@ -27,11 +30,38 @@ function isTransportError(error: any) {
   );
 }
 
+async function uploadResumable(path: string, file: File, token: string) {
+  await new Promise<void>((resolve, reject) => {
+    const upload = new tus.Upload(file, {
+      endpoint: `${SUPABASE_URL}/storage/v1/upload/resumable`,
+      retryDelays: [0, 1000, 3000, 5000, 10000],
+      headers: { authorization: `Bearer ${token}`, 'x-upsert': 'false' },
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+      chunkSize: 6 * 1024 * 1024,
+      metadata: {
+        bucketName: BUCKET,
+        objectName: path,
+        contentType: file.type || 'application/octet-stream',
+        cacheControl: '3600',
+      },
+      onError: (error) => reject(error instanceof Error ? error : new Error(String(error))),
+      onSuccess: () => resolve(),
+    });
+    upload.findPreviousUploads()
+      .then((previous) => {
+        if (previous.length > 0) upload.resumeFromPreviousUpload(previous[0]);
+        upload.start();
+      })
+      .catch(() => upload.start());
+  });
+}
+
 /**
  * Uploads a delivery file for a product and persists it server-side.
  *
- * Primary path: `product-delivery-files` edge function — it issues a signed
- * upload URL for the PRIVATE bucket and commits the row with the service role,
+  * Primary path: `product-delivery-files` reserves a private uid-prefixed path,
+  * the browser uploads it resumably, and the function commits the database row,
  * which also works after the product was submitted for review or approved.
  *
  * Fallback path (function not deployed / unreachable): direct storage upload +
@@ -45,6 +75,11 @@ export async function uploadDeliveryFile(
   if (authError) throw authError;
   const userId = authData.user?.id;
   if (!userId) throw new Error('Your session expired. Please sign in again before uploading.');
+  if (file.size > MAX_DELIVERY_FILE_SIZE) {
+    throw new Error(
+      `This file is too large to upload directly. The limit is ${formatBytes(MAX_DELIVERY_FILE_SIZE)} and the file is ${formatBytes(file.size)}. Please email support@dkaimarketplace.com and we will help you deliver it. We reply within 24 to 48 hours.`,
+    );
+  }
 
   const mimeType = file.type || 'application/octet-stream';
 
@@ -64,11 +99,11 @@ export async function uploadDeliveryFile(
     if (signError) throw signError;
     if ((signData as any)?.error) throw new Error((signData as any).error);
 
-    const { path, token, file_id } = signData as any;
-    const { error: uploadError } = await supabase.storage
-      .from(BUCKET)
-      .uploadToSignedUrl(path, token, file, { contentType: mimeType });
-    if (uploadError) throw new Error(`Storage upload failed: ${uploadError.message}`);
+    const { path, file_id } = signData as any;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) throw new Error('Your session expired. Please sign in again before uploading.');
+    await uploadResumable(path, file, accessToken);
 
     const { data: commitData, error: commitError } = await supabase.functions.invoke(
       'product-delivery-files',
@@ -91,47 +126,39 @@ export async function uploadDeliveryFile(
     if (!isTransportError(err)) throw new Error(err?.message || String(err));
     // ---- fallback: direct upload under RLS ----
     const fileId = crypto.randomUUID();
-    const filePath = `${userId}/${productId}/${fileId}-${sanitizeDeliveryFileName(file.name)}`;
-    const { error: uploadError } = await supabase.storage
-      .from(BUCKET)
-      .upload(filePath, file, { contentType: mimeType, upsert: false });
-    if (uploadError) throw new Error(`Storage upload failed: ${uploadError.message}`);
+    const filePath = `${userId}/${sanitizeDeliveryFileName(file.name)}`;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) throw new Error('Your session expired. Please sign in again before uploading.');
+    await uploadResumable(filePath, file, accessToken);
 
     const { data: inserted, error: insertError } = await (supabase as any)
       .from('dkai_product_files')
       .insert({
         id: fileId,
         product_id: productId,
-        file_path: filePath,
-        file_name: file.name,
+        seller_id: userId,
+        storage_bucket: BUCKET,
+        storage_path: filePath,
+        original_filename: file.name,
         file_size: file.size,
         mime_type: mimeType,
         scan_status: 'clean',
-        uploaded_by: userId,
       })
-      .select('id, file_name, file_size, file_path, mime_type, scan_status, created_at')
+      .select('id, original_filename, file_size, storage_path, mime_type, scan_status, uploaded_at')
       .single();
     if (insertError || !inserted) {
       await supabase.storage.from(BUCKET).remove([filePath]);
       throw new Error(`File record save failed: ${insertError?.message || 'No row returned'}`);
     }
 
-    const { data: updatedProduct, error: productError } = await (supabase as any)
-      .from('dkai_products')
-      .update({ file_storage_key: filePath, file_size_bytes: file.size, file_scan_status: 'clean' })
-      .eq('id', productId)
-      .select('id')
-      .single();
-    if (productError || !updatedProduct) {
-      await (supabase as any).from('dkai_product_files').delete().eq('id', fileId);
-      await supabase.storage.from(BUCKET).remove([filePath]);
-      throw new Error(
-        `Product file metadata save failed: ${productError?.message || 'The product row was not updated'}`,
-      );
-    }
-
     return inserted as DeliveryFileRecord;
   }
+}
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
 }
 
 /** Deletes a delivery file (server-side when possible, else under RLS). */

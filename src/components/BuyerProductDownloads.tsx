@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface BuyerFile {
   id: string;
-  file_name: string;
+  original_filename: string;
   file_size: number;
   scan_status: string;
 }
@@ -27,15 +27,20 @@ export function BuyerProductDownloads({ productId }: { productId: string }) {
 
   useEffect(() => {
     (async () => {
-      const { data } = await (supabase as any)
-        .from('dkai_product_files')
-        .select('id, file_name, file_size, scan_status')
-        .eq('product_id', productId)
-        .eq('scan_status', 'clean');
-      setFiles((data as BuyerFile[]) ?? []);
+      const { data, error } = await supabase.functions.invoke('generate-download-url', {
+        body: { action: 'list', product_id: productId },
+      });
+      if (error || (data as any)?.error) {
+        toast({
+          title: 'Could not load delivery files',
+          description: (data as any)?.error || error?.message,
+          variant: 'destructive',
+        });
+      }
+      setFiles(((data as any)?.files as BuyerFile[]) ?? []);
       setLoading(false);
     })();
-  }, [productId]);
+  }, [productId, toast]);
 
   const handleDownload = async (id: string) => {
     setBusyId(id);
@@ -71,7 +76,7 @@ export function BuyerProductDownloads({ productId }: { productId: string }) {
           <div key={f.id} className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
             <FileIcon className="w-5 h-5 text-primary flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{f.file_name}</p>
+              <p className="text-sm font-medium truncate">{f.original_filename}</p>
               <p className="text-xs text-muted-foreground">{formatSize(f.file_size)}</p>
             </div>
             <Button size="sm" onClick={() => handleDownload(f.id)} disabled={busyId === f.id}>

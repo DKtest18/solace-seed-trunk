@@ -8,6 +8,7 @@ import { usePlatformFee } from '@/hooks/usePlatformFee';
 import { SetupRequirementsInline, type Spec } from './SetupRequirementsInline';
 
 import type { DeliveryFileRow } from '@/hooks/useDeliveryFiles';
+import { MAX_DELIVERY_FILE_SIZE } from '@/lib/deliveryFileUpload';
 
 interface DeliveryFilesStepProps {
   data: {
@@ -28,7 +29,7 @@ interface DeliveryFilesStepProps {
   errors: Record<string, string>;
 }
 
-const MAX_FILE_SIZE = 100 * 1024 * 1024;
+const MAX_FILE_SIZE = MAX_DELIVERY_FILE_SIZE;
 const MAX_FILES = 10;
 
 const SUGGESTED_BY_TYPE: Record<string, string[]> = {
@@ -43,6 +44,7 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
   const { feePct, sellerPct } = usePlatformFee();
   const [dragActive, setDragActive] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [oversizeError, setOversizeError] = useState<{ limit: number; actual: number } | null>(null);
 
   const mode = ['instant', 'manual', 'setup'].includes(data.delivery_mode) ? data.delivery_mode : 'instant';
   const suggestions = SUGGESTED_BY_TYPE[(data.product_type || 'agent').toLowerCase()] || SUGGESTED_BY_TYPE.agent;
@@ -62,14 +64,17 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
   };
   const processFile = (file: File) => {
     if (deliveryFiles.length >= MAX_FILES) {
+      setOversizeError(null);
       setLocalError(`You can upload at most ${MAX_FILES} files. "${file.name}" was not added.`);
       return;
     }
     if (file.size > MAX_FILE_SIZE) {
-      setLocalError(`"${file.name}" is ${(file.size / 1024 / 1024).toFixed(1)} MB — the limit is 100 MB per file.`);
+      setLocalError(null);
+      setOversizeError({ limit: MAX_FILE_SIZE, actual: file.size });
       return;
     }
     setLocalError(null);
+    setOversizeError(null);
     onAddFile(file);
   };
   const fmt = (b: number) => b < 1024 ? b + ' B' : b < 1024 * 1024 ? (b / 1024).toFixed(1) + ' KB' : (b / (1024 * 1024)).toFixed(1) + ' MB';
@@ -190,7 +195,7 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
 
       <div>
         <Label className="mb-2 block">
-          Upload Files (max {MAX_FILES}, up to 100MB each){mode === 'instant' && <span className="text-destructive ml-1">*</span>}
+          Upload Files (max {MAX_FILES}, up to {fmt(MAX_FILE_SIZE)} each){mode === 'instant' && <span className="text-destructive ml-1">*</span>}
         </Label>
         <div
           className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
@@ -214,6 +219,14 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
         <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>{localError}</AlertDescription></Alert>
       )}
 
+      {oversizeError && (
+        <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>
+          This file is too large to upload directly. The limit is {fmt(oversizeError.limit)} and the file is {fmt(oversizeError.actual)}. Please email{' '}
+          <a className="underline" href="mailto:support@dkaimarketplace.com">support@dkaimarketplace.com</a>{' '}
+          and we will help you deliver it. We reply within 24 to 48 hours.
+        </AlertDescription></Alert>
+      )}
+
       {deliveryFiles.length > 0 && (
         <div className="space-y-2">
           <Label>Uploaded Files ({deliveryFiles.length}/{MAX_FILES})</Label>
@@ -221,7 +234,7 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
             <div key={df.id} className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
               <File className="h-5 w-5 text-primary flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{df.file_name}</p>
+                <p className="text-sm font-medium truncate">{df.original_filename}</p>
                 <p className="text-xs text-muted-foreground">
                   {fmt(df.file_size)}
                   {df.uploading ? ' · uploading…' : df.error ? '' : ' · saved'}

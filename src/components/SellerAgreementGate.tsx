@@ -72,7 +72,10 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
     await queryClient.invalidateQueries({ queryKey: ['seller-restrictions', user.id] });
     await queryClient.refetchQueries({ queryKey: ['seller-restrictions', user.id] });
     setSaving(false);
+    setAccepted(true);
+    navigate('/seller-onboarding');
   };
+
 
 
 

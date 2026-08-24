@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
 import { hasCurrentSellerAgreement } from '@/lib/sellerAgreement';
+import { getSellerAgreementState } from '@/lib/sellerAgreementAccept';
 
 export interface SellerRestrictions {
   paymentSettingsRestricted: boolean;
@@ -23,19 +24,21 @@ export function useSellerRestrictions() {
     refetchOnMount: 'always',
     queryFn: async () => {
       if (!user) return null;
-      const { data, error } = await db
+      const [agreement, profileResult] = await Promise.all([
+        getSellerAgreementState(user.id),
+        db
         .from('dkai_profiles')
-        .select('seller_agreement_accepted, seller_agreement_version, payment_settings_restricted')
+        .select('payment_settings_restricted')
         .eq('id', user.id)
-        .maybeSingle();
+        .maybeSingle(),
+      ]);
 
-      if (error) throw error;
-      if (!data) throw new Error(`Seller profile not found for user ${user.id}.`);
+      if (profileResult.error) throw profileResult.error;
 
       return {
-        paymentSettingsRestricted: !!(data as any)?.payment_settings_restricted,
-        agreementAccepted: !!(data as any)?.seller_agreement_accepted,
-        agreementVersion: (data as any)?.seller_agreement_version ?? null,
+        paymentSettingsRestricted: !!(profileResult.data as any)?.payment_settings_restricted,
+        agreementAccepted: agreement.seller_agreement_accepted === true,
+        agreementVersion: agreement.seller_agreement_version ?? null,
       };
     },
   });

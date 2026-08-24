@@ -9,8 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { resolveNextOnboardingRoute } from '@/lib/sellerOnboardingNav';
 import { useToast } from '@/hooks/use-toast';
-import { db } from '@/lib/dkaiDb';
-import { acceptSellerAgreement } from '@/lib/sellerAgreementAccept';
+import { acceptSellerAgreement, getSellerAgreementState } from '@/lib/sellerAgreementAccept';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, ArrowDown, CheckCircle2, FileText, Loader2 } from 'lucide-react';
 import { hasCurrentSellerAgreement } from '@/lib/sellerAgreement';
@@ -46,15 +45,15 @@ export default function SellerOnboardingTerms() {
       return;
     }
     (async () => {
-      const { data: profile } = await db
-        .from('dkai_profiles')
-        .select('seller_agreement_accepted, seller_agreement_version')
-        .eq('id', user.id)
-        .maybeSingle();
-      const accepted = hasCurrentSellerAgreement(profile);
-      setAlreadyAccepted(accepted);
-      setChecked(accepted);
-      setInitializing(false);
+      try {
+        const accepted = hasCurrentSellerAgreement(await getSellerAgreementState(user.id));
+        setAlreadyAccepted(accepted);
+        setChecked(accepted);
+      } catch (error) {
+        console.error('[onboarding/terms] state error:', error);
+      } finally {
+        setInitializing(false);
+      }
     })();
   }, [user, navigate]);
 

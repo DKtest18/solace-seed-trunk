@@ -33,6 +33,7 @@ import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/
 import { fetchPayPalConnectStatus, isPayPalConnectedForOnboarding } from '@/lib/paypalConnectStatus';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
 import { hasCurrentSellerAgreement } from '@/lib/sellerAgreement';
+import { getSellerAgreementState } from '@/lib/sellerAgreementAccept';
 
 const STEPS = [
   { id: 1, title: 'Basic Info', description: 'Product details' },
@@ -374,12 +375,7 @@ export default function CreateProduct() {
     // Re-check the binding account-level acceptance immediately before every
     // draft write. Do not rely on a cached React Query result: media uploads
     // create the draft on demand and the database trigger is authoritative.
-    const { data: agreementProfile, error: agreementError } = await db
-      .from('dkai_profiles')
-      .select('seller_agreement_accepted, seller_agreement_version')
-      .eq('id', user.id)
-      .maybeSingle();
-    if (agreementError) throw agreementError;
+    const agreementProfile = await getSellerAgreementState(user.id);
     if (!hasCurrentSellerAgreement(agreementProfile)) {
       navigate('/seller-onboarding/terms');
       throw new Error('Please accept the current Seller Agreement before uploading product media.');

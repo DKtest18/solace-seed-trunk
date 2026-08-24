@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/stripeConnectStatus';
 import { fetchPayPalConnectStatus, isPayPalConnectedForOnboarding } from '@/lib/paypalConnectStatus';
 import { hasCurrentSellerAgreement } from '@/lib/sellerAgreement';
+import { getSellerAgreementState } from '@/lib/sellerAgreementAccept';
 
 export interface OnboardingStep {
   id: string;
@@ -73,7 +74,8 @@ export function useSellerOnboardingProgress() {
         sellerApp?.country
       );
       const ageComplete = !!profile?.is_age_verified;
-      const termsAccepted = hasCurrentSellerAgreement(profile);
+      const agreement = await getSellerAgreementState(user.id);
+      const termsAccepted = hasCurrentSellerAgreement(agreement);
 
       // Step 1 (identity + age) is complete only when both are persisted.
       const identityAndAgeComplete = identityFieldsFilled && ageComplete;

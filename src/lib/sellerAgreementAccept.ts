@@ -15,9 +15,23 @@ const describe = (error: any) =>
 
 const unwrapRow = (data: unknown): any => Array.isArray(data) ? data[0] : data;
 
-export async function getSellerAgreementState(): Promise<SellerAgreementState> {
+export async function getSellerAgreementState(userId?: string): Promise<SellerAgreementState> {
   const { data, error } = await db.rpc('dkai_get_my_seller_agreement');
-  if (error) throw new Error(describe(error));
+  if (error) {
+    const functionMissing = error.code === 'PGRST202'
+      || error.code === '42883'
+      || error.message?.includes('dkai_get_my_seller_agreement');
+    if (!functionMissing || !userId) throw new Error(describe(error));
+
+    const fallback = await db
+      .from('dkai_profiles')
+      .select('seller_agreement_accepted, seller_agreement_version')
+      .eq('id', userId)
+      .maybeSingle();
+    if (fallback.error) throw new Error(describe(fallback.error));
+    if (!fallback.data) throw new Error('Seller profile was not found for the signed-in account.');
+    return fallback.data;
+  }
 
   const row = unwrapRow(data);
   if (!row) throw new Error('Seller profile was not found for the signed-in account.');

@@ -46,7 +46,7 @@ export default function SellerOnboardingTerms() {
     }
     (async () => {
       try {
-        const accepted = hasCurrentSellerAgreement(await getSellerAgreementState());
+        const accepted = hasCurrentSellerAgreement(await getSellerAgreementState(user.id));
         setAlreadyAccepted(accepted);
         setChecked(accepted);
       } catch (error) {

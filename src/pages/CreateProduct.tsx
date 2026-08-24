@@ -375,7 +375,7 @@ export default function CreateProduct() {
     // Re-check the binding account-level acceptance immediately before every
     // draft write. Do not rely on a cached React Query result: media uploads
     // create the draft on demand and the database trigger is authoritative.
-    const agreementProfile = await getSellerAgreementState();
+    const agreementProfile = await getSellerAgreementState(user.id);
     if (!hasCurrentSellerAgreement(agreementProfile)) {
       navigate('/seller-onboarding/terms');
       throw new Error('Please accept the current Seller Agreement before uploading product media.');

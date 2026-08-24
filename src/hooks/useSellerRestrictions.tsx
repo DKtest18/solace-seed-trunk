@@ -25,7 +25,7 @@ export function useSellerRestrictions() {
     queryFn: async () => {
       if (!user) return null;
       const [agreement, profileResult] = await Promise.all([
-        getSellerAgreementState(),
+        getSellerAgreementState(user.id),
         db
         .from('dkai_profiles')
         .select('payment_settings_restricted')

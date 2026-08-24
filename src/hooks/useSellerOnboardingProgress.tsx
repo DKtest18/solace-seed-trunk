@@ -74,7 +74,7 @@ export function useSellerOnboardingProgress() {
         sellerApp?.country
       );
       const ageComplete = !!profile?.is_age_verified;
-      const agreement = await getSellerAgreementState();
+      const agreement = await getSellerAgreementState(user.id);
       const termsAccepted = hasCurrentSellerAgreement(agreement);
 
       // Step 1 (identity + age) is complete only when both are persisted.

@@ -51,39 +51,78 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
 
   if (isSellerAgreementCurrent(restrictions)) return <>{children}</>;
 
+  const describeError = (error: any) =>
+    `${error.message}${error.details ? ` — ${error.details}` : ''}${error.hint ? ` (hint: ${error.hint})` : ''}${error.code ? ` [${error.code}]` : ''}`;
+
   const handleConfirm = async () => {
     setSaving(true);
     setErrorMessage(null);
     const nowIso = new Date().toISOString();
-    const { error } = await db
+    const payload = {
+      seller_agreement_accepted: true,
+      seller_agreement_version: SELLER_AGREEMENT_VERSION,
+      seller_agreement_accepted_at: nowIso,
+      seller_obligations_pdf_acknowledged: true,
+      seller_obligations_pdf_version: pdfDoc?.version ?? null,
+      // Accepting here also completes the "Seller Terms & Conditions" onboarding step.
+      terms_accepted: true,
+      terms_accepted_at: nowIso,
+      updated_at: nowIso,
+    };
+
+    const { data: updated, error } = await db
       .from('dkai_profiles')
-      .update({
-        seller_agreement_accepted: true,
-        seller_agreement_version: SELLER_AGREEMENT_VERSION,
-        seller_agreement_accepted_at: nowIso,
-        seller_obligations_pdf_acknowledged: true,
-        seller_obligations_pdf_version: pdfDoc?.version ?? null,
-        // Accepting here also completes the "Seller Terms & Conditions" onboarding step.
-        terms_accepted: true,
-        terms_accepted_at: nowIso,
-        updated_at: nowIso,
-      })
+      .update(payload)
       .eq('id', user.id)
       .select('id, seller_agreement_accepted, seller_agreement_version')
       .maybeSingle();
 
     if (error) {
       // Raw Supabase error on purpose — this must stay debuggable.
-      setErrorMessage(`${error.message}${(error as any).details ? ` — ${(error as any).details}` : ''}${(error as any).hint ? ` (hint: ${(error as any).hint})` : ''}${(error as any).code ? ` [${(error as any).code}]` : ''}`);
+      setErrorMessage(describeError(error));
       setSaving(false);
       return;
     }
 
-    await queryClient.invalidateQueries({ queryKey: ['seller-restrictions', user.id] });
+    // The UPDATE can affect 0 rows (missing profile row, or RLS hiding the
+    // returned row). Fall back to an upsert so Confirm actually confirms.
+    if (!updated) {
+      const { error: upsertError } = await db
+        .from('dkai_profiles')
+        .upsert({ id: user.id, ...payload }, { onConflict: 'id' });
+      if (upsertError) {
+        setErrorMessage(describeError(upsertError));
+        setSaving(false);
+        return;
+      }
+    }
+
     await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
-    await queryClient.refetchQueries({ queryKey: ['seller-restrictions', user.id] });
+    const verified = await queryClient.fetchQuery({
+      queryKey: ['seller-restrictions', user.id],
+      queryFn: async () => {
+        const { data } = await db
+          .from('dkai_profiles')
+          .select('seller_agreement_accepted, seller_agreement_version, payment_settings_restricted')
+          .eq('id', user.id)
+          .maybeSingle();
+        return {
+          paymentSettingsRestricted: !!(data as any)?.payment_settings_restricted,
+          agreementAccepted: !!(data as any)?.seller_agreement_accepted,
+          agreementVersion: (data as any)?.seller_agreement_version ?? null,
+        };
+      },
+      staleTime: 0,
+    });
+
     setSaving(false);
+    if (!isSellerAgreementCurrent(verified)) {
+      setErrorMessage(
+        'Acceptance could not be saved to your profile. Please reload the page and try again — if it keeps failing, contact support.',
+      );
+    }
   };
+
 
   const shownError = errorMessage ?? pdfError;
 

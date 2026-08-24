@@ -47,16 +47,21 @@ END;
 $verify_schema$;
 
 -- Preserve prior acceptance while normalising all accepted accounts to v4.
+-- terms_accepted=true is included because the legacy Seller Terms checklist
+-- wrote/read that field as its acceptance record. This repairs those stuck
+-- users without asking them to accept a document they already accepted.
 UPDATE public.dkai_profiles
-SET seller_agreement_version = '2026-08-17-v4',
+SET seller_agreement_accepted = true,
+    seller_agreement_version = '2026-08-17-v4',
     seller_agreement_accepted_at = COALESCE(seller_agreement_accepted_at, terms_accepted_at, now()),
     seller_obligations_pdf_acknowledged = true,
     terms_accepted = true,
     terms_accepted_at = COALESCE(terms_accepted_at, seller_agreement_accepted_at, now()),
     updated_at = now()
-WHERE seller_agreement_accepted IS TRUE
+WHERE (seller_agreement_accepted IS TRUE OR terms_accepted IS TRUE)
   AND (
-    seller_agreement_version IS DISTINCT FROM '2026-08-17-v4'
+    seller_agreement_accepted IS DISTINCT FROM true
+    OR seller_agreement_version IS DISTINCT FROM '2026-08-17-v4'
     OR seller_agreement_accepted_at IS NULL
     OR seller_obligations_pdf_acknowledged IS DISTINCT FROM true
     OR terms_accepted IS DISTINCT FROM true

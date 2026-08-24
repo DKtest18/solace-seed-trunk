@@ -1,4 +1,5 @@
 import { db } from '@/lib/dkaiDb';
+import { SELLER_AGREEMENT_VERSION } from '@/lib/sellerAgreement';
 
 export interface AcceptResult {
   ok: boolean;
@@ -17,17 +18,16 @@ const describe = (error: any) =>
  */
 export async function acceptSellerAgreement(
   userId: string,
-  version: string,
   pdfVersion?: string | null,
 ): Promise<AcceptResult> {
   const rpc = await db.rpc('dkai_accept_seller_agreement', {
-    p_version: version,
+    p_version: SELLER_AGREEMENT_VERSION,
     p_pdf_version: pdfVersion ?? null,
   });
 
   if (!rpc.error) {
     const row = Array.isArray(rpc.data) ? rpc.data[0] : rpc.data;
-    if (row?.seller_agreement_accepted && row?.seller_agreement_version === version) {
+    if (row?.seller_agreement_accepted && row?.seller_agreement_version === SELLER_AGREEMENT_VERSION) {
       return { ok: true };
     }
   }
@@ -35,7 +35,7 @@ export async function acceptSellerAgreement(
   const nowIso = new Date().toISOString();
   const payload = {
     seller_agreement_accepted: true,
-    seller_agreement_version: version,
+    seller_agreement_version: SELLER_AGREEMENT_VERSION,
     seller_agreement_accepted_at: nowIso,
     seller_obligations_pdf_acknowledged: true,
     seller_obligations_pdf_version: pdfVersion ?? null,
@@ -54,7 +54,7 @@ export async function acceptSellerAgreement(
   if (
     !error
     && updated?.seller_agreement_accepted
-    && updated?.seller_agreement_version === version
+    && updated?.seller_agreement_version === SELLER_AGREEMENT_VERSION
   ) return { ok: true };
 
   const { error: upsertError } = await db
@@ -71,7 +71,7 @@ export async function acceptSellerAgreement(
     .eq('id', userId)
     .maybeSingle();
 
-  if (verify?.seller_agreement_accepted && verify?.seller_agreement_version === version) {
+  if (verify?.seller_agreement_accepted && verify?.seller_agreement_version === SELLER_AGREEMENT_VERSION) {
     return { ok: true };
   }
 

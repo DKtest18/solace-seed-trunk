@@ -14,7 +14,6 @@ import {
   isSellerAgreementCurrent,
   useSellerRestrictions,
 } from '@/hooks/useSellerRestrictions';
-import { SELLER_AGREEMENT_VERSION } from '@/lib/sellerAgreement';
 import {
   SellerAgreementAcceptLabel,
   SellerAgreementBody,
@@ -76,7 +75,6 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
 
     const result = await acceptSellerAgreement(
       user.id,
-      SELLER_AGREEMENT_VERSION,
       pdfDoc?.version ?? null,
     );
 

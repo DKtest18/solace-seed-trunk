@@ -13,7 +13,7 @@ import { db } from '@/lib/dkaiDb';
 import { acceptSellerAgreement } from '@/lib/sellerAgreementAccept';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, ArrowDown, CheckCircle2, FileText, Loader2 } from 'lucide-react';
-import { hasCurrentSellerAgreement, SELLER_AGREEMENT_VERSION } from '@/lib/sellerAgreement';
+import { hasCurrentSellerAgreement } from '@/lib/sellerAgreement';
 import {
   SellerAgreementAcceptLabel,
   SellerAgreementBody,
@@ -75,7 +75,7 @@ export default function SellerOnboardingTerms() {
 
     setLoading(true);
     try {
-      const result = await acceptSellerAgreement(uid, SELLER_AGREEMENT_VERSION, pdfDoc?.version ?? null);
+      const result = await acceptSellerAgreement(uid, pdfDoc?.version ?? null);
       if (!result.ok) {
         throw new Error(result.error || 'Seller agreement acceptance was not saved. Please try again.');
       }

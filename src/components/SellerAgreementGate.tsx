@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+
 import { db } from '@/lib/dkaiDb';
 import { acceptSellerAgreement } from '@/lib/sellerAgreementAccept';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,13 +27,16 @@ import {
  */
 export function SellerAgreementGate({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { data: restrictions, isLoading } = useSellerRestrictions();
   const [checked, setChecked] = useState(false);
+  const [accepted, setAccepted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { pdfDoc, downloaded, pdfBusy, pdfError, download } = useSellerObligationsPdf();
+
 
   const scrollToPdf = () => {
     const el = document.getElementById('seller-obligations-pdf-section');
@@ -50,7 +55,7 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
     );
   }
 
-  if (isSellerAgreementCurrent(restrictions)) return <>{children}</>;
+  if (accepted || isSellerAgreementCurrent(restrictions)) return <>{children}</>;
 
   const handleConfirm = async () => {
     setSaving(true);
@@ -72,7 +77,10 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
     await queryClient.invalidateQueries({ queryKey: ['seller-restrictions', user.id] });
     await queryClient.refetchQueries({ queryKey: ['seller-restrictions', user.id] });
     setSaving(false);
+    setAccepted(true);
+    navigate('/seller-onboarding');
   };
+
 
 
 

@@ -70,6 +70,7 @@ function AdminProductQueueContent() {
         .select('id, title, price, category, seller_id, review_status, submitted_at, reviewed_at, review_notes, created_at, is_published, demo_video_url, demo_video_storage_path')
         .in('review_status', statuses)
         .order('submitted_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false })
         .limit(200);
       if (error) {
         console.error('[AdminWaitlist] query error', error);

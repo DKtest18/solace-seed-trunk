@@ -173,7 +173,6 @@ export default function CreateProduct() {
   } = useDeliveryFiles(ensureDraftIdForUpload);
 
   
-  const [productFile, setProductFile] = useState<File | null>(null);
   const [uploadedFile, setUploadedFile] = useState<any>(null);
   // React state updates are async: persistDraft() used to run before
   // setUploadedFile() had committed, so file_storage_key / file_size_bytes /
@@ -191,9 +190,9 @@ export default function CreateProduct() {
    */
   const primaryDeliveryFile = () => {
     if (uploadedFileRef.current?.path) return uploadedFileRef.current;
-    const row = (deliveryFilesRef.current ?? []).find((f) => f.file_path && !f.uploading && !f.error);
+    const row = (deliveryFilesRef.current ?? []).find((f) => f.storage_path && !f.uploading && !f.error);
     return row
-      ? { path: row.file_path, name: row.file_name, size: row.file_size, scanStatus: row.scan_status }
+      ? { path: row.storage_path, name: row.original_filename, size: row.file_size, scanStatus: row.scan_status }
       : null;
   };
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'scanning' | 'clean' | 'infected'>('idle');
@@ -343,9 +342,6 @@ export default function CreateProduct() {
     // download has no window.
     delivery_time_hours:
       formData.delivery_mode === 'instant' ? null : (formData.delivery_time_hours ?? 24),
-    file_storage_key: primaryDeliveryFile()?.path || null,
-    file_size_bytes: primaryDeliveryFile()?.size || null,
-    file_scan_status: primaryDeliveryFile()?.scanStatus || null,
     seller_accepted_terms: formData.seller_accepted_terms,
     seller_rules_confirmed: !!formData.seller_rules_confirmed,
     seller_rules_confirmed_at: formData.seller_rules_confirmed ? new Date().toISOString() : null,
@@ -664,49 +660,6 @@ export default function CreateProduct() {
     setCurrentStep(Math.min(Math.max(target, 1), STEPS.length));
   };
 
-  const handleFileSelect = async (file: File) => {
-    setProductFile(file);
-    setUploadStatus('uploading');
-
-    try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${user?.id}/${crypto.randomUUID()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('product-files')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      setUploadStatus('scanning');
-
-      // Call scan function
-      const { data: scanData, error: scanError } = await supabase.functions.invoke('scan-product-file', {
-        body: { filePath, fileName: file.name, fileSize: file.size },
-      });
-
-      if (scanError) throw scanError;
-
-      rememberUploadedFile({ 
-        path: filePath, 
-        name: file.name, 
-        size: file.size,
-        scanStatus: scanData.scanStatus || 'clean'
-      });
-      setUploadStatus(scanData.scanStatus || 'clean');
-
-      if (scanData.scanStatus === 'clean') {
-        toast.success('File uploaded and scanned successfully');
-      } else {
-        toast.error('File failed security scan');
-      }
-    } catch (error: any) {
-      console.error('Error uploading file:', error);
-      toast.error(error.message || 'Failed to upload file');
-      setUploadStatus('idle');
-    }
-  };
-
   const hasDemoVideo =
     !!(formData.demo_video_url || '').trim() ||
     !!(formData.demo_video_paths?.length) ||
@@ -1007,14 +960,13 @@ export default function CreateProduct() {
                     try {
                       const row = await addDeliveryFile(file);
                       rememberUploadedFile({
-                        path: row.file_path,
-                        name: row.file_name,
+                        path: row.storage_path,
+                        name: row.original_filename,
                         size: row.file_size,
                         scanStatus: row.scan_status,
                       });
                       setUploadStatus((row.scan_status as any) || 'clean');
-                      await persistDraft();
-                      toast.success(`${row.file_name} uploaded and saved to this product`);
+                      toast.success(`${row.original_filename} uploaded and saved to this product`);
                     } catch (e: any) {
                       toast.error(e?.message || 'Upload failed');
                     }

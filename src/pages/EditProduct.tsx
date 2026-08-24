@@ -766,7 +766,7 @@ export default function EditProduct() {
                     try {
                       const row = await addDeliveryFile(file);
                       setFileSizeBytes(Number(row.file_size) || 0);
-                      toast.success(`${row.file_name} uploaded and saved to this product`);
+                      toast.success(`${row.original_filename} uploaded and saved to this product`);
                     } catch (e: any) {
                       toast.error(e?.message || 'Upload failed');
                     }

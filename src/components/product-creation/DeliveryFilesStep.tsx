@@ -8,6 +8,7 @@ import { usePlatformFee } from '@/hooks/usePlatformFee';
 import { SetupRequirementsInline, type Spec } from './SetupRequirementsInline';
 
 import type { DeliveryFileRow } from '@/hooks/useDeliveryFiles';
+import { MAX_DELIVERY_FILE_SIZE } from '@/lib/deliveryFileUpload';
 
 interface DeliveryFilesStepProps {
   data: {
@@ -28,7 +29,7 @@ interface DeliveryFilesStepProps {
   errors: Record<string, string>;
 }
 
-const MAX_FILE_SIZE = 100 * 1024 * 1024;
+const MAX_FILE_SIZE = MAX_DELIVERY_FILE_SIZE;
 const MAX_FILES = 10;
 
 const SUGGESTED_BY_TYPE: Record<string, string[]> = {
@@ -66,7 +67,7 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
       return;
     }
     if (file.size > MAX_FILE_SIZE) {
-      setLocalError(`"${file.name}" is ${(file.size / 1024 / 1024).toFixed(1)} MB — the limit is 100 MB per file.`);
+      setLocalError(`This file is too large to upload directly. The limit is ${fmt(MAX_FILE_SIZE)} and “${file.name}” is ${fmt(file.size)}. Please email support@dkaimarketplace.com and we will help you deliver it. We reply within 24 to 48 hours.`);
       return;
     }
     setLocalError(null);
@@ -190,7 +191,7 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
 
       <div>
         <Label className="mb-2 block">
-          Upload Files (max {MAX_FILES}, up to 100MB each){mode === 'instant' && <span className="text-destructive ml-1">*</span>}
+          Upload Files (max {MAX_FILES}, up to {fmt(MAX_FILE_SIZE)} each){mode === 'instant' && <span className="text-destructive ml-1">*</span>}
         </Label>
         <div
           className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
@@ -211,7 +212,9 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
       </div>
 
       {localError && (
-        <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>{localError}</AlertDescription></Alert>
+        <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>
+          {localError} {localError.includes('too large') && <a className="underline" href="mailto:support@dkaimarketplace.com">Email support@dkaimarketplace.com</a>}
+        </AlertDescription></Alert>
       )}
 
       {deliveryFiles.length > 0 && (
@@ -221,7 +224,7 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
             <div key={df.id} className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
               <File className="h-5 w-5 text-primary flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{df.file_name}</p>
+                <p className="text-sm font-medium truncate">{df.original_filename}</p>
                 <p className="text-xs text-muted-foreground">
                   {fmt(df.file_size)}
                   {df.uploading ? ' · uploading…' : df.error ? '' : ' · saved'}

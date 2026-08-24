@@ -2,15 +2,16 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface DeliveryFileRecord {
   id: string;
-  file_name: string;
+  original_filename: string;
   file_size: number;
-  file_path: string;
+  storage_path: string;
   mime_type?: string;
   scan_status: string;
-  created_at?: string;
+  uploaded_at?: string;
 }
 
-const BUCKET = 'product-files';
+const BUCKET = 'product-deliveries';
+export const MAX_DELIVERY_FILE_SIZE = 2 * 1024 * 1024 * 1024;
 
 export function sanitizeDeliveryFileName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/_{2,}/g, '_').slice(0, 120);
@@ -91,7 +92,7 @@ export async function uploadDeliveryFile(
     if (!isTransportError(err)) throw new Error(err?.message || String(err));
     // ---- fallback: direct upload under RLS ----
     const fileId = crypto.randomUUID();
-    const filePath = `${userId}/${productId}/${fileId}-${sanitizeDeliveryFileName(file.name)}`;
+    const filePath = `${userId}/${sanitizeDeliveryFileName(file.name)}`;
     const { error: uploadError } = await supabase.storage
       .from(BUCKET)
       .upload(filePath, file, { contentType: mimeType, upsert: false });
@@ -102,32 +103,18 @@ export async function uploadDeliveryFile(
       .insert({
         id: fileId,
         product_id: productId,
-        file_path: filePath,
-        file_name: file.name,
+        seller_id: userId,
+        storage_path: filePath,
+        original_filename: file.name,
         file_size: file.size,
         mime_type: mimeType,
         scan_status: 'clean',
-        uploaded_by: userId,
       })
-      .select('id, file_name, file_size, file_path, mime_type, scan_status, created_at')
+      .select('id, original_filename, file_size, storage_path, mime_type, scan_status, uploaded_at')
       .single();
     if (insertError || !inserted) {
       await supabase.storage.from(BUCKET).remove([filePath]);
       throw new Error(`File record save failed: ${insertError?.message || 'No row returned'}`);
-    }
-
-    const { data: updatedProduct, error: productError } = await (supabase as any)
-      .from('dkai_products')
-      .update({ file_storage_key: filePath, file_size_bytes: file.size, file_scan_status: 'clean' })
-      .eq('id', productId)
-      .select('id')
-      .single();
-    if (productError || !updatedProduct) {
-      await (supabase as any).from('dkai_product_files').delete().eq('id', fileId);
-      await supabase.storage.from(BUCKET).remove([filePath]);
-      throw new Error(
-        `Product file metadata save failed: ${productError?.message || 'The product row was not updated'}`,
-      );
     }
 
     return inserted as DeliveryFileRecord;

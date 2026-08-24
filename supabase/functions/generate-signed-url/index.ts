@@ -26,8 +26,8 @@ Deno.serve(async (req) => {
 
     // Get delivery files
     const { data: files } = await admin
-      .from('dkai_product_delivery_files')
-      .select('storage_path, file_name')
+      .from('dkai_product_files')
+      .select('storage_path, original_filename')
       .eq('product_id', productId);
 
     if (!files || files.length === 0) return errorResponse('No files available', 404);
@@ -36,9 +36,9 @@ Deno.serve(async (req) => {
     const signedUrls = await Promise.all(
       files.map(async (file) => {
         const { data } = await admin.storage
-          .from('product-files')
+          .from('product-deliveries')
           .createSignedUrl(file.storage_path, 3600); // 1 hour
-        return { fileName: file.file_name, url: data?.signedUrl };
+        return { fileName: file.original_filename, url: data?.signedUrl };
       })
     );
 

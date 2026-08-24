@@ -23,11 +23,14 @@ export function useSellerRestrictions() {
     refetchOnMount: 'always',
     queryFn: async () => {
       if (!user) return null;
-      const { data } = await db
+      const { data, error } = await db
         .from('dkai_profiles')
         .select('seller_agreement_accepted, seller_agreement_version, payment_settings_restricted')
         .eq('id', user.id)
         .maybeSingle();
+
+      if (error) throw error;
+      if (!data) throw new Error(`Seller profile not found for user ${user.id}.`);
 
       return {
         paymentSettingsRestricted: !!(data as any)?.payment_settings_restricted,

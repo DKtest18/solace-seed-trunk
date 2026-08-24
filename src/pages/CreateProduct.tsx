@@ -53,7 +53,11 @@ export default function CreateProduct() {
   const { hasRole: isSeller, isLoading: roleLoading } = useHasRole('seller');
   const { hasRole: isAdmin } = useHasRole('admin');
   
-  const { data: restrictions, isLoading: loadingRestrictions } = useSellerRestrictions();
+  const {
+    data: restrictions,
+    isLoading: loadingRestrictions,
+    error: restrictionsError,
+  } = useSellerRestrictions();
   const navigate = useNavigate();
 
   const [searchParams] = useSearchParams();
@@ -737,6 +741,19 @@ export default function CreateProduct() {
             </Button>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  if (restrictionsError) {
+    const message = restrictionsError instanceof Error
+      ? restrictionsError.message
+      : String(restrictionsError);
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Alert variant="destructive" className="max-w-2xl">
+          <AlertDescription className="break-words font-mono">{message}</AlertDescription>
+        </Alert>
       </div>
     );
   }

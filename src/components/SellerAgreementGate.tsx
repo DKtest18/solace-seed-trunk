@@ -30,7 +30,7 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { data: restrictions, isLoading } = useSellerRestrictions();
+  const { data: restrictions, isLoading, error: restrictionsError } = useSellerRestrictions();
   const [checked, setChecked] = useState(false);
   const [accepted, setAccepted] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -51,6 +51,19 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (restrictionsError) {
+    const message = restrictionsError instanceof Error
+      ? restrictionsError.message
+      : String(restrictionsError);
+    return (
+      <div className="flex items-center justify-center p-4 py-12">
+        <Alert variant="destructive" className="max-w-2xl">
+          <AlertDescription className="break-words font-mono">{message}</AlertDescription>
+        </Alert>
       </div>
     );
   }

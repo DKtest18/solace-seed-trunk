@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+
 import { db } from '@/lib/dkaiDb';
 import { acceptSellerAgreement } from '@/lib/sellerAgreementAccept';
 import { useAuth } from '@/contexts/AuthContext';

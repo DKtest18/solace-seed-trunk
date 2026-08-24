@@ -230,13 +230,28 @@ ALTER TABLE public.dkai_product_files
   ADD CONSTRAINT dkai_product_files_seller_id_fkey
     FOREIGN KEY (seller_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
-ALTER TABLE public.dkai_product_files
-  DROP CONSTRAINT IF EXISTS dkai_product_files_file_size_check,
-  DROP CONSTRAINT IF EXISTS dkai_product_files_scan_status_check;
+DO $$
+DECLARE
+  constraint_name text;
+BEGIN
+  FOR constraint_name IN
+    SELECT c.conname
+    FROM pg_constraint c
+    WHERE c.conrelid = 'public.dkai_product_files'::regclass
+      AND c.contype = 'c'
+      AND (
+        pg_get_constraintdef(c.oid) ILIKE '%file_size%'
+        OR pg_get_constraintdef(c.oid) ILIKE '%scan_status%'
+      )
+  LOOP
+    EXECUTE format('ALTER TABLE public.dkai_product_files DROP CONSTRAINT %I', constraint_name);
+  END LOOP;
+END $$;
+
 ALTER TABLE public.dkai_product_files
   ADD CONSTRAINT dkai_product_files_file_size_check CHECK (file_size >= 0),
   ADD CONSTRAINT dkai_product_files_scan_status_check
-  CHECK (scan_status IN ('pending', 'clean', 'infected', 'failed'));
+    CHECK (scan_status IN ('pending', 'clean', 'infected', 'failed'));
 
 CREATE INDEX IF NOT EXISTS dkai_product_files_product_uploaded_idx
   ON public.dkai_product_files (product_id, uploaded_at DESC);

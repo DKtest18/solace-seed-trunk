@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
-
-export const SELLER_AGREEMENT_VERSION = '2026-08-17-v4';
+import { hasCurrentSellerAgreement } from '@/lib/sellerAgreement';
 
 export interface SellerRestrictions {
   paymentSettingsRestricted: boolean;
@@ -24,11 +23,14 @@ export function useSellerRestrictions() {
     refetchOnMount: 'always',
     queryFn: async () => {
       if (!user) return null;
-      const { data } = await db
+      const { data, error } = await db
         .from('dkai_profiles')
         .select('seller_agreement_accepted, seller_agreement_version, payment_settings_restricted')
         .eq('id', user.id)
         .maybeSingle();
+
+      if (error) throw error;
+      if (!data) throw new Error(`Seller profile not found for user ${user.id}.`);
 
       return {
         paymentSettingsRestricted: !!(data as any)?.payment_settings_restricted,
@@ -40,5 +42,8 @@ export function useSellerRestrictions() {
 }
 
 export function isSellerAgreementCurrent(r?: SellerRestrictions | null) {
-  return !!r && r.agreementAccepted && r.agreementVersion === SELLER_AGREEMENT_VERSION;
+  return hasCurrentSellerAgreement(r ? {
+    seller_agreement_accepted: r.agreementAccepted,
+    seller_agreement_version: r.agreementVersion,
+  } : null);
 }

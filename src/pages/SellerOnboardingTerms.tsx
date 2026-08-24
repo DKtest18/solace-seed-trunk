@@ -13,9 +13,7 @@ import { db } from '@/lib/dkaiDb';
 import { acceptSellerAgreement } from '@/lib/sellerAgreementAccept';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, ArrowDown, CheckCircle2, FileText, Loader2 } from 'lucide-react';
-import {
-  SELLER_AGREEMENT_VERSION,
-} from '@/hooks/useSellerRestrictions';
+import { hasCurrentSellerAgreement } from '@/lib/sellerAgreement';
 import {
   SellerAgreementAcceptLabel,
   SellerAgreementBody,
@@ -50,10 +48,10 @@ export default function SellerOnboardingTerms() {
     (async () => {
       const { data: profile } = await db
         .from('dkai_profiles')
-        .select('terms_accepted')
+        .select('seller_agreement_accepted, seller_agreement_version')
         .eq('id', user.id)
         .maybeSingle();
-      const accepted = !!profile?.terms_accepted;
+      const accepted = hasCurrentSellerAgreement(profile);
       setAlreadyAccepted(accepted);
       setChecked(accepted);
       setInitializing(false);
@@ -77,7 +75,7 @@ export default function SellerOnboardingTerms() {
 
     setLoading(true);
     try {
-      const result = await acceptSellerAgreement(uid, SELLER_AGREEMENT_VERSION, pdfDoc?.version ?? null);
+      const result = await acceptSellerAgreement(uid, pdfDoc?.version ?? null);
       if (!result.ok) {
         throw new Error(result.error || 'Seller agreement acceptance was not saved. Please try again.');
       }

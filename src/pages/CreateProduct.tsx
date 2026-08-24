@@ -32,6 +32,7 @@ import { ArrowLeft, ArrowRight, Loader2, CheckCircle, AlertTriangle } from 'luci
 import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/stripeConnectStatus';
 import { fetchPayPalConnectStatus, isPayPalConnectedForOnboarding } from '@/lib/paypalConnectStatus';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
+import { hasCurrentSellerAgreement } from '@/lib/sellerAgreement';
 
 const STEPS = [
   { id: 1, title: 'Basic Info', description: 'Product details' },
@@ -52,7 +53,11 @@ export default function CreateProduct() {
   const { hasRole: isSeller, isLoading: roleLoading } = useHasRole('seller');
   const { hasRole: isAdmin } = useHasRole('admin');
   
-  const { data: restrictions, isLoading: loadingRestrictions } = useSellerRestrictions();
+  const {
+    data: restrictions,
+    isLoading: loadingRestrictions,
+    error: restrictionsError,
+  } = useSellerRestrictions();
   const navigate = useNavigate();
 
   const [searchParams] = useSearchParams();
@@ -375,10 +380,7 @@ export default function CreateProduct() {
       .eq('id', user.id)
       .maybeSingle();
     if (agreementError) throw agreementError;
-    if (
-      !agreementProfile?.seller_agreement_accepted ||
-      agreementProfile.seller_agreement_version !== '2026-08-17-v4'
-    ) {
+    if (!hasCurrentSellerAgreement(agreementProfile)) {
       navigate('/seller-onboarding/terms');
       throw new Error('Please accept the current Seller Agreement before uploading product media.');
     }
@@ -739,6 +741,19 @@ export default function CreateProduct() {
             </Button>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  if (restrictionsError) {
+    const message = restrictionsError instanceof Error
+      ? restrictionsError.message
+      : String(restrictionsError);
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Alert variant="destructive" className="max-w-2xl">
+          <AlertDescription className="break-words font-mono">{message}</AlertDescription>
+        </Alert>
       </div>
     );
   }

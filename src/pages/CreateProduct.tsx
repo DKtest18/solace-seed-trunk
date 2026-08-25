@@ -31,7 +31,7 @@ import { TermsAcceptanceStep } from '@/components/product-creation/TermsAcceptan
 import { ArrowLeft, ArrowRight, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/stripeConnectStatus';
 import { fetchPayPalConnectStatus, isPayPalConnectedForOnboarding } from '@/lib/paypalConnectStatus';
-import { REVIEW_STATUS } from '@/lib/reviewStatus';
+import { DELIVERY_MODE, normalizeDeliveryMode, REVIEW_STATUS } from '@/lib/reviewStatus';
 import { hasCurrentSellerAgreement } from '@/lib/sellerAgreement';
 import { getSellerAgreementState } from '@/lib/sellerAgreementAccept';
 
@@ -115,7 +115,7 @@ export default function CreateProduct() {
     iban: '',
     iban_later: false,
     faqs: [] as Array<{ question: string; answer: string }>,
-    delivery_mode: 'instant' as string,
+    delivery_mode: DELIVERY_MODE.INSTANT as string,
     delivery_time_hours: null as number | null,
     seller_accepted_terms: false,
     seller_rules_confirmed: false,
@@ -228,7 +228,7 @@ export default function CreateProduct() {
             sample_is_watermarked: !!data.sample_is_watermarked,
             payment_methods: data.payment_methods ?? prev.payment_methods,
             faqs: data.faqs ?? [],
-            delivery_mode: data.delivery_mode ?? prev.delivery_mode,
+            delivery_mode: normalizeDeliveryMode(data.delivery_mode ?? prev.delivery_mode),
             delivery_time_hours: data.delivery_time_hours ?? prev.delivery_time_hours,
             seller_accepted_terms: !!data.seller_accepted_terms,
             seller_rules_confirmed: !!data.seller_rules_confirmed,
@@ -311,11 +311,11 @@ export default function CreateProduct() {
     sample_is_watermarked: !!formData.sample_is_watermarked,
     payment_methods: formData.payment_methods,
     faqs: formData.faqs,
-    delivery_mode: formData.delivery_mode,
+    delivery_mode: normalizeDeliveryMode(formData.delivery_mode),
     // Delivery time applies to manual delivery and seller setup; only instant
     // download has no window.
     delivery_time_hours:
-      formData.delivery_mode === 'instant' ? null : (formData.delivery_time_hours ?? 24),
+      normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.INSTANT ? null : (formData.delivery_time_hours ?? 24),
     seller_accepted_terms: formData.seller_accepted_terms,
     seller_rules_confirmed: !!formData.seller_rules_confirmed,
     seller_rules_confirmed_at: formData.seller_rules_confirmed ? new Date().toISOString() : null,
@@ -350,11 +350,11 @@ export default function CreateProduct() {
     license_agency_description: formData.license_agency_enabled ? (formData.license_agency_description || null) : null,
     license_exclusive_description: formData.license_exclusive_enabled ? (formData.license_exclusive_description || null) : null,
     exclusive_source_files_description: formData.license_exclusive_enabled ? (formData.exclusive_source_files_description || null) : null,
-    requires_setup_credentials: formData.delivery_mode === 'setup' && !formData.setup_no_credentials,
-    setup_requirements: formData.delivery_mode === 'setup' && !formData.setup_no_credentials
+    requires_setup_credentials: normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.SETUP && !formData.setup_no_credentials,
+    setup_requirements: normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.SETUP && !formData.setup_no_credentials
       ? formData.setup_requirements : [],
-    setup_access_window_hours: formData.delivery_mode === 'setup' ? formData.setup_access_window_hours : null,
-    setup_no_credentials: formData.delivery_mode === 'setup' ? !!formData.setup_no_credentials : false,
+    setup_access_window_hours: normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.SETUP ? formData.setup_access_window_hours : null,
+    setup_no_credentials: normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.SETUP ? !!formData.setup_no_credentials : false,
     seller_ack_refund_policy: !!formData.seller_ack_refund_policy,
     seller_ack_subscription: !!formData.seller_ack_subscription,
     seller_ack_manual_delivery: !!formData.seller_ack_manual_delivery,
@@ -532,22 +532,22 @@ export default function CreateProduct() {
       }
 
       case 8:
-        if (!['instant', 'manual', 'setup'].includes(formData.delivery_mode)) {
+        if (!Object.values(DELIVERY_MODE).includes(normalizeDeliveryMode(formData.delivery_mode))) {
           newErrors.deliveryModeError = 'Choose Instant download, Manual delivery, or Setup by seller';
         }
         if (
-          formData.delivery_mode === 'instant' &&
+          normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.INSTANT &&
           deliveryFiles.filter((f) => !f.uploading && !f.error).length === 0
         ) {
           newErrors.deliveryFilesError = 'Instant download requires at least one uploaded file';
         }
-        if (formData.delivery_mode === 'manual') {
+        if (normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.MANUAL) {
           const h = formData.delivery_time_hours ?? 0;
           if (![12, 24, 48].includes(h)) {
             newErrors.deliveryModeError = 'Pick 12, 24, or 48 hours (max 48h)';
           }
         }
-        if (formData.delivery_mode === 'setup') {
+        if (normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.SETUP) {
           if (!formData.setup_no_credentials && (formData.setup_requirements?.length ?? 0) === 0) {
             newErrors.setupRequirementsError = 'Add at least one required item, or check "no credentials needed".';
           }
@@ -567,8 +567,8 @@ export default function CreateProduct() {
 
       case 9: {
         const isSubscription = formData.pricing_model === 'recurring';
-        const isManual = formData.delivery_mode === 'manual';
-        const isSetup = formData.delivery_mode === 'setup';
+        const isManual = normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.MANUAL;
+        const isSetup = normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.SETUP;
         const hasSecretSpecs = isSetup && !formData.setup_no_credentials && (formData.setup_requirements?.length ?? 0) > 0;
         const missing: string[] = [];
         if (!formData.seller_ack_refund_policy) missing.push('refund policy');
@@ -922,7 +922,7 @@ export default function CreateProduct() {
               {currentStep === 8 && (
                 <DeliveryFilesStep
                   data={{
-                    delivery_mode: formData.delivery_mode,
+                    delivery_mode: normalizeDeliveryMode(formData.delivery_mode),
                     delivery_time_hours: formData.delivery_time_hours,
                     available_quantity: formData.available_quantity,
                     product_type: formData.product_type,

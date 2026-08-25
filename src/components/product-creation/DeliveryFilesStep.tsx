@@ -9,6 +9,7 @@ import { SetupRequirementsInline, type Spec } from './SetupRequirementsInline';
 
 import type { DeliveryFileRow } from '@/hooks/useDeliveryFiles';
 import { MAX_DELIVERY_FILE_SIZE } from '@/lib/deliveryFileUpload';
+import { DELIVERY_MODE, DELIVERY_MODE_LABEL, normalizeDeliveryMode } from '@/lib/reviewStatus';
 
 interface DeliveryFilesStepProps {
   data: {
@@ -46,7 +47,7 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
   const [localError, setLocalError] = useState<string | null>(null);
   const [oversizeError, setOversizeError] = useState<{ limit: number; actual: number } | null>(null);
 
-  const mode = ['instant', 'manual', 'setup'].includes(data.delivery_mode) ? data.delivery_mode : 'instant';
+  const mode = normalizeDeliveryMode(data.delivery_mode);
   const suggestions = SUGGESTED_BY_TYPE[(data.product_type || 'agent').toLowerCase()] || SUGGESTED_BY_TYPE.agent;
 
   const handleDrag = (e: React.DragEvent) => {
@@ -92,19 +93,19 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
           value={mode}
           onValueChange={(v) => {
             onChange('delivery_mode', v);
-            if (v === 'instant') onChange('delivery_time_hours', null);
-            else if (v === 'manual' && !data.delivery_time_hours) onChange('delivery_time_hours', 24);
-            if (v === 'setup') onChange('requires_setup_credentials', true);
+            if (v === DELIVERY_MODE.INSTANT) onChange('delivery_time_hours', null);
+            else if (v === DELIVERY_MODE.MANUAL && !data.delivery_time_hours) onChange('delivery_time_hours', 24);
+            if (v === DELIVERY_MODE.SETUP) onChange('requires_setup_credentials', true);
             else onChange('requires_setup_credentials', false);
           }}
           className="grid grid-cols-1 md:grid-cols-3 gap-3"
         >
           {[
-            { id: 'instant', icon: Zap, title: 'Instant download',
+            { id: DELIVERY_MODE.INSTANT, icon: Zap, title: DELIVERY_MODE_LABEL[DELIVERY_MODE.INSTANT],
               desc: 'Buyer receives access immediately via signed URLs. Requires ≥ 1 uploaded file.' },
-            { id: 'manual', icon: Mail, title: 'Manual delivery by seller',
+            { id: DELIVERY_MODE.MANUAL, icon: Mail, title: DELIVERY_MODE_LABEL[DELIVERY_MODE.MANUAL],
               desc: 'You deliver to the buyer within your chosen window (12/24/48h).' },
-            { id: 'setup', icon: Settings, title: 'Setup by seller',
+            { id: DELIVERY_MODE.SETUP, icon: Settings, title: DELIVERY_MODE_LABEL[DELIVERY_MODE.SETUP],
               desc: 'You install / configure for the buyer. Optionally collect temporary credentials.' },
           ].map((opt) => (
             <label key={opt.id} htmlFor={`mode-${opt.id}`}
@@ -122,7 +123,7 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
         {errors.deliveryModeError && <p className="text-xs text-destructive mt-2">{errors.deliveryModeError}</p>}
       </div>
 
-      {mode === 'manual' && (
+      {mode === DELIVERY_MODE.MANUAL && (
         <div>
           <Label className="mb-2 block">Estimated delivery time (max 48 hours) *</Label>
           <RadioGroup value={String(data.delivery_time_hours ?? 24)}
@@ -141,7 +142,7 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
         </div>
       )}
 
-      {mode === 'setup' && (
+      {mode === DELIVERY_MODE.SETUP && (
         <div className="border rounded-lg p-4 space-y-4">
           <div>
             <h4 className="text-sm font-semibold">Setup Requirements (what you need from the buyer)</h4>
@@ -195,7 +196,7 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
 
       <div>
         <Label className="mb-2 block">
-          Upload Files (max {MAX_FILES}, up to {fmt(MAX_FILE_SIZE)} each){mode === 'instant' && <span className="text-destructive ml-1">*</span>}
+          Upload Files (max {MAX_FILES}, up to {fmt(MAX_FILE_SIZE)} each){mode === DELIVERY_MODE.INSTANT && <span className="text-destructive ml-1">*</span>}
         </Label>
         <div
           className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${

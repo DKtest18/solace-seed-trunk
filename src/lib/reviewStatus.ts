@@ -123,3 +123,28 @@ export function classifySellerProduct(p: any): SellerProductTab {
   if (review === REVIEW_STATUS.DELISTED) return SELLER_PRODUCT_TAB.CHANGES_REQUESTED;
   return SELLER_PRODUCT_TAB.DRAFT;
 }
+
+/** SINGLE SOURCE OF TRUTH for `dkai_products.delivery_mode`. */
+export const DELIVERY_MODE = {
+  INSTANT: 'instant',
+  MANUAL: 'manual',
+  SETUP: 'setup',
+} as const;
+
+export type DeliveryModeValue = (typeof DELIVERY_MODE)[keyof typeof DELIVERY_MODE];
+
+export const DELIVERY_MODE_VALUES: DeliveryModeValue[] = Object.values(DELIVERY_MODE);
+
+export const DELIVERY_MODE_LABEL: Record<DeliveryModeValue, string> = {
+  [DELIVERY_MODE.INSTANT]: 'Instant download',
+  [DELIVERY_MODE.MANUAL]: 'Manual delivery by seller',
+  [DELIVERY_MODE.SETUP]: 'Setup by seller',
+};
+
+export function normalizeDeliveryMode(value: unknown): DeliveryModeValue {
+  const v = String(value ?? '').trim().toLowerCase();
+  return (DELIVERY_MODE_VALUES as readonly string[]).includes(v)
+    ? (v as DeliveryModeValue)
+    : DELIVERY_MODE.INSTANT;
+}
+

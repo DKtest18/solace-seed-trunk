@@ -21,6 +21,7 @@ import { ProductMediaGallery } from '@/components/ProductMediaGallery';
 import { ReturnPolicyDisplay } from '@/components/ReturnPolicyDisplay';
 import { LicenseSelector, type LicenseTier } from '@/components/LicenseSelector';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
+import { DELIVERY_MODE, normalizeDeliveryMode } from '@/lib/reviewStatus';
 
 // Track product analytics
 const trackProductEvent = async (productId: string, eventType: 'view' | 'click', userId?: string, metadata?: any) => {
@@ -399,13 +400,13 @@ export default function ProductDetail() {
               {/* Delivery mode + setup requirements */}
               {(() => {
                 const p: any = product;
-                const mode = p.delivery_mode || 'instant';
-                const modeLabel = mode === 'instant' ? 'Instant download after payment'
-                  : mode === 'manual' ? `Manual delivery within ${p.delivery_time_hours ?? 24}h`
-                  : mode === 'setup' ? 'Seller installs / configures for you'
+                const mode = normalizeDeliveryMode(p.delivery_mode);
+                const modeLabel = mode === DELIVERY_MODE.INSTANT ? 'Instant download after payment'
+                  : mode === DELIVERY_MODE.MANUAL ? `Manual delivery within ${p.delivery_time_hours ?? 24}h`
+                  : mode === DELIVERY_MODE.SETUP ? 'Seller installs / configures for you'
                   : 'Delivered by seller';
                 const specs: any[] = Array.isArray(p.setup_requirements) ? p.setup_requirements : [];
-                const needsSetupList = mode === 'setup' && !p.setup_no_credentials && specs.length > 0;
+                const needsSetupList = mode === DELIVERY_MODE.SETUP && !p.setup_no_credentials && specs.length > 0;
                 return (
                   <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
                     <p className="text-sm"><strong>Delivery:</strong> {modeLabel}</p>

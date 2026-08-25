@@ -116,14 +116,15 @@ export default function SellerProducts() {
   const { hasRole: isAdmin } = useHasRole('admin');
   const navigate = useNavigate();
 
-  const { data: products, isLoading, refetch } = useSellerProducts(user?.id);
+  const { data: products, isLoading, error: productsError, refetch } = useSellerProducts(user?.id);
   const { data: analytics } = useAllProductsAnalytics(user?.id);
 
   const [searchParams] = useSearchParams();
-  const initialTab = (searchParams.get('tab') as Bucket) || 'draft';
+  const initialTab = (searchParams.get('tab') as Bucket) || SELLER_PRODUCT_TAB.DRAFT;
   const [tab, setTab] = useState<Bucket>(
-    (['draft', 'in_review', 'approved_pending_publish', 'published', 'rejected', 'deleted'] as Bucket[]).includes(initialTab) ? initialTab : 'draft'
+    SELLER_PRODUCT_TABS.includes(initialTab) ? initialTab : SELLER_PRODUCT_TAB.DRAFT
   );
+
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showDelete, setShowDelete] = useState(false);
 

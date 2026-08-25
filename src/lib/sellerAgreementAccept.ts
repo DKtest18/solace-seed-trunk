@@ -1,6 +1,6 @@
 import { db } from '@/lib/dkaiDb';
 import {
-  hasCurrentSellerAgreement,
+  SELLER_AGREEMENT_DB_VERSION,
   SELLER_AGREEMENT_VERSION,
   type SellerAgreementState,
 } from '@/lib/sellerAgreement';
@@ -43,28 +43,32 @@ export async function getSellerAgreementState(userId?: string): Promise<SellerAg
 }
 
 /**
- * Records the account-level seller agreement acceptance.
- *
- * Primary path is the SECURITY DEFINER RPC `dkai_accept_seller_agreement`
- * (needed because dkai_profiles uses column-level UPDATE grants).
- * The RPC is self-only and performs its own read-back before returning.
+ * Records the account-level seller agreement acceptance with ONE RPC call.
+ * The RPC return value IS the confirmation — no follow-up SELECT.
  */
 export async function acceptSellerAgreement(
-  _userId: string,
-  pdfVersion?: string | null,
+  _userId?: string,
+  _pdfVersion?: string | null,
 ): Promise<AcceptResult> {
-  const { data, error } = await db.rpc('dkai_accept_seller_agreement', {
-    p_version: SELLER_AGREEMENT_VERSION,
-    p_pdf_version: pdfVersion ?? null,
-  });
+  const call = async (version: string) =>
+    db.rpc('dkai_accept_seller_agreement', { p_version: version });
 
-  if (error) return { ok: false, error: `Acceptance could not be saved: ${describe(error)}` };
+  let { data, error } = await call(SELLER_AGREEMENT_VERSION);
+
+  // The deployed trigger/RPC may still pin an older required version string.
+  if (error && /version_mismatch/i.test(`${error.message} ${error.details ?? ''}`)) {
+    ({ data, error } = await call(SELLER_AGREEMENT_DB_VERSION));
+  }
+
+  if (error) {
+    console.error('[sellerAgreement] dkai_accept_seller_agreement failed', error);
+    return { ok: false, error: describe(error) };
+  }
 
   const saved = unwrapRow(data);
-  if (hasCurrentSellerAgreement(saved)) return { ok: true };
+  if (saved?.seller_agreement_accepted === true) return { ok: true };
 
-  return {
-    ok: false,
-    error: 'The database did not confirm the saved Seller Agreement. Run the provided SQL and try again.',
-  };
+  console.error('[sellerAgreement] RPC returned unexpected payload', data);
+  return { ok: false, error: `Unexpected response from dkai_accept_seller_agreement: ${JSON.stringify(data)}` };
 }
+

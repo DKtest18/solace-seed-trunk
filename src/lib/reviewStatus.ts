@@ -69,3 +69,57 @@ export function normalizeReviewStatus(value: unknown): ReviewStatusValue {
 export function isPubliclyListed(value: unknown): boolean {
   return (REVIEW_STATUS_GROUPS.LIVE as readonly string[]).includes(normalizeReviewStatus(value));
 }
+
+/* ---------------------------------------------------------------------------
+ * Seller "My Products" tabs — single source of truth.
+ *
+ * The seller tabs, the admin queue and the submit action all derive from
+ * REVIEW_STATUS. Legacy columns (`status`, `approval_status`,
+ * `moderation_status`) are NEVER used to decide a bucket; they are only a
+ * fallback when review_status is NULL on very old rows.
+ * ------------------------------------------------------------------------- */
+export const SELLER_PRODUCT_TAB = {
+  DRAFT: 'draft',
+  IN_REVIEW: 'in_review',
+  APPROVED: 'approved_pending_publish',
+  PUBLISHED: 'published',
+  CHANGES_REQUESTED: 'rejected',
+  DELETED: 'deleted',
+} as const;
+
+export type SellerProductTab = (typeof SELLER_PRODUCT_TAB)[keyof typeof SELLER_PRODUCT_TAB];
+
+export const SELLER_PRODUCT_TABS: SellerProductTab[] = Object.values(SELLER_PRODUCT_TAB);
+
+/** Canonical review status of a product row, ignoring legacy columns unless review_status is NULL. */
+export function productReviewStatus(p: any): ReviewStatusValue {
+  const raw = p?.review_status;
+  if (raw !== null && raw !== undefined && String(raw).trim() !== '') {
+    return normalizeReviewStatus(raw);
+  }
+  // Legacy rows only.
+  return normalizeReviewStatus(p?.approval_status ?? p?.status);
+}
+
+/** Buyable = publicly listed review status AND published flag. */
+export function isProductBuyable(p: any): boolean {
+  return p?.is_published === true && isPubliclyListed(productReviewStatus(p));
+}
+
+/** Which seller tab a product belongs to. */
+export function classifySellerProduct(p: any): SellerProductTab {
+  if (p?.is_active === false || p?.deleted_at) return SELLER_PRODUCT_TAB.DELETED;
+  const review = productReviewStatus(p);
+
+  if ((REVIEW_STATUS_GROUPS.NEEDS_SELLER_ACTION as readonly string[]).includes(review)) {
+    return SELLER_PRODUCT_TAB.CHANGES_REQUESTED;
+  }
+  if ((REVIEW_STATUS_GROUPS.PENDING as readonly string[]).includes(review)) {
+    return SELLER_PRODUCT_TAB.IN_REVIEW;
+  }
+  if ((REVIEW_STATUS_GROUPS.LIVE as readonly string[]).includes(review)) {
+    return isProductBuyable(p) ? SELLER_PRODUCT_TAB.PUBLISHED : SELLER_PRODUCT_TAB.APPROVED;
+  }
+  if (review === REVIEW_STATUS.DELISTED) return SELLER_PRODUCT_TAB.CHANGES_REQUESTED;
+  return SELLER_PRODUCT_TAB.DRAFT;
+}

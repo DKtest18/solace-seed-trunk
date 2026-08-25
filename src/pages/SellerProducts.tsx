@@ -37,32 +37,31 @@ import {
 import { db } from '@/lib/dkaiDb';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
 import { toast } from 'sonner';
-import { REVIEW_STATUS, REVIEW_STATUS_GROUPS, normalizeReviewStatus } from '@/lib/reviewStatus';
+import {
+  REVIEW_STATUS_GROUPS,
+  SELLER_PRODUCT_TAB,
+  SELLER_PRODUCT_TABS,
+  classifySellerProduct,
+  isProductBuyable,
+  productReviewStatus,
+  type SellerProductTab,
+} from '@/lib/reviewStatus';
 
-type Bucket = 'draft' | 'in_review' | 'approved_pending_publish' | 'published' | 'rejected' | 'deleted';
+type Bucket = SellerProductTab;
 
 function reviewStatusOf(p: any): string {
-  return normalizeReviewStatus(p.review_status ?? p.approval_status ?? p.status);
+  return productReviewStatus(p);
 }
 
-/**
- * Same condition the public marketplace query uses:
- * is_published === true AND review_status is publicly listed (REVIEW_STATUS_GROUPS.LIVE).
- */
+/** Same condition the public marketplace query uses. */
 export function isBuyable(p: any): boolean {
-  return p?.is_published === true && (REVIEW_STATUS_GROUPS.LIVE as readonly string[]).includes(reviewStatusOf(p));
+  return isProductBuyable(p);
 }
 
 function classifyProduct(p: any): Bucket {
-  if (p.is_active === false || p.deleted_at) return 'deleted';
-  const status = (p.status || '').toLowerCase();
-  const review = reviewStatusOf(p);
-  if ((REVIEW_STATUS_GROUPS.NEEDS_SELLER_ACTION as readonly string[]).includes(review)) return 'rejected';
-  if (status === REVIEW_STATUS.DRAFT || review === REVIEW_STATUS.DRAFT) return 'draft';
-  if (isBuyable(p)) return 'published';
-  if ((REVIEW_STATUS_GROUPS.LIVE as readonly string[]).includes(review)) return 'approved_pending_publish';
-  return 'in_review';
+  return classifySellerProduct(p);
 }
+
 
 function statusBadge(bucket: Bucket) {
   switch (bucket) {

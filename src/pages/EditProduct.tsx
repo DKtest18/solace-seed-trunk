@@ -93,7 +93,7 @@ export default function EditProduct() {
     payment_methods: ['card'] as string[],
     faqs: [] as Array<{ question: string; answer: string }>,
     is_published: false,
-    delivery_mode: DELIVERY_MODE.INSTANT,
+    delivery_mode: DELIVERY_MODE.INSTANT as string,
     delivery_time_hours: 24,
     currency: 'usd',
     billing_interval: 'month',

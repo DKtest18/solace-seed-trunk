@@ -1,6 +1,6 @@
 import { db } from '@/lib/dkaiDb';
 import {
-  hasCurrentSellerAgreement,
+  SELLER_AGREEMENT_DB_VERSION,
   SELLER_AGREEMENT_VERSION,
   type SellerAgreementState,
 } from '@/lib/sellerAgreement';

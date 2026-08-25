@@ -38,7 +38,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { DELIVERY_MODE, normalizeDeliveryMode, REVIEW_STATUS, normalizeReviewStatus } from '@/lib/reviewStatus';
+import { DELIVERY_MODE, normalizeDeliveryMode, assertDeliveryMode, REVIEW_STATUS, normalizeReviewStatus } from '@/lib/reviewStatus';
 
 const STEPS = [
   { id: 1, title: 'Basic Info', description: 'Product details' },
@@ -505,7 +505,7 @@ export default function EditProduct() {
           payment_methods: formData.payment_methods,
           faqs: formData.faqs,
           is_published: formData.is_published,
-          delivery_mode: normalizeDeliveryMode(formData.delivery_mode),
+          delivery_mode: assertDeliveryMode(formData.delivery_mode),
           delivery_time_hours:
             normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.INSTANT ? null : (formData.delivery_time_hours ?? 24),
           currency: formData.currency,

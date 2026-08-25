@@ -148,3 +148,30 @@ export function normalizeDeliveryMode(value: unknown): DeliveryModeValue {
     : DELIVERY_MODE.INSTANT;
 }
 
+/**
+ * WRITE GUARD: use this for every payload that persists `delivery_mode`.
+ * It never silently rewrites a seller's choice — an unknown value throws so the
+ * bug surfaces in the app instead of being "corrected" away by the DB.
+ */
+export function assertDeliveryMode(value: unknown): DeliveryModeValue {
+  const v = String(value ?? '').trim().toLowerCase();
+  if (!(DELIVERY_MODE_VALUES as readonly string[]).includes(v)) {
+    throw new Error(
+      `Invalid delivery_mode "${String(value)}". Allowed: ${DELIVERY_MODE_VALUES.join(', ')}.`,
+    );
+  }
+  return v as DeliveryModeValue;
+}
+
+/** WRITE GUARD for `review_status` — same contract as assertDeliveryMode. */
+export function assertReviewStatus(value: unknown): ReviewStatusValue {
+  const v = String(value ?? '').trim().toLowerCase();
+  if (!(REVIEW_STATUS_VALUES as readonly string[]).includes(v)) {
+    throw new Error(
+      `Invalid review_status "${String(value)}". Allowed: ${REVIEW_STATUS_VALUES.join(', ')}.`,
+    );
+  }
+  return v as ReviewStatusValue;
+}
+
+

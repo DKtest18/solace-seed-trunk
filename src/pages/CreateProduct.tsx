@@ -31,7 +31,7 @@ import { TermsAcceptanceStep } from '@/components/product-creation/TermsAcceptan
 import { ArrowLeft, ArrowRight, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/stripeConnectStatus';
 import { fetchPayPalConnectStatus, isPayPalConnectedForOnboarding } from '@/lib/paypalConnectStatus';
-import { DELIVERY_MODE, normalizeDeliveryMode, REVIEW_STATUS } from '@/lib/reviewStatus';
+import { DELIVERY_MODE, normalizeDeliveryMode, assertDeliveryMode, REVIEW_STATUS } from '@/lib/reviewStatus';
 import { hasCurrentSellerAgreement } from '@/lib/sellerAgreement';
 import { getSellerAgreementState } from '@/lib/sellerAgreementAccept';
 
@@ -311,7 +311,7 @@ export default function CreateProduct() {
     sample_is_watermarked: !!formData.sample_is_watermarked,
     payment_methods: formData.payment_methods,
     faqs: formData.faqs,
-    delivery_mode: normalizeDeliveryMode(formData.delivery_mode),
+    delivery_mode: assertDeliveryMode(formData.delivery_mode),
     // Delivery time applies to manual delivery and seller setup; only instant
     // download has no window.
     delivery_time_hours:

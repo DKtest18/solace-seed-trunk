@@ -10,6 +10,7 @@ import { usePlatformFee } from '@/hooks/usePlatformFee';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { DELIVERY_MODE, normalizeDeliveryMode } from '@/lib/reviewStatus';
 
 interface AdditionalDetailsStepProps {
   data: {
@@ -57,7 +58,7 @@ export function AdditionalDetailsStep({ data, onChange, errors }: AdditionalDeta
   const [uploading, setUploading] = useState(false);
 
   const isSubscription = data.pricing_model === 'recurring';
-  const isManual = data.delivery_mode === 'manual';
+  const isManual = normalizeDeliveryMode(data.delivery_mode) === DELIVERY_MODE.MANUAL;
 
   const detectType = (mime: string) =>
     mime.startsWith('video/') ? 'video' : mime === 'application/pdf' ? 'pdf' : 'image';

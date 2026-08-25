@@ -38,7 +38,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { REVIEW_STATUS, normalizeReviewStatus } from '@/lib/reviewStatus';
+import { DELIVERY_MODE, normalizeDeliveryMode, REVIEW_STATUS, normalizeReviewStatus } from '@/lib/reviewStatus';
 
 const STEPS = [
   { id: 1, title: 'Basic Info', description: 'Product details' },
@@ -93,7 +93,7 @@ export default function EditProduct() {
     payment_methods: ['card'] as string[],
     faqs: [] as Array<{ question: string; answer: string }>,
     is_published: false,
-    delivery_mode: 'instant',
+    delivery_mode: DELIVERY_MODE.INSTANT as string,
     delivery_time_hours: 24,
     currency: 'usd',
     billing_interval: 'month',
@@ -217,7 +217,7 @@ export default function EditProduct() {
             ? product.faqs 
             : (product.faqs ? Object.values(product.faqs) : []),
           is_published: product.is_published || false,
-          delivery_mode: product.delivery_mode || 'instant',
+          delivery_mode: normalizeDeliveryMode(product.delivery_mode),
           delivery_time_hours: product.delivery_time_hours ?? 24,
           currency: product.currency || 'usd',
           billing_interval: product.billing_interval || 'month',
@@ -505,9 +505,9 @@ export default function EditProduct() {
           payment_methods: formData.payment_methods,
           faqs: formData.faqs,
           is_published: formData.is_published,
-          delivery_mode: formData.delivery_mode,
+          delivery_mode: normalizeDeliveryMode(formData.delivery_mode),
           delivery_time_hours:
-            formData.delivery_mode === 'instant' ? null : (formData.delivery_time_hours ?? 24),
+            normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.INSTANT ? null : (formData.delivery_time_hours ?? 24),
           currency: formData.currency,
           billing_interval: formData.pricing_model === 'recurring' ? formData.billing_interval : null,
           billing_interval_count: formData.pricing_model === 'recurring' ? (formData.billing_interval_count ?? 1) : null,
@@ -533,11 +533,11 @@ export default function EditProduct() {
           license_agency_description: formData.license_agency_enabled ? (formData.license_agency_description || null) : null,
           license_exclusive_description: formData.license_exclusive_enabled ? (formData.license_exclusive_description || null) : null,
           exclusive_source_files_description: formData.license_exclusive_enabled ? (formData.exclusive_source_files_description || null) : null,
-          requires_setup_credentials: formData.delivery_mode === 'setup' && !formData.setup_no_credentials,
-          setup_requirements: formData.delivery_mode === 'setup' && !formData.setup_no_credentials
+          requires_setup_credentials: normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.SETUP && !formData.setup_no_credentials,
+          setup_requirements: normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.SETUP && !formData.setup_no_credentials
             ? formData.setup_requirements : [],
-          setup_access_window_hours: formData.delivery_mode === 'setup' ? formData.setup_access_window_hours : null,
-          setup_no_credentials: formData.delivery_mode === 'setup' ? !!formData.setup_no_credentials : false,
+          setup_access_window_hours: normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.SETUP ? formData.setup_access_window_hours : null,
+          setup_no_credentials: normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.SETUP ? !!formData.setup_no_credentials : false,
           seller_ack_refund_policy: !!formData.seller_ack_refund_policy,
           seller_ack_subscription: !!formData.seller_ack_subscription,
           seller_ack_manual_delivery: !!formData.seller_ack_manual_delivery,
@@ -750,7 +750,7 @@ export default function EditProduct() {
               {currentStep === 8 && (
                 <DeliveryFilesStep
                   data={{
-                    delivery_mode: formData.delivery_mode,
+                    delivery_mode: normalizeDeliveryMode(formData.delivery_mode),
                     delivery_time_hours: formData.delivery_time_hours,
                     available_quantity: formData.available_quantity,
                     product_type: formData.product_type,

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, CheckCircle, Download, Shield, Clock } from 'lucide-react';
 import { toast } from 'sonner';
+import { DELIVERY_MODE, normalizeDeliveryMode } from '@/lib/reviewStatus';
 
 const PAID_STATUSES = ['paid', 'completed', 'delivered', 'released'];
 
@@ -104,7 +105,7 @@ export default function CheckoutSuccess() {
   const sellerName = seller?.creator_name || seller?.full_name || seller?.username || 'Unknown seller';
   const currency = (order.currency || 'USD').toUpperCase();
   const price = Number(order.price).toFixed(2);
-  const deliveryMode = order.delivery_mode || product?.delivery_mode || 'instant';
+  const deliveryMode = normalizeDeliveryMode(order.delivery_mode || product?.delivery_mode);
   const deliveryHours = order.delivery_time_hours || product?.delivery_time_hours;
 
   return (
@@ -126,14 +127,14 @@ export default function CheckoutSuccess() {
             <div className="flex justify-between"><span className="text-muted-foreground">Seller</span><span className="font-medium">{sellerName}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="font-medium">{new Date(order.created_at).toLocaleString()}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Payment method</span><span className="font-medium">Card (Stripe)</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Delivery</span><span className="font-medium">{deliveryMode === 'instant' ? 'Instant download' : `Manual delivery${deliveryHours ? ` within ${deliveryHours}h` : ''}`}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Delivery</span><span className="font-medium">{deliveryMode === DELIVERY_MODE.INSTANT ? 'Instant download' : deliveryMode === DELIVERY_MODE.SETUP ? `Setup by seller${deliveryHours ? ` within ${deliveryHours}h` : ''}` : `Manual delivery${deliveryHours ? ` within ${deliveryHours}h` : ''}`}</span></div>
             <div className="flex justify-between text-base pt-3 border-t"><span className="font-semibold">Total</span><span className="font-bold">{currency} {price}</span></div>
           </CardContent>
         </Card>
 
         <Card className="mb-6">
           <CardContent className="pt-6">
-            {deliveryMode === 'instant' ? (
+            {deliveryMode === DELIVERY_MODE.INSTANT ? (
               <Button onClick={download} size="lg" className="w-full">
                 <Download className="w-4 h-4 mr-2" />
                 Download your file

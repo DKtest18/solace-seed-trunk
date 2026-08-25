@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { REVIEW_STATUS, SELLER_PRODUCT_TAB, classifySellerProduct } from '@/lib/reviewStatus';
+import {
+  DELIVERY_MODE,
+  DELIVERY_MODE_LABEL,
+  REVIEW_STATUS,
+  SELLER_PRODUCT_TAB,
+  classifySellerProduct,
+  normalizeDeliveryMode,
+} from '@/lib/reviewStatus';
 
 describe('classifySellerProduct', () => {
   it('puts a submitted product in In Review even when legacy status says draft', () => {
@@ -26,5 +33,22 @@ describe('classifySellerProduct', () => {
   });
   it('soft-deleted wins', () => {
     expect(classifySellerProduct({ review_status: REVIEW_STATUS.APPROVED, is_active: false })).toBe(SELLER_PRODUCT_TAB.DELETED);
+  });
+});
+
+describe('delivery mode canonical values', () => {
+  it('keeps all product wizard delivery modes in one exported constant', () => {
+    expect(Object.values(DELIVERY_MODE)).toEqual(['instant', 'manual', 'setup']);
+    expect(DELIVERY_MODE_LABEL[DELIVERY_MODE.INSTANT]).toBe('Instant download');
+    expect(DELIVERY_MODE_LABEL[DELIVERY_MODE.MANUAL]).toBe('Manual delivery by seller');
+    expect(DELIVERY_MODE_LABEL[DELIVERY_MODE.SETUP]).toBe('Setup by seller');
+  });
+
+  it('normalizes invalid delivery modes before database writes', () => {
+    expect(normalizeDeliveryMode(DELIVERY_MODE.INSTANT)).toBe(DELIVERY_MODE.INSTANT);
+    expect(normalizeDeliveryMode(DELIVERY_MODE.MANUAL)).toBe(DELIVERY_MODE.MANUAL);
+    expect(normalizeDeliveryMode(DELIVERY_MODE.SETUP)).toBe(DELIVERY_MODE.SETUP);
+    expect(normalizeDeliveryMode('')).toBe(DELIVERY_MODE.INSTANT);
+    expect(normalizeDeliveryMode(undefined)).toBe(DELIVERY_MODE.INSTANT);
   });
 });

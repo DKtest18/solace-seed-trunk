@@ -3,6 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertCircle, ShieldCheck, Clock, Info, Mail } from 'lucide-react';
+import { DELIVERY_MODE, normalizeDeliveryMode } from '@/lib/reviewStatus';
 
 interface ReturnPolicyStepProps {
   data: {
@@ -28,8 +29,9 @@ interface ReturnPolicyStepProps {
 
 export function ReturnPolicyStep({ data, onChange, errors }: ReturnPolicyStepProps) {
   const isSubscription = data.pricing_model === 'recurring';
-  const isManual = data.delivery_mode === 'manual';
-  const isSetup = data.delivery_mode === 'setup';
+  const deliveryMode = normalizeDeliveryMode(data.delivery_mode);
+  const isManual = deliveryMode === DELIVERY_MODE.MANUAL;
+  const isSetup = deliveryMode === DELIVERY_MODE.SETUP;
   const hasSecretSpecs = isSetup && !data.setup_no_credentials && (data.setup_requirements?.length ?? 0) > 0;
 
   return (

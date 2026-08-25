@@ -334,6 +334,21 @@ export default function SellerProducts() {
         </div>
       );
     }
+    if (productsError) {
+      return (
+        <Card className="border-destructive">
+          <CardContent className="py-8 space-y-2">
+            <p className="text-sm font-medium text-destructive">Could not load your products.</p>
+            <p className="text-xs text-muted-foreground break-words">
+              {(productsError as any)?.message || String(productsError)}
+              {(productsError as any)?.code ? ` (code ${(productsError as any).code})` : ''}
+            </p>
+            <Button size="sm" variant="outline" onClick={() => refetch()}>Retry</Button>
+          </CardContent>
+        </Card>
+      );
+    }
+
     if (!list.length) {
       return (
         <Card className="border-dashed">

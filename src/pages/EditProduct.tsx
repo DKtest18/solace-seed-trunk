@@ -697,6 +697,19 @@ export default function EditProduct() {
           </div>
         </div>
 
+        {requiresResubmission && (
+          <div className="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+            <p className="font-semibold">Editing a reviewed product</p>
+            <p className="mt-1">
+              You can change every step. As soon as you click <strong>Save changes</strong>, this product is
+              removed from the marketplace and sent back to the admin review queue. It becomes visible and
+              purchasable again only after the admin approves it.
+            </p>
+          </div>
+        )}
+
+
+
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="mb-8">

@@ -37,6 +37,8 @@ export default function SellerOnboardingPayment() {
   const [refreshing, setRefreshing] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus>(emptyStripeConnectStatus);
+  const [stripeError, setStripeError] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (!user) {

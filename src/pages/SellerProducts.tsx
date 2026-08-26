@@ -188,6 +188,19 @@ export default function SellerProducts() {
     const sales = a.sales ?? p.sales_count ?? 0;
     const canDelete = bucket === 'draft' || bucket === 'rejected';
 
+    const timestampKinds: ProductTimestampKind[] =
+      bucket === 'draft'
+        ? ['updated']
+        : bucket === 'in_review'
+        ? ['submitted']
+        : bucket === 'approved_pending_publish'
+        ? ['submitted', 'approved']
+        : bucket === 'published'
+        ? ['approved', 'published']
+        : bucket === 'deleted'
+        ? ['delisted', 'updated']
+        : ['submitted'];
+
     return (
       <Card key={p.id} className="hover:shadow-md transition-shadow">
         <CardContent className="p-4 flex gap-4">
@@ -206,7 +219,11 @@ export default function SellerProducts() {
               <div className="min-w-0">
                 <h3 className="font-semibold truncate">{p.title || 'Untitled draft'}</h3>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  {statusBadge(bucket)}
+                  {bucket === 'approved_pending_publish' ? (
+                    <ApprovedStatusBadge productId={p.id} />
+                  ) : (
+                    statusBadge(bucket)
+                  )}
                   {bucket !== 'draft' && bucket !== 'in_review' && (
                     <span className="text-sm text-muted-foreground">
                       {formatMoney(p.price ?? 0, p.currency)}
@@ -217,6 +234,7 @@ export default function SellerProducts() {
                     <Truck className="h-3 w-3" /> {deliveryLabel(p)}
                   </span>
                 </div>
+                <ProductTimestamps product={p} kinds={timestampKinds} />
               </div>
               <div className="text-right text-xs text-muted-foreground space-y-1 hidden sm:block">
                 <div className="inline-flex items-center gap-1"><Eye className="h-3 w-3" /> {views} views</div>
@@ -229,6 +247,7 @@ export default function SellerProducts() {
                 In inspection — will be published within 0–24h if approved.
               </p>
             )}
+            {bucket === 'approved_pending_publish' && <ApprovedPurchasabilityHint productId={p.id} />}
             {p.admin_review_note && (REVIEW_STATUS_GROUPS.NEEDS_SELLER_ACTION as readonly string[]).includes(reviewStatusOf(p)) && (
               <p className="mt-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1">
                 <strong>Changes requested:</strong> {p.admin_review_note}
@@ -239,6 +258,7 @@ export default function SellerProducts() {
                 <strong>Staff note:</strong> {p.admin_rejection_reason || 'No reason provided.'}
               </p>
             )}
+
 
             <div className="flex gap-2 mt-3 flex-wrap">
               {bucket === 'draft' && (

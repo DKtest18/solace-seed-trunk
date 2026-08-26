@@ -26,7 +26,6 @@ import { AdminProductSubmissionDialog } from '@/components/admin/AdminProductSub
 import { formatMoney } from '@/lib/money';
 import { ProductTimestamps, hoursWaiting } from '@/components/seller/ProductTimestamps';
 
-import { format } from 'date-fns';
 
 import {
   REVIEW_STATUS,

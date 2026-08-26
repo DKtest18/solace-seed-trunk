@@ -96,7 +96,6 @@ export default function Marketplace() {
         const { data, error } = await db
           .from('dkai_products')
           .select('tags')
-          .eq('is_published', true)
           .eq('review_status', REVIEW_STATUS.APPROVED)
           .eq('exclusive_locked', false);
         if (error) return [] as string[];

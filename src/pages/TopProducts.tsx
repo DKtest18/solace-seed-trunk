@@ -69,7 +69,6 @@ export default function TopProducts() {
             icon
           )
         `)
-        .eq('is_published', true)
         .eq('review_status', REVIEW_STATUS.APPROVED);
 
       // Apply sorting

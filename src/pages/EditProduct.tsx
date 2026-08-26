@@ -855,18 +855,20 @@ export default function EditProduct() {
                 Back
               </Button>
 
-              {currentStep < STEPS.length ? (
-                <Button onClick={handleNext} disabled={isSubmitting}>
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              ) : (
-                <Button onClick={handleSubmit} disabled={isSubmitting}>
+              <div className="flex items-center gap-2">
+                <Button variant="secondary" onClick={handleSubmit} disabled={isSubmitting}>
                   {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Changes
+                  {requiresResubmission ? 'Save & send to review' : 'Save changes'}
                 </Button>
-              )}
+                {currentStep < STEPS.length && (
+                  <Button onClick={handleNext} disabled={isSubmitting}>
+                    Next
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
+
           </CardContent>
         </Card>
 

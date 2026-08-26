@@ -599,15 +599,22 @@ export default function EditProduct() {
             override_acknowledged: overrideAck,
             delivery_method_note: deliveryNote,
             max_sales: maxSales,
-            publish: formData.is_published,
+            publish: requiresResubmission ? false : formData.is_published,
           },
         });
       } catch (e) {
         console.warn('compute-delivery-recommendation failed (non-blocking)', e);
       }
 
-      toast.success('Product updated successfully!');
-      navigate('/seller-dashboard');
+      if (requiresResubmission) {
+        setReviewStatus(REVIEW_STATUS.SUBMITTED as ReviewStatus);
+        setFormData((prev) => ({ ...prev, is_published: false }));
+        toast.success('Changes saved — product sent back to admin review and removed from the marketplace.');
+      } else {
+        toast.success('Product updated successfully!');
+      }
+      navigate('/seller-products');
+
     } catch (error: any) {
       console.error('Error updating product:', error);
       toast.error(error.message || 'Failed to update product');

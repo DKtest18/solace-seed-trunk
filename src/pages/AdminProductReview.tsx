@@ -198,9 +198,14 @@ export default function AdminProductReview() {
                 const seller = sellers?.[p.seller_id];
                 const sellerName =
                   seller?.full_name || seller?.creator_name || seller?.username || 'Unknown seller';
-                const submitted = p.submitted_at || p.created_at;
+                const status = normalizeReviewStatus(p.review_status);
+                const waiting = hoursWaiting(p);
+                const overdue =
+                  (REVIEW_STATUS_GROUPS.PENDING as readonly string[]).includes(status) &&
+                  waiting != null &&
+                  waiting > 48;
                 return (
-                  <Card key={p.id}>
+                  <Card key={p.id} className={overdue ? 'border-destructive border-2' : undefined}>
                     <CardHeader>
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
@@ -213,12 +218,21 @@ export default function AdminProductReview() {
                               {p.is_published ? 'Live on marketplace' : 'Not live'}
                             </Badge>
                             {p.is_active === false && <Badge variant="destructive">Deleted</Badge>}
+                            {overdue && (
+                              <Badge variant="destructive">
+                                Waiting {Math.floor(waiting!)}h — over 48h
+                              </Badge>
+                            )}
                           </CardTitle>
                           <CardDescription className="mt-1">
                             {sellerName}
                             {seller?.email ? ` · ${seller.email}` : ''}
-                            {submitted ? ` · submitted ${format(new Date(submitted), 'dd MMM yyyy HH:mm')}` : ''}
                           </CardDescription>
+                          <ProductTimestamps
+                            product={p}
+                            kinds={['submitted', 'approved', 'published', 'delisted']}
+                          />
+
                           <CardDescription className="mt-1">
                             {formatMoney(p.price ?? 0, p.currency)} · Licenses: {licenseTiers(p)}
                             {p.category ? ` · ${p.category}` : ''}

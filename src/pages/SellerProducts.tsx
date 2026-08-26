@@ -37,6 +37,9 @@ import {
 import { db } from '@/lib/dkaiDb';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
 import { toast } from 'sonner';
+import { useProductPurchasable } from '@/hooks/useProductPurchasable';
+import { ProductTimestamps, type ProductTimestampKind } from '@/components/seller/ProductTimestamps';
+
 import {
   REVIEW_STATUS_GROUPS,
   SELLER_PRODUCT_TAB,
@@ -109,6 +112,42 @@ function deliveryLabel(p: any) {
   if (!mode) return '—';
   return String(mode).replace(/_/g, ' ');
 }
+
+/**
+ * Approved products are ALWAYS visible on the marketplace. Only purchasability
+ * depends on a connected payout provider (dkai_product_purchasable).
+ */
+function ApprovedStatusBadge({ productId }: { productId: string }) {
+  const { data: purchasable = false } = useProductPurchasable(productId);
+  if (purchasable) {
+    return (
+      <Badge variant="outline" className="border-blue-500 text-blue-700 bg-blue-50">
+        <CheckCircle2 className="h-3 w-3 mr-1" /> Approved — will be published soon.
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="outline" className="border-amber-500 text-amber-700 bg-amber-50">
+      <CheckCircle2 className="h-3 w-3 mr-1" /> On the marketplace — but not yet purchasable
+    </Badge>
+  );
+}
+
+function ApprovedPurchasabilityHint({ productId }: { productId: string }) {
+  const { data: purchasable = false } = useProductPurchasable(productId);
+  if (purchasable) return null;
+  return (
+    <p className="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+      Your product is visible to everyone on the marketplace. To make it purchasable, connect Stripe
+      or PayPal in{' '}
+      <Link to="/seller-payment-settings" className="underline font-medium">
+        Payment Settings
+      </Link>
+      .
+    </p>
+  );
+}
+
 
 export default function SellerProducts() {
   const { user } = useAuth();

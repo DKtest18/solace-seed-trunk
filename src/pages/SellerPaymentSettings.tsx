@@ -88,17 +88,29 @@ export default function SellerPaymentSettings() {
 
   const fetchStripeStatus = async () => {
     setRefreshing(true);
+    // Watchdog: the card must never stay on a spinner, even if the request hangs.
+    const watchdog = setTimeout(() => {
+      setLoading(false);
+      setRefreshing(false);
+      setStripeError("Stripe status could not be loaded. You can still start the Stripe connection below.");
+    }, 12_000);
     try {
       setStripeStatus(await fetchStripeConnectStatus());
+      setStripeError(null);
       await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
     } catch (error) {
       console.error("Error fetching Stripe status:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to fetch Stripe status");
+      const message = error instanceof Error ? error.message : "Failed to fetch Stripe status";
+      setStripeStatus(emptyStripeConnectStatus);
+      setStripeError(message);
+      toast.error(message);
     } finally {
+      clearTimeout(watchdog);
       setLoading(false);
       setRefreshing(false);
     }
   };
+
 
   const handleConnectStripe = async () => {
     setConnecting(true);

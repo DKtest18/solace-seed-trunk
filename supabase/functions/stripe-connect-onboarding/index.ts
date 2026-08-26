@@ -1,13 +1,15 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
-const STRIPE_ACCOUNT_TABLES = ['dkaim_user_id', 'dkai_user_id', 'dkai_profiles'];
+const LEGACY_TABLES = ['dkaim_user_id', 'dkai_user_id', 'dkai_seller_profiles', 'dkai_profiles'];
 
 function isSchemaError(error: any) {
   const message = String(error?.message || '').toLowerCase();
   return (
     error?.code === 'PGRST204' ||
     error?.code === 'PGRST205' ||
+    error?.code === '42703' ||
+    error?.code === '42P01' ||
     message.includes('could not find the table') ||
     message.includes('schema cache') ||
     message.includes('does not exist') ||
@@ -18,74 +20,77 @@ function isSchemaError(error: any) {
 function normalizeOrigin(req: Request, bodyOrigin?: string) {
   const candidate = bodyOrigin || req.headers.get('origin') || 'https://dkaimarketplace.com';
   try {
-    const url = new URL(candidate);
-    return url.origin;
+    return new URL(candidate).origin;
   } catch {
     return 'https://dkaimarketplace.com';
   }
 }
 
-async function findStripeStorage(admin: any, userId: string) {
-  let firstExistingTable: string | null = null;
-  let firstExistingRow: { table: string; row: any } | null = null;
+async function readAccountId(admin: any, userId: string): Promise<string | null> {
+  const cfg = await admin
+    .from('dkai_seller_payment_configs')
+    .select('stripe_account_id')
+    .eq('seller_id', userId)
+    .maybeSingle();
+  if (!cfg.error && cfg.data?.stripe_account_id) return cfg.data.stripe_account_id;
 
-  for (const table of STRIPE_ACCOUNT_TABLES) {
-    const { data, error } = await admin
-      .from(table)
-      .select('id, stripe_account_id')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (!error) {
-      firstExistingTable ??= table;
-      if (data?.stripe_account_id) return { table, row: data };
-      if (data && !firstExistingRow) firstExistingRow = { table, row: data };
-      continue;
-    }
-    if (!isSchemaError(error)) throw error;
+  for (const table of LEGACY_TABLES) {
+    const { data, error } = await admin.from(table).select('stripe_account_id').eq('id', userId).maybeSingle();
+    if (!error && data?.stripe_account_id) return data.stripe_account_id;
+    if (error && !isSchemaError(error)) throw error;
   }
-
-  return {
-    table: firstExistingTable ?? firstExistingRow?.table ?? null,
-    row: firstExistingRow?.table === firstExistingTable ? firstExistingRow.row : null,
-  };
+  return null;
 }
 
-async function writeStripeAccount(admin: any, userId: string, accountId: string, onboarded: boolean) {
-  const detected = await findStripeStorage(admin, userId);
-  const candidates = detected.table
-    ? [detected.table, ...STRIPE_ACCOUNT_TABLES.filter((table) => table !== detected.table)]
-    : STRIPE_ACCOUNT_TABLES;
+async function persistAccountId(admin: any, userId: string, accountId: string) {
+  const now = new Date().toISOString();
+  const payloads = [
+    {
+      seller_id: userId,
+      stripe_account_id: accountId,
+      stripe_onboarding_status: 'onboarding',
+      onboarding_status: 'onboarding',
+      stripe_onboarded: false,
+      updated_at: now,
+    },
+    { seller_id: userId, stripe_account_id: accountId, stripe_onboarding_status: 'onboarding', updated_at: now },
+    { seller_id: userId, stripe_account_id: accountId, stripe_onboarding_status: 'onboarding' },
+    { seller_id: userId, stripe_account_id: accountId },
+  ];
 
-  for (const table of candidates) {
-    const withOnboarded = await admin.from(table).upsert(
-      {
-        id: userId,
-        stripe_account_id: accountId,
-        stripe_onboarded: onboarded,
-      },
-      { onConflict: 'id' },
-    );
-
-    if (!withOnboarded.error) return table;
-
-    if (isSchemaError(withOnboarded.error)) {
-      const withoutOnboarded = await admin.from(table).upsert(
-        {
-          id: userId,
-          stripe_account_id: accountId,
-        },
-        { onConflict: 'id' },
-      );
-      if (!withoutOnboarded.error) return table;
-      if (isSchemaError(withoutOnboarded.error)) continue;
-      throw withoutOnboarded.error;
+  let saved = false;
+  for (const payload of payloads) {
+    const { error } = await admin
+      .from('dkai_seller_payment_configs')
+      .upsert(payload, { onConflict: 'seller_id' });
+    if (!error) {
+      saved = true;
+      break;
     }
-
-    throw withOnboarded.error;
+    if (!isSchemaError(error)) {
+      console.error('persistAccountId config error:', error);
+      break;
+    }
   }
 
-  throw new Error('No supported Stripe account storage table found. Expected stripe_account_id on dkaim_user_id, dkai_user_id, or dkai_profiles.');
+  for (const table of LEGACY_TABLES) {
+    const attempts = [
+      { stripe_account_id: accountId, stripe_onboarded: false },
+      { stripe_account_id: accountId },
+    ];
+    for (const values of attempts) {
+      const { error } = await admin.from(table).update(values).eq('id', userId);
+      if (!error) {
+        saved = true;
+        break;
+      }
+      if (!isSchemaError(error)) break;
+    }
+  }
+
+  if (!saved) {
+    console.error('Could not persist stripe_account_id anywhere for user', userId);
+  }
 }
 
 Deno.serve(async (req) => {
@@ -102,8 +107,8 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const origin = normalizeOrigin(req, typeof body?.origin === 'string' ? body.origin : undefined);
     const admin = getServiceClient();
-    const { row } = await findStripeStorage(admin, user.id);
-    let accountId = row?.stripe_account_id;
+
+    let accountId = await readAccountId(admin, user.id);
 
     if (!accountId) {
       const createRes = await fetch('https://api.stripe.com/v1/accounts', {
@@ -125,8 +130,10 @@ Deno.serve(async (req) => {
       }
 
       accountId = account.id;
-      await writeStripeAccount(admin, user.id, accountId, false);
     }
+
+    // Always persist BEFORE redirecting, so a returning seller is recognised.
+    await persistAccountId(admin, user.id, accountId!);
 
     const linkRes = await fetch('https://api.stripe.com/v1/account_links', {
       method: 'POST',
@@ -135,7 +142,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        account: accountId,
+        account: accountId!,
         refresh_url: `${origin}/seller/payment-settings?refresh=true`,
         return_url: `${origin}/seller/payment-settings?return=1`,
         type: 'account_onboarding',
@@ -147,7 +154,7 @@ Deno.serve(async (req) => {
       return errorResponse(link.error?.message || 'Stripe failed to create onboarding link', linkRes.status || 500);
     }
 
-    return jsonResponse({ success: true, url: link.url });
+    return jsonResponse({ success: true, url: link.url, accountId });
   } catch (err) {
     console.error('stripe-connect-onboarding error:', err);
     return errorResponse(err instanceof Error ? err.message : 'Failed to create onboarding link', 500);

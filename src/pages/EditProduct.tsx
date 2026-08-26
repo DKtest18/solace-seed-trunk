@@ -575,6 +575,16 @@ export default function EditProduct() {
           demo_video_storage_path:
             (formData.demo_video_paths?.[0] || formData.demo_video_storage_path || '').trim() || null,
           demo_video_paths: formData.demo_video_paths ?? [],
+          ...(requiresResubmission
+            ? {
+                review_status: REVIEW_STATUS.SUBMITTED,
+                submitted_at: new Date().toISOString(),
+                approved_at: null,
+                reviewed_at: null,
+                review_notes: null,
+              }
+            : {}),
+
         })
         .eq('id', id);
 

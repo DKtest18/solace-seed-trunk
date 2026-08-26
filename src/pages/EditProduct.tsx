@@ -454,6 +454,20 @@ export default function EditProduct() {
     }
   };
 
+  /**
+   * Any seller edit on a product that is already live (or previously reviewed)
+   * takes it OFF the marketplace and sends it back to the admin review queue.
+   */
+  const requiresResubmission = (
+    [
+      REVIEW_STATUS.APPROVED,
+      REVIEW_STATUS.LOCKED_EXCLUSIVE,
+      REVIEW_STATUS.DELISTED,
+      REVIEW_STATUS.REJECTED,
+      REVIEW_STATUS.CHANGES_REQUESTED,
+    ] as string[]
+  ).includes(reviewStatus);
+
   const handleSubmit = async () => {
     if (!validateStep(currentStep)) {
       toast.error('Please fix the errors before saving');
@@ -468,6 +482,7 @@ export default function EditProduct() {
     }
 
     setIsSubmitting(true);
+
 
     try {
       // Gallery media is uploaded and persisted immediately in dkai_product_media,

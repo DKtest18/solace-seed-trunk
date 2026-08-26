@@ -48,7 +48,9 @@ export default function ProductDetail() {
   const [searchParams] = useSearchParams();
   const [reportOpen, setReportOpen] = useState(false);
   const [licenseTier, setLicenseTier] = useState<LicenseTier>('personal');
-  const { data: purchasable = true } = useProductPurchasable(id);
+  // FAIL CLOSED: while loading or on error the product counts as NOT purchasable.
+  const { data: purchasable = false } = useProductPurchasable(id);
+
 
   // Capture referral ?ref=<code> for attribution + persist for checkout
   useEffect(() => {

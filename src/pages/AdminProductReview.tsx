@@ -24,6 +24,7 @@ import { DemoVideoReviewPanel, hasDemoVideo } from '@/components/admin/DemoVideo
 import { AdminProductFileAccess } from '@/components/admin/AdminProductFileAccess';
 import { AdminProductSubmissionDialog } from '@/components/admin/AdminProductSubmissionDialog';
 import { formatMoney } from '@/lib/money';
+import { ProductTimestamps, hoursWaiting } from '@/components/seller/ProductTimestamps';
 
 import { format } from 'date-fns';
 

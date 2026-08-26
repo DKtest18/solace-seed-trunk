@@ -91,7 +91,7 @@ export default function SellerOnboardingPayment() {
       setStripeLoading(false);
       setRefreshing(false);
       setStripeError('Stripe status could not be loaded. You can still start the Stripe connection below.');
-    }, 12_000);
+    }, 30_000);
     try {
       setStripeStatus(await fetchStripeConnectStatus());
       setStripeError(null);

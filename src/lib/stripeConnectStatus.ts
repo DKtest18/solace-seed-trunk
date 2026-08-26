@@ -26,7 +26,10 @@ export const emptyStripeConnectStatus: StripeConnectStatus = {
   detailsSubmitted: false,
 };
 
-const STRIPE_FUNCTION_TIMEOUT_MS = 10_000;
+// Cold-started edge functions + the Stripe API round trip regularly need
+// more than 10s on the first call of a session, which produced spurious
+// "did not respond in time" errors. Give it real headroom.
+const STRIPE_FUNCTION_TIMEOUT_MS = 25_000;
 
 async function withStripeFunctionTimeout<T>(promise: Promise<T>, functionName: string): Promise<T> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -134,12 +137,19 @@ export function mapStripeConnectStatus(data: any): StripeConnectStatus {
 }
 
 export async function fetchStripeConnectStatus(): Promise<StripeConnectStatus> {
-  try {
-    return mapStripeConnectStatus(await invokeStripeFunction('stripe-connect-status'));
-  } catch (error) {
-    logSupabaseFunctionError('Stripe status edge-function error', error);
-    throw error;
+  // One transparent retry: the very first call after a cold start often fails
+  // or times out, which is exactly the "open page, click again, then it works"
+  // behaviour sellers reported.
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return mapStripeConnectStatus(await invokeStripeFunction('stripe-connect-status'));
+    } catch (error) {
+      logSupabaseFunctionError('Stripe status edge-function error', error);
+      if (attempt === 1) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 1_200));
+    }
   }
+  return emptyStripeConnectStatus;
 }
 
 export async function createStripeConnectOnboardingLink(origin: string): Promise<string> {

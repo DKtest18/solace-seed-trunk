@@ -1,7 +1,7 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
-const STRIPE_ACCOUNT_TABLES = ['dkaim_user_id', 'dkai_user_id', 'dkai_profiles'];
+const STRIPE_ACCOUNT_TABLES = ['dkaim_user_id', 'dkai_user_id', 'dkai_seller_profiles', 'dkai_profiles'];
 
 function isSchemaError(error: any) {
   const message = String(error?.message || '').toLowerCase();
@@ -9,6 +9,13 @@ function isSchemaError(error: any) {
 }
 
 async function findStripeUserRow(admin: any, userId: string) {
+  const cfg = await admin
+    .from('dkai_seller_payment_configs')
+    .select('stripe_account_id')
+    .eq('seller_id', userId)
+    .maybeSingle();
+  if (!cfg.error && cfg.data?.stripe_account_id) return cfg.data;
+
   for (const table of STRIPE_ACCOUNT_TABLES) {
     const { data, error } = await admin.from(table).select('stripe_account_id').eq('id', userId).maybeSingle();
     if (!error && data?.stripe_account_id) return data;

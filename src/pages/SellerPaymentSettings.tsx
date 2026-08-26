@@ -195,7 +195,7 @@ export default function SellerPaymentSettings() {
     return <Badge className="bg-yellow-500 hover:bg-yellow-600">Verifying…</Badge>;
   };
 
-  if (loading || roleLoading) {
+  if (roleLoading) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-screen">

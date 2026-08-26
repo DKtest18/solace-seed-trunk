@@ -26,7 +26,7 @@ export const emptyStripeConnectStatus: StripeConnectStatus = {
   detailsSubmitted: false,
 };
 
-const STRIPE_FUNCTION_TIMEOUT_MS = 15_000;
+const STRIPE_FUNCTION_TIMEOUT_MS = 10_000;
 
 async function withStripeFunctionTimeout<T>(promise: Promise<T>, functionName: string): Promise<T> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -153,7 +153,7 @@ export async function pollStripeConnectStatus(options?: {
   intervalMs?: number;
   stopWhen?: (status: StripeConnectStatus) => boolean;
 }): Promise<StripeConnectStatus> {
-  const maxAttempts = options?.maxAttempts ?? 10;
+  const maxAttempts = options?.maxAttempts ?? 6;
   const intervalMs = options?.intervalMs ?? 2_000;
   const stopWhen = options?.stopWhen ?? ((status) => status.connected && status.onboardingStatus !== 'onboarding');
   let latest = emptyStripeConnectStatus;

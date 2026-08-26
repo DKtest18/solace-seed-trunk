@@ -90,8 +90,8 @@ export default function SellerOnboardingPayment() {
     const watchdog = setTimeout(() => {
       setStripeLoading(false);
       setRefreshing(false);
-      setStripeError('Stripe status could not be loaded. Please use Refresh or try connecting again.');
-    }, 20_000);
+      setStripeError('Stripe status could not be loaded. You can still start the Stripe connection below.');
+    }, 12_000);
     try {
       setStripeStatus(await fetchStripeConnectStatus());
       setStripeError(null);

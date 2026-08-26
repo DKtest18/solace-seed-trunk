@@ -27,7 +27,9 @@ export default function SellerPaymentSettings() {
   const { hasRole: isSeller, isLoading: roleLoading } = useHasRole("seller");
   const { feePct, sellerPct } = usePlatformFee();
   
+  // `loading` gates ONLY the Stripe card, never the whole page.
   const [loading, setLoading] = useState(true);
+  const [stripeError, setStripeError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
@@ -86,17 +88,29 @@ export default function SellerPaymentSettings() {
 
   const fetchStripeStatus = async () => {
     setRefreshing(true);
+    // Watchdog: the card must never stay on a spinner, even if the request hangs.
+    const watchdog = setTimeout(() => {
+      setLoading(false);
+      setRefreshing(false);
+      setStripeError("Stripe status could not be loaded. You can still start the Stripe connection below.");
+    }, 12_000);
     try {
       setStripeStatus(await fetchStripeConnectStatus());
+      setStripeError(null);
       await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
     } catch (error) {
       console.error("Error fetching Stripe status:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to fetch Stripe status");
+      const message = error instanceof Error ? error.message : "Failed to fetch Stripe status";
+      setStripeStatus(emptyStripeConnectStatus);
+      setStripeError(message);
+      toast.error(message);
     } finally {
+      clearTimeout(watchdog);
       setLoading(false);
       setRefreshing(false);
     }
   };
+
 
   const handleConnectStripe = async () => {
     setConnecting(true);
@@ -181,7 +195,7 @@ export default function SellerPaymentSettings() {
     return <Badge className="bg-yellow-500 hover:bg-yellow-600">Verifying…</Badge>;
   };
 
-  if (loading || roleLoading) {
+  if (roleLoading) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-screen">
@@ -266,7 +280,23 @@ export default function SellerPaymentSettings() {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            {stripeStatus.connected ? (
+            {stripeError && !loading && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="flex flex-col gap-2">
+                  <span>{stripeError}</span>
+                  <Button variant="outline" size="sm" className="self-start" onClick={fetchStripeStatus} disabled={refreshing}>
+                    <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                    Retry
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+            {loading ? (
+              <div className="flex items-center justify-center p-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : stripeStatus.connected ? (
               <>
                 {/* Connected Status */}
                 <div className="flex items-center justify-between p-4 bg-muted rounded-lg">

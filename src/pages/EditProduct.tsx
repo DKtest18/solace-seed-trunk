@@ -519,7 +519,7 @@ export default function EditProduct() {
           image_url: imageUrl,
           payment_methods: formData.payment_methods,
           faqs: formData.faqs,
-          is_published: formData.is_published,
+          is_published: requiresResubmission ? false : formData.is_published,
           delivery_mode: assertDeliveryMode(formData.delivery_mode),
           delivery_time_hours:
             normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.INSTANT ? null : (formData.delivery_time_hours ?? 24),

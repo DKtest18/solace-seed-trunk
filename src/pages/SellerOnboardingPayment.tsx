@@ -106,36 +106,16 @@ export default function SellerOnboardingPayment() {
     }
     const origin = window.location.origin;
 
-    let data: any = null;
-    let error: any = null;
     try {
-      const res = await supabase.functions.invoke('stripe-connect-onboarding', { body: { origin } });
-      data = res.data;
-      error = res.error;
+      const url = await createStripeConnectOnboardingLink(origin);
+      toast({ title: "Redirecting", description: "Opening Stripe onboarding..." });
+      window.location.href = url;
     } catch (e: any) {
       console.error('stripe-connect-onboarding invoke threw:', e);
       toast({ title: "Error", description: e?.message || String(e), variant: "destructive" });
       setConnecting(false);
       return;
     }
-
-    if (error || !data?.url) {
-      let serverMsg = data?.error || error?.message;
-      const ctx = error?.context;
-      if (!data?.error && ctx && typeof ctx.text === 'function') {
-        try {
-          const txt = await ctx.clone().text();
-          try { serverMsg = JSON.parse(txt)?.error || txt || serverMsg; } catch { serverMsg = txt || serverMsg; }
-        } catch {}
-      }
-      console.error('stripe-connect-onboarding failed:', { error, data });
-      toast({ title: `Stripe (${ctx?.status ?? 'error'})`, description: serverMsg || 'Unknown error from stripe-connect-onboarding', variant: "destructive" });
-      setConnecting(false);
-      return;
-    }
-
-    toast({ title: "Redirecting", description: "Opening Stripe onboarding..." });
-    window.location.href = data.url;
   };
 
   const handleOpenDashboard = async () => {

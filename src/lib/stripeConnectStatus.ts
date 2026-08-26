@@ -26,6 +26,24 @@ export const emptyStripeConnectStatus: StripeConnectStatus = {
   detailsSubmitted: false,
 };
 
+const STRIPE_FUNCTION_TIMEOUT_MS = 15_000;
+
+async function withStripeFunctionTimeout<T>(promise: Promise<T>, functionName: string): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`${functionName} did not respond in time. Please refresh and try again.`));
+    }, STRIPE_FUNCTION_TIMEOUT_MS);
+  });
+
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
 /** Reads the JSON/text body of a failed functions.invoke() error. */
 export async function readFunctionErrorMessage(error: unknown): Promise<string | undefined> {
   const ctx: any = (error as any)?.context;
@@ -69,7 +87,10 @@ async function invokeStripeFunction<T = any>(functionName: string, body?: Record
     throw new Error('Please sign in again before managing Stripe payments.');
   }
 
-  const { data, error } = await supabase.functions.invoke(functionName, { body: body ?? {} });
+  const { data, error } = await withStripeFunctionTimeout(
+    supabase.functions.invoke(functionName, { body: body ?? {} }),
+    functionName,
+  );
 
   if (error || (data as any)?.error) {
     const detail = await readFunctionErrorMessage(error);
@@ -122,12 +143,9 @@ export async function fetchStripeConnectStatus(): Promise<StripeConnectStatus> {
 }
 
 export async function createStripeConnectOnboardingLink(origin: string): Promise<string> {
-  const { data, error } = await supabase.functions.invoke('stripe-connect-onboarding', { body: { origin } });
-  if (error || !data?.url) {
-    const msg = (data as any)?.error || error?.message || 'stripe-connect-onboarding returned no url';
-    throw new Error(msg);
-  }
-  return data.url as string;
+  const data = await invokeStripeFunction<{ url?: string }>('stripe-connect-onboarding', { origin });
+  if (!data?.url) throw new Error('stripe-connect-onboarding returned no url');
+  return data.url;
 }
 
 export async function pollStripeConnectStatus(options?: {

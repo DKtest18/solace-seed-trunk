@@ -140,7 +140,7 @@ function ApprovedPurchasabilityHint({ productId }: { productId: string }) {
     <p className="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
       Your product is visible to everyone on the marketplace. To make it purchasable, connect Stripe
       or PayPal in{' '}
-      <Link to="/seller-payment-settings" className="underline font-medium">
+      <Link to="/seller/payment-settings" className="underline font-medium">
         Payment Settings
       </Link>
       .

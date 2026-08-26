@@ -295,10 +295,23 @@ export default function SellerOnboardingPayment() {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
+            {stripeError && !stripeLoading && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="flex flex-col gap-2">
+                  <span>{stripeError}</span>
+                  <Button variant="outline" size="sm" className="self-start" onClick={fetchStripeStatus} disabled={refreshing}>
+                    <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                    Retry
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
             {stripeLoading ? (
               <div className="flex items-center justify-center p-8">
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
+
             ) : stripeStatus.connected ? (
               <>
                 {/* Connected Status Display */}

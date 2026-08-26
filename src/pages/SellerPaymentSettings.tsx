@@ -27,7 +27,9 @@ export default function SellerPaymentSettings() {
   const { hasRole: isSeller, isLoading: roleLoading } = useHasRole("seller");
   const { feePct, sellerPct } = usePlatformFee();
   
+  // `loading` gates ONLY the Stripe card, never the whole page.
   const [loading, setLoading] = useState(true);
+  const [stripeError, setStripeError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);

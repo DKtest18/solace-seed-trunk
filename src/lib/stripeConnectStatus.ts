@@ -26,7 +26,10 @@ export const emptyStripeConnectStatus: StripeConnectStatus = {
   detailsSubmitted: false,
 };
 
-const STRIPE_FUNCTION_TIMEOUT_MS = 10_000;
+// Cold-started edge functions + the Stripe API round trip regularly need
+// more than 10s on the first call of a session, which produced spurious
+// "did not respond in time" errors. Give it real headroom.
+const STRIPE_FUNCTION_TIMEOUT_MS = 25_000;
 
 async function withStripeFunctionTimeout<T>(promise: Promise<T>, functionName: string): Promise<T> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;

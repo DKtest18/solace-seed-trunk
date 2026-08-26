@@ -37,6 +37,8 @@ export default function SellerOnboardingPayment() {
   const [refreshing, setRefreshing] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus>(emptyStripeConnectStatus);
+  const [stripeError, setStripeError] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (!user) {
@@ -84,17 +86,29 @@ export default function SellerOnboardingPayment() {
 
   const fetchStripeStatus = async () => {
     setRefreshing(true);
+    // Watchdog: never leave the card stuck on a spinner, even if the request hangs.
+    const watchdog = setTimeout(() => {
+      setStripeLoading(false);
+      setRefreshing(false);
+      setStripeError('Stripe status could not be loaded. Please use Refresh or try connecting again.');
+    }, 20_000);
     try {
       setStripeStatus(await fetchStripeConnectStatus());
+      setStripeError(null);
       await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
     } catch (error) {
       console.error("Error fetching Stripe status:", error);
-      toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to fetch Stripe status", variant: "destructive" });
+      const message = error instanceof Error ? error.message : "Failed to fetch Stripe status";
+      setStripeStatus(emptyStripeConnectStatus);
+      setStripeError(message);
+      toast({ title: "Error", description: message, variant: "destructive" });
     } finally {
+      clearTimeout(watchdog);
       setStripeLoading(false);
       setRefreshing(false);
     }
   };
+
 
   const handleConnectStripe = async () => {
     setConnecting(true);
@@ -281,10 +295,23 @@ export default function SellerOnboardingPayment() {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
+            {stripeError && !stripeLoading && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="flex flex-col gap-2">
+                  <span>{stripeError}</span>
+                  <Button variant="outline" size="sm" className="self-start" onClick={fetchStripeStatus} disabled={refreshing}>
+                    <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                    Retry
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
             {stripeLoading ? (
               <div className="flex items-center justify-center p-8">
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
+
             ) : stripeStatus.connected ? (
               <>
                 {/* Connected Status Display */}

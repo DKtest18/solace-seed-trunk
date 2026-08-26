@@ -454,6 +454,20 @@ export default function EditProduct() {
     }
   };
 
+  /**
+   * Any seller edit on a product that is already live (or previously reviewed)
+   * takes it OFF the marketplace and sends it back to the admin review queue.
+   */
+  const requiresResubmission = (
+    [
+      REVIEW_STATUS.APPROVED,
+      REVIEW_STATUS.LOCKED_EXCLUSIVE,
+      REVIEW_STATUS.DELISTED,
+      REVIEW_STATUS.REJECTED,
+      REVIEW_STATUS.CHANGES_REQUESTED,
+    ] as string[]
+  ).includes(reviewStatus);
+
   const handleSubmit = async () => {
     if (!validateStep(currentStep)) {
       toast.error('Please fix the errors before saving');
@@ -468,6 +482,7 @@ export default function EditProduct() {
     }
 
     setIsSubmitting(true);
+
 
     try {
       // Gallery media is uploaded and persisted immediately in dkai_product_media,
@@ -504,7 +519,7 @@ export default function EditProduct() {
           image_url: imageUrl,
           payment_methods: formData.payment_methods,
           faqs: formData.faqs,
-          is_published: formData.is_published,
+          is_published: requiresResubmission ? false : formData.is_published,
           delivery_mode: assertDeliveryMode(formData.delivery_mode),
           delivery_time_hours:
             normalizeDeliveryMode(formData.delivery_mode) === DELIVERY_MODE.INSTANT ? null : (formData.delivery_time_hours ?? 24),
@@ -560,6 +575,16 @@ export default function EditProduct() {
           demo_video_storage_path:
             (formData.demo_video_paths?.[0] || formData.demo_video_storage_path || '').trim() || null,
           demo_video_paths: formData.demo_video_paths ?? [],
+          ...(requiresResubmission
+            ? {
+                review_status: REVIEW_STATUS.SUBMITTED,
+                submitted_at: new Date().toISOString(),
+                approved_at: null,
+                reviewed_at: null,
+                review_notes: null,
+              }
+            : {}),
+
         })
         .eq('id', id);
 
@@ -574,15 +599,22 @@ export default function EditProduct() {
             override_acknowledged: overrideAck,
             delivery_method_note: deliveryNote,
             max_sales: maxSales,
-            publish: formData.is_published,
+            publish: requiresResubmission ? false : formData.is_published,
           },
         });
       } catch (e) {
         console.warn('compute-delivery-recommendation failed (non-blocking)', e);
       }
 
-      toast.success('Product updated successfully!');
-      navigate('/seller-dashboard');
+      if (requiresResubmission) {
+        setReviewStatus(REVIEW_STATUS.SUBMITTED as ReviewStatus);
+        setFormData((prev) => ({ ...prev, is_published: false }));
+        toast.success('Changes saved — product sent back to admin review and removed from the marketplace.');
+      } else {
+        toast.success('Product updated successfully!');
+      }
+      navigate('/seller-products');
+
     } catch (error: any) {
       console.error('Error updating product:', error);
       toast.error(error.message || 'Failed to update product');
@@ -664,6 +696,19 @@ export default function EditProduct() {
             </Button>
           </div>
         </div>
+
+        {requiresResubmission && (
+          <div className="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+            <p className="font-semibold">Editing a reviewed product</p>
+            <p className="mt-1">
+              You can change every step. As soon as you click <strong>Save changes</strong>, this product is
+              removed from the marketplace and sent back to the admin review queue. It becomes visible and
+              purchasable again only after the admin approves it.
+            </p>
+          </div>
+        )}
+
+
 
         <Card className="mb-6">
           <CardContent className="pt-6">
@@ -810,18 +855,20 @@ export default function EditProduct() {
                 Back
               </Button>
 
-              {currentStep < STEPS.length ? (
-                <Button onClick={handleNext} disabled={isSubmitting}>
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              ) : (
-                <Button onClick={handleSubmit} disabled={isSubmitting}>
+              <div className="flex items-center gap-2">
+                <Button variant="secondary" onClick={handleSubmit} disabled={isSubmitting}>
                   {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Changes
+                  {requiresResubmission ? 'Save & send to review' : 'Save changes'}
                 </Button>
-              )}
+                {currentStep < STEPS.length && (
+                  <Button onClick={handleNext} disabled={isSubmitting}>
+                    Next
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
+
           </CardContent>
         </Card>
 

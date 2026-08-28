@@ -337,45 +337,70 @@ export default function Login() {
                 Two-factor authentication
               </h1>
               <p className="text-sm text-muted-foreground mb-8">
-                Enter the 6-digit code from your authenticator app.
+                {mfaFactors.length > 1
+                  ? t('mfa.challenge.chooseMethod')
+                  : t('mfa.challenge.totpHint')}
               </p>
 
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleVerify2FA();
-                }}
-                className="space-y-4"
-              >
-                <div className="flex justify-center">
-                  <InputOTP maxLength={6} value={twoFACode} onChange={setTwoFACode}>
-                    <InputOTPGroup>
-                      {[0, 1, 2, 3, 4, 5].map((i) => (
-                        <InputOTPSlot key={i} index={i} className="w-11 h-12 rounded-lg border border-border text-center text-lg font-medium" />
-                      ))}
-                    </InputOTPGroup>
-                  </InputOTP>
-                </div>
-
-                {twoFAError && (
-                  <p className="text-sm text-destructive text-center" role="alert" aria-live="assertive">
-                    {twoFAError}
+              {mfaFactors.length > 0 ? (
+                <>
+                  {/* Chooser when several factors exist, straight to the code
+                      entry when there is only one. */}
+                  <MfaFactorChallenge
+                    factors={mfaFactors}
+                    onVerified={handleTwoFAVerified}
+                    onFailure={(m) => registerTwoFAFailure(m)}
+                    disabled={loading}
+                  />
+                  {twoFAError && (
+                    <p className="mt-3 text-sm text-destructive text-center" role="alert" aria-live="assertive">
+                      {twoFAError}
+                    </p>
+                  )}
+                  <p className="mt-3 text-sm text-muted-foreground text-center">
+                    If you don't have access anymore, write an email to support@dkaimarketplace.com
                   </p>
-                )}
-
-                <p className="text-sm text-muted-foreground text-center">
-                  If you don't have access anymore, write an email to support@dkaimarketplace.com
-                </p>
-
-                <Button
-                  type="submit"
-                  variant="hero"
-                  className="w-full"
-                  disabled={loading || twoFACode.length !== 6}
+                </>
+              ) : (
+                /* Legacy accounts without a native factor. */
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleVerifyLegacy2FA();
+                  }}
+                  className="space-y-4"
                 >
-                  {loading ? 'Verifying...' : 'Verify and sign in'}
-                </Button>
-              </form>
+                  <div className="flex justify-center">
+                    <InputOTP maxLength={6} value={twoFACode} onChange={setTwoFACode}>
+                      <InputOTPGroup>
+                        {[0, 1, 2, 3, 4, 5].map((i) => (
+                          <InputOTPSlot key={i} index={i} className="w-11 h-12 rounded-lg border border-border text-center text-lg font-medium" />
+                        ))}
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
+
+                  {twoFAError && (
+                    <p className="text-sm text-destructive text-center" role="alert" aria-live="assertive">
+                      {twoFAError}
+                    </p>
+                  )}
+
+                  <p className="text-sm text-muted-foreground text-center">
+                    If you don't have access anymore, write an email to support@dkaimarketplace.com
+                  </p>
+
+                  <Button
+                    type="submit"
+                    variant="hero"
+                    className="w-full"
+                    disabled={loading || twoFACode.length !== 6}
+                  >
+                    {loading ? 'Verifying...' : 'Verify and sign in'}
+                  </Button>
+                </form>
+              )}
+
 
               <button
                 onClick={() => setStep('backup')}

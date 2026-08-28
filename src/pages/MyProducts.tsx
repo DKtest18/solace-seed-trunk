@@ -204,7 +204,7 @@ export default function MyProducts() {
 
               {isLoading ? (
                 <div className="flex justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <HourglassLoader size="sm" />
                 </div>
               ) : products && products.length > 0 ? (
                 <Card className="rounded-2xl">

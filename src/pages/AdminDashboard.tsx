@@ -506,7 +506,7 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
             <CardContent>
               {productsLoading ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  <HourglassLoader size="sm" />
                 </div>
               ) : productsError ? (
                 <div className="text-center text-destructive py-8">

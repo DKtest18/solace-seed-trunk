@@ -20,6 +20,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Shield, AlertTriangle, MessageSquare, User, Ban, Search, Eye, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface Profile {
   id: string;
@@ -271,7 +272,7 @@ export default function AdminDisputes() {
     return (
       <AppLayout>
         <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <HourglassLoader size="sm" />
         </div>
       </AppLayout>
     );
@@ -335,7 +336,7 @@ export default function AdminDisputes() {
 
                 {reportsLoading ? (
                   <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <HourglassLoader size="sm" />
                   </div>
                 ) : !filteredReports || filteredReports.length === 0 ? (
                   <div className="text-center py-12">
@@ -505,7 +506,7 @@ export default function AdminDisputes() {
                 <CardContent>
                   {conversationsLoading ? (
                     <div className="flex items-center justify-center py-12">
-                      <Loader2 className="h-8 w-8 animate-spin" />
+                      <HourglassLoader size="sm" />
                     </div>
                   ) : !conversations || conversations.length === 0 ? (
                     <div className="text-center py-12">

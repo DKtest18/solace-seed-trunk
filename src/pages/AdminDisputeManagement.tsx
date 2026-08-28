@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { format, formatDistanceToNow, addDays } from 'date-fns';
 import { AppLayout } from '@/components/AppLayout';
 import { useTranslation } from 'react-i18next';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function AdminDisputeManagement() {
   const { user } = useAuth();
@@ -170,7 +171,7 @@ export default function AdminDisputeManagement() {
     return (
       <AppLayout>
         <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <HourglassLoader size="sm" />
         </div>
       </AppLayout>
     );
@@ -280,7 +281,7 @@ export default function AdminDisputeManagement() {
               <CardContent>
                 {isLoading ? (
                   <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <HourglassLoader size="sm" />
                   </div>
                 ) : !filteredDisputes || filteredDisputes.length === 0 ? (
                   <div className="text-center py-12">

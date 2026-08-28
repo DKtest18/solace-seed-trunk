@@ -13,6 +13,7 @@ import { Loader2, Check, X, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function AdminPaymentConfirmations() {
   const { user } = useAuth();
@@ -115,7 +116,7 @@ export default function AdminPaymentConfirmations() {
   if (roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <HourglassLoader size="sm" />
       </div>
     );
   }
@@ -150,7 +151,7 @@ export default function AdminPaymentConfirmations() {
 
           {isLoading ? (
             <div className="flex justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <HourglassLoader size="sm" />
             </div>
           ) : (
             <div className="space-y-8">

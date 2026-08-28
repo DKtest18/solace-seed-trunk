@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/table';
 import { Loader2, DollarSign, TrendingUp, Users, ShoppingCart, AlertCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function AdminTransactions() {
   const { user } = useAuth();
@@ -113,7 +114,7 @@ export default function AdminTransactions() {
     return (
       <AppLayout>
         <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <HourglassLoader size="sm" />
         </div>
       </AppLayout>
     );
@@ -216,7 +217,7 @@ export default function AdminTransactions() {
             <CardContent>
               {ordersLoading ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <HourglassLoader size="sm" />
                 </div>
               ) : orders && orders.length > 0 ? (
                 <Table>

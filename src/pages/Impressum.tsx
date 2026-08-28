@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { LegalBindingNotice } from '@/components/legal/LegalBindingNotice';
 
 export default function Impressum() {
   return (
@@ -105,6 +106,7 @@ export default function Impressum() {
         <div className="mt-12 pt-6 border-t border-border">
           <p className="text-sm text-muted-foreground">Last updated: 19.8.2026</p>
         </div>
+        <LegalBindingNotice />
       </div>
     </AppLayout>
   );

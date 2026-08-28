@@ -2,6 +2,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import { LegalBindingNotice } from '@/components/legal/LegalBindingNotice';
 
 export default function LicenseTerms() {
   return (
@@ -97,6 +98,7 @@ export default function LicenseTerms() {
             courts of the consumer's country of habitual residence remain unaffected.
           </p>
         </section>
+        <LegalBindingNotice />
       </div>
     </AppLayout>
   );

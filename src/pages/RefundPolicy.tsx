@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Mail } from "lucide-react";
+import { LegalBindingNotice } from '@/components/legal/LegalBindingNotice';
 
 const SUPPORT_EMAIL = "support@dkaimarketplace.com";
 
@@ -167,6 +168,7 @@ export default function RefundPolicy() {
             <div className="text-base leading-relaxed text-muted-foreground">{s.body}</div>
           </section>
         ))}
+        <LegalBindingNotice />
       </div>
     </AppLayout>
   );

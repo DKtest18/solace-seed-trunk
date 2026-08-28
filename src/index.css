@@ -509,6 +509,13 @@ All colors MUST be HSL.
     }
   }
 
+  /* The brand GIF has a white matte, so on dark surfaces we show the
+     colour-token SVG twin instead (white body, blue sand). */
+  .dark .dkai-hourglass .dkai-hourglass__gif,
+  .dkai-hourglass--dark .dkai-hourglass__gif {
+    display: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     /* Static brand shape with a gentle opacity pulse, no motion at all. */
     .dkai-hourglass__gif {

@@ -40,6 +40,7 @@ import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function MyProducts() {
   const { user } = useAuth();
@@ -58,7 +59,7 @@ export default function MyProducts() {
   if (roleLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <HourglassLoader size="lg" label />
       </div>
     );
   }

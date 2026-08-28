@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { capturePayPalOrder } from '@/lib/paypalCheckout';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 /**
  * PayPal sends the buyer back here after approval with ?token=<paypal order id>.
@@ -50,7 +51,7 @@ export default function PayPalReturn() {
         <Card className="p-8 text-center space-y-4">
           {state === 'capturing' && (
             <>
-              <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+              <HourglassLoader size="lg" label className="mx-auto" />
               <h1 className="text-xl font-semibold">Confirming your PayPal payment…</h1>
               <p className="text-sm text-muted-foreground">Please don't close this window.</p>
             </>

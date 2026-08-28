@@ -22,6 +22,7 @@ import { ReturnPolicyDisplay } from '@/components/ReturnPolicyDisplay';
 import { LicenseSelector, type LicenseTier } from '@/components/LicenseSelector';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
 import { DELIVERY_MODE, normalizeDeliveryMode } from '@/lib/reviewStatus';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 // Track product analytics
 const trackProductEvent = async (productId: string, eventType: 'view' | 'click', userId?: string, metadata?: any) => {
@@ -248,7 +249,7 @@ export default function ProductDetail() {
     return (
       <AppLayout>
         <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <HourglassLoader size="lg" label />
         </div>
       </AppLayout>
     );

@@ -4,6 +4,7 @@ import { useHasRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Shield } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface AdminRouteGuardProps {
   children: ReactNode;
@@ -27,7 +28,7 @@ export function AdminRouteGuard({ children }: AdminRouteGuardProps) {
   if (authLoading || roleLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <HourglassLoader size="lg" label />
       </div>
     );
   }

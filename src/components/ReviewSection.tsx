@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { HalfStarRating } from './HalfStarRating';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface ReviewSectionProps {
   productId: string;
@@ -103,7 +104,7 @@ export function ReviewSection({ productId }: ReviewSectionProps) {
       <div className="space-y-4">
         <h3 className="text-xl font-semibold">Customer Reviews</h3>
         {isLoading ? (
-          <p className="text-muted-foreground">Loading reviews...</p>
+          <HourglassLoader size={64} />
         ) : reviews && reviews.length > 0 ? (
           <div className="space-y-4">
             {reviews.map((review) => {

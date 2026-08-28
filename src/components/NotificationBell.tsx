@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { db } from '@/lib/dkaiDb';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface NotificationRow {
   id: string;
@@ -138,7 +139,7 @@ export function NotificationBell() {
           )}
         </div>
         <ScrollArea className="max-h-96">
-          {loading && <div className="p-4 text-sm text-muted-foreground">Loading…</div>}
+          {loading && <div className="flex justify-center p-4"><HourglassLoader size={48} /></div>}
           {!loading && items.length === 0 && (
             <div className="p-6 text-center text-sm text-muted-foreground">
               You're all caught up.

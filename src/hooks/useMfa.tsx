@@ -56,16 +56,8 @@ export function useMfaStatus() {
       const { data: factorData, error: factorError } = await supabase.auth.mfa.listFactors();
       if (factorError && serverHasVerified === null) throw factorError;
 
-      const allFactors: any[] = [
-        ...((factorData as any)?.totp ?? []),
-        ...((factorData as any)?.all ?? []),
-      ];
-      const seen = new Set<string>();
-      const verified = allFactors.filter((f: any) => {
-        if (!f?.id || seen.has(f.id)) return false;
-        seen.add(f.id);
-        return f.status === 'verified';
-      });
+      // Covers both TOTP and phone/SMS factors.
+      const verified = collectVerifiedFactors(factorData);
 
 
       // Current assurance level comes from the JWT `aal` claim — the only

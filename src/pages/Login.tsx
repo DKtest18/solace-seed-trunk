@@ -66,6 +66,13 @@ export default function Login() {
   const [tempUserId, setTempUserId] = useState('');
   const [tempEmail, setTempEmail] = useState('');
   const [failedAttempts, setFailedAttempts] = useState(0);
+  /**
+   * Verified native MFA factors (TOTP and/or SMS) read back from
+   * supabase.auth.mfa.listFactors() after the password step. Used to decide
+   * whether a method chooser is needed. Never a source of truth on its own —
+   * the aal2 session produced by verify() is what counts.
+   */
+  const [mfaFactors, setMfaFactors] = useState<MfaFactor[]>([]);
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();

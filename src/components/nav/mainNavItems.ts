@@ -10,7 +10,6 @@ import {
   Users,
   BarChart3,
   Info,
-  BookOpen,
   Scale,
   type LucideIcon,
 } from 'lucide-react';
@@ -45,6 +44,6 @@ export const DISCOVER_ENTRIES: NavEntry[] = [
   { to: '/statistics', icon: BarChart3, labelKey: 'nav.statistics', descKey: 'nav.menu.statisticsDesc' },
   { to: '/about', icon: Info, labelKey: 'nav.menu.about', descKey: 'nav.menu.aboutDesc' },
   { to: '/seller-guidelines', icon: Scale, labelKey: 'nav.menu.sellerGuidelines', descKey: 'nav.menu.sellerGuidelinesDesc' },
-  { to: '/blog/top-ai-agent-marketplaces', icon: BookOpen, labelKey: 'nav.menu.blog', descKey: 'nav.menu.blogDesc' },
+  // Blog entry temporarily disabled
   { to: '/legal', icon: Scale, labelKey: 'nav.menu.legal', descKey: 'nav.menu.legalDesc' },
 ];

@@ -14,7 +14,7 @@ import { RouteSeo } from "@/components/RouteSeo";
 
 import '@/i18n';
 import Index from "./pages/Index";
-import BlogTopAiAgentMarketplaces from "./pages/BlogTopAiAgentMarketplaces";
+// Blog page temporarily disabled: import kept out to avoid an unused-import build warning
 import Marketplace from "./pages/Marketplace";
 import ProductDetail from "./pages/ProductDetail";
 import Login from "./pages/Login";
@@ -144,7 +144,9 @@ const App = () => (
             <Route path="/admin/accounts" element={<AdminRouteGuard><AdminAccounts /></AdminRouteGuard>} />
             <Route path="/" element={<Index />} />
             <Route path="/waitlist" element={<Waitlist />} />
-            <Route path="/blog/top-ai-agent-marketplaces" element={<BlogTopAiAgentMarketplaces />} />
+            {/* Blog temporarily disabled — visitors are redirected to the homepage */}
+            <Route path="/blog/top-ai-agent-marketplaces" element={<Navigate to="/" replace />} />
+
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/about" element={<About />} />

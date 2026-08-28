@@ -65,7 +65,29 @@
     "payouts": "Versements",
     "disputes": "Litiges",
     "subscriptions": "Abonnements",
-    "statistics": "Statistiques"
+    "statistics": "Statistiques",
+    "menu": {
+      "browseAll": "Tous les produits",
+      "browseAllDesc": "Toutes les annonces vérifiées du marché",
+      "aiAgentsDesc": "Agents autonomes prêts à déployer",
+      "automationsDesc": "Logiciels et packs d'automatisation",
+      "workflowsDesc": "Modèles de workflows complets",
+      "promptsDesc": "Prompts testés et packs de prompts",
+      "templatesDesc": "Modèles de démarrage réutilisables",
+      "datasetsDesc": "Jeux de données sélectionnés pour l'IA",
+      "discover": "Découvrir",
+      "topProductsDesc": "Les annonces les mieux notées",
+      "topSellersDesc": "Vendeurs vérifiés les plus fiables",
+      "statisticsDesc": "Chiffres en direct du marché",
+      "about": "À propos",
+      "aboutDesc": "Qui nous sommes et comment ça marche",
+      "sellerGuidelines": "Directives vendeurs",
+      "sellerGuidelinesDesc": "Règles et obligations des vendeurs",
+      "blog": "Guide : marketplaces d'agents IA",
+      "blogDesc": "Comparatif des principales marketplaces d'agents IA",
+      "legal": "Mentions légales",
+      "legalDesc": "CG, confidentialité, remboursements et impressum"
+    }
   },
   "footer": {
     "about": "À propos",

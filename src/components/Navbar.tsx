@@ -100,19 +100,9 @@ export function Navbar() {
           <img src="/logo.png" alt="DK AI Marketplace" className="h-9 w-auto" />
         </Link>
 
-        {/* Center: nav links */}
-        <div className="hidden md:flex items-center space-x-7">
-          {navLinks.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              end={link.end}
-              activeClassName="text-primary"
-              className="text-sm font-medium text-gray-700 hover:text-primary transition-colors"
-            >
-              {link.label}
-            </NavLink>
-          ))}
+        {/* Center: main navigation (dropdowns) */}
+        <div className="hidden md:flex items-center gap-4">
+          <MainNav />
           {isSeller && (
             <NavLink
               to="/seller-dashboard"

@@ -1,7 +1,6 @@
 import { ReactNode, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
-import { Loader2 } from "lucide-react";
 import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface VerificationGuardProps {

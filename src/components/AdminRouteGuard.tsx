@@ -2,7 +2,7 @@ import { ReactNode, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useHasRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Shield } from "lucide-react";
+import { Shield } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
 import { HourglassLoader } from '@/components/HourglassLoader';
 

@@ -139,6 +139,14 @@ export default function Login() {
       const mfaRequired = await isMfaChallengeRequired();
 
       if (mfaRequired) {
+        // Load the enrolled factor types so we can show a chooser when the
+        // account has more than one (e.g. authenticator app + SMS).
+        try {
+          const { data: factorData } = await supabase.auth.mfa.listFactors();
+          setMfaFactors(collectVerifiedFactors(factorData));
+        } catch {
+          setMfaFactors([]);
+        }
         setTempUserId(user.id);
         setTempEmail(email);
         setStep('2fa');

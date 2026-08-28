@@ -413,13 +413,13 @@ All colors MUST be HSL.
   }
 }
 
-/* ── Branded hourglass loader (SVG + CSS only) ───────────────────────── */
+/* ── Branded hourglass loader (brand GIF + CSS/SVG fallback) ─────────── */
 @layer components {
   .dkai-hourglass {
     /* Brand tokens: body + sand. No other colours are used. */
     --brand-primary: 220 45% 12%;
     --brand-accent: var(--primary);
-    --hg-cycle: 3.1s;
+    --hg-cycle: 2.7s;
   }
 
   .dark .dkai-hourglass,
@@ -440,82 +440,98 @@ All colors MUST be HSL.
     fill: hsl(var(--brand-accent));
   }
 
+  /* One cycle = one downward run + short pause + ONE 180deg turn. */
   .dkai-hourglass__svg {
-    animation: dkai-hg-flip var(--hg-cycle) linear infinite;
     transform-origin: 50% 50%;
+    animation: dkai-hg-turn var(--hg-cycle) linear infinite;
   }
 
-  /* Sand levels move via scaleY only (widely supported), never via JS. */
+  /*
+   * Sand runs on a double-length timeline so each single 180deg turn hands the
+   * run over to the other chamber. Only one chamber ever holds sand, and sand
+   * only ever travels downward on screen.
+   */
   .dkai-hourglass__sand-top {
     transform-box: fill-box;
-    transform-origin: 50% 100%;
-    animation: dkai-hg-drain var(--hg-cycle) linear infinite;
+    transform-origin: 50% 100%; /* waist edge */
+    animation: dkai-hg-sand-a calc(var(--hg-cycle) * 2) linear infinite;
   }
 
   .dkai-hourglass__sand-bottom {
     transform-box: fill-box;
-    transform-origin: 50% 100%;
-    animation: dkai-hg-fill var(--hg-cycle) linear infinite;
+    transform-origin: 50% 0%; /* waist edge */
+    animation: dkai-hg-sand-b calc(var(--hg-cycle) * 2) linear infinite;
   }
 
-  /* Per half-cycle: 0–35.48% sand runs, 35.48–50% flip. Two halves = 360deg. */
-  @keyframes dkai-hg-flip {
+  /* Run 1.3s (0–48.15%), pause 0.2s (–55.56%), turn 1.2s (–100%). */
+  @keyframes dkai-hg-turn {
     0%,
-    35.48% {
+    48.15% {
       transform: rotate(0deg);
     }
-    50%,
-    85.48% {
+    55.56% {
+      transform: rotate(0deg);
+      animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+    }
+    100% {
       transform: rotate(180deg);
     }
-    100% {
-      transform: rotate(360deg);
-    }
   }
 
-  @keyframes dkai-hg-drain {
+  /* Chamber A: full at cycle start, sinks to the waist in the run's 1st half. */
+  @keyframes dkai-hg-sand-a {
     0% {
       transform: scaleY(1);
     }
-    35.48%,
-    50% {
+    12.04%,
+    62.04% {
       transform: scaleY(0);
     }
-    50.01% {
+    74.07%,
+    100% {
       transform: scaleY(1);
     }
-    85.48%,
+  }
+
+  /* Chamber B: empty until A is gone, then fills away from the waist. */
+  @keyframes dkai-hg-sand-b {
+    0%,
+    12.04% {
+      transform: scaleY(0);
+    }
+    24.07%,
+    50% {
+      transform: scaleY(1);
+    }
+    62.04%,
     100% {
       transform: scaleY(0);
     }
   }
 
-  @keyframes dkai-hg-fill {
-    0% {
-      transform: scaleY(0);
-    }
-    35.48%,
-    50% {
-      transform: scaleY(1);
-    }
-    50.01% {
-      transform: scaleY(0);
-    }
-    85.48%,
-    100% {
-      transform: scaleY(1);
-    }
+  /* The brand GIF has a white matte, so on dark surfaces we show the
+     colour-token SVG twin instead (white body, blue sand). */
+  .dark .dkai-hourglass .dkai-hourglass__gif,
+  .dkai-hourglass--dark .dkai-hourglass__gif {
+    display: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .dkai-hourglass__sand-top,
-    .dkai-hourglass__sand-bottom {
-      animation: none;
-      transform: scaleY(0.5);
+    /* Static brand shape with a gentle opacity pulse, no motion at all. */
+    .dkai-hourglass__gif {
+      display: none;
     }
     .dkai-hourglass__svg {
       transform: none;
-      animation: dkai-hg-pulse 2s ease-in-out infinite;
+      animation: dkai-hg-pulse 2.4s ease-in-out infinite;
+    }
+    .dkai-hourglass__sand-top {
+      animation: none;
+      transform: scaleY(1);
+    }
+    .dkai-hourglass__sand-bottom {
+      animation: none;
+      transform: scaleY(0);
     }
   }
 

@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Shield, AlertTriangle, Ban, Eye, Clock, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface ModerationLog {
   id: string;
@@ -179,7 +180,7 @@ export function ModerationDashboard() {
               <ScrollArea className="h-[400px]">
                 {loading ? (
                   <div className="flex items-center justify-center h-32">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <HourglassLoader size="sm" />
                   </div>
                 ) : logs.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">

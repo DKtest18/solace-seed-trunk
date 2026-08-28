@@ -15,6 +15,7 @@ import { Loader2, Star, StarOff, Search, TrendingUp, Clock, ArrowUpDown } from '
 import { toast } from 'sonner';
 import { AppLayout } from '@/components/AppLayout';
 import { useTranslation } from 'react-i18next';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function AdminFeaturedProducts() {
   const { user } = useAuth();
@@ -103,7 +104,7 @@ export default function AdminFeaturedProducts() {
   if (roleLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <HourglassLoader size="sm" />
       </div>
     );
   }
@@ -239,7 +240,7 @@ export default function AdminFeaturedProducts() {
               <CardContent>
                 {isLoading ? (
                   <div className="flex justify-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <HourglassLoader size="sm" />
                   </div>
                 ) : (
                   <ProductTable 

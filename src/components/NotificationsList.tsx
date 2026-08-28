@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Package, MessageSquare, DollarSign, Bell } from 'lucide-react';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useNavigate } from 'react-router-dom';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface NotificationRow {
   id: string;
@@ -73,7 +74,7 @@ export function NotificationsList() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        <HourglassLoader size="sm" />
       </div>
     );
   }

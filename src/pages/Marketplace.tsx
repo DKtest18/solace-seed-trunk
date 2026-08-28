@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { Card } from '@/components/ui/card';
@@ -19,6 +19,7 @@ import { trackProductClick } from '@/utils/analytics';
 import { AppLayout } from '@/components/AppLayout';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 type LicenseKey = 'personal' | 'commercial' | 'agency' | 'exclusive';
 
@@ -63,6 +64,8 @@ export default function Marketplace() {
   }, [paramKey]);
 
   const { data: productsWithRatings, isLoading } = useProductsWithRatings();
+  const hasLoadedOnce = useRef(false);
+  if (!isLoading && productsWithRatings) hasLoadedOnce.current = true;
 
   const products = productsWithRatings?.filter((product: any) => {
     if (searchQuery) {
@@ -406,10 +409,19 @@ export default function Marketplace() {
             )}
 
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
-              </div>
+              hasLoadedOnce.current ? (
+                // Refetch (filter/tag reload): skeletons keep the grid layout stable
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+                </div>
+              ) : (
+                // First fetch: branded hourglass centred in the grid area
+                <div className="flex items-center justify-center py-24">
+                  <HourglassLoader size="lg" label />
+                </div>
+              )
             ) : products && products.length > 0 ? (
+
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {products.map((product: any) => (
                   <Card

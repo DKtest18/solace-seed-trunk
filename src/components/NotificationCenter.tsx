@@ -16,6 +16,7 @@ import {
 import { Bell, MessageSquare, ShoppingCart, AlertCircle, Package } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface Notification {
   id: string;
@@ -189,7 +190,7 @@ export function NotificationCenter() {
         <ScrollArea className="h-[calc(100vh-200px)]">
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <HourglassLoader size="sm" />
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">

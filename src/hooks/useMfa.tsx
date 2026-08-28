@@ -1,10 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { collectVerifiedFactors, type MfaFactor } from '@/lib/mfaFactors';
 
 export interface MfaStatus {
-  /** Verified TOTP factors on the account. */
+  /** Verified factors on the account (TOTP and/or phone/SMS). */
   factors: { id: string; friendly_name?: string | null }[];
+  /** Same verified factors with their type and (for SMS) phone number. */
+  verifiedFactors: MfaFactor[];
   hasVerifiedFactor: boolean;
   currentLevel: string | null;
   nextLevel: string | null;
@@ -53,16 +56,8 @@ export function useMfaStatus() {
       const { data: factorData, error: factorError } = await supabase.auth.mfa.listFactors();
       if (factorError && serverHasVerified === null) throw factorError;
 
-      const allFactors: any[] = [
-        ...((factorData as any)?.totp ?? []),
-        ...((factorData as any)?.all ?? []),
-      ];
-      const seen = new Set<string>();
-      const verified = allFactors.filter((f: any) => {
-        if (!f?.id || seen.has(f.id)) return false;
-        seen.add(f.id);
-        return f.status === 'verified';
-      });
+      // Covers both TOTP and phone/SMS factors.
+      const verified = collectVerifiedFactors(factorData);
 
 
       // Current assurance level comes from the JWT `aal` claim — the only
@@ -88,13 +83,14 @@ export function useMfaStatus() {
       const hasVerifiedFactor = serverHasVerified === true || verified.length > 0;
 
       const factors = verified.length
-        ? verified.map((f: any) => ({ id: f.id, friendly_name: f.friendly_name }))
+        ? verified.map((f) => ({ id: f.id, friendly_name: f.friendlyName }))
         : serverFactorIds.map((id) => ({ id, friendly_name: null }));
 
       const nextLevel = hasVerifiedFactor ? 'aal2' : currentLevel;
 
       return {
         factors,
+        verifiedFactors: verified,
         hasVerifiedFactor,
         currentLevel,
         nextLevel,

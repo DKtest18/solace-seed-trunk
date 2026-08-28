@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -9,6 +10,8 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { lovable } from '@/integrations/lovable/index';
 import dkLogo from '@/assets/dk-ai-logo.png';
 import { OAuthProviderButtons } from '@/components/auth/OAuthProviderButtons';
+import { MfaFactorChallenge } from '@/components/security/MfaFactorChallenge';
+import { collectVerifiedFactors, type MfaFactor } from '@/lib/mfaFactors';
 
 /**
  * Authoritative two-factor check right after sign-in.
@@ -66,7 +69,15 @@ export default function Login() {
   const [tempUserId, setTempUserId] = useState('');
   const [tempEmail, setTempEmail] = useState('');
   const [failedAttempts, setFailedAttempts] = useState(0);
+  /**
+   * Verified native MFA factors (TOTP and/or SMS) read back from
+   * supabase.auth.mfa.listFactors() after the password step. Used to decide
+   * whether a method chooser is needed. Never a source of truth on its own —
+   * the aal2 session produced by verify() is what counts.
+   */
+  const [mfaFactors, setMfaFactors] = useState<MfaFactor[]>([]);
   const { signIn, user } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
@@ -132,6 +143,14 @@ export default function Login() {
       const mfaRequired = await isMfaChallengeRequired();
 
       if (mfaRequired) {
+        // Load the enrolled factor types so we can show a chooser when the
+        // account has more than one (e.g. authenticator app + SMS).
+        try {
+          const { data: factorData } = await supabase.auth.mfa.listFactors();
+          setMfaFactors(collectVerifiedFactors(factorData));
+        } catch {
+          setMfaFactors([]);
+        }
         setTempUserId(user.id);
         setTempEmail(email);
         setStep('2fa');
@@ -153,7 +172,33 @@ export default function Login() {
     }
   };
 
-  const handleVerify2FA = async () => {
+  /** Wrong-code handling shared by the factor chooser and the legacy path. */
+  const registerTwoFAFailure = async (failureMessage?: string | null) => {
+    const newAttempts = failedAttempts + 1;
+    setFailedAttempts(newAttempts);
+    setTwoFACode('');
+    if (newAttempts >= 5) {
+      await supabase.auth.signOut();
+      setStep('credentials');
+      setFailedAttempts(0);
+      setTwoFAError(null);
+      toast({ title: 'Too many failed attempts', description: 'Account temporarily locked. Please try again later.', variant: 'destructive' });
+      return;
+    }
+    setTwoFAError(`${failureMessage ?? 'Incorrect code.'} ${5 - newAttempts} attempts remaining.`);
+  };
+
+  /** Called by MfaFactorChallenge once the session has been upgraded to aal2. */
+  const handleTwoFAVerified = async () => {
+    toast({ title: 'Welcome back!', description: 'You have successfully signed in.' });
+    await checkUserRoleAndRedirect(tempUserId);
+  };
+
+  /**
+   * Legacy fallback only: accounts that still live on the custom TOTP table and
+   * therefore have no native factor to challenge.
+   */
+  const handleVerifyLegacy2FA = async () => {
     if (twoFACode.length !== 6) {
       setTwoFAError('Please enter a 6-digit code.');
       return;
@@ -161,50 +206,14 @@ export default function Login() {
     setLoading(true);
     setTwoFAError(null);
     try {
-      // Native Supabase MFA: challenge + verify the enrolled TOTP factor.
-      // Success upgrades the session to aal2 — that is what the server honours.
-      const { data: factorData } = await supabase.auth.mfa.listFactors();
-      const factorId =
-        ((factorData as any)?.totp ?? []).find((f: any) => f.status === 'verified')?.id ??
-        ((factorData as any)?.all ?? []).find((f: any) => f.status === 'verified')?.id;
-
-      let verified = false;
-      let failureMessage: string | null = null;
-
-      if (factorId) {
-        const { error } = await supabase.auth.mfa.challengeAndVerify({
-          factorId,
-          code: twoFACode,
-        });
-        if (error) failureMessage = error.message;
-        else verified = true;
-      } else {
-        // Legacy fallback for accounts still on the custom TOTP table.
-        const { data, error } = await supabase.functions.invoke('verify-2fa-code', {
-          body: { code: twoFACode },
-        });
-        if (error) failureMessage = error.message;
-        else verified = !!data?.valid;
-      }
-
-      if (verified) {
-        toast({ title: 'Welcome back!', description: 'You have successfully signed in.' });
-        await checkUserRoleAndRedirect(tempUserId);
+      const { data, error } = await supabase.functions.invoke('verify-2fa-code', {
+        body: { code: twoFACode },
+      });
+      if (!error && data?.valid) {
+        await handleTwoFAVerified();
         return;
       }
-
-      const newAttempts = failedAttempts + 1;
-      setFailedAttempts(newAttempts);
-      setTwoFACode('');
-      if (newAttempts >= 5) {
-        await supabase.auth.signOut();
-        setStep('credentials');
-        setFailedAttempts(0);
-        setTwoFAError(null);
-        toast({ title: 'Too many failed attempts', description: 'Account temporarily locked. Please try again later.', variant: 'destructive' });
-        return;
-      }
-      setTwoFAError(`${failureMessage ?? 'Incorrect code.'} ${5 - newAttempts} attempts remaining.`);
+      await registerTwoFAFailure(error?.message);
     } catch (error: any) {
       setTwoFAError(error.message || 'Failed to verify code. Please try again.');
     } finally {
@@ -332,45 +341,70 @@ export default function Login() {
                 Two-factor authentication
               </h1>
               <p className="text-sm text-muted-foreground mb-8">
-                Enter the 6-digit code from your authenticator app.
+                {mfaFactors.length > 1
+                  ? t('mfa.challenge.chooseMethod')
+                  : t('mfa.challenge.totpHint')}
               </p>
 
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleVerify2FA();
-                }}
-                className="space-y-4"
-              >
-                <div className="flex justify-center">
-                  <InputOTP maxLength={6} value={twoFACode} onChange={setTwoFACode}>
-                    <InputOTPGroup>
-                      {[0, 1, 2, 3, 4, 5].map((i) => (
-                        <InputOTPSlot key={i} index={i} className="w-11 h-12 rounded-lg border border-border text-center text-lg font-medium" />
-                      ))}
-                    </InputOTPGroup>
-                  </InputOTP>
-                </div>
-
-                {twoFAError && (
-                  <p className="text-sm text-destructive text-center" role="alert" aria-live="assertive">
-                    {twoFAError}
+              {mfaFactors.length > 0 ? (
+                <>
+                  {/* Chooser when several factors exist, straight to the code
+                      entry when there is only one. */}
+                  <MfaFactorChallenge
+                    factors={mfaFactors}
+                    onVerified={handleTwoFAVerified}
+                    onFailure={(m) => registerTwoFAFailure(m)}
+                    disabled={loading}
+                  />
+                  {twoFAError && (
+                    <p className="mt-3 text-sm text-destructive text-center" role="alert" aria-live="assertive">
+                      {twoFAError}
+                    </p>
+                  )}
+                  <p className="mt-3 text-sm text-muted-foreground text-center">
+                    If you don't have access anymore, write an email to support@dkaimarketplace.com
                   </p>
-                )}
-
-                <p className="text-sm text-muted-foreground text-center">
-                  If you don't have access anymore, write an email to support@dkaimarketplace.com
-                </p>
-
-                <Button
-                  type="submit"
-                  variant="hero"
-                  className="w-full"
-                  disabled={loading || twoFACode.length !== 6}
+                </>
+              ) : (
+                /* Legacy accounts without a native factor. */
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleVerifyLegacy2FA();
+                  }}
+                  className="space-y-4"
                 >
-                  {loading ? 'Verifying...' : 'Verify and sign in'}
-                </Button>
-              </form>
+                  <div className="flex justify-center">
+                    <InputOTP maxLength={6} value={twoFACode} onChange={setTwoFACode}>
+                      <InputOTPGroup>
+                        {[0, 1, 2, 3, 4, 5].map((i) => (
+                          <InputOTPSlot key={i} index={i} className="w-11 h-12 rounded-lg border border-border text-center text-lg font-medium" />
+                        ))}
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
+
+                  {twoFAError && (
+                    <p className="text-sm text-destructive text-center" role="alert" aria-live="assertive">
+                      {twoFAError}
+                    </p>
+                  )}
+
+                  <p className="text-sm text-muted-foreground text-center">
+                    If you don't have access anymore, write an email to support@dkaimarketplace.com
+                  </p>
+
+                  <Button
+                    type="submit"
+                    variant="hero"
+                    className="w-full"
+                    disabled={loading || twoFACode.length !== 6}
+                  >
+                    {loading ? 'Verifying...' : 'Verify and sign in'}
+                  </Button>
+                </form>
+              )}
+
 
               <button
                 onClick={() => setStep('backup')}

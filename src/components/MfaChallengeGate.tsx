@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { MfaFactorChallenge } from '@/components/security/MfaFactorChallenge';
 import { Loader2, ShieldAlert } from 'lucide-react';
 
 const MAX_ATTEMPTS = 5;
@@ -82,41 +82,11 @@ export function MfaChallengeGate({ children }: { children: ReactNode }) {
     setCode('');
   };
 
-  const verifyCode = async () => {
-    if (code.length !== 6) {
-      setError('Enter the 6-digit code from your authenticator app.');
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    try {
-      const factorId = mfa?.factors[0]?.id;
-      if (!factorId) throw new Error('No authenticator factor found on this account.');
-
-      const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({
-        factorId,
-      });
-      if (challengeError) throw challengeError;
-
-      const { error: verifyError } = await supabase.auth.mfa.verify({
-        factorId,
-        challengeId: challenge.id,
-        code,
-      });
-      if (verifyError) {
-        registerFailure(verifyError.message);
-        return;
-      }
-
-      localStorage.removeItem(lockKey);
-      setAttempts(0);
-      invalidateMfa();
-      await refetch();
-    } catch (e: any) {
-      setError(e?.message ?? String(e));
-    } finally {
-      setBusy(false);
-    }
+  const onChallengeVerified = async () => {
+    localStorage.removeItem(lockKey);
+    setAttempts(0);
+    invalidateMfa();
+    await refetch();
   };
 
   const redeemRecovery = async () => {
@@ -177,20 +147,16 @@ export function MfaChallengeGate({ children }: { children: ReactNode }) {
 
           {!useRecovery ? (
             <>
-              <div className="space-y-2">
-                <Label>Authentication code</Label>
-                <InputOTP maxLength={6} value={code} onChange={setCode} disabled={locked}>
-                  <InputOTPGroup>
-                    {[0, 1, 2, 3, 4, 5].map((i) => (
-                      <InputOTPSlot key={i} index={i} />
-                    ))}
-                  </InputOTPGroup>
-                </InputOTP>
-              </div>
-              <Button className="w-full" onClick={verifyCode} disabled={busy || locked}>
-                {busy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                {locked ? 'Locked — wait 5 minutes' : 'Verify'}
-              </Button>
+              {locked ? (
+                <p className="text-sm text-destructive">Locked — wait 5 minutes</p>
+              ) : (
+                <MfaFactorChallenge
+                  factors={mfa?.verifiedFactors ?? []}
+                  onVerified={onChallengeVerified}
+                  onFailure={registerFailure}
+                  disabled={busy || locked}
+                />
+              )}
               <button
                 type="button"
                 className="w-full text-sm text-primary hover:underline"

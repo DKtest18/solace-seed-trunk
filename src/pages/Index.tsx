@@ -70,11 +70,11 @@ function ProductGlassCard({ product, className = '' }: { product?: HomeProduct; 
   if (!product) {
     return (
       <div className={`home-glass p-4 w-56 ${className}`}>
-        <div className="aspect-[4/3] rounded-lg bg-white/5 mb-3 flex items-center justify-center text-xs text-[var(--text-dim)]">
+        <div className="aspect-[4/3] rounded-lg bg-[var(--n-surface-strong)] mb-3 flex items-center justify-center text-xs text-[var(--text-dim)]">
           {t('landing.comingSoon')}
         </div>
-        <div className="h-3 w-3/4 rounded bg-white/10 mb-2" />
-        <div className="h-3 w-1/3 rounded bg-white/10" />
+        <div className="h-3 w-3/4 rounded bg-[var(--n-surface-strong)] mb-2" />
+        <div className="h-3 w-1/3 rounded bg-[var(--n-surface-strong)]" />
       </div>
     );
   }
@@ -83,7 +83,7 @@ function ProductGlassCard({ product, className = '' }: { product?: HomeProduct; 
       to={`/product/${product.id}`}
       className={`home-glass p-4 w-56 block group transition-transform hover:-translate-y-1 ${className}`}
     >
-      <div className="aspect-[4/3] rounded-lg bg-white/5 overflow-hidden mb-3">
+      <div className="aspect-[4/3] rounded-lg bg-[var(--n-surface-strong)] overflow-hidden mb-3">
         {product.image_url ? (
           <img src={product.image_url} alt={product.title} loading="lazy" className="w-full h-full object-cover" />
         ) : (
@@ -92,7 +92,7 @@ function ProductGlassCard({ product, className = '' }: { product?: HomeProduct; 
       </div>
       <div className="flex items-center gap-1.5 mb-1">
         <span className="text-sm font-medium text-[var(--brand-primary)] line-clamp-1">{product.title}</span>
-        <BadgeCheck className="h-4 w-4 text-white/70 shrink-0" aria-label={t('landing.verified')} />
+        <BadgeCheck className="h-4 w-4 text-[var(--brand-accent)] shrink-0" aria-label={t('landing.verified')} />
       </div>
       <div className="text-sm text-[var(--text-muted)]">{formatMoney(product.price, product.currency)}</div>
     </Link>
@@ -214,7 +214,7 @@ export default function Index() {
       </section>
 
       {/* MARQUEE — icon chips (decorative, non-interactive, neutral greys) */}
-      <section className="relative py-12 border-y border-white/10">
+      <section className="relative py-12 border-y border-[var(--hair)]">
         <TooltipProvider delayDuration={150}>
           <div className="home-marquee">
             <div className="home-marquee-track">
@@ -234,8 +234,8 @@ export default function Index() {
         <div className="grid md:grid-cols-3 gap-6">
           {steps.map((s, i) => (
             <div key={i} className="home-glass p-8">
-              <div className="h-10 w-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center mb-5">
-                <s.icon className="h-5 w-5 text-white/75" />
+              <div className="h-10 w-10 rounded-lg bg-[var(--n-surface-strong)] border border-[var(--hair)] flex items-center justify-center mb-5">
+                <s.icon className="h-5 w-5 text-[var(--brand-accent)]" />
               </div>
               <div className="text-xs text-[var(--text-dim)] mb-2">{t('landing.step')} {i + 1}</div>
               <h3 className="text-lg font-medium text-[var(--brand-primary)] mb-2">{s.title}</h3>
@@ -254,7 +254,7 @@ export default function Index() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {trust.map((tr, i) => (
             <div key={i} className="home-glass p-6">
-              <tr.icon className="h-6 w-6 text-white/75 mb-4" />
+              <tr.icon className="h-6 w-6 text-[var(--brand-accent)] mb-4" />
               <h3 className="text-base font-medium text-[var(--brand-primary)] mb-2">{tr.title}</h3>
               <p className="text-sm text-[var(--text-muted)] leading-relaxed">{tr.text}</p>
             </div>

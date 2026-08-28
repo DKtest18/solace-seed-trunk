@@ -79,9 +79,9 @@ export function HourglassLoader({
           <rect
             className="dkai-hourglass__sand-top"
             x="20"
-            y="22"
+            y="20"
             width="60"
-            height="28"
+            height="32"
           />
         </g>
         {/* Sand — lower chamber fills bottom-up */}
@@ -89,11 +89,12 @@ export function HourglassLoader({
           <rect
             className="dkai-hourglass__sand-bottom"
             x="20"
-            y="50"
+            y="48"
             width="60"
-            height="28"
+            height="32"
           />
         </g>
+
 
         {/* Hourglass body: outer silhouette with the two chambers cut out */}
         <path

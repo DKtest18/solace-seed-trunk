@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { MfaFactorChallenge } from '@/components/security/MfaFactorChallenge';
 import { Loader2, ShieldAlert } from 'lucide-react';
 
 const MAX_ATTEMPTS = 5;

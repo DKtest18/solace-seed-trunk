@@ -10,7 +10,6 @@ import {
   Users,
   BarChart3,
   Info,
-  BookOpen,
   Scale,
   type LucideIcon,
 } from 'lucide-react';

@@ -147,20 +147,16 @@ export function MfaChallengeGate({ children }: { children: ReactNode }) {
 
           {!useRecovery ? (
             <>
-              <div className="space-y-2">
-                <Label>Authentication code</Label>
-                <InputOTP maxLength={6} value={code} onChange={setCode} disabled={locked}>
-                  <InputOTPGroup>
-                    {[0, 1, 2, 3, 4, 5].map((i) => (
-                      <InputOTPSlot key={i} index={i} />
-                    ))}
-                  </InputOTPGroup>
-                </InputOTP>
-              </div>
-              <Button className="w-full" onClick={verifyCode} disabled={busy || locked}>
-                {busy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                {locked ? 'Locked — wait 5 minutes' : 'Verify'}
-              </Button>
+              {locked ? (
+                <p className="text-sm text-destructive">Locked — wait 5 minutes</p>
+              ) : (
+                <MfaFactorChallenge
+                  factors={mfa?.verifiedFactors ?? []}
+                  onVerified={onChallengeVerified}
+                  onFailure={registerFailure}
+                  disabled={busy || locked}
+                />
+              )}
               <button
                 type="button"
                 className="w-full text-sm text-primary hover:underline"

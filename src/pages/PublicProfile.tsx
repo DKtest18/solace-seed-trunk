@@ -23,6 +23,7 @@ import { ProfileStatusFrame } from '@/components/profile/ProfileStatusFrame';
 import { EducationItem, ExperienceItem, parseJsonArray } from '@/types/profile';
 import { normalizeLinkedInUrl } from '@/lib/profileUrls';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 
 
@@ -185,7 +186,7 @@ export default function PublicProfile() {
     return (
       <AppLayout>
         <div className="min-h-screen bg-background flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <HourglassLoader size="lg" label />
         </div>
       </AppLayout>
     );

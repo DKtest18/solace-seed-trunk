@@ -412,3 +412,120 @@ All colors MUST be HSL.
     font-weight: 600;
   }
 }
+
+/* ── Branded hourglass loader (SVG + CSS only) ───────────────────────── */
+@layer components {
+  .dkai-hourglass {
+    /* Brand tokens: body + sand. No other colours are used. */
+    --brand-primary: 220 45% 12%;
+    --brand-accent: var(--primary);
+    --hg-cycle: 3.1s;
+  }
+
+  .dark .dkai-hourglass,
+  .dkai-hourglass--dark {
+    --brand-primary: 0 0% 100%;
+  }
+
+  .dkai-hourglass--light {
+    --brand-primary: 220 45% 12%;
+  }
+
+  .dkai-hourglass__body {
+    fill: hsl(var(--brand-primary));
+  }
+
+  .dkai-hourglass__sand-top,
+  .dkai-hourglass__sand-bottom {
+    fill: hsl(var(--brand-accent));
+  }
+
+  .dkai-hourglass__svg {
+    animation: dkai-hg-flip var(--hg-cycle) linear infinite;
+    transform-origin: 50% 50%;
+  }
+
+  /* Sand levels move via scaleY only (widely supported), never via JS. */
+  .dkai-hourglass__sand-top {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: dkai-hg-drain var(--hg-cycle) linear infinite;
+  }
+
+  .dkai-hourglass__sand-bottom {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: dkai-hg-fill var(--hg-cycle) linear infinite;
+  }
+
+  /* Per half-cycle: 0–35.48% sand runs, 35.48–50% flip. Two halves = 360deg. */
+  @keyframes dkai-hg-flip {
+    0%,
+    35.48% {
+      transform: rotate(0deg);
+    }
+    50%,
+    85.48% {
+      transform: rotate(180deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes dkai-hg-drain {
+    0% {
+      transform: scaleY(1);
+    }
+    35.48%,
+    50% {
+      transform: scaleY(0);
+    }
+    50.01% {
+      transform: scaleY(1);
+    }
+    85.48%,
+    100% {
+      transform: scaleY(0);
+    }
+  }
+
+  @keyframes dkai-hg-fill {
+    0% {
+      transform: scaleY(0);
+    }
+    35.48%,
+    50% {
+      transform: scaleY(1);
+    }
+    50.01% {
+      transform: scaleY(0);
+    }
+    85.48%,
+    100% {
+      transform: scaleY(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dkai-hourglass__sand-top,
+    .dkai-hourglass__sand-bottom {
+      animation: none;
+      transform: scaleY(0.5);
+    }
+    .dkai-hourglass__svg {
+      transform: none;
+      animation: dkai-hg-pulse 2s ease-in-out infinite;
+    }
+  }
+
+  @keyframes dkai-hg-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.55;
+    }
+  }
+}

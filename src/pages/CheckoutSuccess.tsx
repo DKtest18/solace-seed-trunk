@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, CheckCircle, Download, Shield, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { DELIVERY_MODE, normalizeDeliveryMode } from '@/lib/reviewStatus';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 const PAID_STATUSES = ['paid', 'completed', 'delivered', 'released'];
 
@@ -76,7 +77,7 @@ export default function CheckoutSuccess() {
     return (
       <AppLayout>
         <div className="container max-w-2xl mx-auto py-16 px-4 text-center">
-          <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4 text-primary" />
+          <HourglassLoader size="lg" label className="mx-auto" />
           <h1 className="text-2xl font-bold mb-2">Confirming your payment…</h1>
           <p className="text-muted-foreground">
             Waiting on Stripe to confirm ({attempts}/15). This usually takes a few seconds.

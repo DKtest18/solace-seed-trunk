@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { MfaFactorChallenge } from '@/components/security/MfaFactorChallenge';
 import { Loader2, ShieldAlert } from 'lucide-react';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 5 * 60 * 1000;
@@ -51,7 +52,7 @@ export function MfaChallengeGate({ children }: { children: ReactNode }) {
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <HourglassLoader size="lg" label />
       </div>
     );
   }
@@ -59,7 +60,7 @@ export function MfaChallengeGate({ children }: { children: ReactNode }) {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <HourglassLoader size="lg" label />
       </div>
     );
   }

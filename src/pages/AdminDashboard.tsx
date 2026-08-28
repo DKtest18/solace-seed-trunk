@@ -17,6 +17,7 @@ import { Loader2, ShieldCheck, Users, Package, DollarSign, CheckCircle, XCircle,
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -25,7 +26,7 @@ export default function AdminDashboard() {
   if (roleLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <HourglassLoader size="lg" label />
       </div>
     );
   }

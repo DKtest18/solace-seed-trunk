@@ -1,7 +1,7 @@
 import { ReactNode, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
-import { Loader2 } from "lucide-react";
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface VerificationGuardProps {
   children: ReactNode;
@@ -20,7 +20,7 @@ export function VerificationGuard({ children }: VerificationGuardProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <HourglassLoader size="lg" label />
       </div>
     );
   }

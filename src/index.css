@@ -445,15 +445,20 @@ All colors MUST be HSL.
     transform-origin: 50% 50%;
   }
 
+  /* Sand levels move via scaleY only (widely supported), never via JS. */
   .dkai-hourglass__sand-top {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
     animation: dkai-hg-drain var(--hg-cycle) linear infinite;
   }
 
   .dkai-hourglass__sand-bottom {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
     animation: dkai-hg-fill var(--hg-cycle) linear infinite;
   }
 
-  /* Timeline per half-cycle: 0–35.48% sand runs, 35.48–50% flip. */
+  /* Per half-cycle: 0–35.48% sand runs, 35.48–50% flip. Two halves = 360deg. */
   @keyframes dkai-hg-flip {
     0%,
     35.48% {
@@ -470,63 +475,47 @@ All colors MUST be HSL.
 
   @keyframes dkai-hg-drain {
     0% {
-      y: 22px;
-      height: 28px;
+      transform: scaleY(1);
     }
     35.48%,
     50% {
-      y: 50px;
-      height: 0px;
+      transform: scaleY(0);
     }
     50.01% {
-      y: 22px;
-      height: 28px;
+      transform: scaleY(1);
     }
     85.48%,
     100% {
-      y: 50px;
-      height: 0px;
+      transform: scaleY(0);
     }
   }
 
   @keyframes dkai-hg-fill {
     0% {
-      y: 78px;
-      height: 0px;
+      transform: scaleY(0);
     }
     35.48%,
     50% {
-      y: 50px;
-      height: 28px;
+      transform: scaleY(1);
     }
     50.01% {
-      y: 78px;
-      height: 0px;
+      transform: scaleY(0);
     }
     85.48%,
     100% {
-      y: 50px;
-      height: 28px;
+      transform: scaleY(1);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .dkai-hourglass__svg,
     .dkai-hourglass__sand-top,
     .dkai-hourglass__sand-bottom {
       animation: none;
+      transform: scaleY(0.5);
     }
     .dkai-hourglass__svg {
       transform: none;
       animation: dkai-hg-pulse 2s ease-in-out infinite;
-    }
-    .dkai-hourglass__sand-top {
-      y: 22px;
-      height: 14px;
-    }
-    .dkai-hourglass__sand-bottom {
-      y: 64px;
-      height: 14px;
     }
   }
 
@@ -536,7 +525,7 @@ All colors MUST be HSL.
       opacity: 1;
     }
     50% {
-      opacity: 0.5;
+      opacity: 0.55;
     }
   }
 }

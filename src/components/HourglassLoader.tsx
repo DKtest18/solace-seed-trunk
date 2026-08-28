@@ -66,11 +66,11 @@ export function HourglassLoader({
         <defs>
           {/* Upper chamber interior */}
           <clipPath id="hg-top-chamber">
-            <polygon points="26,22 74,22 50,50" />
+            <polygon points="32,27 68,27 50,46" />
           </clipPath>
           {/* Lower chamber interior */}
           <clipPath id="hg-bottom-chamber">
-            <polygon points="50,50 74,78 26,78" />
+            <polygon points="50,54 68,73 32,73" />
           </clipPath>
         </defs>
 
@@ -79,9 +79,9 @@ export function HourglassLoader({
           <rect
             className="dkai-hourglass__sand-top"
             x="20"
-            y="20"
+            y="25"
             width="60"
-            height="32"
+            height="23"
           />
         </g>
         {/* Sand — lower chamber fills bottom-up */}
@@ -89,9 +89,9 @@ export function HourglassLoader({
           <rect
             className="dkai-hourglass__sand-bottom"
             x="20"
-            y="48"
+            y="52"
             width="60"
-            height="32"
+            height="23"
           />
         </g>
 
@@ -100,7 +100,7 @@ export function HourglassLoader({
         <path
           className="dkai-hourglass__body"
           fillRule="evenodd"
-          d="M16 12 H84 L50 50 L84 88 H16 L50 50 Z M26 22 H74 L50 50 Z M50 50 L74 78 H26 Z"
+          d="M14 10 H86 L50 50 L86 90 H14 L50 50 Z M32 27 H68 L50 46 Z M50 54 L68 73 H32 Z"
         />
       </svg>
 

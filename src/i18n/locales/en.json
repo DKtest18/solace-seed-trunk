@@ -356,7 +356,6 @@
     "orderDate": "Order Date",
     "orderStatus": "Order Status",
     "confirmReceipt": "",
-
     "confirmDescription": "Did you receive your product? Confirming will start a 24h refund window.",
     "autoConfirm": "Auto-confirm in",
     "sellerPayout": "Seller will receive payout after confirmation + 24h refund window",
@@ -700,5 +699,46 @@
     "emailPlaceholder": "Enter your email",
     "subscribe": "Subscribe",
     "allRightsReserved": "All rights reserved"
+  },
+  "landing": {
+    "heroTitle": "The Marketplace for Ready-Made AI Automations",
+    "heroSubtitle": "Verified sellers. Reviewed AI agents, workflows and prompts. Buy in minutes — no account needed.",
+    "browseMarketplace": "Browse Marketplace",
+    "becomeSeller": "Become a Seller",
+    "comingSoon": "Coming soon",
+    "verified": "Verified",
+    "categories": {
+      "aiAgents": "AI Agents",
+      "automations": "Automations",
+      "workflows": "Workflows",
+      "prompts": "Prompts",
+      "templates": "Templates",
+      "datasets": "Datasets"
+    },
+    "howItWorks": "How it works",
+    "howItWorksSubtitle": "Three steps to your AI solution.",
+    "step": "Step",
+    "steps": {
+      "findTitle": "Find it",
+      "findText": "Browse reviewed AI agents, workflows and prompts from real builders.",
+      "buyTitle": "Buy it (no account needed)",
+      "buyText": "Secure Stripe checkout — no sign-up required, no hidden fees. PayPal coming soon.",
+      "getTitle": "Get it instantly",
+      "getText": "Downloads, access details and setup delivered right after payment."
+    },
+    "whyTitle": "Why DK AI Marketplace",
+    "whySubtitle": "Trust isn't a feature list — it's the standard.",
+    "trust": {
+      "buyerProtectionTitle": "Buyer Protection",
+      "buyerProtectionText": "support-reviewed refunds if a product is not delivered or is materially not as described. Requests within 14 days of purchase.",
+      "reviewedTitle": "Admin-Reviewed Products",
+      "reviewedText": "Every product is manually reviewed before it goes live.",
+      "verifiedSellersTitle": "Verified Sellers",
+      "verifiedSellersText": "Identity verified for every seller. Products go live only after review.",
+      "payoutsTitle": "Direct Payouts",
+      "payoutsText": "Payments flow straight to the seller's connected Stripe account — no detours. PayPal payouts coming soon."
+    },
+    "ctaTitle": "Sell your AI products",
+    "ctaText": "Become a verified seller and reach a buy-ready community — with direct Stripe payouts (PayPal coming soon) and a fair fee structure."
   }
 }

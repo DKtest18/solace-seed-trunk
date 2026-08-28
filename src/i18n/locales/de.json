@@ -699,5 +699,46 @@
     "emailPlaceholder": "E-Mail-Adresse eingeben",
     "subscribe": "Abonnieren",
     "allRightsReserved": "Alle Rechte vorbehalten"
+  },
+  "landing": {
+    "heroTitle": "Der Marktplatz für fertige KI-Automationen",
+    "heroSubtitle": "Verifizierte Verkäufer. Geprüfte KI-Agenten, Workflows und Prompts. In Minuten kaufen — ohne Konto.",
+    "browseMarketplace": "Marktplatz entdecken",
+    "becomeSeller": "Verkäufer werden",
+    "comingSoon": "Demnächst",
+    "verified": "Verifiziert",
+    "categories": {
+      "aiAgents": "KI-Agenten",
+      "automations": "Automationen",
+      "workflows": "Workflows",
+      "prompts": "Prompts",
+      "templates": "Vorlagen",
+      "datasets": "Datensätze"
+    },
+    "howItWorks": "So funktioniert's",
+    "howItWorksSubtitle": "Drei Schritte zu Ihrer KI-Lösung.",
+    "step": "Schritt",
+    "steps": {
+      "findTitle": "Finden",
+      "findText": "Durchsuchen Sie geprüfte KI-Agenten, Workflows und Prompts von echten Entwicklern.",
+      "buyTitle": "Kaufen (ohne Konto)",
+      "buyText": "Sichere Stripe-Zahlung — ohne Registrierung, ohne versteckte Kosten. PayPal folgt bald.",
+      "getTitle": "Sofort erhalten",
+      "getText": "Downloads, Zugangsdaten und Setup direkt nach der Zahlung."
+    },
+    "whyTitle": "Warum DK AI Marketplace",
+    "whySubtitle": "Vertrauen ist keine Funktion — es ist der Standard.",
+    "trust": {
+      "buyerProtectionTitle": "Käuferschutz",
+      "buyerProtectionText": "Vom Support geprüfte Rückerstattungen, wenn ein Produkt nicht geliefert wird oder wesentlich von der Beschreibung abweicht. Anfragen innerhalb von 14 Tagen nach dem Kauf.",
+      "reviewedTitle": "Vom Admin geprüfte Produkte",
+      "reviewedText": "Jedes Produkt wird vor der Veröffentlichung manuell geprüft.",
+      "verifiedSellersTitle": "Verifizierte Verkäufer",
+      "verifiedSellersText": "Identität jedes Verkäufers verifiziert. Produkte gehen erst nach Prüfung live.",
+      "payoutsTitle": "Direkte Auszahlungen",
+      "payoutsText": "Zahlungen fließen direkt auf das verbundene Stripe-Konto des Verkäufers — ohne Umwege. PayPal-Auszahlungen folgen bald."
+    },
+    "ctaTitle": "Verkaufen Sie Ihre KI-Produkte",
+    "ctaText": "Werden Sie verifizierter Verkäufer und erreichen Sie eine kaufbereite Community — mit direkten Stripe-Auszahlungen (PayPal folgt) und einer faires Gebührenstruktur."
   }
 }

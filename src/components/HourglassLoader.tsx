@@ -16,7 +16,7 @@ interface HourglassLoaderProps {
   className?: string;
 }
 
-const SIZES: Record<SizeToken, number> = { sm: 20, md: 32, lg: 72 };
+const SIZES: Record<SizeToken, number> = { sm: 20, md: 32, lg: 128 };
 
 /**
  * Branded hourglass loader.

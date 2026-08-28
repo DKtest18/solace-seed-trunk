@@ -4,7 +4,6 @@ import { db } from '@/lib/dkaiDb';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
@@ -304,18 +303,6 @@ export default function Marketplace() {
       </TooltipProvider>
     );
   };
-
-  const SkeletonCard = () => (
-    <Card className="overflow-hidden">
-      <Skeleton className="aspect-video w-full" />
-      <div className="p-5">
-        <Skeleton className="h-5 w-20 mb-3 rounded-full" />
-        <Skeleton className="h-6 w-3/4 mb-2" />
-        <Skeleton className="h-4 w-full mb-2" />
-        <Skeleton className="h-4 w-2/3 mb-4" />
-      </div>
-    </Card>
-  );
 
   return (
     <AppLayout>

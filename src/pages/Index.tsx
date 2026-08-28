@@ -1,12 +1,38 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ShoppingBag, Search, CreditCard, Download, Shield, ShieldCheck, BadgeCheck, Wallet, ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import {
+  ShoppingBag,
+  Search,
+  CreditCard,
+  Download,
+  Shield,
+  ShieldCheck,
+  BadgeCheck,
+  Wallet,
+  ArrowRight,
+  MessageSquareText,
+  LayoutTemplate,
+  Database,
+  Bot,
+  Zap,
+  Workflow,
+} from 'lucide-react';
 import { db } from '@/lib/dkaiDb';
 import { formatMoney } from '@/lib/money';
 import './index-home.css';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-const CATEGORIES = ['AI Agents', 'Automations', 'Workflows', 'Prompts', 'Templates', 'Datasets'];
+// Decorative marquee categories — icon only, name kept as aria-label + tooltip.
+const CATEGORIES = [
+  { key: 'aiAgents', icon: Bot },
+  { key: 'automations', icon: Zap },
+  { key: 'workflows', icon: Workflow },
+  { key: 'prompts', icon: MessageSquareText },
+  { key: 'templates', icon: LayoutTemplate },
+  { key: 'datasets', icon: Database },
+] as const;
 
 type HomeProduct = {
   id: string;
@@ -35,11 +61,12 @@ function useHomeProducts() {
 }
 
 function ProductGlassCard({ product, className = '' }: { product?: HomeProduct; className?: string }) {
+  const { t } = useTranslation();
   if (!product) {
     return (
       <div className={`home-glass p-4 w-56 ${className}`}>
         <div className="aspect-[4/3] rounded-lg bg-white/5 mb-3 flex items-center justify-center text-xs text-[#94A3B8]">
-          Coming soon
+          {t('landing.comingSoon')}
         </div>
         <div className="h-3 w-3/4 rounded bg-white/10 mb-2" />
         <div className="h-3 w-1/3 rounded bg-white/10" />
@@ -60,7 +87,7 @@ function ProductGlassCard({ product, className = '' }: { product?: HomeProduct; 
       </div>
       <div className="flex items-center gap-1.5 mb-1">
         <span className="text-sm font-medium text-[#F1F5F9] line-clamp-1">{product.title}</span>
-        <BadgeCheck className="h-4 w-4 text-[#22C55E] shrink-0" aria-label="Verified" />
+        <BadgeCheck className="h-4 w-4 text-[#22C55E] shrink-0" aria-label={t('landing.verified')} />
       </div>
       <div className="text-sm text-[#94A3B8]">{formatMoney(product.price, product.currency)}</div>
     </Link>
@@ -68,10 +95,24 @@ function ProductGlassCard({ product, className = '' }: { product?: HomeProduct; 
 }
 
 export default function Index() {
+  const { t } = useTranslation();
   const { data: products } = useHomeProducts();
   const list = products ?? [];
   const slots: (HomeProduct | undefined)[] = Array.from({ length: 5 }, (_, i) => list[i]);
   const floatClasses = ['home-float', 'home-float home-float-2', 'home-float home-float-3', 'home-float home-float-4', 'home-float home-float-5'];
+
+  const steps = [
+    { icon: Search, title: t('landing.steps.findTitle'), text: t('landing.steps.findText') },
+    { icon: CreditCard, title: t('landing.steps.buyTitle'), text: t('landing.steps.buyText') },
+    { icon: Download, title: t('landing.steps.getTitle'), text: t('landing.steps.getText') },
+  ];
+
+  const trust = [
+    { icon: Shield, title: t('landing.trust.buyerProtectionTitle'), text: t('landing.trust.buyerProtectionText') },
+    { icon: ShieldCheck, title: t('landing.trust.reviewedTitle'), text: t('landing.trust.reviewedText') },
+    { icon: BadgeCheck, title: t('landing.trust.verifiedSellersTitle'), text: t('landing.trust.verifiedSellersText') },
+    { icon: Wallet, title: t('landing.trust.payoutsTitle'), text: t('landing.trust.payoutsText') },
+  ];
 
   return (
     <div className="home-dark min-h-screen">
@@ -85,14 +126,11 @@ export default function Index() {
       <section className="relative max-w-6xl mx-auto px-6 pt-24 pb-20 text-center">
         <div aria-hidden className="home-blob" />
         <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-[#94A3B8] mb-8">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#22C55E]" /> Live · Swiss Quality · AI-First
-          </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight leading-[1.05] mb-6">
-            <span className="home-headline-grad">The Marketplace for Ready-Made AI Automations</span>
+            <span className="home-headline-grad">{t('landing.heroTitle')}</span>
           </h1>
           <p className="text-base sm:text-lg text-[#94A3B8] max-w-2xl mx-auto mb-10">
-            Verified sellers. Reviewed AI agents, workflows and prompts. Buy in minutes — no account needed.
+            {t('landing.heroSubtitle')}
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Link
@@ -101,13 +139,13 @@ export default function Index() {
               style={{ background: '#2563EB' }}
             >
               <ShoppingBag className="h-4 w-4" />
-              Browse Marketplace
+              {t('landing.browseMarketplace')}
             </Link>
             <Link
               to="/seller-onboarding"
               className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-[#F1F5F9] border border-white/15 bg-white/5 hover:bg-white/10 transition-colors"
             >
-              Become a Seller
+              {t('landing.becomeSeller')}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -126,44 +164,51 @@ export default function Index() {
         </div>
       </section>
 
-      {/* MARQUEE */}
+      {/* MARQUEE — icon chips (decorative, non-interactive) */}
       <section className="relative py-10 border-y border-white/10 bg-[#0A0E1A]/80">
-        <div className="home-marquee">
-          <div className="home-marquee-track">
-            {[0, 1].map((g) => (
-              <div className="home-marquee-group" key={g} aria-hidden={g === 1}>
-                {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((c, i) => (
-                  <span
-                    key={`${g}-${i}`}
-                    className="inline-flex items-center whitespace-nowrap rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm text-[#F1F5F9]/90"
-                  >
-                    {c}
-                  </span>
-                ))}
-              </div>
-            ))}
+        <TooltipProvider delayDuration={150}>
+          <div className="home-marquee">
+            <div className="home-marquee-track">
+              {[0, 1].map((g) => (
+                <div className="home-marquee-group" key={g} aria-hidden={g === 1}>
+                  {[...CATEGORIES, ...CATEGORIES, ...CATEGORIES].map((c, i) => {
+                    const label = t(`landing.categories.${c.key}`);
+                    return (
+                      <Tooltip key={`${g}-${i}`}>
+                        <TooltipTrigger asChild>
+                          <span
+                            role="img"
+                            aria-label={label}
+                            title={label}
+                            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[#F1F5F9]/90"
+                          >
+                            <c.icon className="h-5 w-5" aria-hidden />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>{label}</TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-
+        </TooltipProvider>
       </section>
 
       {/* HOW IT WORKS */}
       <section className="relative max-w-6xl mx-auto px-6 py-24">
         <div className="text-center mb-14">
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-3">How it works</h2>
-          <p className="text-[#94A3B8]">Three steps to your AI solution.</p>
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-3">{t('landing.howItWorks')}</h2>
+          <p className="text-[#94A3B8]">{t('landing.howItWorksSubtitle')}</p>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { icon: Search, title: 'Find it', text: 'Browse reviewed AI agents, workflows and prompts from real builders.' },
-            { icon: CreditCard, title: 'Buy it (no account needed)', text: 'Secure Stripe checkout — no sign-up required, no hidden fees. PayPal coming soon.' },
-            { icon: Download, title: 'Get it instantly', text: 'Downloads, access details and setup delivered right after payment.' },
-          ].map((s, i) => (
+          {steps.map((s, i) => (
             <div key={i} className="home-glass p-8">
               <div className="h-10 w-10 rounded-lg bg-[#2563EB]/15 border border-[#2563EB]/30 flex items-center justify-center mb-5">
                 <s.icon className="h-5 w-5 text-[#60A5FA]" />
               </div>
-              <div className="text-xs text-[#94A3B8] mb-2">Step {i + 1}</div>
+              <div className="text-xs text-[#94A3B8] mb-2">{t('landing.step')} {i + 1}</div>
               <h3 className="text-lg font-medium text-[#F1F5F9] mb-2">{s.title}</h3>
               <p className="text-sm text-[#94A3B8] leading-relaxed">{s.text}</p>
             </div>
@@ -174,20 +219,15 @@ export default function Index() {
       {/* TRUST */}
       <section className="relative max-w-6xl mx-auto px-6 py-20">
         <div className="text-center mb-14">
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-3">Why DK AI Marketplace</h2>
-          <p className="text-[#94A3B8]">Trust isn't a feature list — it's the standard.</p>
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-3">{t('landing.whyTitle')}</h2>
+          <p className="text-[#94A3B8]">{t('landing.whySubtitle')}</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { icon: Shield, title: 'Buyer Protection', text: 'support-reviewed refunds if a product is not delivered or is materially not as described. Requests within 14 days of purchase.' },
-            { icon: ShieldCheck, title: 'Admin-Reviewed Products', text: 'Every product is manually reviewed before it goes live.' },
-            { icon: BadgeCheck, title: 'Verified Sellers', text: 'Identity verified for every seller. Products go live only after review.' },
-            { icon: Wallet, title: 'Direct Payouts', text: "Payments flow straight to the seller's connected Stripe account — no detours. PayPal payouts coming soon." },
-          ].map((t, i) => (
+          {trust.map((tr, i) => (
             <div key={i} className="home-glass p-6">
-              <t.icon className="h-6 w-6 text-[#60A5FA] mb-4" />
-              <h3 className="text-base font-medium text-[#F1F5F9] mb-2">{t.title}</h3>
-              <p className="text-sm text-[#94A3B8] leading-relaxed">{t.text}</p>
+              <tr.icon className="h-6 w-6 text-[#60A5FA] mb-4" />
+              <h3 className="text-base font-medium text-[#F1F5F9] mb-2">{tr.title}</h3>
+              <p className="text-sm text-[#94A3B8] leading-relaxed">{tr.text}</p>
             </div>
           ))}
         </div>
@@ -197,17 +237,15 @@ export default function Index() {
       <section className="relative max-w-6xl mx-auto px-6 py-20">
         <div className="home-cta-border p-10 md:p-14 text-center">
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
-            <span className="home-headline-grad">Sell your AI products</span>
+            <span className="home-headline-grad">{t('landing.ctaTitle')}</span>
           </h2>
-          <p className="text-[#94A3B8] max-w-xl mx-auto mb-8">
-            Become a verified seller and reach a buy-ready community — with direct Stripe payouts (PayPal coming soon) and a fair fee structure.
-          </p>
+          <p className="text-[#94A3B8] max-w-xl mx-auto mb-8">{t('landing.ctaText')}</p>
           <Link
             to="/seller-onboarding"
             className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-white shadow-lg shadow-[#2563EB]/30 transition-transform hover:scale-[1.02]"
             style={{ background: '#2563EB' }}
           >
-            Become a Seller
+            {t('landing.becomeSeller')}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

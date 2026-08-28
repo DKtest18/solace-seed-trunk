@@ -90,7 +90,29 @@
     "payouts": "Auszahlungen",
     "disputes": "Streitfälle",
     "subscriptions": "Abonnements",
-    "statistics": "Statistiken"
+    "statistics": "Statistiken",
+    "menu": {
+      "browseAll": "Alle Produkte",
+      "browseAllDesc": "Alle geprüften Angebote im Marktplatz",
+      "aiAgentsDesc": "Einsatzbereite autonome Agenten",
+      "automationsDesc": "Software- und Automatisierungspakete",
+      "workflowsDesc": "Komplette Workflow-Vorlagen",
+      "promptsDesc": "Getestete Prompts und Prompt-Pakete",
+      "templatesDesc": "Wiederverwendbare Startvorlagen",
+      "datasetsDesc": "Kuratierte Datensätze für KI-Projekte",
+      "discover": "Entdecken",
+      "topProductsDesc": "Aktuell am besten bewertete Angebote",
+      "topSellersDesc": "Verifizierte Verkäufer mit der besten Bilanz",
+      "statisticsDesc": "Aktuelle Marktplatz-Zahlen",
+      "about": "Über uns",
+      "aboutDesc": "Wer wir sind und wie die Plattform funktioniert",
+      "sellerGuidelines": "Verkäufer-Richtlinien",
+      "sellerGuidelinesDesc": "Regeln und Pflichten für Verkäufer",
+      "blog": "Guide: KI-Agenten-Marktplätze",
+      "blogDesc": "Vergleich der wichtigsten KI-Agenten-Marktplätze",
+      "legal": "Rechtliches",
+      "legalDesc": "AGB, Datenschutz, Rückerstattung und Impressum"
+    }
   },
   "home": {
     "welcome": "Willkommen bei",

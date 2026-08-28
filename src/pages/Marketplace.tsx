@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { Card } from '@/components/ui/card';
@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Search, SlidersHorizontal, PackageOpen, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { RatingDisplay } from '@/components/RatingDisplay';
@@ -40,14 +40,27 @@ function productHasLicense(product: any, key: LicenseKey): boolean {
 export default function Marketplace() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [productType, setProductType] = useState<string>('all');
-  const [pricingModel, setPricingModel] = useState<string>('all');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+  const [productType, setProductType] = useState<string>(searchParams.get('type') || 'all');
+  const [pricingModel, setPricingModel] = useState<string>(searchParams.get('pricing') || 'all');
+  const [selectedTags, setSelectedTags] = useState<string[]>(
+    searchParams.get('tag') ? [searchParams.get('tag') as string] : [],
+  );
   const [selectedLicenses, setSelectedLicenses] = useState<LicenseKey[]>([]);
   const [priceRange, setPriceRange] = useState<{ min: string; max: string }>({ min: '', max: '' });
   const [minRating, setMinRating] = useState<number>(0);
   const [sortBy, setSortBy] = useState<string>('newest');
+
+  // Deep links from the header navigation (?type=, ?tag=, ?pricing=, ?q=)
+  const paramKey = searchParams.toString();
+  useEffect(() => {
+    setProductType(searchParams.get('type') || 'all');
+    setPricingModel(searchParams.get('pricing') || 'all');
+    setSelectedTags(searchParams.get('tag') ? [searchParams.get('tag') as string] : []);
+    setSearchQuery(searchParams.get('q') || '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paramKey]);
 
   const { data: productsWithRatings, isLoading } = useProductsWithRatings();
 

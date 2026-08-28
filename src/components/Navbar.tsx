@@ -22,13 +22,9 @@ import { db } from '@/lib/dkaiDb';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { REVIEW_STATUS_GROUPS } from '@/lib/reviewStatus';
-
-
-const navLinks = [
-  { to: '/', label: 'Home', end: true },
-  { to: '/marketplace', label: 'Marketplace' },
-  
-];
+import { MainNav } from '@/components/nav/MainNav';
+import { MobileMainNav } from '@/components/nav/MobileMainNav';
+import { useLocation } from 'react-router-dom';
 
 export function Navbar() {
   const { user, signOut } = useAuth();
@@ -41,6 +37,12 @@ export function Navbar() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [pendingProducts, setPendingProducts] = useState(0);
+  const location = useLocation();
+
+  // Close the mobile sheet whenever the route changes.
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname, location.search]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -98,19 +100,9 @@ export function Navbar() {
           <img src="/logo.png" alt="DK AI Marketplace" className="h-9 w-auto" />
         </Link>
 
-        {/* Center: nav links */}
-        <div className="hidden md:flex items-center space-x-7">
-          {navLinks.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              end={link.end}
-              activeClassName="text-primary"
-              className="text-sm font-medium text-gray-700 hover:text-primary transition-colors"
-            >
-              {link.label}
-            </NavLink>
-          ))}
+        {/* Center: main navigation (dropdowns) */}
+        <div className="hidden md:flex items-center gap-4">
+          <MainNav />
           {isSeller && (
             <NavLink
               to="/seller-dashboard"
@@ -230,17 +222,8 @@ export function Navbar() {
 
                     {/* Navigation links */}
                     <div className="flex-1 overflow-auto py-2">
+                      <MobileMainNav onNavigate={() => setMobileOpen(false)} />
                       <div className="px-2 space-y-1">
-                        {navLinks.map((link) => (
-                          <Link
-                            key={link.to}
-                            to={link.to}
-                            onClick={() => setMobileOpen(false)}
-                            className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-accent transition-colors"
-                          >
-                            {link.label}
-                          </Link>
-                        ))}
                         {isSeller && (
                           <Link to="/seller-dashboard" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-accent transition-colors">
                             <LayoutDashboard className="w-4 h-4 mr-3" />Dashboard
@@ -302,12 +285,37 @@ export function Navbar() {
             </>
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="ghost" asChild size="sm">
+              <Button variant="ghost" asChild size="sm" className="hidden sm:inline-flex">
                 <Link to="/login">Sign in</Link>
               </Button>
               <Button variant="navCta" asChild size="sm">
                 <Link to="/signup">Get started</Link>
               </Button>
+
+              {/* Mobile hamburger for signed-out visitors */}
+              <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="md:hidden rounded-full" aria-label="Open navigation menu">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[280px] p-0">
+                  <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                  <div className="flex flex-col h-full">
+                    <div className="flex-1 overflow-auto py-4">
+                      <MobileMainNav onNavigate={() => setMobileOpen(false)} />
+                    </div>
+                    <div className="p-4 border-t space-y-2">
+                      <Button variant="outline" asChild className="w-full">
+                        <Link to="/login" onClick={() => setMobileOpen(false)}>Sign in</Link>
+                      </Button>
+                      <Button variant="navCta" asChild className="w-full">
+                        <Link to="/signup" onClick={() => setMobileOpen(false)}>Get started</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           )}
         </div>

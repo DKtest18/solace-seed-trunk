@@ -73,8 +73,8 @@ function ProductGlassCard({ product, className = '' }: { product?: HomeProduct; 
         <div className="aspect-[4/3] rounded-lg bg-[var(--n-surface-strong)] mb-3 flex items-center justify-center text-xs text-[var(--text-dim)]">
           {t('landing.comingSoon')}
         </div>
-        <div className="h-3 w-3/4 rounded bg-white/10 mb-2" />
-        <div className="h-3 w-1/3 rounded bg-white/10" />
+        <div className="h-3 w-3/4 rounded bg-[var(--n-surface-strong)] mb-2" />
+        <div className="h-3 w-1/3 rounded bg-[var(--n-surface-strong)]" />
       </div>
     );
   }
@@ -214,7 +214,7 @@ export default function Index() {
       </section>
 
       {/* MARQUEE — icon chips (decorative, non-interactive, neutral greys) */}
-      <section className="relative py-12 border-y border-white/10">
+      <section className="relative py-12 border-y border-[var(--hair)]">
         <TooltipProvider delayDuration={150}>
           <div className="home-marquee">
             <div className="home-marquee-track">
@@ -234,7 +234,7 @@ export default function Index() {
         <div className="grid md:grid-cols-3 gap-6">
           {steps.map((s, i) => (
             <div key={i} className="home-glass p-8">
-              <div className="h-10 w-10 rounded-lg bg-[var(--n-surface-strong)] border border-white/10 flex items-center justify-center mb-5">
+              <div className="h-10 w-10 rounded-lg bg-[var(--n-surface-strong)] border border-[var(--hair)] flex items-center justify-center mb-5">
                 <s.icon className="h-5 w-5 text-[var(--brand-accent)]" />
               </div>
               <div className="text-xs text-[var(--text-dim)] mb-2">{t('landing.step')} {i + 1}</div>

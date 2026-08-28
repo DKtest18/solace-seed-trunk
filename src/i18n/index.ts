@@ -2,15 +2,16 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import en from './locales/en.json';
+// NOTE: de.json and fr.json contain MACHINE-DRAFTED copy that still needs human
+// review (DACH and Suisse romande audiences). English (en) is the source of
+// truth and the fallback language: missing keys render the English string,
+// never a raw key.
 import de from './locales/de.json';
-// NOTE: fr.json is a MACHINE-DRAFTED first draft and needs human review
-// (Suisse romande audience). Missing keys fall back to German.
 import fr from './locales/fr.json';
 
 import {
   detectLanguageFromGeo,
   getStoredLanguage,
-  languageFromNavigator,
   storeLanguage,
   type AppLanguage,
 } from '@/lib/geoLanguage';
@@ -22,14 +23,14 @@ const resources = {
 };
 
 const stored = getStoredLanguage();
-// Render immediately in a sensible default; geo answer may switch it later.
-const initialLng: AppLanguage = stored ?? languageFromNavigator();
+// English is the global default; the geo answer may switch it later (first visit only).
+const initialLng: AppLanguage = stored ?? 'en';
 
 i18n.use(initReactI18next).init({
   resources,
   lng: initialLng,
-  fallbackLng: 'de',
-  supportedLngs: ['de', 'fr', 'en'],
+  fallbackLng: 'en',
+  supportedLngs: ['en', 'de', 'fr'],
   interpolation: {
     escapeValue: false,
   },

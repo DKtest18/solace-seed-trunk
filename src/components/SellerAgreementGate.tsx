@@ -1,3 +1,4 @@
+import { HourglassLoader } from '@/components/HourglassLoader';
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -15,7 +16,6 @@ import {
   useSellerRestrictions,
 } from '@/hooks/useSellerRestrictions';
 import {
-import { HourglassLoader } from '@/components/HourglassLoader';
   SellerAgreementAcceptLabel,
   SellerAgreementBody,
   useSellerObligationsPdf,

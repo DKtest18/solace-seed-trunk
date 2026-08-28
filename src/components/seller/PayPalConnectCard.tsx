@@ -1,3 +1,4 @@
+import { HourglassLoader } from '@/components/HourglassLoader';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +17,6 @@ import {
   XCircle,
 } from 'lucide-react';
 import {
-import { HourglassLoader } from '@/components/HourglassLoader';
   createPayPalOnboardingLink,
   disconnectPayPal,
   emptyPayPalConnectStatus,

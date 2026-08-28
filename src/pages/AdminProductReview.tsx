@@ -1,3 +1,4 @@
+import { HourglassLoader } from '@/components/HourglassLoader';
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -28,7 +29,6 @@ import { ProductTimestamps, hoursWaiting } from '@/components/seller/ProductTime
 
 
 import {
-import { HourglassLoader } from '@/components/HourglassLoader';
   REVIEW_STATUS,
   REVIEW_STATUS_GROUPS,
   REVIEW_STATUS_LABEL as STATUS_LABEL,

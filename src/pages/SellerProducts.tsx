@@ -1,3 +1,4 @@
+import { HourglassLoader } from '@/components/HourglassLoader';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,7 +42,6 @@ import { useProductPurchasable } from '@/hooks/useProductPurchasable';
 import { ProductTimestamps, type ProductTimestampKind } from '@/components/seller/ProductTimestamps';
 
 import {
-import { HourglassLoader } from '@/components/HourglassLoader';
   REVIEW_STATUS_GROUPS,
   SELLER_PRODUCT_TAB,
   SELLER_PRODUCT_TABS,

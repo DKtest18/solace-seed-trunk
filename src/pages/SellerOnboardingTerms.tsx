@@ -1,3 +1,4 @@
+import { HourglassLoader } from '@/components/HourglassLoader';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -14,7 +15,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, ArrowDown, CheckCircle2, FileText, Loader2 } from 'lucide-react';
 import { hasCurrentSellerAgreement } from '@/lib/sellerAgreement';
 import {
-import { HourglassLoader } from '@/components/HourglassLoader';
   SellerAgreementAcceptLabel,
   SellerAgreementBody,
   useSellerObligationsPdf,

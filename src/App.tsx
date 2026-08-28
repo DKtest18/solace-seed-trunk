@@ -144,7 +144,9 @@ const App = () => (
             <Route path="/admin/accounts" element={<AdminRouteGuard><AdminAccounts /></AdminRouteGuard>} />
             <Route path="/" element={<Index />} />
             <Route path="/waitlist" element={<Waitlist />} />
-            <Route path="/blog/top-ai-agent-marketplaces" element={<BlogTopAiAgentMarketplaces />} />
+            {/* Blog temporarily disabled — visitors are redirected to the homepage */}
+            <Route path="/blog/top-ai-agent-marketplaces" element={<Navigate to="/" replace />} />
+
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/about" element={<About />} />

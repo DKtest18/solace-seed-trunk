@@ -37,6 +37,12 @@ export function Navbar() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [pendingProducts, setPendingProducts] = useState(0);
+  const location = useLocation();
+
+  // Close the mobile sheet whenever the route changes.
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname, location.search]);
 
   useEffect(() => {
     if (!isAdmin) return;

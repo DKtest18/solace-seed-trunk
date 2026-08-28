@@ -347,7 +347,11 @@
     "scan2FACode": "Scannen Sie diesen QR-Code mit Ihrer Authenticator-App",
     "enter2FACode": "Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein",
     "backupCodes": "Backup-Codes",
-    "saveBackupCodes": "Speichern Sie diese Backup-Codes an einem sicheren Ort"
+    "saveBackupCodes": "Speichern Sie diese Backup-Codes an einem sicheren Ort",
+    "continueWithLinkedIn": "Weiter mit LinkedIn",
+    "continueWithGoogle": "Weiter mit Google",
+    "continueWithGithub": "Weiter mit GitHub",
+    "oauthFailed": "Anmeldung fehlgeschlagen. Bitte versuche es erneut."
   },
   "_escrow_retired": {},
   "orders": {

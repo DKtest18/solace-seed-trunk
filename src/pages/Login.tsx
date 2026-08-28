@@ -8,7 +8,7 @@ import { db } from '@/lib/dkaiDb';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { lovable } from '@/integrations/lovable/index';
 import dkLogo from '@/assets/dk-ai-logo.png';
-import { LinkedInAuthButton } from '@/components/auth/LinkedInAuthButton';
+import { OAuthProviderButtons } from '@/components/auth/OAuthProviderButtons';
 
 /**
  * Authoritative two-factor check right after sign-in.
@@ -314,7 +314,7 @@ export default function Login() {
                   <span className="h-px flex-1 bg-border" />
                 </div>
 
-                <LinkedInAuthButton redirectPath={safeRedirect ?? '/'} />
+                <OAuthProviderButtons redirectPath={safeRedirect ?? '/'} />
 
                 <p className="text-sm text-muted-foreground text-center mt-6">
                   Don't have an account?{' '}

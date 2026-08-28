@@ -344,7 +344,11 @@
     "scan2FACode": "Scan this QR code with your authenticator app",
     "enter2FACode": "Enter the 6-digit code from your authenticator app",
     "backupCodes": "Backup Codes",
-    "saveBackupCodes": "Save these backup codes in a safe place"
+    "saveBackupCodes": "Save these backup codes in a safe place",
+    "continueWithLinkedIn": "Continue with LinkedIn",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithGithub": "Continue with GitHub",
+    "oauthFailed": "Sign-in failed. Please try again."
   },
   "_escrow_retired": {},
   "orders": {

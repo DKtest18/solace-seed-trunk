@@ -135,5 +135,11 @@
     "lawyerReview": "Ne constitue pas un conseil juridique, sous réserve de vérification par un avocat suisse.",
     "bindingLanguageTitle": "Langue contraignante",
     "bindingLanguage": "La version allemande de ce document est la version juridiquement contraignante. Les versions dans d'autres langues sont fournies uniquement à titre de commodité."
+  },
+  "auth": {
+    "continueWithLinkedIn": "Continuer avec LinkedIn",
+    "continueWithGoogle": "Continuer avec Google",
+    "continueWithGithub": "Continuer avec GitHub",
+    "oauthFailed": "Échec de la connexion. Veuillez réessayer."
   }
 }

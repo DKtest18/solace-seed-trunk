@@ -21,6 +21,7 @@ const companyLinks = [
 
 export function Footer() {
   const location = useLocation();
+  const { t } = useTranslation();
 
   const isAuthFlow =
     location.pathname === '/login' ||
@@ -115,15 +116,15 @@ export function Footer() {
 
           {/* Column 4: Legal */}
           <div>
-            <h4 className="font-semibold text-sm mb-4 text-foreground">Legal</h4>
+            <h4 className="font-semibold text-sm mb-4 text-foreground">{t('footer.legal')}</h4>
             <ul className="space-y-2">
-              {legalLinks.map((link) => (
+              {LEGAL_LINKS.map((link) => (
                 <li key={link.to}>
                   <Link
                     to={link.to}
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {link.label}
+                    {t(link.key)}
                   </Link>
                 </li>
               ))}

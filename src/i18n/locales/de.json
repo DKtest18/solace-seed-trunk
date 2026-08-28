@@ -785,5 +785,81 @@
     "lawyerReview": "Keine Rechtsberatung, vorbehältlich Prüfung durch eine Schweizer Anwältin oder einen Schweizer Anwalt.",
     "bindingLanguageTitle": "Verbindliche Sprachfassung",
     "bindingLanguage": "Die deutsche Fassung dieses Dokuments ist die rechtlich verbindliche Fassung. Fassungen in anderen Sprachen dienen ausschliesslich der Vereinfachung."
+  },
+  "mfa": {
+    "title": "Zwei-Faktor-Authentifizierung",
+    "description": "Schütze dein Konto mit einer Authenticator-App (empfohlen) oder SMS-Codes.",
+    "status": {
+      "active": "Zwei-Faktor-Authentifizierung ist aktiv",
+      "checking": "Status wird geprüft…",
+      "inactive": "Zwei-Faktor-Authentifizierung ist noch nicht eingerichtet."
+    },
+    "methods": {
+      "title": "Methode hinzufügen",
+      "totp": "Authenticator-App",
+      "totpDescription": "Zeitbasierte Codes aus einer App wie Google Authenticator oder 1Password. Empfohlen.",
+      "sms": "SMS-Code",
+      "smsDescription": "Ein 6-stelliger Code an deine Mobilnummer. Es können SMS-Gebühren anfallen.",
+      "recommended": "Empfohlen",
+      "optional": "Optional"
+    },
+    "factors": {
+      "title": "Deine Methoden",
+      "typeTotp": "Authenticator-App",
+      "typeSms": "SMS",
+      "unnamed": "Unbenannte Methode",
+      "remove": "Entfernen",
+      "removeTitle": "Diese Methode entfernen?",
+      "removeDescription": "Du kannst {{name}} dann nicht mehr zum Anmelden verwenden. Andere Methoden bleiben aktiv.",
+      "removeLastWarning": "Das ist deine LETZTE Zwei-Faktor-Methode. Wenn du sie entfernst, wird die Zwei-Faktor-Authentifizierung für dein Konto ausgeschaltet und Verkäuferbereiche werden gesperrt, bis du sie neu einrichtest.",
+      "removeConfirm": "Ja, entfernen",
+      "removed": "Methode entfernt",
+      "removeFailed": "Die Methode konnte nicht entfernt werden."
+    },
+    "phone": {
+      "label": "Mobilnummer",
+      "placeholder": "+41 79 123 45 67",
+      "hint": "Internationales Format mit Ländervorwahl, z. B. +41 79 123 45 67 (Schweiz), +49 151 23456789 (Deutschland), +33 6 12 34 56 78 (Frankreich).",
+      "sendCode": "Code senden",
+      "codeLabel": "Code aus der SMS eingeben",
+      "codeSent": "Wir haben einen 6-stelligen Code an {{phone}} gesendet.",
+      "activate": "Prüfen und aktivieren"
+    },
+    "phoneErrors": {
+      "missing_plus": "Beginne mit der Ländervorwahl, zum Beispiel +41 79 123 45 67.",
+      "too_short": "Diese Nummer ist zu kurz. Gib Ländervorwahl und vollständige Nummer an.",
+      "too_long": "Diese Nummer ist zu lang. E.164 erlaubt maximal 15 Ziffern.",
+      "invalid_chars": "Nach der Ländervorwahl nur Ziffern, zum Beispiel +41791234567.",
+      "leading_zero": "Lass die 0 nach der Ländervorwahl weg, also +4179… statt +4179 0…"
+    },
+    "sms": {
+      "resend": "Code erneut senden",
+      "resendIn": "Neuer Code in {{seconds}}s",
+      "remainingSends": "Noch {{count}} SMS in dieser Sitzung",
+      "capReached": "SMS-Limit erreicht ({{max}} pro Sitzung). Nutze deine Authenticator-App oder versuche es später erneut.",
+      "cooldownNotice": "Aus Kostengründen kannst du einmal pro Minute eine neue SMS anfordern."
+    },
+    "smsErrors": {
+      "provider": "Der SMS-Anbieter hat die Anfrage abgelehnt.",
+      "rateLimit": "Zu viele SMS-Anfragen. Bitte warte einen Moment.",
+      "balance": "Das Guthaben des SMS-Anbieters reicht nicht aus. Bitte wende dich an support@dkaimarketplace.com.",
+      "unsupportedCountry": "Der SMS-Anbieter kann an diese Nummer nicht liefern. Test-Konten senden nur an freigegebene Nummern.",
+      "invalidNumber": "Der SMS-Anbieter hält diese Nummer für ungültig.",
+      "alreadyEnrolled": "Diese Nummer ist in deinem Konto bereits hinterlegt."
+    },
+    "challenge": {
+      "chooseMethod": "Wie möchtest du bestätigen, dass es du bist?",
+      "useTotp": "Authenticator-App verwenden",
+      "useSms": "SMS-Code an {{phone}} senden",
+      "otherMethod": "Andere Methode verwenden",
+      "totpCodeLabel": "Authentifizierungscode",
+      "totpHint": "Gib den 6-stelligen Code aus deiner Authenticator-App ein.",
+      "smsCodeLabel": "SMS-Code",
+      "smsHint": "Gib den 6-stelligen Code ein, den wir an {{phone}} gesendet haben.",
+      "verify": "Bestätigen"
+    },
+    "errors": {
+      "codeLength": "Gib den 6-stelligen Code ein."
+    }
   }
 }

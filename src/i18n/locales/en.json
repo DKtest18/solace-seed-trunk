@@ -111,7 +111,6 @@
       "legalDesc": "Terms, privacy, refunds and imprint"
     }
   },
-
   "home": {
     "welcome": "Welcome to",
     "brandName": "DK AI MARKETPLACE",
@@ -783,5 +782,81 @@
     "lawyerReview": "Not legal advice, subject to review by a Swiss lawyer.",
     "bindingLanguageTitle": "Binding language",
     "bindingLanguage": "The German version of this document is the legally binding version. Versions in other languages are provided for convenience only."
+  },
+  "mfa": {
+    "title": "Two-factor authentication",
+    "description": "Protect your account with an authenticator app (recommended) or SMS codes.",
+    "status": {
+      "active": "Two-factor authentication is active",
+      "checking": "Checking status…",
+      "inactive": "Two-factor authentication is not set up yet."
+    },
+    "methods": {
+      "title": "Add a method",
+      "totp": "Authenticator app",
+      "totpDescription": "Time-based codes from an app like Google Authenticator or 1Password. Recommended.",
+      "sms": "SMS code",
+      "smsDescription": "A 6-digit code sent to your mobile number. Standard SMS rates may apply.",
+      "recommended": "Recommended",
+      "optional": "Optional"
+    },
+    "factors": {
+      "title": "Your methods",
+      "typeTotp": "Authenticator app",
+      "typeSms": "SMS",
+      "unnamed": "Unnamed method",
+      "remove": "Remove",
+      "removeTitle": "Remove this method?",
+      "removeDescription": "You can no longer use {{name}} to sign in. Other methods stay active.",
+      "removeLastWarning": "This is your LAST two-factor method. Removing it turns two-factor authentication OFF for your account, and seller areas will be locked until you set it up again.",
+      "removeConfirm": "Yes, remove it",
+      "removed": "Method removed",
+      "removeFailed": "The method could not be removed."
+    },
+    "phone": {
+      "label": "Mobile number",
+      "placeholder": "+41 79 123 45 67",
+      "hint": "International format with country code, e.g. +41 79 123 45 67 (Switzerland), +49 151 23456789 (Germany), +33 6 12 34 56 78 (France).",
+      "sendCode": "Send code",
+      "codeLabel": "Enter the code from the SMS",
+      "codeSent": "We sent a 6-digit code to {{phone}}.",
+      "activate": "Verify and activate"
+    },
+    "phoneErrors": {
+      "missing_plus": "Start with the country code, for example +41 79 123 45 67.",
+      "too_short": "That number is too short. Include the country code and the full number.",
+      "too_long": "That number is too long. E.164 allows at most 15 digits.",
+      "invalid_chars": "Digits only after the country code, for example +41791234567.",
+      "leading_zero": "Drop the 0 after the country code, for example +4179… instead of +4179 0…"
+    },
+    "sms": {
+      "resend": "Resend code",
+      "resendIn": "Resend code in {{seconds}}s",
+      "remainingSends": "{{count}} SMS left in this session",
+      "capReached": "SMS limit reached ({{max}} per session). Use your authenticator app or try again later.",
+      "cooldownNotice": "For cost reasons you can request a new SMS once per minute."
+    },
+    "smsErrors": {
+      "provider": "The SMS provider rejected the request.",
+      "rateLimit": "Too many SMS requests. Please wait a moment before trying again.",
+      "balance": "The SMS provider has insufficient balance. Please contact support@dkaimarketplace.com.",
+      "unsupportedCountry": "The SMS provider cannot deliver to this number. Trial provider accounts only send to pre-approved numbers.",
+      "invalidNumber": "The SMS provider considers this number invalid.",
+      "alreadyEnrolled": "This number is already enrolled on your account."
+    },
+    "challenge": {
+      "chooseMethod": "How do you want to confirm it is you?",
+      "useTotp": "Use authenticator app",
+      "useSms": "Send SMS code to {{phone}}",
+      "otherMethod": "Use a different method",
+      "totpCodeLabel": "Authentication code",
+      "totpHint": "Enter the 6-digit code from your authenticator app.",
+      "smsCodeLabel": "SMS code",
+      "smsHint": "Enter the 6-digit code we sent to {{phone}}.",
+      "verify": "Verify"
+    },
+    "errors": {
+      "codeLength": "Enter the 6-digit code."
+    }
   }
 }

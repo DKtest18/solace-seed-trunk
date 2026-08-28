@@ -163,5 +163,81 @@
     "continueWithGoogle": "Continuer avec Google",
     "continueWithGithub": "Continuer avec GitHub",
     "oauthFailed": "Échec de la connexion. Veuillez réessayer."
+  },
+  "mfa": {
+    "title": "Authentification à deux facteurs",
+    "description": "Protégez votre compte avec une application d'authentification (recommandé) ou des codes SMS.",
+    "status": {
+      "active": "L'authentification à deux facteurs est active",
+      "checking": "Vérification du statut…",
+      "inactive": "L'authentification à deux facteurs n'est pas encore configurée."
+    },
+    "methods": {
+      "title": "Ajouter une méthode",
+      "totp": "Application d'authentification",
+      "totpDescription": "Codes temporaires depuis une application comme Google Authenticator ou 1Password. Recommandé.",
+      "sms": "Code SMS",
+      "smsDescription": "Un code à 6 chiffres envoyé sur votre mobile. Des frais SMS peuvent s'appliquer.",
+      "recommended": "Recommandé",
+      "optional": "Optionnel"
+    },
+    "factors": {
+      "title": "Vos méthodes",
+      "typeTotp": "Application d'authentification",
+      "typeSms": "SMS",
+      "unnamed": "Méthode sans nom",
+      "remove": "Supprimer",
+      "removeTitle": "Supprimer cette méthode ?",
+      "removeDescription": "Vous ne pourrez plus utiliser {{name}} pour vous connecter. Les autres méthodes restent actives.",
+      "removeLastWarning": "C'est votre DERNIÈRE méthode à deux facteurs. La supprimer désactive l'authentification à deux facteurs de votre compte et bloque les espaces vendeur jusqu'à une nouvelle configuration.",
+      "removeConfirm": "Oui, supprimer",
+      "removed": "Méthode supprimée",
+      "removeFailed": "La méthode n'a pas pu être supprimée."
+    },
+    "phone": {
+      "label": "Numéro de mobile",
+      "placeholder": "+41 79 123 45 67",
+      "hint": "Format international avec indicatif pays, par ex. +41 79 123 45 67 (Suisse), +49 151 23456789 (Allemagne), +33 6 12 34 56 78 (France).",
+      "sendCode": "Envoyer le code",
+      "codeLabel": "Saisissez le code reçu par SMS",
+      "codeSent": "Nous avons envoyé un code à 6 chiffres au {{phone}}.",
+      "activate": "Vérifier et activer"
+    },
+    "phoneErrors": {
+      "missing_plus": "Commencez par l'indicatif pays, par exemple +41 79 123 45 67.",
+      "too_short": "Ce numéro est trop court. Indiquez l'indicatif pays et le numéro complet.",
+      "too_long": "Ce numéro est trop long. E.164 autorise 15 chiffres au maximum.",
+      "invalid_chars": "Uniquement des chiffres après l'indicatif, par exemple +41791234567.",
+      "leading_zero": "Retirez le 0 après l'indicatif : +4179… au lieu de +4179 0…"
+    },
+    "sms": {
+      "resend": "Renvoyer le code",
+      "resendIn": "Nouveau code dans {{seconds}}s",
+      "remainingSends": "{{count}} SMS restant(s) pour cette session",
+      "capReached": "Limite de SMS atteinte ({{max}} par session). Utilisez votre application d'authentification ou réessayez plus tard.",
+      "cooldownNotice": "Pour des raisons de coût, un nouveau SMS est possible une fois par minute."
+    },
+    "smsErrors": {
+      "provider": "Le fournisseur SMS a refusé la demande.",
+      "rateLimit": "Trop de demandes de SMS. Veuillez patienter un instant.",
+      "balance": "Le solde du fournisseur SMS est insuffisant. Contactez support@dkaimarketplace.com.",
+      "unsupportedCountry": "Le fournisseur SMS ne peut pas livrer à ce numéro. Les comptes d'essai n'envoient qu'aux numéros autorisés.",
+      "invalidNumber": "Le fournisseur SMS considère ce numéro comme invalide.",
+      "alreadyEnrolled": "Ce numéro est déjà enregistré sur votre compte."
+    },
+    "challenge": {
+      "chooseMethod": "Comment souhaitez-vous confirmer votre identité ?",
+      "useTotp": "Utiliser l'application d'authentification",
+      "useSms": "Envoyer un code SMS au {{phone}}",
+      "otherMethod": "Utiliser une autre méthode",
+      "totpCodeLabel": "Code d'authentification",
+      "totpHint": "Saisissez le code à 6 chiffres de votre application d'authentification.",
+      "smsCodeLabel": "Code SMS",
+      "smsHint": "Saisissez le code à 6 chiffres envoyé au {{phone}}.",
+      "verify": "Vérifier"
+    },
+    "errors": {
+      "codeLength": "Saisissez le code à 6 chiffres."
+    }
   }
 }

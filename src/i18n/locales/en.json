@@ -740,5 +740,21 @@
     },
     "ctaTitle": "Sell your AI products",
     "ctaText": "Become a verified seller and reach a buy-ready community — with direct Stripe payouts (PayPal coming soon) and a fair fee structure."
+  },
+  "legalLinks": {
+    "impressum": "Legal Notice (Impressum)",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "refund": "Refund, Withdrawal & Dispute Policy",
+    "licenses": "License Terms",
+    "cookies": "Cookie Policy",
+    "cookieSettings": "Cookie Settings",
+    "sellerGuidelines": "Seller Guidelines",
+    "contentPolicy": "Content Policy"
+  },
+  "legalPage": {
+    "lawyerReview": "Not legal advice, subject to review by a Swiss lawyer.",
+    "bindingLanguageTitle": "Binding language",
+    "bindingLanguage": "The German version of this document is the legally binding version. Versions in other languages are provided for convenience only."
   }
 }

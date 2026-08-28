@@ -1,4 +1,7 @@
 {
+  "_meta": {
+    "note": "MACHINE-DRAFTED COPY — needs human review before being treated as final. English (en) is the source of truth and fallback; missing keys fall back to en."
+  },
   "common": {
     "loading": "Laden...",
     "error": "Fehler",
@@ -740,5 +743,21 @@
     },
     "ctaTitle": "Verkaufen Sie Ihre KI-Produkte",
     "ctaText": "Werden Sie verifizierter Verkäufer und erreichen Sie eine kaufbereite Community — mit direkten Stripe-Auszahlungen (PayPal folgt) und einer faires Gebührenstruktur."
+  },
+  "legalLinks": {
+    "impressum": "Impressum",
+    "privacy": "Datenschutzerklärung",
+    "terms": "Allgemeine Geschäftsbedingungen (AGB)",
+    "refund": "Rückerstattungs-, Widerrufs- und Streitfallrichtlinie",
+    "licenses": "Lizenzbedingungen",
+    "cookies": "Cookie-Richtlinie",
+    "cookieSettings": "Cookie-Einstellungen",
+    "sellerGuidelines": "Verkäufer-Richtlinien",
+    "contentPolicy": "Inhaltsrichtlinie"
+  },
+  "legalPage": {
+    "lawyerReview": "Keine Rechtsberatung, vorbehältlich Prüfung durch eine Schweizer Anwältin oder einen Schweizer Anwalt.",
+    "bindingLanguageTitle": "Verbindliche Sprachfassung",
+    "bindingLanguage": "Die deutsche Fassung dieses Dokuments ist die rechtlich verbindliche Fassung. Fassungen in anderen Sprachen dienen ausschliesslich der Vereinfachung."
   }
 }

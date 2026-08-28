@@ -8,8 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Users, Star, Package, DollarSign, ShoppingBag, AlertTriangle } from 'lucide-react';
+import { Users, Star, Package, DollarSign, ShoppingBag, AlertTriangle } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 type SortOption = 'highest-revenue' | 'most-sales' | 'best-rating';
 
@@ -79,7 +80,7 @@ export default function TopSellers() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <HourglassLoader size={128} label />
       </div>
     );
   }

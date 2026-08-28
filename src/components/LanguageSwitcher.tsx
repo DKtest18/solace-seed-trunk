@@ -9,23 +9,26 @@ import {
 import { Globe } from 'lucide-react';
 import { db } from '@/lib/dkaiDb';
 import { useAuth } from '@/contexts/AuthContext';
+import { storeLanguage, type AppLanguage } from '@/lib/geoLanguage';
 
-const languages = [
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' }
+const languages: { code: AppLanguage; name: string; short: string }[] = [
+  { code: 'de', name: 'Deutsch', short: 'DE' },
+  { code: 'fr', name: 'Français', short: 'FR' },
 ];
 
 export function LanguageSwitcher() {
   const { i18n } = useTranslation();
   const { user } = useAuth();
 
-  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
+  const currentLanguage =
+    languages.find((lang) => lang.code === i18n.language) || languages[0];
 
-  const changeLanguage = async (langCode: string) => {
+  const changeLanguage = async (langCode: AppLanguage) => {
     i18n.changeLanguage(langCode);
-    localStorage.setItem('i18nextLng', langCode);
+    // Manual choice always wins over geo auto-detection on future visits.
+    storeLanguage(langCode);
     document.documentElement.lang = langCode;
-    
+
     // Persist to user settings if logged in
     if (user) {
       await db
@@ -37,10 +40,9 @@ export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2">
+        <Button variant="ghost" size="sm" className="gap-2" aria-label="Language">
           <Globe className="h-4 w-4" />
-          <span className="hidden sm:inline">{currentLanguage.flag} {currentLanguage.name}</span>
-          <span className="sm:hidden">{currentLanguage.flag}</span>
+          <span className="text-xs font-semibold">{currentLanguage.short}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -50,7 +52,7 @@ export function LanguageSwitcher() {
             onClick={() => changeLanguage(lang.code)}
             className={i18n.language === lang.code ? 'bg-accent' : ''}
           >
-            <span className="mr-2">{lang.flag}</span>
+            <span className="mr-2 text-xs font-semibold">{lang.short}</span>
             {lang.name}
           </DropdownMenuItem>
         ))}

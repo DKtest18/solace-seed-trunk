@@ -20,7 +20,9 @@ import { User, Plus, Settings, LogOut, ShoppingBag, DollarSign, Heart, MessageSq
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/dkaiDb';
 import { NotificationCenter } from '@/components/NotificationCenter';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { REVIEW_STATUS_GROUPS } from '@/lib/reviewStatus';
+
 
 const navLinks = [
   { to: '/', label: 'Home', end: true },
@@ -122,7 +124,9 @@ export function Navbar() {
 
         {/* Right: actions */}
         <div className="flex items-center gap-2">
+          <LanguageSwitcher />
           {user ? (
+
             <>
               <NotificationCenter />
               {isSeller ? (

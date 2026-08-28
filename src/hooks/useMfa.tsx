@@ -1,10 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { collectVerifiedFactors, type MfaFactor } from '@/lib/mfaFactors';
 
 export interface MfaStatus {
-  /** Verified TOTP factors on the account. */
+  /** Verified factors on the account (TOTP and/or phone/SMS). */
   factors: { id: string; friendly_name?: string | null }[];
+  /** Same verified factors with their type and (for SMS) phone number. */
+  verifiedFactors: MfaFactor[];
   hasVerifiedFactor: boolean;
   currentLevel: string | null;
   nextLevel: string | null;

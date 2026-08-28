@@ -3,25 +3,32 @@
  *
  * Rules:
  *  - Manual choice in localStorage (LANG_STORAGE_KEY) always wins.
- *  - Switzerland + French-speaking canton (GE, VD, NE, JU, VS, FR) -> "fr"
- *  - Any other Swiss canton and every non-Swiss visitor            -> "de"
- *  - Geo failure/timeout -> navigator.language ("fr*" -> fr, else de)
+ *  - CH + French-speaking canton (GE, VD, NE, JU, VS, FR) -> "fr"
+ *  - CH, any other canton (incl. Ticino, out of scope)    -> "de"
+ *  - DE, AT, LI                                           -> "de"
+ *  - FR, BE, LU, MC                                       -> "fr"
+ *  - Every other country                                  -> "en"
+ *  - Geo failure/timeout -> navigator.language ("fr*" -> fr, "de*" -> de, else en)
  *
  * Geo API: https://ipwho.is/ (free, no key, returns country_code + region_code).
- * Never blocks rendering: the app renders in a sensible default and switches
+ * Never blocks rendering: the app renders in English (default) and switches
  * when/if the answer arrives.
  */
 
-export type AppLanguage = 'de' | 'fr';
+export type AppLanguage = 'en' | 'de' | 'fr';
 
 export const LANG_STORAGE_KEY = 'dkaim_lang';
 
+export const SUPPORTED_LANGUAGES: AppLanguage[] = ['en', 'de', 'fr'];
+
 const FRENCH_CANTONS = ['GE', 'VD', 'NE', 'JU', 'VS', 'FR'];
+const GERMAN_COUNTRIES = ['DE', 'AT', 'LI'];
+const FRENCH_COUNTRIES = ['FR', 'BE', 'LU', 'MC'];
 
 export function getStoredLanguage(): AppLanguage | null {
   try {
     const v = localStorage.getItem(LANG_STORAGE_KEY);
-    return v === 'de' || v === 'fr' ? v : null;
+    return v === 'de' || v === 'fr' || v === 'en' ? v : null;
   } catch {
     return null;
   }
@@ -38,8 +45,10 @@ export function storeLanguage(lang: AppLanguage) {
 }
 
 export function languageFromNavigator(): AppLanguage {
-  const nav = (typeof navigator !== 'undefined' && navigator.language) || '';
-  return nav.toLowerCase().startsWith('fr') ? 'fr' : 'de';
+  const nav = ((typeof navigator !== 'undefined' && navigator.language) || '').toLowerCase();
+  if (nav.startsWith('fr')) return 'fr';
+  if (nav.startsWith('de')) return 'de';
+  return 'en';
 }
 
 function normalizeRegion(raw: unknown): string {
@@ -47,6 +56,17 @@ function normalizeRegion(raw: unknown): string {
   // ipwho.is may return "VD" or "CH-VD"
   const parts = s.split('-');
   return parts[parts.length - 1];
+}
+
+export function languageFromGeo(countryRaw: unknown, regionRaw: unknown): AppLanguage | null {
+  const country = String(countryRaw ?? '').trim().toUpperCase();
+  if (!country) return null;
+  if (country === 'CH') {
+    return FRENCH_CANTONS.includes(normalizeRegion(regionRaw)) ? 'fr' : 'de';
+  }
+  if (GERMAN_COUNTRIES.includes(country)) return 'de';
+  if (FRENCH_COUNTRIES.includes(country)) return 'fr';
+  return 'en';
 }
 
 export async function detectLanguageFromGeo(timeoutMs = 2000): Promise<AppLanguage> {
@@ -58,13 +78,9 @@ export async function detectLanguageFromGeo(timeoutMs = 2000): Promise<AppLangua
     });
     if (!res.ok) throw new Error('geo http error');
     const data = await res.json();
-    const country = String(data?.country_code ?? '').toUpperCase();
-    const region = normalizeRegion(data?.region_code);
-    if (country === 'CH') {
-      return FRENCH_CANTONS.includes(region) ? 'fr' : 'de';
-    }
-    if (country) return 'de';
-    throw new Error('geo empty');
+    const lang = languageFromGeo(data?.country_code, data?.region_code);
+    if (!lang) throw new Error('geo empty');
+    return lang;
   } catch {
     return languageFromNavigator();
   } finally {

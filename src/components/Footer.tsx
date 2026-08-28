@@ -1,5 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Linkedin, Mail } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { LEGAL_LINKS } from '@/lib/legalLinks';
 
 const LINKEDIN_URL = 'https://www.linkedin.com/company/dk-ai-marketplace';
 const SUPPORT_EMAIL = 'support@dkaimarketplace.com';
@@ -15,19 +17,11 @@ const companyLinks = [
   { href: LINKEDIN_URL, label: 'Follow us on LinkedIn', external: true },
 ];
 
-const legalLinks = [
-  { to: '/impressum', label: 'Legal Notice (Impressum)' },
-  { to: '/privacy', label: 'Privacy Policy' },
-  { to: '/terms', label: 'Terms of Service' },
-  { to: '/refund-policy', label: 'Refund & Dispute Policy' },
-  { to: '/legal/licenses', label: 'License Terms' },
-  { to: '/cookies', label: 'Cookie Policy' },
-  { to: '/cookie-settings', label: 'Cookie Settings' },
-];
 
 
 export function Footer() {
   const location = useLocation();
+  const { t } = useTranslation();
 
   const isAuthFlow =
     location.pathname === '/login' ||
@@ -122,15 +116,15 @@ export function Footer() {
 
           {/* Column 4: Legal */}
           <div>
-            <h4 className="font-semibold text-sm mb-4 text-foreground">Legal</h4>
+            <h4 className="font-semibold text-sm mb-4 text-foreground">{t('footer.legal')}</h4>
             <ul className="space-y-2">
-              {legalLinks.map((link) => (
+              {LEGAL_LINKS.map((link) => (
                 <li key={link.to}>
                   <Link
                     to={link.to}
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {link.label}
+                    {t(link.key)}
                   </Link>
                 </li>
               ))}

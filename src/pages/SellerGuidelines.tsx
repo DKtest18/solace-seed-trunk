@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShieldCheck, Zap, Lock, HardDrive, ArrowLeft } from 'lucide-react';
+import { LegalBindingNotice } from '@/components/legal/LegalBindingNotice';
 
 const LAST_UPDATED = '19.8.2026';
 
@@ -289,6 +290,7 @@ export default function SellerGuidelines() {
         <footer className="mt-16 pt-6 border-t border-border">
           <p className="text-xs text-muted-foreground">Last updated: {LAST_UPDATED}</p>
         </footer>
+        <LegalBindingNotice />
       </article>
     </div>
   );

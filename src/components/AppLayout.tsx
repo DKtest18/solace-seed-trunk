@@ -1,5 +1,4 @@
 import { ReactNode, useState } from 'react';
-import { LegalFooter } from '@/components/LegalFooter';
 import { SearchSidebar } from '@/components/SearchSidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,7 +24,7 @@ export function AppLayout({ children, showMessagesSidebar = true }: AppLayoutPro
   const hideSidebars = hideOnPaths.includes(location.pathname);
 
   if (!user || hideSidebars) {
-    return <div className="min-h-screen flex flex-col"><div className="flex-1">{children}</div><LegalFooter /></div>;
+    return <div className="min-h-screen flex flex-col"><div className="flex-1">{children}</div></div>;
   }
 
   const rightContent = showMessagesSidebar ? <SearchSidebar /> : null;
@@ -57,7 +56,7 @@ export function AppLayout({ children, showMessagesSidebar = true }: AppLayoutPro
           )}
 
           <main className="flex-1 overflow-auto min-w-0">{children}</main>
-          <LegalFooter />
+          
         </div>
       </SidebarProvider>
     );
@@ -72,7 +71,7 @@ export function AppLayout({ children, showMessagesSidebar = true }: AppLayoutPro
             <NotificationBell />
           </div>
           <main className="flex-1 overflow-auto">{children}</main>
-          <LegalFooter />
+          
         </div>
 
         {rightContent && (

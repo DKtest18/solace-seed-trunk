@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
+import { LegalBindingNotice } from '@/components/legal/LegalBindingNotice';
 
 export default function CookiePolicy() {
   return (
@@ -106,6 +107,7 @@ export default function CookiePolicy() {
           .
         </p>
       </article>
+      <LegalBindingNotice />
     </main>
   );
 }

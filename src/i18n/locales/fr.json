@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "note": "MACHINE-DRAFTED FRENCH — needs human review before being treated as final copy. Target audience: Suisse romande (fr-CH). Keys missing here fall back to German (fallbackLng: 'de')."
+    "note": "MACHINE-DRAFTED COPY — needs human review before being treated as final. English (en) is the source of truth and fallback; missing keys fall back to en."
   },
   "common": {
     "loading": "Chargement...",
@@ -119,5 +119,21 @@
     },
     "ctaTitle": "Vendez vos produits IA",
     "ctaText": "Devenez vendeur vérifié et atteignez une communauté prête à acheter — avec des versements Stripe directs (PayPal bientôt) et une structure de frais équitable."
+  },
+  "legalLinks": {
+    "impressum": "Mentions légales (Impressum)",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions générales (CG)",
+    "refund": "Politique de remboursement, de rétractation et de litige",
+    "licenses": "Conditions de licence",
+    "cookies": "Politique en matière de cookies",
+    "cookieSettings": "Paramètres des cookies",
+    "sellerGuidelines": "Directives pour les vendeurs",
+    "contentPolicy": "Politique de contenu"
+  },
+  "legalPage": {
+    "lawyerReview": "Ne constitue pas un conseil juridique, sous réserve de vérification par un avocat suisse.",
+    "bindingLanguageTitle": "Langue contraignante",
+    "bindingLanguage": "La version allemande de ce document est la version juridiquement contraignante. Les versions dans d'autres langues sont fournies uniquement à titre de commodité."
   }
 }

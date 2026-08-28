@@ -2,6 +2,7 @@ import { Printer, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { LegalBindingNotice } from '@/components/legal/LegalBindingNotice';
 
 const LAST_UPDATED = "19.8.2026";
 
@@ -432,6 +433,7 @@ const Privacy = () => {
             </nav>
           </aside>
         </div>
+        <LegalBindingNotice />
       </div>
     </div>
   );

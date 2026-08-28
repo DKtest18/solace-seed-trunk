@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Mail } from "lucide-react";
+import { LegalBindingNotice } from '@/components/legal/LegalBindingNotice';
 
 const SUPPORT_EMAIL = "support@dkaimarketplace.com";
 
@@ -340,6 +341,7 @@ export default function ContentPolicy() {
             {SUPPORT_EMAIL}
           </a>
         </p>
+        <LegalBindingNotice />
       </div>
     </AppLayout>
   );

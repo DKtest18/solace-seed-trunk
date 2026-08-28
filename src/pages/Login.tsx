@@ -77,6 +77,7 @@ export default function Login() {
    */
   const [mfaFactors, setMfaFactors] = useState<MfaFactor[]>([]);
   const { signIn, user } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();

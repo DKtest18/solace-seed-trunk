@@ -1,27 +1,27 @@
-/* Homepage design system — strict 3-token brand palette (scoped to .home-dark) */
+/* Homepage design system — light: white primary, blue secondary (scoped to .home-dark) */
 .home-dark {
-  /* === THE THREE BRAND TOKENS === */
-  --brand-base: #0A0E1A;      /* deep navy page background */
-  --brand-primary: #FFFFFF;   /* headings, body text, primary surfaces */
+  /* === BRAND TOKENS === */
+  --brand-base: #FFFFFF;      /* white page background */
+  --brand-primary: #0F172A;   /* ink for headings/body on white */
   --brand-accent: #2563EB;    /* ACTIONS ONLY: CTA, links, active/selected, focus rings */
-  /* Accessible tint of --brand-accent for accent-coloured TEXT/links on the navy base
-     (#2563EB is only 3.73:1 on navy — fine for button fills and borders, not for text). */
-  --brand-accent-on-base: #60A5FA;
+  --brand-accent-on-base: #1D4ED8; /* accessible accent text on white */
+  --on-accent: #FFFFFF;       /* text/icons on accent fills */
 
-  /* Neutral greys derived from the base navy — everything decorative lives here */
-  --n-surface: rgba(255, 255, 255, 0.04);
-  --n-surface-strong: rgba(255, 255, 255, 0.07);
-  --hair: rgba(255, 255, 255, 0.08);
-  --hair-strong: rgba(255, 255, 255, 0.14);
+  /* Neutral greys derived from the ink — everything decorative lives here */
+  --n-surface: rgba(15, 23, 42, 0.03);
+  --n-surface-strong: rgba(15, 23, 42, 0.06);
+  --hair: rgba(15, 23, 42, 0.10);
+  --hair-strong: rgba(15, 23, 42, 0.16);
   --text-primary: var(--brand-primary);
-  --text-muted: rgba(255, 255, 255, 0.64);
-  --text-dim: rgba(255, 255, 255, 0.48);
+  --text-muted: rgba(15, 23, 42, 0.68);
+  --text-dim: rgba(15, 23, 42, 0.52);
 
   background: var(--brand-base);
   color: var(--text-primary);
   position: relative;
   overflow: hidden;
 }
+
 
 /* Starfield: neutral white dots only (no purple) */
 .home-stars {

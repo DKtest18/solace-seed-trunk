@@ -14,7 +14,7 @@ import { RouteSeo } from "@/components/RouteSeo";
 
 import '@/i18n';
 import Index from "./pages/Index";
-import BlogTopAiAgentMarketplaces from "./pages/BlogTopAiAgentMarketplaces";
+// Blog page temporarily disabled: import kept out to avoid an unused-import build warning
 import Marketplace from "./pages/Marketplace";
 import ProductDetail from "./pages/ProductDetail";
 import Login from "./pages/Login";

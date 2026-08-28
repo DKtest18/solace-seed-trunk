@@ -87,8 +87,31 @@
     "payouts": "Payouts",
     "disputes": "Disputes",
     "subscriptions": "Subscriptions",
-    "statistics": "Statistics"
+    "statistics": "Statistics",
+    "menu": {
+      "browseAll": "All Products",
+      "browseAllDesc": "Every reviewed listing on the marketplace",
+      "aiAgentsDesc": "Autonomous agents ready to deploy",
+      "automationsDesc": "Software and automation bundles",
+      "workflowsDesc": "End-to-end workflow blueprints",
+      "promptsDesc": "Tested prompts and prompt packs",
+      "templatesDesc": "Reusable starter templates",
+      "datasetsDesc": "Curated datasets for AI projects",
+      "discover": "Discover",
+      "topProductsDesc": "Best rated listings right now",
+      "topSellersDesc": "Verified sellers with the best track record",
+      "statisticsDesc": "Live marketplace numbers",
+      "about": "About",
+      "aboutDesc": "Who we are and how the platform works",
+      "sellerGuidelines": "Seller Guidelines",
+      "sellerGuidelinesDesc": "Rules and duties for selling here",
+      "blog": "Guide: AI Agent Marketplaces",
+      "blogDesc": "Comparison of the top AI agent marketplaces",
+      "legal": "Legal",
+      "legalDesc": "Terms, privacy, refunds and imprint"
+    }
   },
+
   "home": {
     "welcome": "Welcome to",
     "brandName": "DK AI MARKETPLACE",

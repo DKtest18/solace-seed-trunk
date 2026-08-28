@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, DollarSign, TrendingUp, ShoppingCart, CreditCard, Lock, Clock } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 const PAID = ['paid', 'completed', 'delivered', 'released', 'payment_confirmed'];
 
@@ -135,7 +136,7 @@ export default function SellerEarnings() {
   if (roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <HourglassLoader size={96} />
       </div>
     );
   }
@@ -147,7 +148,7 @@ export default function SellerEarnings() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <HourglassLoader size={96} />
       </div>
     );
   }

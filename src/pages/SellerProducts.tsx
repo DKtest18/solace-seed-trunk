@@ -1,3 +1,4 @@
+import { HourglassLoader } from '@/components/HourglassLoader';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -199,7 +200,7 @@ export default function SellerProducts() {
   if (roleLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <HourglassLoader size={96} />
       </div>
     );
   }
@@ -389,7 +390,7 @@ export default function SellerProducts() {
     if (isLoading) {
       return (
         <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <HourglassLoader size={64} />
         </div>
       );
     }

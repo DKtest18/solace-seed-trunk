@@ -18,6 +18,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useHasRole } from '@/hooks/useUserRole';
 import { Loader2, Shield, Ban, Trash2, RotateCcw } from 'lucide-react';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 const PAGE_SIZE = 25;
 
@@ -183,7 +184,7 @@ export default function AdminUsers() {
   const totalPages = useMemo(() => Math.max(1, Math.ceil(total / PAGE_SIZE)), [total]);
 
   if (authLoading) {
-    return <div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin" /></div>;
+    return <div className="flex items-center justify-center min-h-screen"><HourglassLoader size={64} /></div>;
   }
   if (!isSuperAdmin) return null;
 
@@ -219,7 +220,7 @@ export default function AdminUsers() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8"><Loader2 className="animate-spin inline" /></TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-8"><HourglassLoader size={64} /></TableCell></TableRow>
             ) : users.length === 0 ? (
               <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No users found</TableCell></TableRow>
             ) : users.map((u) => (

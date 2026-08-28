@@ -1,3 +1,4 @@
+import { HourglassLoader } from '@/components/HourglassLoader';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -122,7 +123,7 @@ export default function MySubscriptions() {
 
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <HourglassLoader size={96} />
           </div>
         ) : subscriptions && subscriptions.length > 0 ? (
           <div className="grid gap-6">

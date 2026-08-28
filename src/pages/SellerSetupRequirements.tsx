@@ -14,6 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Plus, Trash2, ShieldCheck, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 type SpecType = 'api_key' | 'password' | 'oauth_token' | 'url' | 'text';
 interface Spec {
@@ -75,7 +76,7 @@ export default function SellerSetupRequirements() {
     toast.success('Setup requirements saved');
   };
 
-  if (loading) return <AppLayout><div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div></AppLayout>;
+  if (loading) return <AppLayout><div className="p-12 flex justify-center"><HourglassLoader size={64} /></div></AppLayout>;
 
   return (
     <AppLayout>

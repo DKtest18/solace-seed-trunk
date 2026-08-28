@@ -1,3 +1,4 @@
+import { HourglassLoader } from '@/components/HourglassLoader';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -97,7 +98,7 @@ export default function SellerOnboardingTerms() {
   if (initializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <HourglassLoader size={64} />
       </div>
     );
   }

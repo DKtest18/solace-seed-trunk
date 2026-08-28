@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { Shield, Ban, Check, X, AlertTriangle, Clock, Trash2 } from "lucide-react";
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 type SanctionType = "ban" | "suspend" | "delete" | "warn";
 
@@ -153,7 +154,7 @@ export default function AdminReports() {
         </div>
 
         {isLoading ? (
-          <div className="text-center py-12">Loading reports...</div>
+          <div className="flex justify-center py-12"><HourglassLoader size={96} /></div>
         ) : reports?.length === 0 ? (
           <Card className="p-8 text-center">
             <p className="text-muted-foreground">No reports found</p>

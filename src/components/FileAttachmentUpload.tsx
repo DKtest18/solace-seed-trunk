@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Upload, X, Loader2, FileIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface FileAttachmentUploadProps {
   onFileSelect: (file: File) => void;
@@ -55,7 +56,7 @@ export function FileAttachmentUpload({ onFileSelect, onClear, selectedFile, uplo
         <div className="border rounded-lg p-3 flex items-center justify-between bg-muted/50">
           <div className="flex items-center gap-3">
             {uploading ? (
-              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <HourglassLoader size={48} />
             ) : (
               <FileIcon className="h-5 w-5 text-primary" />
             )}

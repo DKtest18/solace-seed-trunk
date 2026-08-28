@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2, MessageCircleQuestion, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface Row {
   id: string;
@@ -82,7 +83,7 @@ export default function SellerProductQA() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          <div className="flex justify-center py-12"><HourglassLoader size={64} /></div>
         ) : rows.length === 0 ? (
           <Card><CardContent className="py-12 text-center text-muted-foreground">No questions {filter === 'pending' ? 'pending answers' : 'yet'}.</CardContent></Card>
         ) : (

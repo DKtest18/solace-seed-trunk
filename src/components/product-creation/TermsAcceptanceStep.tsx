@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Loader2, FileText } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface TermsAcceptanceStepProps {
   data: any;
@@ -34,7 +35,7 @@ export function TermsAcceptanceStep({ data, onChange, errors }: TermsAcceptanceS
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <HourglassLoader size={96} />
       </div>
     );
   }

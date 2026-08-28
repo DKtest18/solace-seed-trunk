@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Copy, Mail, Users, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function Invites() {
   const { user } = useAuth();
@@ -173,7 +174,7 @@ export default function Invites() {
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                <div className="flex justify-center py-8"><HourglassLoader size={64} /></div>
               ) : invites && invites.length > 0 ? (
                 <div className="space-y-4">
                   {invites.map((invite) => (

@@ -1,3 +1,4 @@
+import { HourglassLoader } from '@/components/HourglassLoader';
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -49,7 +50,7 @@ export function SellerAgreementGate({ children }: { children: React.ReactNode })
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <HourglassLoader size={96} />
       </div>
     );
   }

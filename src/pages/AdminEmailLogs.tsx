@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { Mail, CheckCircle, XCircle, Clock } from "lucide-react";
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function AdminEmailLogs() {
   const { data: logs, isLoading } = useQuery({
@@ -30,7 +31,7 @@ export default function AdminEmailLogs() {
         </div>
 
         {isLoading ? (
-          <div className="text-center py-12">Loading logs...</div>
+          <div className="flex justify-center py-12"><HourglassLoader size={96} /></div>
         ) : logs?.length === 0 ? (
           <Card className="p-8 text-center">
             <p className="text-muted-foreground">No email logs yet</p>

@@ -34,6 +34,7 @@ import { fetchPayPalConnectStatus, isPayPalConnectedForOnboarding } from '@/lib/
 import { DELIVERY_MODE, normalizeDeliveryMode, assertDeliveryMode, REVIEW_STATUS } from '@/lib/reviewStatus';
 import { hasCurrentSellerAgreement } from '@/lib/sellerAgreement';
 import { getSellerAgreementState } from '@/lib/sellerAgreementAccept';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 const STEPS = [
   { id: 1, title: 'Basic Info', description: 'Product details' },
@@ -713,7 +714,7 @@ export default function CreateProduct() {
   if (roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <HourglassLoader size={96} />
       </div>
     );
   }

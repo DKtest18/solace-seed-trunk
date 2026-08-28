@@ -39,6 +39,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { DELIVERY_MODE, normalizeDeliveryMode, assertDeliveryMode, REVIEW_STATUS, normalizeReviewStatus } from '@/lib/reviewStatus';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 const STEPS = [
   { id: 1, title: 'Basic Info', description: 'Product details' },
@@ -626,7 +627,7 @@ export default function EditProduct() {
   if (roleLoading || productLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <HourglassLoader size={96} />
       </div>
     );
   }

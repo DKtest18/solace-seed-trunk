@@ -4,6 +4,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 const PAGE_TYPES: Record<string, string> = {
   terms: "Terms of Service",
@@ -54,7 +55,7 @@ export default function Legal() {
         </Button>
 
         {loading ? (
-          <div className="text-center py-12">Loading...</div>
+          <div className="flex justify-center py-12"><HourglassLoader size={128} /></div>
         ) : (
           <>
             <h1 className="text-4xl font-bold mb-6">{title}</h1>

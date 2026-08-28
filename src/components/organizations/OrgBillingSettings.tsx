@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Loader2, Building2, Download, FileText } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface OrgBillingSettingsProps {
   orgId: string;
@@ -236,7 +237,7 @@ export function OrgBillingSettings({ orgId, isAdmin }: OrgBillingSettingsProps) 
         <CardContent className="space-y-4">
           {profileLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin" />
+              <HourglassLoader size={64} />
             </div>
           ) : (
             <>
@@ -391,7 +392,7 @@ export function OrgBillingSettings({ orgId, isAdmin }: OrgBillingSettingsProps) 
         <CardContent>
           {invoicesLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin" />
+              <HourglassLoader size={64} />
             </div>
           ) : invoices && invoices.length > 0 ? (
             <div className="space-y-3">

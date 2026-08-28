@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Loader2, CheckCircle, XCircle, Shield, FileText, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 const REASON_LABEL: Record<string, string> = {
   not_delivered: 'Product not delivered',
@@ -84,7 +85,7 @@ export default function AdminRefundRequests() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <HourglassLoader size={64} />
         </div>
       </AppLayout>
     );
@@ -161,7 +162,7 @@ export default function AdminRefundRequests() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <HourglassLoader size={48} />
             ) : (
               renderTable(pending, 'No pending refund requests.')
             )}

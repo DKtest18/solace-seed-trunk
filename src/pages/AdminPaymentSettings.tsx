@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Loader2, Building, CheckCircle, XCircle, Shield, Settings, CreditCard } from "lucide-react";
 import { useHasRole } from "@/hooks/useUserRole";
 import { IOSToggle } from "@/components/ui/ios-toggle";
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function AdminPaymentSettings() {
   const { user } = useAuth();
@@ -155,7 +156,7 @@ export default function AdminPaymentSettings() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="w-8 h-8 animate-spin" />
+          <HourglassLoader size={96} />
         </div>
       </AppLayout>
     );

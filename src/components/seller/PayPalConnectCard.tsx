@@ -1,3 +1,4 @@
+import { HourglassLoader } from '@/components/HourglassLoader';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -158,7 +159,7 @@ export function PayPalConnectCard({ returnPath, onStatusChange }: PayPalConnectC
     return (
       <Card className="mb-6">
         <CardContent className="py-10 flex justify-center">
-          <Loader2 className="h-6 w-6 animate-spin" />
+          <HourglassLoader size={64} />
         </CardContent>
       </Card>
     );
@@ -198,7 +199,7 @@ export function PayPalConnectCard({ returnPath, onStatusChange }: PayPalConnectC
                 ) : status.onboardingStatus === 'needs_info' ? (
                   <AlertTriangle className="h-5 w-5 text-orange-500" />
                 ) : (
-                  <Loader2 className="h-5 w-5 text-yellow-500 animate-spin" />
+                  <HourglassLoader size={48} />
                 )}
                 <div>
                   <p className="font-medium">

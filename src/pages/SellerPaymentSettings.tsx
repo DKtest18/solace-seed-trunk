@@ -18,6 +18,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { PayPalConnectCard } from "@/components/seller/PayPalConnectCard";
 import { AcceptedPaymentMethods } from "@/components/seller/AcceptedPaymentMethods";
 import { emptyPayPalConnectStatus, isPayPalConnectedForOnboarding, type PayPalConnectStatus } from "@/lib/paypalConnectStatus";
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function SellerPaymentSettings() {
   const { user } = useAuth();
@@ -199,7 +200,7 @@ export default function SellerPaymentSettings() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="w-8 h-8 animate-spin" />
+          <HourglassLoader size={96} />
         </div>
       </AppLayout>
     );
@@ -294,7 +295,7 @@ export default function SellerPaymentSettings() {
             )}
             {loading ? (
               <div className="flex items-center justify-center p-8">
-                <Loader2 className="h-6 w-6 animate-spin" />
+                <HourglassLoader size={64} />
               </div>
             ) : stripeStatus.connected ? (
               <>
@@ -306,7 +307,7 @@ export default function SellerPaymentSettings() {
                     ) : stripeStatus.onboardingStatus === "needs_info" ? (
                       <AlertTriangle className="h-5 w-5 text-orange-500" />
                     ) : (
-                      <Loader2 className="h-5 w-5 text-yellow-500 animate-spin" />
+                      <HourglassLoader size={48} />
                     )}
                     <div>
                       <p className="font-medium">

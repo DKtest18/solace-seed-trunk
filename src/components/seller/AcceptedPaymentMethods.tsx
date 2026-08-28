@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { IOSToggle } from '@/components/ui/ios-toggle';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface AcceptedPaymentMethodsProps {
   stripeReady: boolean;
@@ -75,7 +76,7 @@ export function AcceptedPaymentMethods({ stripeReady, paypalReady }: AcceptedPay
       <CardContent className="space-y-3">
         {loading ? (
           <div className="flex justify-center py-4">
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <HourglassLoader size={48} />
           </div>
         ) : (
           <>

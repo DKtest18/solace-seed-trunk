@@ -20,6 +20,7 @@ import { SellerSidebar } from '@/components/SellerSidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function SellerOrders() {
   const { user } = useAuth();
@@ -126,7 +127,7 @@ export default function SellerOrders() {
   if (roleLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <HourglassLoader size={96} />
       </div>
     );
   }
@@ -161,7 +162,7 @@ export default function SellerOrders() {
                 <CardContent>
                   {isLoading ? (
                     <div className="flex justify-center py-12">
-                      <Loader2 className="h-8 w-8 animate-spin" />
+                      <HourglassLoader size={96} />
                     </div>
                   ) : orders && orders.length > 0 ? (
                     <Table>

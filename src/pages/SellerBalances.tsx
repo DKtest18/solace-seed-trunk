@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { useHasRole } from "@/hooks/useUserRole";
 import { formatDistanceToNow } from "date-fns";
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function SellerBalances() {
   const { user } = useAuth();
@@ -18,7 +19,7 @@ export default function SellerBalances() {
   if (roleLoading || balanceLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <HourglassLoader size={96} />
       </div>
     );
   }
@@ -125,7 +126,7 @@ export default function SellerBalances() {
           <CardContent>
             {ordersLoading ? (
               <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin" />
+                <HourglassLoader size={64} />
               </div>
             ) : orders && orders.length > 0 ? (
               <div className="space-y-4">
@@ -168,7 +169,7 @@ export default function SellerBalances() {
           <CardContent>
             {ledgerLoading ? (
               <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin" />
+                <HourglassLoader size={64} />
               </div>
             ) : ledger && ledger.length > 0 ? (
               <div className="space-y-3">

@@ -19,6 +19,7 @@ import { useHasRole } from '@/hooks/useUserRole';
 import { AccountDeletionSettings } from '@/components/settings/AccountDeletionSettings';
 import { PrivacyDataSettings } from '@/components/settings/PrivacyDataSettings';
 import { TwoFactorSettings } from '@/components/security/TwoFactorSettings';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function ProfileSettings() {
   const { user } = useAuth();
@@ -181,7 +182,7 @@ export default function ProfileSettings() {
               <CardContent className="p-0">
                 {roleLoading ? (
                   <div className="text-center py-4">
-                    <p className="text-muted-foreground">Loading seller status...</p>
+                    <HourglassLoader size={64} />
                   </div>
                 ) : isSeller ? (
                   <div className="space-y-4">

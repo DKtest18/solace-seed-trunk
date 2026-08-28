@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { File as FileIcon, ShieldAlert, Loader2, ExternalLink, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { downloadUrl } from '@/lib/downloadFile';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface AdminFile {
   id: string;
@@ -217,7 +218,7 @@ export function AdminProductFileAccess({
     closeDialog();
   };
 
-  if (loading) return <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
+  if (loading) return <div className="flex justify-center py-4"><HourglassLoader size={48} /></div>;
   if (loadError) {
     return (
       <Alert variant="destructive">

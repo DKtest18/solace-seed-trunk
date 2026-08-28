@@ -1,3 +1,4 @@
+import { HourglassLoader } from '@/components/HourglassLoader';
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -181,7 +182,7 @@ export default function AdminProductReview() {
           <TabsContent value={tab} className="mt-6 space-y-4">
             {isLoading ? (
               <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <HourglassLoader size={96} />
               </div>
             ) : error ? (
               <Alert variant="destructive">

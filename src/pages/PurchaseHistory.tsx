@@ -12,6 +12,7 @@ import { formatDistanceToNow, differenceInHours } from 'date-fns';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { BuyerProductDownloads } from '@/components/BuyerProductDownloads';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function PurchaseHistory() {
   const { user } = useAuth();
@@ -124,7 +125,7 @@ export default function PurchaseHistory() {
     return (
       <AppLayout>
         <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <HourglassLoader size={96} />
         </div>
       </AppLayout>
     );

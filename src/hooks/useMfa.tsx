@@ -83,13 +83,14 @@ export function useMfaStatus() {
       const hasVerifiedFactor = serverHasVerified === true || verified.length > 0;
 
       const factors = verified.length
-        ? verified.map((f: any) => ({ id: f.id, friendly_name: f.friendly_name }))
+        ? verified.map((f) => ({ id: f.id, friendly_name: f.friendlyName }))
         : serverFactorIds.map((id) => ({ id, friendly_name: null }));
 
       const nextLevel = hasVerifiedFactor ? 'aal2' : currentLevel;
 
       return {
         factors,
+        verifiedFactors: verified,
         hasVerifiedFactor,
         currentLevel,
         nextLevel,

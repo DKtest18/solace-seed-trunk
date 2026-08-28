@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { db } from '@/lib/dkaiDb';
 import { useQuery } from '@tanstack/react-query';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface RulesAcceptanceStepProps {
   ruleType: 'user' | 'seller';
@@ -61,7 +62,7 @@ export function RulesAcceptanceStep({ ruleType, onAccept, onBack, loading = fals
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <HourglassLoader size={96} />
         </CardContent>
       </Card>
     );

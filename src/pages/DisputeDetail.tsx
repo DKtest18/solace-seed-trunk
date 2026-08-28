@@ -32,6 +32,7 @@ import {
 import { AppLayout } from '@/components/AppLayout';
 import { AdminProductFileAccess } from '@/components/admin/AdminProductFileAccess';
 import { useTranslation } from 'react-i18next';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function DisputeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -202,7 +203,7 @@ export default function DisputeDetail() {
     return (
       <AppLayout>
         <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <HourglassLoader size={96} />
         </div>
       </AppLayout>
     );

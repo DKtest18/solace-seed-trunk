@@ -17,6 +17,7 @@ import { usePlatformFee } from '@/hooks/usePlatformFee';
 import { createStripeConnectOnboardingLink, emptyStripeConnectStatus, fetchStripeConnectStatus, isStripeConnectedForOnboarding, pollStripeConnectStatus, type StripeConnectStatus } from '@/lib/stripeConnectStatus';
 import { buildSupabaseFunctionError, logSupabaseFunctionError } from '@/lib/supabaseFunctionErrors';
 import { PayPalConnectCard } from '@/components/seller/PayPalConnectCard';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function SellerOnboardingPayment() {
   const { user } = useAuth();
@@ -309,7 +310,7 @@ export default function SellerOnboardingPayment() {
             )}
             {stripeLoading ? (
               <div className="flex items-center justify-center p-8">
-                <Loader2 className="h-6 w-6 animate-spin" />
+                <HourglassLoader size={64} />
               </div>
 
             ) : stripeStatus.connected ? (
@@ -322,7 +323,7 @@ export default function SellerOnboardingPayment() {
                     ) : stripeStatus.onboardingStatus === "needs_info" ? (
                       <AlertTriangle className="h-5 w-5 text-destructive" />
                     ) : (
-                      <Loader2 className="h-5 w-5 text-primary animate-spin" />
+                      <HourglassLoader size={48} />
                     )}
                     <div>
                       <p className="font-medium">

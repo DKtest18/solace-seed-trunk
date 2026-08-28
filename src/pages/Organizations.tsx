@@ -48,6 +48,7 @@ import {
   ArrowUpDown
 } from 'lucide-react';
 import {
+import { HourglassLoader } from '@/components/HourglassLoader';
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -358,7 +359,7 @@ export default function Organizations() {
             <CardContent className="p-0">
               {isLoading ? (
                 <div className="p-4 text-center">
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                  <HourglassLoader size={64} />
                 </div>
               ) : organizations?.length === 0 ? (
                 <div className="p-4 text-center text-muted-foreground">
@@ -496,7 +497,7 @@ export default function Organizations() {
 
                 {membersLoading ? (
                   <div className="py-8 text-center">
-                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                    <HourglassLoader size={64} />
                   </div>
                 ) : (
                   <div className="space-y-2">

@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import {
+import { HourglassLoader } from '@/components/HourglassLoader';
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -122,7 +123,7 @@ export default function MySubscriptions() {
 
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <HourglassLoader size={96} />
           </div>
         ) : subscriptions && subscriptions.length > 0 ? (
           <div className="grid gap-6">

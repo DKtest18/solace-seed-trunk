@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { HalfStarRating } from "@/components/HalfStarRating";
 import { Link } from "react-router-dom";
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface Review {
   id: string;
@@ -252,7 +253,7 @@ export function ProductReviews({ productId, sellerId }: ProductReviewsProps) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin" />
+          <HourglassLoader size={64} />
         </CardContent>
       </Card>
     );

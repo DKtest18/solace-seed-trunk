@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { resolveNextOnboardingRoute } from '@/lib/sellerOnboardingNav';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function SellerOnboardingIdentity() {
   const { user } = useAuth();
@@ -177,7 +178,7 @@ export default function SellerOnboardingIdentity() {
   if (initializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <HourglassLoader size={64} />
       </div>
     );
   }

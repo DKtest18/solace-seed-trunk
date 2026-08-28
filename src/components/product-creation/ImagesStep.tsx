@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { validateImageFile } from '@/utils/productValidation';
 import { ImagePlus, X, ArrowUp, ArrowDown, Star, Film, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export const MAX_PRODUCT_MEDIA = 10;
 export const MAX_PRODUCT_VIDEO_BYTES = 500 * 1024 * 1024; // 500 MB per gallery video
@@ -146,7 +147,7 @@ export function ImagesStep({ media, onAddFile, onRemove, onReorder, errors }: Im
             <div key={item.storage_path || index} className="relative group border rounded-lg overflow-hidden bg-muted/30">
               {item.uploading ? (
                 <div className="w-full h-40 flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <HourglassLoader size={64} />
                   <span className="text-xs">Uploading…</span>
                 </div>
               ) : item.error ? (
@@ -210,7 +211,7 @@ export function ImagesStep({ media, onAddFile, onRemove, onReorder, errors }: Im
         <Label htmlFor="media-upload" className="cursor-pointer">
           <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
             {busy ? (
-              <Loader2 className="h-12 w-12 mx-auto text-muted-foreground mb-2 animate-spin" />
+              <HourglassLoader size={128} />
             ) : (
               <ImagePlus className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
             )}

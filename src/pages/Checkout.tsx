@@ -16,6 +16,7 @@ import { useBuyerPolicy } from "@/hooks/useBuyerPolicy";
 import { usePlatformFee } from "@/hooks/usePlatformFee";
 import { formatMoney, subscriptionLabel } from "@/lib/money";
 import { fetchSellerAcceptedMethods, createPayPalOrder } from "@/lib/paypalCheckout";
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function Checkout() {
   const [searchParams] = useSearchParams();
@@ -225,7 +226,7 @@ export default function Checkout() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="w-8 h-8 animate-spin" />
+          <HourglassLoader size={96} />
         </div>
       </AppLayout>
     );
@@ -362,7 +363,7 @@ export default function Checkout() {
               <div className="space-y-4">
                 {checkingCardAvailability ? (
                   <div className="flex items-center justify-center p-8">
-                    <Loader2 className="w-6 h-6 animate-spin" />
+                    <HourglassLoader size={64} />
                   </div>
                 ) : !cardPaymentsAvailable && !paypalAvailable ? (
                   <Alert variant="destructive">

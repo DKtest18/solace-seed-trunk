@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/table';
 import { Loader2, Search, Ban, Trash2, ArrowUpDown, ExternalLink } from 'lucide-react';
 import { REVIEW_STATUS_GROUPS, REVIEW_STATUS_LABEL, normalizeReviewStatus } from '@/lib/reviewStatus';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface AccountRow {
   user_id: string;
@@ -241,7 +242,7 @@ export default function AdminAccounts() {
           <CardContent>
             {accountsQuery.isLoading ? (
               <div className="flex justify-center py-10">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <HourglassLoader size={64} />
               </div>
             ) : (
               <div className="overflow-x-auto">

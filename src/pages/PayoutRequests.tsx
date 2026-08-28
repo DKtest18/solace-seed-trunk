@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, DollarSign, ExternalLink, Clock, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 type StripeBalance = {
   available: { amount: number; currency: string }[];
@@ -70,7 +71,7 @@ export default function PayoutRequests() {
   if (roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <HourglassLoader size={96} />
       </div>
     );
   }
@@ -117,7 +118,7 @@ export default function PayoutRequests() {
 
           {isLoading ? (
             <div className="flex justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <HourglassLoader size={96} />
             </div>
           ) : error ? (
             <Card className="border-destructive/40">

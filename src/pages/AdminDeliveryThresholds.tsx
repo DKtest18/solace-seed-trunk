@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { DEFAULT_THRESHOLDS, type DeliveryThresholds } from '@/lib/deliveryRecommendation';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 const FIELDS: Array<{
   key: keyof DeliveryThresholds;
@@ -52,7 +53,7 @@ export default function AdminDeliveryThresholds() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <HourglassLoader size={96} />
       </div>
     );
   }

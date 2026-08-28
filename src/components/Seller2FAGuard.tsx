@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ShieldAlert, Loader2 } from 'lucide-react';
 import { TwoFactorSettings } from '@/components/security/TwoFactorSettings';
 import { SellerAgreementGate } from '@/components/SellerAgreementGate';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface Seller2FAGuardProps {
   children: React.ReactNode;
@@ -24,7 +25,7 @@ export function Seller2FAGuard({ children }: Seller2FAGuardProps) {
   if (!user || isLoading || !mfa) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <HourglassLoader size={96} />
       </div>
     );
   }

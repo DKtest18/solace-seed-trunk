@@ -7,6 +7,7 @@ import { Upload, File as FileIcon, Trash2, Loader2, CheckCircle, AlertCircle, Sh
 import { useToast } from '@/hooks/use-toast';
 import { uploadDeliveryFile, deleteDeliveryFile, resubmitProductForReview, MAX_DELIVERY_FILE_SIZE } from '@/lib/deliveryFileUpload';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface ProductFile {
   id: string;
@@ -168,7 +169,7 @@ export function ProductDeliveryFilesManager({
       )}
 
       {loading ? (
-        <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+        <div className="flex justify-center py-8"><HourglassLoader size={64} /></div>
       ) : files.length === 0 ? (
         <div className="text-center text-sm text-muted-foreground py-8 border border-dashed rounded-lg">
           No delivery files yet.

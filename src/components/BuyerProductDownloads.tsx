@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { File as FileIcon, Download, Loader2, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface BuyerFile {
   id: string;
@@ -59,7 +60,7 @@ export function BuyerProductDownloads({ productId }: { productId: string }) {
     }
   };
 
-  if (loading) return <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
+  if (loading) return <div className="flex justify-center py-6"><HourglassLoader size={48} /></div>;
   if (files.length === 0) return null;
 
   return (

@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HelpCircle, Loader2, MessageCircleQuestion, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface ProductQAProps {
   productId: string;
@@ -152,7 +153,7 @@ export function ProductQA({ productId, sellerId }: ProductQAProps) {
 
         <div className="space-y-4">
           {isLoading ? (
-            <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+            <div className="flex justify-center py-6"><HourglassLoader size={48} /></div>
           ) : !data?.rows.length ? (
             <p className="text-sm text-muted-foreground text-center py-6">No questions yet.</p>
           ) : (

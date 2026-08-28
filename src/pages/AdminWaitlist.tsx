@@ -20,6 +20,7 @@ import { DemoVideoReviewPanel, hasDemoVideo } from '@/components/admin/DemoVideo
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { REVIEW_STATUS, REVIEW_STATUS_GROUPS, type ReviewStatusValue } from '@/lib/reviewStatus';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 type ProductRow = {
   id: string;
@@ -221,7 +222,7 @@ function AdminProductQueueContent() {
               <TabsContent key={status} value={status} className="mt-4">
                 {isLoading ? (
                   <div className="py-16 flex items-center justify-center">
-                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    <HourglassLoader size={64} />
                   </div>
                 ) : filtered.length === 0 ? (
                   <div className="py-16 text-center text-muted-foreground">No {status === 'submitted' ? 'pending' : status} products.</div>

@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, ShieldAlert, ShieldCheck, Lock } from 'lucide-react';
 import { toast } from 'sonner';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface Spec { key: string; label: string; description?: string; type: string; required: boolean; }
 
@@ -56,7 +57,7 @@ export default function BuyerHandoverCredentials() {
     navigate('/purchases');
   };
 
-  if (loading) return <AppLayout><div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div></AppLayout>;
+  if (loading) return <AppLayout><div className="p-12 flex justify-center"><HourglassLoader size={64} /></div></AppLayout>;
   if (!product?.requires_setup_credentials) {
     return <AppLayout><div className="container max-w-2xl py-8"><Alert><AlertDescription>This product does not require credential handover.</AlertDescription></Alert></div></AppLayout>;
   }

@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/dkaiDb';
 import { useQueryClient } from '@tanstack/react-query';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function SellerOnboardingChecklist() {
   const { user } = useAuth();
@@ -98,7 +99,7 @@ export default function SellerOnboardingChecklist() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <HourglassLoader size={96} />
       </div>
     );
   }

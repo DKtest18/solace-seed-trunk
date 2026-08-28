@@ -28,6 +28,7 @@ import { ProductTimestamps, hoursWaiting } from '@/components/seller/ProductTime
 
 
 import {
+import { HourglassLoader } from '@/components/HourglassLoader';
   REVIEW_STATUS,
   REVIEW_STATUS_GROUPS,
   REVIEW_STATUS_LABEL as STATUS_LABEL,
@@ -181,7 +182,7 @@ export default function AdminProductReview() {
           <TabsContent value={tab} className="mt-6 space-y-4">
             {isLoading ? (
               <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <HourglassLoader size={96} />
               </div>
             ) : error ? (
               <Alert variant="destructive">

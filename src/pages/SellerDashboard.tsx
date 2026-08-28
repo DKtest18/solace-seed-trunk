@@ -38,6 +38,7 @@ import { Loader2, Eye, MousePointer, ShoppingCart, DollarSign, TrendingUp, Packa
 import { Link, useNavigate } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { SellerSidebar } from '@/components/SellerSidebar';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 
 export default function SellerDashboard() {
@@ -59,7 +60,7 @@ export default function SellerDashboard() {
   if (roleLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <HourglassLoader size={96} />
       </div>
     );
   }
@@ -123,7 +124,7 @@ export default function SellerDashboard() {
 
               {isLoading ? (
                 <div className="flex justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <HourglassLoader size={96} />
                 </div>
               ) : (
                 <div className="space-y-8">

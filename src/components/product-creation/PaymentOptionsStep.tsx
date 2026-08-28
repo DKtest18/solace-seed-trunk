@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
 import { fetchStripeConnectStatus, isStripeConnectedForOnboarding } from '@/lib/stripeConnectStatus';
 import { fetchSellerAcceptedMethods } from '@/lib/paypalCheckout';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface PaymentOptionsStepProps {
   data: { payment_methods?: string[] };
@@ -57,7 +58,7 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <HourglassLoader size={64} />
       </div>
     );
   }

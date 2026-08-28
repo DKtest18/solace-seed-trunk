@@ -41,6 +41,7 @@ import { useProductPurchasable } from '@/hooks/useProductPurchasable';
 import { ProductTimestamps, type ProductTimestampKind } from '@/components/seller/ProductTimestamps';
 
 import {
+import { HourglassLoader } from '@/components/HourglassLoader';
   REVIEW_STATUS_GROUPS,
   SELLER_PRODUCT_TAB,
   SELLER_PRODUCT_TABS,
@@ -199,7 +200,7 @@ export default function SellerProducts() {
   if (roleLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <HourglassLoader size={96} />
       </div>
     );
   }
@@ -389,7 +390,7 @@ export default function SellerProducts() {
     if (isLoading) {
       return (
         <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <HourglassLoader size={64} />
         </div>
       );
     }

@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function SellerSubscriptions() {
   const { user } = useAuth();
@@ -164,7 +165,7 @@ export default function SellerSubscriptions() {
 
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <HourglassLoader size={96} />
           </div>
         ) : subscriptions && subscriptions.length > 0 ? (
           <Tabs defaultValue="active" className="space-y-4">

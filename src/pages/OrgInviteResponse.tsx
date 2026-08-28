@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Building2, CheckCircle, XCircle, Loader2, AlertTriangle, Shield, User } from 'lucide-react';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 interface OrgInvite {
   id: string;
@@ -122,7 +123,7 @@ export default function OrgInviteResponse() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <HourglassLoader size={96} />
             <p className="mt-4 text-muted-foreground">Loading invite...</p>
           </CardContent>
         </Card>

@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, EyeOff, Trash2, ShieldCheck, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 export default function SellerCredentialAccess() {
   const { orderId } = useParams<{ orderId: string }>();
@@ -59,7 +60,7 @@ export default function SellerCredentialAccess() {
     load();
   };
 
-  if (loading) return <AppLayout><div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div></AppLayout>;
+  if (loading) return <AppLayout><div className="p-12 flex justify-center"><HourglassLoader size={64} /></div></AppLayout>;
 
   const anyLive = handovers.some(h => !h.purged_at);
 

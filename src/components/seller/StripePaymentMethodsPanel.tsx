@@ -8,6 +8,7 @@ import { Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { buildSupabaseFunctionError, logSupabaseFunctionError } from '@/lib/supabaseFunctionErrors';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 type StripeMethod = {
   method: string;
@@ -111,7 +112,7 @@ export function StripePaymentMethodsPanel() {
     return (
       <Card>
         <CardContent className="py-10 flex justify-center">
-          <Loader2 className="h-6 w-6 animate-spin" />
+          <HourglassLoader size={64} />
         </CardContent>
       </Card>
     );

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -9,6 +10,8 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import { lovable } from '@/integrations/lovable/index';
 import dkLogo from '@/assets/dk-ai-logo.png';
 import { OAuthProviderButtons } from '@/components/auth/OAuthProviderButtons';
+import { MfaFactorChallenge } from '@/components/security/MfaFactorChallenge';
+import { collectVerifiedFactors, type MfaFactor } from '@/lib/mfaFactors';
 
 /**
  * Authoritative two-factor check right after sign-in.

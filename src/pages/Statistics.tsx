@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
-  Loader2, TrendingUp, DollarSign, ShoppingBag, Package, BarChart3, 
+  TrendingUp, DollarSign, ShoppingBag, Package, BarChart3, 
   Download, Calendar, Filter, ShieldCheck 
 } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
@@ -20,6 +20,7 @@ import {
 import { format, subDays, startOfDay, endOfDay, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 // High-contrast color scheme: Green = profit, Red = costs, Blue = revenue
 const CHART_COLORS = {
@@ -241,7 +242,7 @@ export default function Statistics() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <HourglassLoader size={128} label />
       </div>
     );
   }

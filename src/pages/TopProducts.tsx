@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, TrendingUp, Star, Package, Flame, Award, Tag } from 'lucide-react';
+import { TrendingUp, Star, Package, Flame, Award, Tag } from 'lucide-react';
 import { RatingDisplay } from '@/components/RatingDisplay';
 import { AppLayout } from '@/components/AppLayout';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
+import { HourglassLoader } from '@/components/HourglassLoader';
 
 type SortOption = 'most-sales' | 'highest-rated' | 'price-low' | 'price-high' | 'newest' | 'trending';
 
@@ -118,7 +119,7 @@ export default function TopProducts() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <HourglassLoader size={128} label />
       </div>
     );
   }

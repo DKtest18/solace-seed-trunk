@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { Card } from '@/components/ui/card';
@@ -64,9 +64,6 @@ export default function Marketplace() {
   }, [paramKey]);
 
   const { data: productsWithRatings, isLoading } = useProductsWithRatings();
-  const hasLoadedOnce = useRef(false);
-  if (!isLoading && productsWithRatings) hasLoadedOnce.current = true;
-
   const products = productsWithRatings?.filter((product: any) => {
     if (searchQuery) {
       const searchLower = searchQuery.toLowerCase();
@@ -409,17 +406,9 @@ export default function Marketplace() {
             )}
 
             {isLoading ? (
-              hasLoadedOnce.current ? (
-                // Refetch (filter/tag reload): skeletons keep the grid layout stable
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
-                </div>
-              ) : (
-                // First fetch: branded hourglass centred in the grid area
-                <div className="flex items-center justify-center py-24">
-                  <HourglassLoader size="lg" label />
-                </div>
-              )
+              <div className="flex items-center justify-center py-24">
+                <HourglassLoader size={128} label />
+              </div>
             ) : products && products.length > 0 ? (
 
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">

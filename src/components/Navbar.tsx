@@ -22,13 +22,9 @@ import { db } from '@/lib/dkaiDb';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { REVIEW_STATUS_GROUPS } from '@/lib/reviewStatus';
-
-
-const navLinks = [
-  { to: '/', label: 'Home', end: true },
-  { to: '/marketplace', label: 'Marketplace' },
-  
-];
+import { MainNav } from '@/components/nav/MainNav';
+import { MobileMainNav } from '@/components/nav/MobileMainNav';
+import { useLocation } from 'react-router-dom';
 
 export function Navbar() {
   const { user, signOut } = useAuth();

@@ -153,7 +153,33 @@ export default function Login() {
     }
   };
 
-  const handleVerify2FA = async () => {
+  /** Wrong-code handling shared by the factor chooser and the legacy path. */
+  const registerTwoFAFailure = async (failureMessage?: string | null) => {
+    const newAttempts = failedAttempts + 1;
+    setFailedAttempts(newAttempts);
+    setTwoFACode('');
+    if (newAttempts >= 5) {
+      await supabase.auth.signOut();
+      setStep('credentials');
+      setFailedAttempts(0);
+      setTwoFAError(null);
+      toast({ title: 'Too many failed attempts', description: 'Account temporarily locked. Please try again later.', variant: 'destructive' });
+      return;
+    }
+    setTwoFAError(`${failureMessage ?? 'Incorrect code.'} ${5 - newAttempts} attempts remaining.`);
+  };
+
+  /** Called by MfaFactorChallenge once the session has been upgraded to aal2. */
+  const handleTwoFAVerified = async () => {
+    toast({ title: 'Welcome back!', description: 'You have successfully signed in.' });
+    await checkUserRoleAndRedirect(tempUserId);
+  };
+
+  /**
+   * Legacy fallback only: accounts that still live on the custom TOTP table and
+   * therefore have no native factor to challenge.
+   */
+  const handleVerifyLegacy2FA = async () => {
     if (twoFACode.length !== 6) {
       setTwoFAError('Please enter a 6-digit code.');
       return;
@@ -161,50 +187,14 @@ export default function Login() {
     setLoading(true);
     setTwoFAError(null);
     try {
-      // Native Supabase MFA: challenge + verify the enrolled TOTP factor.
-      // Success upgrades the session to aal2 — that is what the server honours.
-      const { data: factorData } = await supabase.auth.mfa.listFactors();
-      const factorId =
-        ((factorData as any)?.totp ?? []).find((f: any) => f.status === 'verified')?.id ??
-        ((factorData as any)?.all ?? []).find((f: any) => f.status === 'verified')?.id;
-
-      let verified = false;
-      let failureMessage: string | null = null;
-
-      if (factorId) {
-        const { error } = await supabase.auth.mfa.challengeAndVerify({
-          factorId,
-          code: twoFACode,
-        });
-        if (error) failureMessage = error.message;
-        else verified = true;
-      } else {
-        // Legacy fallback for accounts still on the custom TOTP table.
-        const { data, error } = await supabase.functions.invoke('verify-2fa-code', {
-          body: { code: twoFACode },
-        });
-        if (error) failureMessage = error.message;
-        else verified = !!data?.valid;
-      }
-
-      if (verified) {
-        toast({ title: 'Welcome back!', description: 'You have successfully signed in.' });
-        await checkUserRoleAndRedirect(tempUserId);
+      const { data, error } = await supabase.functions.invoke('verify-2fa-code', {
+        body: { code: twoFACode },
+      });
+      if (!error && data?.valid) {
+        await handleTwoFAVerified();
         return;
       }
-
-      const newAttempts = failedAttempts + 1;
-      setFailedAttempts(newAttempts);
-      setTwoFACode('');
-      if (newAttempts >= 5) {
-        await supabase.auth.signOut();
-        setStep('credentials');
-        setFailedAttempts(0);
-        setTwoFAError(null);
-        toast({ title: 'Too many failed attempts', description: 'Account temporarily locked. Please try again later.', variant: 'destructive' });
-        return;
-      }
-      setTwoFAError(`${failureMessage ?? 'Incorrect code.'} ${5 - newAttempts} attempts remaining.`);
+      await registerTwoFAFailure(error?.message);
     } catch (error: any) {
       setTwoFAError(error.message || 'Failed to verify code. Please try again.');
     } finally {

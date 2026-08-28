@@ -122,7 +122,9 @@ export function Navbar() {
 
         {/* Right: actions */}
         <div className="flex items-center gap-2">
+          <LanguageSwitcher />
           {user ? (
+
             <>
               <NotificationCenter />
               {isSeller ? (

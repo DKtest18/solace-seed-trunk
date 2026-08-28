@@ -285,12 +285,37 @@ export function Navbar() {
             </>
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="ghost" asChild size="sm">
+              <Button variant="ghost" asChild size="sm" className="hidden sm:inline-flex">
                 <Link to="/login">Sign in</Link>
               </Button>
               <Button variant="navCta" asChild size="sm">
                 <Link to="/signup">Get started</Link>
               </Button>
+
+              {/* Mobile hamburger for signed-out visitors */}
+              <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="md:hidden rounded-full" aria-label="Open navigation menu">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[280px] p-0">
+                  <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                  <div className="flex flex-col h-full">
+                    <div className="flex-1 overflow-auto py-4">
+                      <MobileMainNav onNavigate={() => setMobileOpen(false)} />
+                    </div>
+                    <div className="p-4 border-t space-y-2">
+                      <Button variant="outline" asChild className="w-full">
+                        <Link to="/login" onClick={() => setMobileOpen(false)}>Sign in</Link>
+                      </Button>
+                      <Button variant="navCta" asChild className="w-full">
+                        <Link to="/signup" onClick={() => setMobileOpen(false)}>Get started</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           )}
         </div>

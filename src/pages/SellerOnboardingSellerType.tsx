@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -50,6 +51,9 @@ export default function SellerOnboardingSellerType() {
     company_contact_email: '',
   });
   const [regError, setRegError] = useState<string | null>(null);
+  const [logoPath, setLogoPath] = useState<string | null>(null);
+  const [logoPublic, setLogoPublic] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -78,6 +82,8 @@ export default function SellerOnboardingSellerType() {
             company_representative_name: row.company_representative_name || '',
             company_contact_email: row.company_contact_email || '',
           });
+          setLogoPath(row.company_logo_path || null);
+          setLogoPublic(row.company_logo_public === true);
         }
       } catch (error) {
         console.error('[onboarding/seller-type] load error:', error);
@@ -101,6 +107,42 @@ export default function SellerOnboardingSellerType() {
       form.company_representative_name.trim() &&
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.company_contact_email.trim())
     );
+
+  const logoUrl = logoPath
+    ? supabase.storage.from('company-logos').getPublicUrl(logoPath).data.publicUrl
+    : null;
+
+  const handleLogoUpload = async (file: File) => {
+    if (!user) return;
+    if (!['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp'].includes(file.type)) {
+      toast({ title: t('sellerType.logo.badType'), variant: 'destructive' });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: t('sellerType.logo.tooLarge'), variant: 'destructive' });
+      return;
+    }
+    setLogoUploading(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
+      const path = `${user.id}/logo-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from('company-logos')
+        .upload(path, file, { contentType: file.type, upsert: true });
+      if (error) throw error;
+      setLogoPath(path);
+      toast({ title: t('sellerType.logo.uploaded') });
+    } catch (error: any) {
+      console.error('[onboarding/seller-type] logo upload error:', error);
+      toast({
+        title: t('sellerType.logo.failed'),
+        description: error?.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLogoUploading(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!user || !sellerType) return;
@@ -144,6 +186,9 @@ export default function SellerOnboardingSellerType() {
             company_address: form.company_address.trim(),
             company_representative_name: form.company_representative_name.trim(),
             company_contact_email: form.company_contact_email.trim(),
+            company_logo_path: logoPath,
+            company_logo_public: logoPublic && !!logoPath,
+            company_logo_updated_at: logoPath ? nowIso : null,
             seller_type_updated_at: nowIso,
             updated_at: nowIso,
           }
@@ -354,6 +399,50 @@ export default function SellerOnboardingSellerType() {
                   onChange={(e) => set('company_contact_email', e.target.value)}
                   maxLength={255}
                 />
+              </div>
+
+              <div className="space-y-3 rounded-lg border p-4">
+                <Label>{t('sellerType.logo.title')}</Label>
+                <p className="text-xs text-muted-foreground">{t('sellerType.logo.help')}</p>
+                <div className="flex items-center gap-4">
+                  {logoUrl ? (
+                    <img
+                      src={logoUrl}
+                      alt={t('sellerType.logo.alt')}
+                      className="h-16 w-16 rounded object-contain bg-muted"
+                    />
+                  ) : (
+                    <div className="h-16 w-16 rounded bg-muted flex items-center justify-center">
+                      <Building2 className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    <Input
+                      id="company-logo"
+                      type="file"
+                      accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                      disabled={logoUploading}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleLogoUpload(file);
+                      }}
+                    />
+                    {logoUploading && (
+                      <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        {t('sellerType.logo.uploading')}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <label className="flex items-start gap-2 text-sm">
+                  <Checkbox
+                    checked={logoPublic}
+                    disabled={!logoPath}
+                    onCheckedChange={(v) => setLogoPublic(v === true)}
+                  />
+                  <span>{t('sellerType.logo.consent')}</span>
+                </label>
               </div>
 
               <p className="text-xs text-muted-foreground">{t('sellerType.noRegistryCheck')}</p>

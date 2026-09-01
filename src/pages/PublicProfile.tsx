@@ -17,6 +17,7 @@ import { BlockUserButton } from '@/components/BlockUserButton';
 import { useUserBlocks } from '@/hooks/useUserBlocks';
 import { format } from 'date-fns';
 import { LinkedInVerifiedBadge } from '@/components/LinkedInVerifiedBadge';
+import { FoundingSellerBadge } from '@/components/FoundingSellerBadge';
 import { Linkedin, Briefcase, GraduationCap } from 'lucide-react';
 import { ProfileDetailSections } from '@/components/profile/ProfileDetailSections';
 import { ProfileStatusFrame } from '@/components/profile/ProfileStatusFrame';
@@ -87,6 +88,7 @@ const PUBLIC_PROFILE_COLUMNS = [
   'website_url', 'linkedin_url', 'is_linkedin_verified', 'country',
   'avatar_url', 'banner_url', 'experience', 'education', 'skills',
   'open_to_work', 'open_to_roles', 'is_hiring', 'hiring_roles', 'created_at',
+  'is_founding_seller',
 ].join(', ');
 
 export default function PublicProfile() {
@@ -273,6 +275,7 @@ export default function PublicProfile() {
                     </h1>
                     <OnlineStatus userId={profile.id} />
                     {profile.is_linkedin_verified && <LinkedInVerifiedBadge />}
+                    {(profile as any).is_founding_seller && <FoundingSellerBadge />}
                   </div>
                   <p className="text-muted-foreground mb-3">
                     {profile.headline || `@${profile.username || profile.id.slice(0, 8)}`}

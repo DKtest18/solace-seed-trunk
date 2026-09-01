@@ -858,5 +858,51 @@
     "errors": {
       "codeLength": "Enter the 6-digit code."
     }
+  },
+  "sellerType": {
+    "title": "Are you selling as a private seller or as a company?",
+    "subtitle": "This is the first step of your seller setup. You can change it later in your seller settings.",
+    "save": "Save and continue",
+    "saved": "Seller type saved",
+    "changeNote": "You can change your seller type later. Changing it may require re-entering your business details.",
+    "privateNothingExtra": "Nothing extra is needed — we only use the details you already provide during onboarding.",
+    "noRegistryCheck": "These details are collected for our records only and are not verified against a public registry.",
+    "options": {
+      "private": "Private seller",
+      "privateDescription": "You sell as an individual.",
+      "company": "Company",
+      "companyDescription": "You sell through a registered legal entity."
+    },
+    "fields": {
+      "legalName": "Legal entity name",
+      "legalForm": "Legal form",
+      "legalFormPlaceholder": "Select legal form",
+      "registrationCountry": "Country of registration",
+      "registrationNumber": "Business registration number",
+      "registrationNumberCh": "UID (CHE-xxx.xxx.xxx)",
+      "registrationNumberDe": "Handelsregisternummer",
+      "registrationNumberAt": "Firmenbuchnummer",
+      "address": "Registered business address",
+      "representative": "Authorised representative or founder",
+      "contactEmail": "Business contact email"
+    },
+    "legalForms": {
+      "einzelunternehmen": "Einzelunternehmen",
+      "gmbh": "GmbH",
+      "ag": "AG",
+      "ug": "UG",
+      "gbr": "GbR",
+      "ltd": "Ltd",
+      "sole_trader": "Sole trader",
+      "llc": "LLC",
+      "other": "Other"
+    },
+    "errors": {
+      "invalidUid": "Please enter a valid Swiss UID in the format CHE-123.456.789.",
+      "missingTitle": "Missing company details",
+      "missingBody": "Please fill in all company fields with a valid business email.",
+      "saveFailed": "Could not save seller type",
+      "signedOut": "Your session expired. Please sign in again."
+    }
   }
 }

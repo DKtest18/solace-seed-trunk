@@ -99,13 +99,21 @@ export function useSellerOnboardingProgress() {
         }
       }
 
+      // Seller type (private/company) is the first question. If the column does
+      // not exist yet, `seller_type` is undefined — treat it as done so existing
+      // sellers are never blocked.
+      const sellerTypeMissing = sellerApp !== null && (sellerApp as any)?.seller_type === undefined;
+      const sellerTypeComplete = sellerTypeMissing || !!(sellerApp as any)?.seller_type;
+
       const steps: OnboardingStep[] = [
+        { id: 'seller-type', title: 'Seller Type', description: 'Are you selling as a private seller or as a company?', required: true, completed: sellerTypeComplete, route: '/seller-onboarding/seller-type' },
         { id: 'profile', title: 'Profile Information', description: 'Set your Display Name and Username', required: true, completed: profileComplete, route: '/profile?from=checklist' },
-        { id: 'email', title: 'Email Verification', description: 'Verify your email address', required: true, completed: !!user.email_confirmed_at, route: '/settings' },
-        { id: '2fa', title: '2FA Setup', description: 'Add two-factor authentication — required for selling', required: true, completed: hasVerifiedMfa, route: '/settings' },
+        { id: 'email', title: 'Email Verification', description: 'Verify your email address', required: true, completed: !!user.email_confirmed_at, route: '/settings?tab=security' },
+        { id: '2fa', title: '2FA Setup', description: 'Add two-factor authentication (authenticator app or SMS) — required for selling', required: true, completed: hasVerifiedMfa, route: '/settings?tab=security' },
         { id: 'seller-identity-age', title: 'Seller Identity & Age Verification', description: 'Provide your seller details and confirm you are 18+', required: true, completed: identityAndAgeComplete, route: '/seller-onboarding/identity' },
         { id: 'seller-terms', title: 'Seller Terms & Conditions', description: 'Review and accept the seller agreement', required: true, completed: termsAccepted, route: '/seller-onboarding/terms' },
       ];
+
 
       // Connecting a payout provider is OPTIONAL: sellers can create their profile and
       // submit products without any dkai_seller_payment_configs row. Restricted accounts

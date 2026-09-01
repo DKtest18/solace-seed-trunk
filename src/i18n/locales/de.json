@@ -861,5 +861,51 @@
     "errors": {
       "codeLength": "Gib den 6-stelligen Code ein."
     }
+  },
+  "sellerType": {
+    "title": "Verkaufst du als Privatperson oder als Unternehmen?",
+    "subtitle": "Dies ist der erste Schritt deiner Verkäufer-Einrichtung. Du kannst ihn später in den Verkäufer-Einstellungen ändern.",
+    "save": "Speichern und weiter",
+    "saved": "Verkäufertyp gespeichert",
+    "changeNote": "Du kannst den Verkäufertyp später ändern. Eine Änderung kann die erneute Eingabe der Firmenangaben erfordern.",
+    "privateNothingExtra": "Es sind keine zusätzlichen Angaben nötig — wir verwenden nur die Daten aus dem Onboarding.",
+    "noRegistryCheck": "Diese Angaben werden nur für unsere Unterlagen erhoben und nicht mit einem öffentlichen Register überprüft.",
+    "options": {
+      "private": "Privatverkäufer",
+      "privateDescription": "Du verkaufst als Privatperson.",
+      "company": "Unternehmen",
+      "companyDescription": "Du verkaufst über eine eingetragene Rechtseinheit."
+    },
+    "fields": {
+      "legalName": "Firmenname (Rechtseinheit)",
+      "legalForm": "Rechtsform",
+      "legalFormPlaceholder": "Rechtsform wählen",
+      "registrationCountry": "Land der Registrierung",
+      "registrationNumber": "Handels-/Registernummer",
+      "registrationNumberCh": "UID (CHE-xxx.xxx.xxx)",
+      "registrationNumberDe": "Handelsregisternummer",
+      "registrationNumberAt": "Firmenbuchnummer",
+      "address": "Eingetragene Geschäftsadresse",
+      "representative": "Zeichnungsberechtigte Person oder Gründer",
+      "contactEmail": "Geschäftliche Kontakt-E-Mail"
+    },
+    "legalForms": {
+      "einzelunternehmen": "Einzelunternehmen",
+      "gmbh": "GmbH",
+      "ag": "AG",
+      "ug": "UG",
+      "gbr": "GbR",
+      "ltd": "Ltd",
+      "sole_trader": "Einzelunternehmer (Sole trader)",
+      "llc": "LLC",
+      "other": "Andere"
+    },
+    "errors": {
+      "invalidUid": "Bitte gib eine gültige Schweizer UID im Format CHE-123.456.789 ein.",
+      "missingTitle": "Fehlende Firmenangaben",
+      "missingBody": "Bitte fülle alle Firmenfelder mit einer gültigen Geschäfts-E-Mail aus.",
+      "saveFailed": "Verkäufertyp konnte nicht gespeichert werden",
+      "signedOut": "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an."
+    }
   }
 }

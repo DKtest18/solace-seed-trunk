@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,11 @@ export default function ProfileSettings() {
   const { user } = useAuth();
   const { hasRole: isSeller, isLoading: roleLoading } = useHasRole('seller');
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedTab = searchParams.get('tab');
+  const activeTab = requestedTab && ['profile', 'security', 'privacy-data', 'data'].includes(requestedTab)
+    ? requestedTab
+    : 'profile';
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
@@ -74,7 +79,12 @@ export default function ProfileSettings() {
           <p className="text-muted-foreground">Manage your account, profile, and preferences.</p>
         </div>
 
-        <Tabs defaultValue="profile" className="grid lg:grid-cols-[240px_1fr] gap-8">
+        {/* ?tab=security deep-links here from the seller onboarding 2FA step. */}
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setSearchParams({ tab: v }, { replace: true })}
+          className="grid lg:grid-cols-[240px_1fr] gap-8"
+        >
           <TabsList className="h-auto bg-transparent p-0 flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible justify-start">
             {tabs.map((t) => {
               const Icon = t.icon;

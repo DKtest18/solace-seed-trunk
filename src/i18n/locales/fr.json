@@ -239,5 +239,51 @@
     "errors": {
       "codeLength": "Saisissez le code à 6 chiffres."
     }
+  },
+  "sellerType": {
+    "title": "Vendez-vous en tant que particulier ou en tant qu'entreprise ?",
+    "subtitle": "C'est la première étape de votre configuration vendeur. Vous pourrez la modifier plus tard dans vos paramètres vendeur.",
+    "save": "Enregistrer et continuer",
+    "saved": "Type de vendeur enregistré",
+    "changeNote": "Vous pouvez modifier le type de vendeur plus tard. Une modification peut nécessiter de saisir à nouveau les informations de l'entreprise.",
+    "privateNothingExtra": "Aucune information supplémentaire n'est requise — nous utilisons uniquement les données déjà fournies.",
+    "noRegistryCheck": "Ces informations sont collectées uniquement pour nos dossiers et ne sont pas vérifiées auprès d'un registre public.",
+    "options": {
+      "private": "Vendeur particulier",
+      "privateDescription": "Vous vendez en tant que personne physique.",
+      "company": "Entreprise",
+      "companyDescription": "Vous vendez via une entité juridique enregistrée."
+    },
+    "fields": {
+      "legalName": "Raison sociale",
+      "legalForm": "Forme juridique",
+      "legalFormPlaceholder": "Choisir la forme juridique",
+      "registrationCountry": "Pays d'enregistrement",
+      "registrationNumber": "Numéro d'enregistrement",
+      "registrationNumberCh": "IDE / UID (CHE-xxx.xxx.xxx)",
+      "registrationNumberDe": "Handelsregisternummer",
+      "registrationNumberAt": "Firmenbuchnummer",
+      "address": "Adresse commerciale enregistrée",
+      "representative": "Représentant autorisé ou fondateur",
+      "contactEmail": "E-mail de contact professionnel"
+    },
+    "legalForms": {
+      "einzelunternehmen": "Einzelunternehmen (raison individuelle)",
+      "gmbh": "GmbH / Sàrl",
+      "ag": "AG / SA",
+      "ug": "UG",
+      "gbr": "GbR",
+      "ltd": "Ltd",
+      "sole_trader": "Entrepreneur individuel",
+      "llc": "LLC",
+      "other": "Autre"
+    },
+    "errors": {
+      "invalidUid": "Veuillez saisir un IDE suisse valide au format CHE-123.456.789.",
+      "missingTitle": "Informations d'entreprise manquantes",
+      "missingBody": "Veuillez remplir tous les champs de l'entreprise avec un e-mail professionnel valide.",
+      "saveFailed": "Impossible d'enregistrer le type de vendeur",
+      "signedOut": "Votre session a expiré. Veuillez vous reconnecter."
+    }
   }
 }

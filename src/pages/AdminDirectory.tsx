@@ -68,7 +68,7 @@ function money(value: unknown) {
   return `CHF ${n.toLocaleString('de-CH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-export default function AdminDirectory() {
+export default function AdminDirectory({ embedded = false }: { embedded?: boolean }) {
   const { toast } = useToast();
 
   const [tab, setTab] = useState('users');
@@ -193,21 +193,24 @@ export default function AdminDirectory() {
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold flex items-center gap-2">
-            <ShieldCheck className="h-6 w-6 text-primary" />
-            Admin Directory
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Users, companies and platform analytics. Buyer credentials are never shown here.
-          </p>
+    <div className={embedded ? 'space-y-6' : 'max-w-7xl mx-auto px-4 py-8 space-y-6'}>
+      {!embedded && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-semibold flex items-center gap-2">
+              <ShieldCheck className="h-6 w-6 text-primary" />
+              Admin Directory
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Users, companies and platform analytics. Buyer credentials are never shown here.
+            </p>
+          </div>
+          <Button variant="outline" asChild>
+            <Link to="/admin/user-moderation">User moderation (bans / deletion)</Link>
+          </Button>
         </div>
-        <Button variant="outline" asChild>
-          <Link to="/admin/user-moderation">User moderation (bans / deletion)</Link>
-        </Button>
-      </div>
+      )}
+
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>

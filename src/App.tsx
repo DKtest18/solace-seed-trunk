@@ -37,6 +37,7 @@ import SellerEarnings from "./pages/SellerEarnings";
 import SellerBalances from "./pages/SellerBalances";
 import SellerOnboardingChecklist from "./pages/SellerOnboardingChecklist";
 import SellerOnboardingIdentity from "./pages/SellerOnboardingIdentity";
+import SellerOnboardingSellerType from "./pages/SellerOnboardingSellerType";
 import SellerOnboardingTerms from "./pages/SellerOnboardingTerms";
 import SellerOnboardingPayment from "./pages/SellerOnboardingPayment";
 import Wishlist from "./pages/Wishlist";
@@ -188,7 +189,10 @@ const App = () => (
             <Route path="/earnings" element={<Seller2FAGuard><PayoutRouteGuard><SellerLayout title="Earnings"><SellerEarnings /></SellerLayout></PayoutRouteGuard></Seller2FAGuard>} />
             <Route path="/balances" element={<Seller2FAGuard><SellerLayout title="Balances"><SellerBalances /></SellerLayout></Seller2FAGuard>} />
             <Route path="/seller-onboarding" element={<Seller2FAGuard><SellerLayout title="Seller Onboarding"><SellerOnboardingChecklist /></SellerLayout></Seller2FAGuard>} />
+            {/* Seller type is the FIRST question — deliberately not behind Seller2FAGuard. */}
+            <Route path="/seller-onboarding/seller-type" element={<SellerLayout title="Seller Type"><SellerOnboardingSellerType /></SellerLayout>} />
             <Route path="/seller-onboarding/identity" element={<Seller2FAGuard><SellerLayout title="Identity Verification"><SellerOnboardingIdentity /></SellerLayout></Seller2FAGuard>} />
+
             <Route path="/seller-onboarding/terms" element={<Seller2FAGuard><SellerLayout title="Seller Terms & Conditions"><SellerOnboardingTerms /></SellerLayout></Seller2FAGuard>} />
             <Route path="/seller-onboarding/payment" element={<Seller2FAGuard><PayoutRouteGuard><SellerLayout title="Payment Setup"><SellerOnboardingPayment /></SellerLayout></PayoutRouteGuard></Seller2FAGuard>} />
 

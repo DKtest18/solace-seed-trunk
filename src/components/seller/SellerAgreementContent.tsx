@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
 import { Button } from '@/components/ui/button';
 import { Loader2, Download, CheckCircle2 } from 'lucide-react';
-import { LegalBindingNotice } from '@/components/legal/LegalBindingNotice';
+
 
 export const OBLIGATIONS: string[] = [
   'Deliver exactly what your listing describes. You may not refuse delivery of a purchased product.',
@@ -159,8 +159,10 @@ export function SellerAgreementBody({
         </Button>
       </div>
 
-      {/* Version string is untouched by translations (see src/lib/sellerAgreement.ts). */}
-      <LegalBindingNotice />
+      {/* No binding-language notice here: this body is rendered inside the seller
+          onboarding / seller account UI. The notice belongs only on the actual
+          legal document pages. */}
+
     </>
   );
 }

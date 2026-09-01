@@ -61,6 +61,11 @@ export default function AdminUsers() {
   const [delReason, setDelReason] = useState('');
   const [allowReregister, setAllowReregister] = useState(false);
 
+  // Onboarding seller type / company details (our own collection, read from
+  // dkai_seller_applications — admins already have read access to that table).
+  const [sellerApps, setSellerApps] = useState<Record<string, any>>({});
+  const [companyTarget, setCompanyTarget] = useState<any | null>(null);
+
   const [banReason, setBanReason] = useState('');
   const [banType, setBanType] = useState<'permanent' | 'timed'>('permanent');
   const [banUntil, setBanUntil] = useState('');
@@ -83,8 +88,21 @@ export default function AdminUsers() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      setUsers(data?.users || []);
+      const rows: UserRow[] = data?.users || [];
+      setUsers(rows);
       setTotal(data?.total || 0);
+
+      if (rows.length) {
+        const { data: apps } = await db
+          .from('dkai_seller_applications')
+          .select('*')
+          .in('user_id', rows.map((r) => r.id));
+        const map: Record<string, any> = {};
+        (apps || []).forEach((a: any) => { map[a.user_id] = a; });
+        setSellerApps(map);
+      } else {
+        setSellerApps({});
+      }
     } catch (e: any) {
       toast({ title: 'Failed to load users', description: e.message, variant: 'destructive' });
     } finally {
@@ -213,6 +231,7 @@ export default function AdminUsers() {
               <TableHead>Name</TableHead>
               <TableHead>Joined</TableHead>
               <TableHead>Seller</TableHead>
+              <TableHead>Business</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Products</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -220,9 +239,9 @@ export default function AdminUsers() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8"><HourglassLoader size={64} /></TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center py-8"><HourglassLoader size={64} /></TableCell></TableRow>
             ) : users.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No users found</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No users found</TableCell></TableRow>
             ) : users.map((u) => (
               <TableRow key={u.id}>
                 <TableCell className="text-gray-900">{u.email}</TableCell>
@@ -230,6 +249,17 @@ export default function AdminUsers() {
                 <TableCell className="text-gray-700">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</TableCell>
                 
                 <TableCell className="text-gray-700">{u.seller_type || '—'}</TableCell>
+                <TableCell className="text-gray-700">
+                  {sellerApps[u.id]?.seller_type === 'company' ? (
+                    <Button size="sm" variant="outline" onClick={() => setCompanyTarget(sellerApps[u.id])}>
+                      Company
+                    </Button>
+                  ) : sellerApps[u.id]?.seller_type === 'private' ? (
+                    <span>Private</span>
+                  ) : (
+                    <span>—</span>
+                  )}
+                </TableCell>
                 <TableCell>{status(u)}</TableCell>
                 <TableCell className="text-gray-700">{u.product_count}</TableCell>
                 <TableCell className="text-right space-x-2">
@@ -262,6 +292,34 @@ export default function AdminUsers() {
           <Button variant="outline" size="sm" disabled={page + 1 >= totalPages || loading} onClick={() => setPage((p) => p + 1)}>Next</Button>
         </div>
       </div>
+
+      {/* Company details (collected, NOT registry-verified) */}
+      <Dialog open={!!companyTarget} onOpenChange={(o) => !o && setCompanyTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Company details</DialogTitle>
+            <DialogDescription>
+              Self-declared by the seller during onboarding. Not verified against any registry.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 text-sm">
+            {[
+              ['Legal entity name', companyTarget?.company_legal_name],
+              ['Legal form', companyTarget?.company_legal_form],
+              ['Country of registration', companyTarget?.company_registration_country],
+              ['Registration number / UID', companyTarget?.company_registration_number],
+              ['Registered address', companyTarget?.company_address],
+              ['Authorised representative', companyTarget?.company_representative_name],
+              ['Business contact email', companyTarget?.company_contact_email],
+            ].map(([label, value]) => (
+              <div key={String(label)} className="flex justify-between gap-4">
+                <span className="text-muted-foreground">{label}</span>
+                <span className="text-right font-medium">{value || '—'}</span>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Dialog */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>

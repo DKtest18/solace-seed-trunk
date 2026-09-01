@@ -4,24 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Shield, AlertTriangle } from 'lucide-react';
-import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 interface BuyerPolicyAcceptanceProps {
   onAccept: () => void;
   isLoading?: boolean;
 }
 
-const buildPolicies = (feePct: number, launchPromoActive: boolean) => [
+const buildPolicies = () => [
   "Refunds are only granted through DK AI Marketplace support review, for exactly two reasons: (1) the product was not delivered within the promised delivery time, or (2) the product is materially not as described.",
   "There are no unconditional returns, no self-service instant refunds, and no seller-set return windows or return fees.",
   "Refund requests must be filed within 14 days of purchase, with a description and any evidence (screenshots, logs). Approved refunds are for the FULL purchase price and are issued via Stripe to your original payment method, typically within 24–72 hours of approval.",
   "Abuse of the refund system (false claims, chargeback fraud) may result in account suspension.",
   "Upon a refund, your license to use the product ends immediately. Any further use, copying, or distribution of the delivered files is a breach of contract and a copyright infringement.",
-  "Payments are processed by Stripe or PayPal and go directly to the seller's connected payment account. " +
-    (launchPromoActive
-      ? "Platform fee: 0% during the launch promo (first 20 sales on the platform)."
-      : `Platform fee: ${feePct}%.`) +
-    " Stripe's standard payment processing fees apply and are borne by the seller.",
+  "Payments are processed by Stripe or PayPal and go directly to the seller's connected payment account. Any platform fee is deducted from the seller's payout and never added to your price. Stripe's standard payment processing fees apply and are borne by the seller.",
   "You must treat sellers fairly within the platform.",
   "The seller may send you up to 3 reminder notifications (in-app and by email) asking you to confirm receipt and leave a review. By purchasing, you consent to receiving these order-related communications.",
   "For any questions or problems, contact support@dkaimarketplace.com",
@@ -32,8 +27,7 @@ export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAccept
   const [accepted, setAccepted] = useState(false);
   const [withdrawalWaiver, setWithdrawalWaiver] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { feePct, launchPromoActive } = usePlatformFee();
-  const BUYER_POLICIES = buildPolicies(feePct, launchPromoActive);
+  const BUYER_POLICIES = buildPolicies();
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
@@ -80,9 +74,8 @@ export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAccept
               <h4 className="font-semibold mb-2">Payment</h4>
               <p className="text-sm text-muted-foreground">
                 Payments are processed by Stripe or PayPal and go directly to the seller's connected payment account.{' '}
-                {launchPromoActive
-                  ? '0% platform fee during the launch promo (first 20 sales on the platform).'
-                  : `Platform fee: ${feePct}%.`}{' '}
+                Any platform fee is deducted from the seller's payout and is never added to your
+                price.{' '}
                 Stripe's standard payment processing fees apply and are borne by the seller.
               </p>
             </div>

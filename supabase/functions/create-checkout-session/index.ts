@@ -15,10 +15,8 @@ import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 import { isProductPurchasable } from '../_shared/purchasable.ts';
 import { REVIEW_STATUS } from '../_shared/review-status.ts';
+import { getPlatformFeePercent } from '../_shared/platform-fee.ts';
 
-// Fallback fee if seller profile has no platform_fee_percent set.
-const DEFAULT_PLATFORM_FEE_PERCENT = 5;
-const LAUNCH_PROMO_SALES_LIMIT = 20;
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);

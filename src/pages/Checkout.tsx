@@ -40,7 +40,9 @@ export default function Checkout() {
   const { hasAccepted: hasBuyerPolicyAcceptedUser, isLoading: loadingPolicyUser, acceptPolicy, isAccepting } = useBuyerPolicy();
   const hasBuyerPolicyAccepted = user ? hasBuyerPolicyAcceptedUser : guestPolicyAccepted;
   const loadingPolicy = user ? loadingPolicyUser : false;
-  const { feePct, sellerPct, launchPromoActive, promoBanner } = usePlatformFee();
+  // Fee copy is buyer-neutral now (fees are seller-side only), so no fee state
+  // is needed here. The seller-side rule lives in usePlatformFee.
+
   const productId = searchParams.get("productId");
   const tierParam = (searchParams.get("tier") || "personal").toLowerCase();
   const licenseTier: 'personal' | 'commercial' | 'agency' | 'exclusive' =

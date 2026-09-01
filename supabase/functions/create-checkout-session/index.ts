@@ -15,10 +15,8 @@ import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 import { isProductPurchasable } from '../_shared/purchasable.ts';
 import { REVIEW_STATUS } from '../_shared/review-status.ts';
+import { getPlatformFeePercent } from '../_shared/platform-fee.ts';
 
-// Fallback fee if seller profile has no platform_fee_percent set.
-const DEFAULT_PLATFORM_FEE_PERCENT = 5;
-const LAUNCH_PROMO_SALES_LIMIT = 20;
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -104,27 +102,12 @@ Deno.serve(async (req) => {
     const stripeKey = Deno.env.get('DKAIM_STRIPE_SECRET_KEY');
     if (!stripeKey) return errorResponse('Stripe not configured', 500);
 
-    // Read per-seller platform fee from dkai_profiles (dynamic, not hardcoded).
-    const { data: sellerProfile } = await admin
-      .from('dkai_profiles')
-      .select('platform_fee_percent, seller_type')
-      .eq('id', product.seller_id)
-      .single();
-    const sellerFeePercent = Number(
-      sellerProfile?.platform_fee_percent ?? DEFAULT_PLATFORM_FEE_PERCENT
-    );
+    // FEE RULE (single source of truth, shared with PayPal):
+    // founding sellers pay 0% on their own first 4 SETTLED sales, then the
+    // normal per-seller fee. The old platform-wide 20-sale promo is retired.
+    const feePercent = await getPlatformFeePercent(admin, product.seller_id);
+    const feeRate = feePercent / 100;
 
-    // LAUNCH PROMO: while the platform has < 20 completed sales TOTAL across
-    // all sellers, application_fee_amount = 0 (sellers keep 100%). After 20
-    // completed platform sales, the per-seller platform_fee_percent kicks in.
-    const { count: platformSalesCount } = await admin
-      .from('dkai_orders')
-      .select('id', { count: 'exact', head: true })
-      .in('status', ['completed', 'delivered', 'released']);
-    const launchPromoActive =
-      (platformSalesCount ?? 0) < LAUNCH_PROMO_SALES_LIMIT;
-    const feePercent = launchPromoActive ? 0 : sellerFeePercent;
-    const feeRate = Math.max(0, Math.min(100, feePercent)) / 100;
 
     const priceCents = Math.round(Number(product.price) * 100);
     const appFeeCents = Math.round(priceCents * feeRate);

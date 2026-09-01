@@ -768,7 +768,9 @@
       "payoutsText": "Zahlungen fließen direkt auf das verbundene Stripe-Konto des Verkäufers — ohne Umwege. PayPal-Auszahlungen folgen bald."
     },
     "ctaTitle": "Verkaufen Sie Ihre KI-Produkte",
-    "ctaText": "Werden Sie verifizierter Verkäufer und erreichen Sie eine kaufbereite Community — mit direkten Stripe-Auszahlungen (PayPal folgt) und einer faires Gebührenstruktur."
+    "ctaText": "Werden Sie verifizierter Verkäufer und erreichen Sie eine kaufbereite Community — mit direkten Stripe-Auszahlungen (PayPal folgt) und einer faires Gebührenstruktur.",
+    "logoWallTitle": "Unternehmen, die auf DK AI Marketplace verkaufen",
+    "logoWallAlt": "Firmenlogo"
   },
   "legalLinks": {
     "impressum": "Impressum",
@@ -906,6 +908,17 @@
       "missingBody": "Bitte fülle alle Firmenfelder mit einer gültigen Geschäfts-E-Mail aus.",
       "saveFailed": "Verkäufertyp konnte nicht gespeichert werden",
       "signedOut": "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an."
+    },
+    "logo": {
+      "title": "Firmenlogo",
+      "help": "Optional. PNG, JPG, SVG oder WebP, max. 2 MB. Wird in Ihren Verkäuferdaten und, mit Ihrer Zustimmung, auf unserer Startseite verwendet.",
+      "alt": "Firmenlogo",
+      "uploading": "Wird hochgeladen…",
+      "uploaded": "Logo hochgeladen",
+      "failed": "Logo-Upload fehlgeschlagen",
+      "badType": "Dateityp nicht unterstützt",
+      "tooLarge": "Datei ist grösser als 2 MB",
+      "consent": "Ich bin damit einverstanden, dass dieses Logo und der Firmenname öffentlich auf der Startseite von DK AI Marketplace angezeigt werden."
     }
   }
 }

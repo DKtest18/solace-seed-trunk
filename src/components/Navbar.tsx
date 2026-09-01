@@ -184,7 +184,7 @@ export function Navbar() {
                       </DropdownMenuItem>
                       {isSuperAdmin && (
                         <DropdownMenuItem asChild>
-                          <Link to="/admin/users"><User className="w-4 h-4 mr-2" />User Management</Link>
+                          <Link to="/admin/users"><User className="w-4 h-4 mr-2" />Admin Directory</Link>
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />
@@ -261,7 +261,7 @@ export function Navbar() {
                             </Link>
                             {isSuperAdmin && (
                               <Link to="/admin/users" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors">
-                                <User className="w-4 h-4 mr-3" />User Management
+                                <User className="w-4 h-4 mr-3" />Admin Directory
                               </Link>
                             )}
                           </div>

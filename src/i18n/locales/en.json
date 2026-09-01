@@ -765,7 +765,9 @@
       "payoutsText": "Payments flow straight to the seller's connected Stripe account — no detours. PayPal payouts coming soon."
     },
     "ctaTitle": "Sell your AI products",
-    "ctaText": "Become a verified seller and reach a buy-ready community — with direct Stripe payouts (PayPal coming soon) and a fair fee structure."
+    "ctaText": "Become a verified seller and reach a buy-ready community — with direct Stripe payouts (PayPal coming soon) and a fair fee structure.",
+    "logoWallTitle": "Companies selling on DK AI Marketplace",
+    "logoWallAlt": "Company logo"
   },
   "legalLinks": {
     "impressum": "Legal Notice (Impressum)",
@@ -903,6 +905,17 @@
       "missingBody": "Please fill in all company fields with a valid business email.",
       "saveFailed": "Could not save seller type",
       "signedOut": "Your session expired. Please sign in again."
+    },
+    "logo": {
+      "title": "Company logo",
+      "help": "Optional. PNG, JPG, SVG or WebP, max 2 MB. Used in your seller records and, with your consent, on our homepage.",
+      "alt": "Company logo",
+      "uploading": "Uploading…",
+      "uploaded": "Logo uploaded",
+      "failed": "Logo upload failed",
+      "badType": "Unsupported file type",
+      "tooLarge": "File is larger than 2 MB",
+      "consent": "I agree that this logo and company name may be displayed publicly on the DK AI Marketplace homepage."
     }
   }
 }

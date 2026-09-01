@@ -103,6 +103,7 @@ import About from "./pages/About";
 import AdminDeliveryThresholds from "./pages/AdminDeliveryThresholds";
 import AdminProductReview from "./pages/AdminProductReview";
 import AdminUsers from "./pages/AdminUsers";
+import AdminDirectory from "./pages/AdminDirectory";
 import { SellerLayout } from "@/components/SellerLayout";
 import SellerSetupRequirements from "./pages/SellerSetupRequirements";
 import BuyerHandoverCredentials from "./pages/BuyerHandoverCredentials";
@@ -141,7 +142,8 @@ const App = () => (
             <Route path="/admin/delivery-thresholds" element={<AdminRouteGuard><AdminDeliveryThresholds /></AdminRouteGuard>} />
             <Route path="/admin/product-review" element={<AdminRouteGuard><AdminProductReview /></AdminRouteGuard>} />
             <Route path="/admin/products" element={<Navigate to="/admin/product-review" replace />} />
-            <Route path="/admin/users" element={<AdminRouteGuard><AdminUsers /></AdminRouteGuard>} />
+            <Route path="/admin/users" element={<AdminRouteGuard><AdminDirectory /></AdminRouteGuard>} />
+            <Route path="/admin/user-moderation" element={<AdminRouteGuard><AdminUsers /></AdminRouteGuard>} />
             <Route path="/admin/accounts" element={<AdminRouteGuard><AdminAccounts /></AdminRouteGuard>} />
             <Route path="/" element={<Index />} />
             <Route path="/waitlist" element={<Waitlist />} />

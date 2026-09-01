@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BuyerPolicyAcceptance } from "@/components/BuyerPolicyAcceptance";
 import { useBuyerPolicy } from "@/hooks/useBuyerPolicy";
-import { usePlatformFee } from "@/hooks/usePlatformFee";
 import { formatMoney, subscriptionLabel } from "@/lib/money";
 import { fetchSellerAcceptedMethods, createPayPalOrder } from "@/lib/paypalCheckout";
 import { HourglassLoader } from '@/components/HourglassLoader';
@@ -40,7 +39,9 @@ export default function Checkout() {
   const { hasAccepted: hasBuyerPolicyAcceptedUser, isLoading: loadingPolicyUser, acceptPolicy, isAccepting } = useBuyerPolicy();
   const hasBuyerPolicyAccepted = user ? hasBuyerPolicyAcceptedUser : guestPolicyAccepted;
   const loadingPolicy = user ? loadingPolicyUser : false;
-  const { feePct, sellerPct, launchPromoActive, promoBanner } = usePlatformFee();
+  // Fee copy is buyer-neutral now (fees are seller-side only), so no fee state
+  // is needed here. The seller-side rule lives in usePlatformFee.
+
   const productId = searchParams.get("productId");
   const tierParam = (searchParams.get("tier") || "personal").toLowerCase();
   const licenseTier: 'personal' | 'commercial' | 'agency' | 'exclusive' =
@@ -321,9 +322,9 @@ export default function Checkout() {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Payments are processed by Stripe or PayPal and go directly to the seller's connected payment account.
-                  {launchPromoActive
-                    ? ` 0% platform fee — launch promo for the first 20 sales on the platform.`
-                    : ` Platform fee: ${feePct}%.`}{' '}
+{' '}
+                  Any platform fee is deducted from the seller's payout and is never added to your
+                  price.{' '}
                   Stripe's standard payment processing fees apply and are borne by the seller.
                 </p>
               </div>
@@ -386,7 +387,7 @@ export default function Checkout() {
                       <p>✓ Secure hosted checkout</p>
                       <p>✓ No card data stored on this website</p>
                       <p>✓ Payment goes directly to the seller's payout account</p>
-                      <p>✓ {launchPromoActive ? '0% platform fee (launch promo — first 20 platform sales)' : `${feePct}% platform fee`}</p>
+                      <p>✓ No platform fee is added to your price</p>
                       <p>✓ The provider's standard processing fees apply (paid by the seller)</p>
                     </div>
                   </>

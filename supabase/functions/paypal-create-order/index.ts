@@ -1,4 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.56.0";
+import { getPlatformFeePercent } from "../_shared/platform-fee.ts";
+
 
 export const config = {
   verify_jwt: false,

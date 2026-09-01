@@ -4,6 +4,28 @@
 -- rows or policies. All new columns are nullable so existing rows stay valid.
 -- =============================================================================
 
+-- 0) Enum-agnostic admin check.
+--    The role column on dkai_user_roles is an enum (dkai_app_role / app_role)
+--    whose label set differs per environment: some projects have 'super_admin',
+--    some do not. Comparing an enum literal that does not exist raises
+--    22P02 "invalid input value for enum". Casting role to text avoids that
+--    entirely, so this works no matter which labels exist.
+CREATE OR REPLACE FUNCTION public.dkai_is_platform_admin()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.dkai_user_roles r
+    WHERE r.user_id = auth.uid()
+      AND r.role::text IN ('admin', 'super_admin')
+  );
+$$;
+
+GRANT EXECUTE ON FUNCTION public.dkai_is_platform_admin() TO authenticated, service_role;
+
 -- 1) Founding-seller markers on the user profile (nullable, badge + fee rule).
 ALTER TABLE public.dkai_profiles
   ADD COLUMN IF NOT EXISTS is_founding_seller boolean,
@@ -173,8 +195,7 @@ SET search_path = public
 AS $$
   WITH guard AS (
     SELECT CASE
-      WHEN public.dkai_has_role(auth.uid(), 'admin')
-        OR public.dkai_has_role(auth.uid(), 'super_admin') THEN true
+      WHEN public.dkai_is_platform_admin() THEN true
       ELSE (SELECT 1/0 = 1)  -- hard fail for non-admins
     END AS ok
   ), base AS (
@@ -198,7 +219,7 @@ AS $$
          b.avatar_url, b.country, b.is_founding_seller, b.platform_fee_percent,
          public.dkai_seller_settled_sales_count(b.id) AS settled_sales,
          (SELECT COUNT(*)::int FROM public.dkai_products pr WHERE pr.seller_id = b.id) AS product_count,
-         EXISTS (SELECT 1 FROM public.dkai_user_roles r WHERE r.user_id = b.id AND r.role = 'seller') AS is_seller,
+         EXISTS (SELECT 1 FROM public.dkai_user_roles r WHERE r.user_id = b.id AND r.role::text = 'seller') AS is_seller,
          b.seller_kind, b.company_legal_name,
          (SELECT COUNT(*) FROM base) AS total_count
   FROM base b
@@ -238,8 +259,7 @@ AS $$
          public.dkai_seller_settled_sales_count(a.user_id)
   FROM public.dkai_seller_applications a
   LEFT JOIN public.dkai_profiles p ON p.id = a.user_id
-  WHERE (public.dkai_has_role(auth.uid(), 'admin')
-         OR public.dkai_has_role(auth.uid(), 'super_admin'))
+  WHERE public.dkai_is_platform_admin()
     AND a.seller_type = 'company'
   ORDER BY a.seller_type_updated_at DESC NULLS LAST;
 $$;
@@ -255,13 +275,12 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
   SELECT CASE
-    WHEN NOT (public.dkai_has_role(auth.uid(), 'admin')
-              OR public.dkai_has_role(auth.uid(), 'super_admin'))
+    WHEN NOT public.dkai_is_platform_admin()
     THEN jsonb_build_object('error', 'forbidden')
     ELSE jsonb_build_object(
       'users_total', (SELECT COUNT(*) FROM auth.users),
       'users_last_30d', (SELECT COUNT(*) FROM auth.users WHERE created_at > now() - interval '30 days'),
-      'sellers_total', (SELECT COUNT(DISTINCT user_id) FROM public.dkai_user_roles WHERE role = 'seller'),
+      'sellers_total', (SELECT COUNT(DISTINCT user_id) FROM public.dkai_user_roles WHERE role::text = 'seller'),
       'companies_total', (SELECT COUNT(*) FROM public.dkai_seller_applications WHERE seller_type = 'company'),
       'founding_sellers', (SELECT COUNT(*) FROM public.dkai_profiles WHERE is_founding_seller IS TRUE),
       'products_total', (SELECT COUNT(*) FROM public.dkai_products),
@@ -307,8 +326,7 @@ AS $$
 DECLARE
   v_current integer;
 BEGIN
-  IF NOT (public.dkai_has_role(auth.uid(), 'admin')
-          OR public.dkai_has_role(auth.uid(), 'super_admin')) THEN
+  IF NOT public.dkai_is_platform_admin() THEN
     RETURN jsonb_build_object('ok', false, 'error', 'forbidden');
   END IF;
 

@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BuyerPolicyAcceptance } from "@/components/BuyerPolicyAcceptance";
 import { useBuyerPolicy } from "@/hooks/useBuyerPolicy";
-import { usePlatformFee } from "@/hooks/usePlatformFee";
 import { formatMoney, subscriptionLabel } from "@/lib/money";
 import { fetchSellerAcceptedMethods, createPayPalOrder } from "@/lib/paypalCheckout";
 import { HourglassLoader } from '@/components/HourglassLoader';

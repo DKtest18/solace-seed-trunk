@@ -23,6 +23,7 @@ import { formatMoney } from '@/lib/money';
 import './index-home.css';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { CompanyLogoWall } from '@/components/home/CompanyLogoWall';
 
 // Decorative marquee categories — icon only, name kept as aria-label + tooltip.
 const CATEGORIES = [
@@ -224,6 +225,9 @@ export default function Index() {
           </div>
         </TooltipProvider>
       </section>
+
+      {/* COMPANY LOGO WALL — consented company logos only */}
+      <CompanyLogoWall />
 
       {/* HOW IT WORKS */}
       <section className="relative max-w-6xl mx-auto px-6 py-24">

@@ -188,17 +188,18 @@ RETURNS TABLE (
   company_legal_name text,
   total_count bigint
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  WITH guard AS (
-    SELECT CASE
-      WHEN public.dkai_is_platform_admin() THEN true
-      ELSE (SELECT 1/0 = 1)  -- hard fail for non-admins
-    END AS ok
-  ), base AS (
+BEGIN
+  IF NOT public.dkai_is_platform_admin() THEN
+    RAISE EXCEPTION 'forbidden: admin only';
+  END IF;
+
+  RETURN QUERY
+  WITH base AS (
     SELECT u.id, u.email::text AS email, u.created_at, u.last_sign_in_at,
            p.full_name, p.username, p.avatar_url, p.country,
            COALESCE(p.is_founding_seller, false) AS is_founding_seller,
@@ -206,7 +207,6 @@ AS $$
            a.seller_type AS seller_kind,
            a.company_legal_name
     FROM auth.users u
-    JOIN guard ON guard.ok
     LEFT JOIN public.dkai_profiles p ON p.id = u.id
     LEFT JOIN public.dkai_seller_applications a ON a.user_id = u.id
     WHERE _search IS NULL
@@ -225,7 +225,7 @@ AS $$
   FROM base b
   ORDER BY b.created_at DESC
   LIMIT GREATEST(1, LEAST(100, _limit)) OFFSET GREATEST(0, _offset);
-$$;
+END $$;
 
 GRANT EXECUTE ON FUNCTION public.dkai_admin_user_directory(text, integer, integer) TO authenticated;
 

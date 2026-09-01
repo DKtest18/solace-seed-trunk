@@ -28,8 +28,12 @@ Deno.serve(async (req) => {
 
     if (productError || !product) return errorResponse('Product not found', 404);
 
-    const platformFee = product.price * 0.1;
-    const sellerEarnings = product.price - platformFee;
+    // Fee comes from the shared rule (founding sellers: 0% on their own first
+    // 4 settled sales, then the normal per-seller fee). Never hardcoded.
+    const feePercent = await getPlatformFeePercent(admin, product.seller_id);
+    const platformFee = Math.round(Number(product.price) * feePercent) / 100;
+    const sellerEarnings = Math.round((Number(product.price) - platformFee) * 100) / 100;
+
 
     // Get seller's Stripe account for Connect
     const { data: sellerProfile } = await admin

@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
 import { HourglassLoader } from '@/components/HourglassLoader';
+import AdminDirectory from '@/pages/AdminDirectory';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -365,7 +366,7 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
               <Badge variant="destructive" className="ml-2">{analytics.openDisputes}</Badge>
             ) : null}
           </TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="users">Users &amp; Companies</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -984,18 +985,11 @@ function AdminDashboardContent({ user, isAdmin }: { user: any; isAdmin: boolean 
           </Card>
         </TabsContent>
 
-        {/* Users Tab */}
+        {/* Users / Companies / Analytics */}
         <TabsContent value="users">
-          <Card>
-            <CardHeader>
-              <CardTitle>Users</CardTitle>
-              <CardDescription>View all registered users</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">User management coming soon</p>
-            </CardContent>
-          </Card>
+          <AdminDirectory embedded />
         </TabsContent>
+
       </Tabs>
     </div>
   );

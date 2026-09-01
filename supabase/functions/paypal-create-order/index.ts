@@ -263,33 +263,10 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Seller has not enabled PayPal" }, 400);
     }
 
-    const { data: profile, error: profileErr } = await supabase
-      .from("dkai_profiles")
-      .select("platform_fee_percent")
-      .eq("id", product.seller_id)
-      .maybeSingle();
+    // Same shared fee rule as the Stripe paths: founding sellers pay 0% on
+    // their own first 4 SETTLED sales, then the normal per-seller fee.
+    const platformFeePercent = await getPlatformFeePercent(supabase, product.seller_id);
 
-    if (profileErr) {
-      return jsonResponse({ error: "Failed to load platform fee" }, 400);
-    }
-
-    let platformFeePercent = Number(profile?.platform_fee_percent ?? 5);
-    if (Number.isNaN(platformFeePercent) || platformFeePercent < 0) {
-      platformFeePercent = 5;
-    }
-
-    const { count: paidOrdersCount, error: countErr } = await supabase
-      .from("dkai_orders")
-      .select("id", { count: "exact", head: true })
-      .in("status", ["completed", "delivered", "released", "paid"]);
-
-    if (countErr) {
-      return jsonResponse({ error: "Failed to check launch promo" }, 400);
-    }
-
-    if ((paidOrdersCount ?? 0) < 20) {
-      platformFeePercent = 0;
-    }
 
     const platformFee = Math.round((finalPrice * platformFeePercent / 100) * 100) / 100;
     const sellerEarnings = Math.round((finalPrice - platformFee) * 100) / 100;

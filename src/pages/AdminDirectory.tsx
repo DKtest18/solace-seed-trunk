@@ -39,6 +39,11 @@ type DirectoryRow = {
   is_seller: boolean | null;
   seller_kind: string | null;
   company_legal_name: string | null;
+  stripe_status: string | null;
+  stripe_charges_enabled: boolean | null;
+  stripe_payouts_enabled: boolean | null;
+  paypal_status: string | null;
+  paypal_receivable: boolean | null;
   total_count: number | null;
 };
 
@@ -61,6 +66,20 @@ type CompanyRow = {
 function logoUrl(path?: string | null) {
   if (!path) return null;
   return supabase.storage.from('company-logos').getPublicUrl(path).data.publicUrl;
+}
+
+function stripeConnected(r: DirectoryRow) {
+  return !!r.stripe_charges_enabled && !!r.stripe_payouts_enabled;
+}
+
+function paypalConnected(r: DirectoryRow) {
+  return !!r.paypal_receivable || r.paypal_status === 'connected';
+}
+
+function paymentLabel(status: string | null, connected: boolean) {
+  if (connected) return 'connected';
+  if (!status || status === 'not_connected') return 'not connected';
+  return status.replace(/_/g, ' ');
 }
 
 function money(value: unknown) {
@@ -255,6 +274,7 @@ export default function AdminDirectory({ embedded = false }: { embedded?: boolea
                     <TableRow>
                       <TableHead>User</TableHead>
                       <TableHead>Type</TableHead>
+                      <TableHead>Payments</TableHead>
                       <TableHead className="text-right">Products</TableHead>
                       <TableHead className="text-right">Settled sales</TableHead>
                       <TableHead className="text-right">Fee</TableHead>
@@ -286,6 +306,16 @@ export default function AdminDirectory({ embedded = false }: { embedded?: boolea
                             </div>
                           )}
                         </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            <Badge variant={stripeConnected(r) ? 'secondary' : 'outline'} className="w-fit">
+                              Stripe: {paymentLabel(r.stripe_status, stripeConnected(r))}
+                            </Badge>
+                            <Badge variant={paypalConnected(r) ? 'secondary' : 'outline'} className="w-fit">
+                              PayPal: {paymentLabel(r.paypal_status, paypalConnected(r))}
+                            </Badge>
+                          </div>
+                        </TableCell>
                         <TableCell className="text-right">{r.product_count ?? 0}</TableCell>
                         <TableCell className="text-right">{r.settled_sales ?? 0}</TableCell>
                         <TableCell className="text-right">
@@ -308,7 +338,7 @@ export default function AdminDirectory({ embedded = false }: { embedded?: boolea
                     ))}
                     {!rows.length && (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                           No users found.
                         </TableCell>
                       </TableRow>

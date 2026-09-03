@@ -18,6 +18,18 @@ import { fetchSellerAcceptedMethods, createPayPalOrder } from "@/lib/paypalCheck
 import { HourglassLoader } from '@/components/HourglassLoader';
 import { getCheckoutOrigin } from '@/lib/checkoutOrigin';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
+import { invokePublicFunction } from '@/lib/publicFunctionInvoke';
+
+function checkoutErrorMessage(value: unknown): string | undefined {
+  if (typeof value === 'string' && value.trim()) return value;
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    const nested = record.error ?? record.message ?? record.details;
+    if (typeof nested === 'string' && nested.trim()) return nested;
+    if (nested && typeof nested === 'object') return JSON.stringify(nested);
+  }
+  return undefined;
+}
 
 export default function Checkout() {
   const [searchParams] = useSearchParams();
@@ -156,17 +168,32 @@ export default function Checkout() {
     setProcessing(true);
     try {
       const referralSource = sessionStorage.getItem(`ref_${product.id}`) || undefined;
-      const { data, error } = await supabase.functions.invoke("create-checkout-session", {
-        body: {
-          product_id: product.id,
-          productId: product.id, // backward-compat with deployed function
-          origin: getCheckoutOrigin(),
-          couponCode: appliedCoupon?.code,
-          referralSource,
-          license_tier: licenseTier,
-          ip_assignment_accepted: licenseTier === 'exclusive' ? ipAssignmentAccepted : undefined,
-        },
-      });
+      const checkoutBody = {
+        product_id: product.id,
+        productId: product.id, // backward-compat with deployed function
+        origin: getCheckoutOrigin(),
+        couponCode: appliedCoupon?.code,
+        referralSource,
+        license_tier: licenseTier,
+        ip_assignment_accepted: licenseTier === 'exclusive' ? ipAssignmentAccepted : undefined,
+        buyer_terms_accepted: true,
+        withdrawal_waiver_accepted: true,
+      };
+
+      let data: any;
+      let error: any;
+      if (user) {
+        const result = await supabase.functions.invoke("create-checkout-session", {
+          body: checkoutBody,
+        });
+        data = result.data;
+        error = result.error;
+      } else {
+        // Do not send the Supabase anon key as an Authorization bearer token.
+        // The public function receives only the apikey header and treats this
+        // request as an intentional guest checkout.
+        data = await invokePublicFunction<any>("create-checkout-session", checkoutBody);
+      }
 
       // Surface the REAL error from the edge function body (not the generic non-2xx)
       let serverError: string | undefined;
@@ -174,16 +201,16 @@ export default function Checkout() {
       if (ctx && typeof ctx.clone === "function") {
         try {
           const body = await ctx.clone().json();
-          serverError = body?.error || body?.message;
+          serverError = checkoutErrorMessage(body);
           console.error("create-checkout-session error body:", body);
         } catch {
           try { serverError = await ctx.clone().text(); } catch { /* ignore */ }
         }
       }
-      if (!serverError && data && (data as any).error) serverError = (data as any).error;
+      if (!serverError && data) serverError = checkoutErrorMessage(data);
 
       if (error || !data?.url) {
-        const raw = serverError || (error as any)?.message || "Failed to create checkout session";
+        const raw = serverError || checkoutErrorMessage(error) || "Failed to create checkout session";
         // Only translate the two explicit seller-readiness responses. Broadly
         // matching words such as "Stripe" used to hide schema/API errors and
         // made a healthy connected account look disconnected.

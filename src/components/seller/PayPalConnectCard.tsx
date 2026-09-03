@@ -26,11 +26,19 @@ import {
   type PayPalConnectStatus,
 } from '@/lib/paypalConnectStatus';
 
+/**
+ * PayPal onboarding is not live yet (partner review pending). While this flag is
+ * true the card shows a "Coming soon" state instead of a connect action that
+ * would only fail. Flip to false to re-enable the real onboarding flow.
+ */
+const PAYPAL_COMING_SOON = true;
+
 interface PayPalConnectCardProps {
   /** Route to strip the PayPal return params from, e.g. "/seller/payment-settings" */
   returnPath: string;
   onStatusChange?: (status: PayPalConnectStatus) => void;
 }
+
 
 export function PayPalConnectCard({ returnPath, onStatusChange }: PayPalConnectCardProps) {
   const [searchParams] = useSearchParams();

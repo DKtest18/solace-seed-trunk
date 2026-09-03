@@ -16,6 +16,8 @@ import { useBuyerPolicy } from "@/hooks/useBuyerPolicy";
 import { formatMoney, subscriptionLabel } from "@/lib/money";
 import { fetchSellerAcceptedMethods, createPayPalOrder } from "@/lib/paypalCheckout";
 import { HourglassLoader } from '@/components/HourglassLoader';
+import { getCheckoutOrigin } from '@/lib/checkoutOrigin';
+import { REVIEW_STATUS } from '@/lib/reviewStatus';
 
 export default function Checkout() {
   const [searchParams] = useSearchParams();
@@ -73,6 +75,8 @@ export default function Checkout() {
         .from("dkai_products")
         .select("*")
         .eq("id", productId)
+        .eq("review_status", REVIEW_STATUS.APPROVED)
+        .eq("is_published", true)
         .single();
 
       if (error) throw error;
@@ -106,7 +110,7 @@ export default function Checkout() {
         couponCode: appliedCoupon?.code,
         referralSource,
         ipAssignmentAccepted: licenseTier === 'exclusive' ? ipAssignmentAccepted : undefined,
-        origin: window.location.origin,
+        origin: getCheckoutOrigin(),
       });
       toast.success("Redirecting to PayPal...");
       window.location.href = approveUrl;
@@ -156,7 +160,7 @@ export default function Checkout() {
         body: {
           product_id: product.id,
           productId: product.id, // backward-compat with deployed function
-          origin: window.location.origin,
+          origin: getCheckoutOrigin(),
           couponCode: appliedCoupon?.code,
           referralSource,
           license_tier: licenseTier,
@@ -185,7 +189,10 @@ export default function Checkout() {
         // made a healthy connected account look disconnected.
         const sellerNotReady = /seller has not (connected|finished)|seller.*payment setup|seller.*payout account/i.test(raw);
         const productNotAvailable = /PRODUCT_NOT_AVAILABLE|product not (available|found)/i.test(raw);
-        const friendly = sellerNotReady
+        const invalidOrigin = /INVALID_ORIGIN|invalid origin/i.test(raw);
+        const friendly = invalidOrigin
+          ? "The secure checkout return address was rejected. Please refresh and try again."
+          : sellerNotReady
           ? "This seller has not finished payment setup yet."
           : productNotAvailable
             ? "This listing is not available for purchase right now. The seller still has to publish it."

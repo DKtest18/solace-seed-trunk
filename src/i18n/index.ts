@@ -10,7 +10,6 @@ import de from './locales/de.json';
 import fr from './locales/fr.json';
 
 import {
-  detectLanguageFromGeo,
   getStoredLanguage,
   storeLanguage,
   type AppLanguage,
@@ -23,7 +22,8 @@ const resources = {
 };
 
 const stored = getStoredLanguage();
-// English is the global default; the geo answer may switch it later (first visit only).
+// English is the default for every new visitor. An explicit manual choice is
+// preserved until the visitor changes it again in the language switcher.
 const initialLng: AppLanguage = stored ?? 'en';
 
 i18n.use(initReactI18next).init({
@@ -41,15 +41,6 @@ const applyHtmlLang = (lng: string) => {
 };
 applyHtmlLang(initialLng);
 i18n.on('languageChanged', applyHtmlLang);
-
-// First visit only: auto-detect via IP geolocation (client-side, non-blocking).
-if (!stored && typeof window !== 'undefined') {
-  detectLanguageFromGeo().then((lng) => {
-    // A manual choice made while the request was in flight always wins.
-    if (getStoredLanguage()) return;
-    if (lng !== i18n.language) i18n.changeLanguage(lng);
-  });
-}
 
 export { storeLanguage };
 export default i18n;

@@ -18,7 +18,7 @@ import { ProductMediaGallery } from '@/components/ProductMediaGallery';
 import { ReturnPolicyDisplay } from '@/components/ReturnPolicyDisplay';
 import { LicenseSelector, type LicenseTier } from '@/components/LicenseSelector';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
-import { DELIVERY_MODE, normalizeDeliveryMode } from '@/lib/reviewStatus';
+import { DELIVERY_MODE, REVIEW_STATUS, normalizeDeliveryMode } from '@/lib/reviewStatus';
 import { HourglassLoader } from '@/components/HourglassLoader';
 
 // Track product analytics
@@ -71,6 +71,8 @@ export default function ProductDetail() {
         .from('dkai_products')
         .select('*')
         .eq('id', id!)
+        .eq('review_status', REVIEW_STATUS.APPROVED)
+        .eq('is_published', true)
         .single();
 
       if (error) throw error;

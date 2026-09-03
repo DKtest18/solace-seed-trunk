@@ -150,7 +150,11 @@ export function PayPalConnectCard({ returnPath, onStatusChange }: PayPalConnectC
 
   const badge = () => {
     const modeLabel = status.isSandbox ? ' (Sandbox)' : '';
+    if (PAYPAL_COMING_SOON && !status.connected) {
+      return <Badge variant="secondary">Soon available</Badge>;
+    }
     if (status.onboardingStatus === 'unsupported_country') {
+
       return <Badge variant="secondary">Not available in your country</Badge>;
     }
     if (!status.connected) return <Badge variant="destructive">Not Connected</Badge>;

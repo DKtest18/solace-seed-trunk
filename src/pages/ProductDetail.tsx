@@ -18,7 +18,7 @@ import { ProductMediaGallery } from '@/components/ProductMediaGallery';
 import { ReturnPolicyDisplay } from '@/components/ReturnPolicyDisplay';
 import { LicenseSelector, type LicenseTier } from '@/components/LicenseSelector';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
-import { DELIVERY_MODE, normalizeDeliveryMode } from '@/lib/reviewStatus';
+import { DELIVERY_MODE, REVIEW_STATUS, normalizeDeliveryMode } from '@/lib/reviewStatus';
 import { HourglassLoader } from '@/components/HourglassLoader';
 
 // Track product analytics
@@ -67,10 +67,13 @@ export default function ProductDetail() {
   } = useQuery({
     queryKey: ['product', id],
     queryFn: async () => {
+      if (!id) throw new Error('Product ID is required');
       const { data, error } = await db
         .from('dkai_products')
         .select('*')
-        .eq('id', id!)
+        .eq('id', id)
+        .eq('review_status', REVIEW_STATUS.APPROVED)
+        .eq('is_published', true)
         .single();
 
       if (error) throw error;
@@ -107,10 +110,11 @@ export default function ProductDetail() {
   const { data: productRating } = useQuery({
     queryKey: ['product-rating', id],
     queryFn: async () => {
+      if (!id) return { average: 0, count: 0 };
       const { data, error } = await db
         .from('dkai_reviews')
         .select('rating')
-        .eq('product_id', id!);
+        .eq('product_id', id);
 
       if (error) throw error;
       

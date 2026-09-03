@@ -57,7 +57,8 @@ function useHomeProducts() {
         .from('dkai_products')
         .select('id,title,price,currency,image_url')
         .eq('review_status', REVIEW_STATUS.APPROVED)
-        .eq('exclusive_locked', false)
+        .eq('is_published', true)
+        .or('exclusive_locked.is.null,exclusive_locked.eq.false')
         .order('trending_score', { ascending: false, nullsFirst: false })
         .limit(5);
       if (error) throw error;

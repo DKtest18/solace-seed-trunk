@@ -70,7 +70,9 @@ export default function TopProducts() {
             icon
           )
         `)
-        .eq('review_status', REVIEW_STATUS.APPROVED);
+        .eq('review_status', REVIEW_STATUS.APPROVED)
+        .eq('is_published', true)
+        .or('exclusive_locked.is.null,exclusive_locked.eq.false');
 
       // Apply sorting
       switch (sortBy) {

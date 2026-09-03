@@ -6,13 +6,14 @@ export function useProductsWithRatings() {
   return useQuery({
     queryKey: ['products-with-ratings'],
     queryFn: async () => {
-      // VISIBILITY RULE: review_status = 'approved' alone makes a product
-      // publicly visible. Whether the seller connected a payout provider only
-      // decides PURCHASABILITY (see dkai_product_purchasable), never visibility.
+      // VISIBILITY RULE: admin-approved + published products are public for
+      // both anon and authenticated visitors. Payment setup affects checkout,
+      // never whether an approved listing can be discovered.
       const { data: products, error: productsError } = await db
         .from('dkai_products')
         .select('*')
         .eq('review_status', REVIEW_STATUS.APPROVED)
+        .eq('is_published', true)
         // exclusive_locked is NULL on older rows — `.eq(false)` silently hid
         // them from guests. NULL must be treated as "not locked".
         .or('exclusive_locked.is.null,exclusive_locked.eq.false')

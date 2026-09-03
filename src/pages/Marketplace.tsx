@@ -109,7 +109,8 @@ export default function Marketplace() {
           .from('dkai_products')
           .select('tags')
           .eq('review_status', REVIEW_STATUS.APPROVED)
-          .eq('exclusive_locked', false);
+          .eq('is_published', true)
+          .or('exclusive_locked.is.null,exclusive_locked.eq.false');
         if (error) return [] as string[];
         const tags = new Set<string>();
         data?.forEach((product: any) => {

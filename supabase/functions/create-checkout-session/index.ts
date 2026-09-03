@@ -56,48 +56,42 @@ Deno.serve(async (req) => {
     const tier: 'tier1' | 'tier2' | 'tier3' =
       (product.delivery_tier as any) || 'tier1';
 
-    // Look up the seller's Stripe account across all known storage tables.
-    // Different sellers may have their stripe_account_id on different rows
-    // (dkaim_user_id, dkai_user_id, or dkai_profiles) depending on when they
-    // onboarded. Also consult dkai_seller_payment_configs for the live
-    // onboarding status synced from Stripe.
-    const STRIPE_TABLES = ['dkaim_user_id', 'dkai_user_id', 'dkai_profiles'];
-    let sellerStripe: { stripe_account_id?: string; stripe_onboarded?: boolean } | null = null;
-    for (const t of STRIPE_TABLES) {
-      const { data } = await admin
-        .from(t)
+    // SINGLE SOURCE OF TRUTH: public.dkai_seller_payment_configs (unique seller_id).
+    // Legacy identity tables are never queried (they do not exist).
+    const { data: cfgRow } = await admin
+      .from('dkai_seller_payment_configs')
+      .select('stripe_account_id, charges_enabled, card_payments_enabled, stripe_onboarded, stripe_onboarding_status, onboarding_status')
+      .eq('seller_id', product.seller_id)
+      .maybeSingle();
+
+    let stripeAccountId: string | undefined = cfgRow?.stripe_account_id ?? undefined;
+    let cardPaymentsEnabled =
+      !!cfgRow?.charges_enabled ||
+      !!cfgRow?.card_payments_enabled ||
+      !!cfgRow?.stripe_onboarded ||
+      cfgRow?.stripe_onboarding_status === 'connected' ||
+      cfgRow?.onboarding_status === 'connected';
+
+    // Legacy fallback: some early sellers still carry the account id on their profile.
+    if (!stripeAccountId) {
+      const { data: prof } = await admin
+        .from('dkai_profiles')
         .select('stripe_account_id, stripe_onboarded')
         .eq('id', product.seller_id)
         .maybeSingle();
-      if (data?.stripe_account_id) { sellerStripe = data; break; }
-    }
-
-    // Also read the payment config (source of truth synced from Stripe).
-    let cardPaymentsEnabled = false;
-    let configAccountId: string | undefined;
-    for (const t of ['dkai_seller_payment_configs', 'seller_payment_configs']) {
-      const { data } = await admin
-        .from(t)
-        .select('stripe_account_id, charges_enabled, card_payments_enabled, stripe_onboarding_status')
-        .eq('seller_id', product.seller_id)
-        .maybeSingle();
-      if (data) {
-        configAccountId = data.stripe_account_id || configAccountId;
-        cardPaymentsEnabled =
-          !!data.charges_enabled ||
-          !!data.card_payments_enabled ||
-          data.stripe_onboarding_status === 'connected';
-        break;
+      if (prof?.stripe_account_id) {
+        stripeAccountId = prof.stripe_account_id;
+        cardPaymentsEnabled = cardPaymentsEnabled || !!prof.stripe_onboarded;
       }
     }
 
-    const stripeAccountId = sellerStripe?.stripe_account_id || configAccountId;
     if (!stripeAccountId) {
       return errorResponse('Seller has not connected their payout account', 400);
     }
-    if (!sellerStripe?.stripe_onboarded && !cardPaymentsEnabled) {
+    if (!cardPaymentsEnabled) {
       return errorResponse('Seller has not finished payment setup yet', 400);
     }
+
 
     const stripeKey = Deno.env.get('DKAIM_STRIPE_SECRET_KEY');
     if (!stripeKey) return errorResponse('Stripe not configured', 500);

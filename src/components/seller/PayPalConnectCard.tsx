@@ -319,11 +319,19 @@ export function PayPalConnectCard({ returnPath, onStatusChange }: PayPalConnectC
         ) : (
           <>
             <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
-              <XCircle className="h-5 w-5 text-destructive" />
+              {PAYPAL_COMING_SOON ? (
+                <Clock className="h-5 w-5 text-muted-foreground" />
+              ) : (
+                <XCircle className="h-5 w-5 text-destructive" />
+              )}
               <div>
-                <p className="font-medium">Not Connected</p>
+                <p className="font-medium">
+                  {PAYPAL_COMING_SOON ? 'Soon available' : 'Not Connected'}
+                </p>
                 <p className="text-sm text-muted-foreground">
-                  Link your PayPal business account to accept PayPal payments
+                  {PAYPAL_COMING_SOON
+                    ? 'PayPal payouts are coming soon. Use Stripe to receive payments in the meantime.'
+                    : 'Link your PayPal business account to accept PayPal payments'}
                 </p>
               </div>
             </div>
@@ -349,19 +357,27 @@ export function PayPalConnectCard({ returnPath, onStatusChange }: PayPalConnectC
               </Alert>
             )}
 
-            <Button onClick={handleConnect} disabled={connecting} className="w-full">
-              {connecting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Connecting...
-                </>
-              ) : (
-                <>
-                  <Wallet className="w-4 h-4 mr-2" />
-                  Connect with PayPal
-                </>
-              )}
-            </Button>
+            {PAYPAL_COMING_SOON ? (
+              <Button disabled className="w-full">
+                <Clock className="w-4 h-4 mr-2" />
+                Connect with PayPal — soon available
+              </Button>
+            ) : (
+              <Button onClick={handleConnect} disabled={connecting} className="w-full">
+                {connecting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  <>
+                    <Wallet className="w-4 h-4 mr-2" />
+                    Connect with PayPal
+                  </>
+                )}
+              </Button>
+            )}
+
           </>
         )}
       </CardContent>

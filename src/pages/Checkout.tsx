@@ -176,8 +176,6 @@ export default function Checkout() {
         referralSource,
         license_tier: licenseTier,
         ip_assignment_accepted: licenseTier === 'exclusive' ? ipAssignmentAccepted : undefined,
-        buyer_terms_accepted: true,
-        withdrawal_waiver_accepted: true,
       };
 
       let data: any;
@@ -189,11 +187,12 @@ export default function Checkout() {
         data = result.data;
         error = result.error;
       } else {
-        // Do not send the Supabase anon key as an Authorization bearer token.
-        // The public function receives only the apikey header and treats this
-        // request as an intentional guest checkout.
+        // Guests: the function is public, but Supabase's gateway still requires
+        // an Authorization header. We send the publishable anon key, which the
+        // function treats as "no user" (guest checkout).
         data = await invokePublicFunction<any>("create-checkout-session", checkoutBody);
       }
+
 
       // Surface the REAL error from the edge function body (not the generic non-2xx)
       let serverError: string | undefined;

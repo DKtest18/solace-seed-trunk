@@ -17,9 +17,9 @@ function errorMessage(payload: unknown, fallback: string): string {
 }
 
 /**
- * Calls a public Edge Function without an Authorization header. Supabase's
- * normal invoke helper sends the anon key as a bearer token for signed-out
- * visitors, which auth-optional functions can mistake for a user JWT.
+ * Calls a public Edge Function for signed-out visitors. The Supabase gateway
+ * rejects requests without an Authorization header, so we send the publishable
+ * anon key. The function must treat an anon-key token as a guest (no user).
  */
 export async function invokePublicFunction<T>(
   functionName: string,
@@ -30,10 +30,12 @@ export async function invokePublicFunction<T>(
     method: 'POST',
     headers: {
       apikey: client.supabaseKey,
+      Authorization: `Bearer ${client.supabaseKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
   });
+
 
   const text = await response.text();
   let payload: unknown = null;

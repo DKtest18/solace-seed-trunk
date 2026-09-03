@@ -81,6 +81,22 @@ export async function readFunctionErrorMessage(error: unknown): Promise<string |
   return undefined;
 }
 
+/**
+ * Internal database/schema errors must never be shown verbatim to a seller
+ * (they leak table and column names). The raw text stays in the console for us.
+ */
+function sellerSafeMessage(raw: string | undefined, functionName: string): string {
+  const message = (raw || '').trim();
+  if (!message) return `${functionName} failed. Please try again.`;
+  const internal =
+    /schema cache|relation .* does not exist|column .* does not exist|pgrst|permission denied for|violates row-level security|dkai_|dkaim_/i;
+  if (internal.test(message)) {
+    console.error(`[${functionName}] internal database error:`, message);
+    return 'We could not save your payment settings. Our team has been notified — please try again in a moment.';
+  }
+  return message;
+}
+
 async function invokeStripeFunction<T = any>(functionName: string, body?: Record<string, unknown>): Promise<T> {
   const {
     data: { session },
@@ -97,17 +113,17 @@ async function invokeStripeFunction<T = any>(functionName: string, body?: Record
 
   if (error || (data as any)?.error) {
     const detail = await readFunctionErrorMessage(error);
-    throw new Error(
+    const raw =
       detail ||
-        (data as any)?.detail ||
-        (data as any)?.error ||
-        (error as any)?.message ||
-        `${functionName} failed`,
-    );
+      (data as any)?.detail ||
+      (data as any)?.error ||
+      (error as any)?.message;
+    throw new Error(sellerSafeMessage(raw, functionName));
   }
 
   return data as T;
 }
+
 
 export function mapStripeConnectStatus(data: any): StripeConnectStatus {
   const requirements = {

@@ -24,8 +24,6 @@ export default function Checkout() {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [cardPaymentsAvailable, setCardPaymentsAvailable] = useState(false);
-  const [checkingCardAvailability, setCheckingCardAvailability] = useState(true);
   const [showPayment, setShowPayment] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
@@ -67,31 +65,7 @@ export default function Checkout() {
     }
 
     fetchProduct();
-    checkCardPaymentsAvailable();
   }, [productId]);
-
-  const checkCardPaymentsAvailable = async () => {
-    if (!productId) return;
-    setCheckingCardAvailability(true);
-    try {
-      const { data, error } = await db.rpc("dkai_is_card_payments_allowed", {
-        p_product_id: productId,
-      });
-      if (!error) {
-        setCardPaymentsAvailable(data || false);
-      } else {
-        // Guests may not have access to the RPC — default to true and let
-        // the checkout function surface the real reason if the seller isn't
-        // connected.
-        setCardPaymentsAvailable(true);
-      }
-    } catch (error) {
-      console.error("Error checking card availability:", error);
-      setCardPaymentsAvailable(true);
-    } finally {
-      setCheckingCardAvailability(false);
-    }
-  };
 
   const fetchProduct = async () => {
     try {
@@ -362,58 +336,40 @@ export default function Checkout() {
               <h2 className="text-xl font-semibold mb-4">Payment</h2>
             
               <div className="space-y-4">
-                {checkingCardAvailability ? (
-                  <div className="flex items-center justify-center p-8">
-                    <HourglassLoader size={64} />
-                  </div>
-                ) : !cardPaymentsAvailable && !paypalAvailable ? (
-                  <Alert variant="destructive">
-                    <AlertDescription>
-                      Payments are not available for this product yet. The seller needs to connect a payout account (Stripe or PayPal) first.
-                    </AlertDescription>
-                  </Alert>
-                ) : (
-                  <>
-                    <Alert>
-                      <CreditCard className="h-4 w-4" />
-                      <AlertDescription>
-                        You will be redirected to {cardPaymentsAvailable && paypalAvailable
-                          ? "Stripe or PayPal"
-                          : cardPaymentsAvailable ? "Stripe's" : "PayPal's"} secure payment page.
-                      </AlertDescription>
-                    </Alert>
+                <Alert>
+                  <CreditCard className="h-4 w-4" />
+                  <AlertDescription>
+                    You will be redirected to {paypalAvailable ? "Stripe or PayPal" : "Stripe's"} secure payment page.
+                  </AlertDescription>
+                </Alert>
 
-                    <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
-                      <p>✓ Secure hosted checkout</p>
-                      <p>✓ No card data stored on this website</p>
-                      <p>✓ Payment goes directly to the seller's payout account</p>
-                      <p>✓ No platform fee is added to your price</p>
-                      <p>✓ The provider's standard processing fees apply (paid by the seller)</p>
-                    </div>
-                  </>
-                )}
+                <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
+                  <p>✓ Secure hosted checkout</p>
+                  <p>✓ No card data stored on this website</p>
+                  <p>✓ Payment goes directly to the seller's payout account</p>
+                  <p>✓ No platform fee is added to your price</p>
+                  <p>✓ The provider's standard processing fees apply (paid by the seller)</p>
+                </div>
 
                 <div className="space-y-3 pt-4">
-                  {cardPaymentsAvailable && (
-                    <Button
-                      onClick={handleCheckout}
-                      disabled={processing || paypalProcessing || checkingCardAvailability || (licenseTier === 'exclusive' && !ipAssignmentAccepted)}
-                      className="w-full"
-                      size="lg"
-                    >
-                      {processing ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          Pay with Card
-                        </>
-                      )}
-                    </Button>
-                  )}
+                  <Button
+                    onClick={handleCheckout}
+                    disabled={processing || paypalProcessing || (licenseTier === 'exclusive' && !ipAssignmentAccepted)}
+                    className="w-full"
+                    size="lg"
+                  >
+                    {processing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Pay with Card
+                      </>
+                    )}
+                  </Button>
                   {paypalAvailable && (
                     <Button
                       onClick={handlePayPalCheckout}

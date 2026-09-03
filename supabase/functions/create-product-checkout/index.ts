@@ -35,12 +35,37 @@ Deno.serve(async (req) => {
     const sellerEarnings = Math.round((Number(product.price) - platformFee) * 100) / 100;
 
 
-    // Get seller's Stripe account for Connect
-    const { data: sellerProfile } = await admin
-      .from('dkaim_user_id')
-      .select('stripe_account_id, stripe_onboarded')
-      .eq('id', product.seller_id)
-      .single();
+    // Seller's Stripe account — canonical table only (dkai_seller_payment_configs),
+    // with dkai_profiles as legacy fallback. The old `dkaim_user_id` table does not exist.
+    const { data: cfgRow } = await admin
+      .from('dkai_seller_payment_configs')
+      .select('stripe_account_id, charges_enabled, card_payments_enabled, stripe_onboarded, stripe_onboarding_status, onboarding_status')
+      .eq('seller_id', product.seller_id)
+      .maybeSingle();
+
+    let sellerProfile: { stripe_account_id?: string; stripe_onboarded?: boolean } | null = cfgRow
+      ? {
+          stripe_account_id: cfgRow.stripe_account_id ?? undefined,
+          stripe_onboarded:
+            !!cfgRow.charges_enabled ||
+            !!cfgRow.card_payments_enabled ||
+            !!cfgRow.stripe_onboarded ||
+            cfgRow.stripe_onboarding_status === 'connected' ||
+            cfgRow.onboarding_status === 'connected',
+        }
+      : null;
+
+    if (!sellerProfile?.stripe_account_id) {
+      const { data: prof } = await admin
+        .from('dkai_profiles')
+        .select('stripe_account_id, stripe_onboarded')
+        .eq('id', product.seller_id)
+        .maybeSingle();
+      if (prof?.stripe_account_id) {
+        sellerProfile = { stripe_account_id: prof.stripe_account_id, stripe_onboarded: !!prof.stripe_onboarded };
+      }
+    }
+
 
     // Get buyer profile for notification
     const { data: buyerProfile } = await admin

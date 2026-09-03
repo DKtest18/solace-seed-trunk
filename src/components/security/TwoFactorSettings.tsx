@@ -44,6 +44,13 @@ import {
 type Stage = 'idle' | 'enrolling' | 'recovery' | 'sms-phone' | 'sms-code';
 
 /**
+ * SMS (phone factor) is temporarily disabled — only the authenticator app /
+ * QR code flow is offered. Flip this to true to bring SMS back; all SMS code
+ * paths below stay intact.
+ */
+const SMS_ENABLED = false;
+
+/**
  * Two-factor authentication built on Supabase Auth's native MFA.
  *
  * TOTP is the default/recommended factor; SMS (factorType 'phone') is an
@@ -454,7 +461,7 @@ export function TwoFactorSettings() {
                   {t('mfa.methods.totp')}
                 </Button>
               )}
-              {!hasPhone && (
+              {SMS_ENABLED && !hasPhone && (
                 <Button variant="outline" onClick={startSmsEnroll} disabled={busy}>
                   <Smartphone className="h-4 w-4 mr-2" />
                   {t('mfa.methods.sms')}
@@ -505,7 +512,7 @@ export function TwoFactorSettings() {
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">{t('mfa.status.inactive')}</p>
             <Label>{t('mfa.methods.title')}</Label>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3">
               <button
                 type="button"
                 onClick={startEnroll}
@@ -523,23 +530,7 @@ export function TwoFactorSettings() {
                   {t('mfa.methods.totpDescription')}
                 </span>
               </button>
-              <button
-                type="button"
-                onClick={startSmsEnroll}
-                disabled={busy}
-                className="rounded-lg border p-4 text-left transition-colors hover:border-primary disabled:opacity-60"
-              >
-                <span className="flex items-center gap-2 text-sm font-medium">
-                  <Smartphone className="h-4 w-4 text-primary" />
-                  {t('mfa.methods.sms')}
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-                    {t('mfa.methods.optional')}
-                  </span>
-                </span>
-                <span className="mt-1 block text-xs text-muted-foreground">
-                  {t('mfa.methods.smsDescription')}
-                </span>
-              </button>
+
             </div>
           </div>
         )}

@@ -790,7 +790,7 @@
   },
   "mfa": {
     "title": "Zwei-Faktor-Authentifizierung",
-    "description": "Schütze dein Konto mit einer Authenticator-App (empfohlen) oder SMS-Codes.",
+    "description": "Schütze dein Konto mit einer Authenticator-App (TOTP).",
     "status": {
       "active": "Zwei-Faktor-Authentifizierung ist aktiv",
       "checking": "Status wird geprüft…",

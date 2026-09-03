@@ -1,26 +1,10 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
-const STRIPE_USER_TABLES = ['dkaim_user_id', 'dkai_user_id'];
-
-function isMissingTable(error: any) {
-  const message = String(error?.message || '');
-  return error?.code === 'PGRST205' || message.includes('Could not find the table') || message.includes('schema cache') || message.includes('does not exist');
-}
-
-async function findStripeUserRow(admin: any, userId: string, select = 'stripe_account_id') {
-  let existingTable = STRIPE_USER_TABLES[0];
-  for (const table of STRIPE_USER_TABLES) {
-    const { data, error } = await admin.from(table).select(select).eq('id', userId).maybeSingle();
-    if (!error) {
-      existingTable = table;
-      if (data) return { table, row: data };
-      continue;
-    }
-    if (!isMissingTable(error)) throw error;
-  }
-  return { table: existingTable, row: null };
-}
+// Legacy alias of `stripe-connect-onboarding`. It used to write into the
+// non-existent tables `dkaim_user_id` / `dkai_user_id`, which broke the
+// first-time connect path. It now uses the canonical config table only.
+const CONFIG_TABLE = 'dkai_seller_payment_configs';
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -33,64 +17,81 @@ Deno.serve(async (req) => {
     const stripeKey = Deno.env.get('DKAIM_STRIPE_SECRET_KEY');
     if (!stripeKey) return errorResponse('Stripe not configured: DKAIM_STRIPE_SECRET_KEY missing', 500);
 
-    // Read optional return_path from body
-    let returnPath = '/seller-onboarding/payment';
-    try {
-      const body = await req.json();
-      if (body?.return_path) returnPath = body.return_path;
-    } catch { /* no body or invalid json, use default */ }
+    let returnPath = '/seller/payment-settings';
+    const body = await req.json().catch(() => ({}));
+    if (typeof body?.return_path === 'string' && body.return_path.startsWith('/')) {
+      returnPath = body.return_path;
+    }
 
     const admin = getServiceClient();
+    const { data: cfg } = await admin
+      .from(CONFIG_TABLE)
+      .select('stripe_account_id')
+      .eq('seller_id', user.id)
+      .maybeSingle();
 
-    // Check if seller already has a Stripe account in the real Stripe user table.
-    const { table: stripeUserTable, row: seller } = await findStripeUserRow(admin, user.id);
-
-    let accountId = seller?.stripe_account_id;
+    let accountId: string | null = cfg?.stripe_account_id ?? null;
 
     if (!accountId) {
-      // Create new Stripe Connect account
       const createRes = await fetch('https://api.stripe.com/v1/accounts', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${stripeKey}`,
+          Authorization: `Bearer ${stripeKey}`,
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
           type: 'express',
           'metadata[user_id]': user.id,
+          ...(user.email ? { email: user.email } : {}),
         }),
       });
       const account = await createRes.json();
-      if (account.error) throw new Error(account.error.message);
+      if (!createRes.ok || account.error) {
+        return errorResponse(account.error?.message || 'Stripe failed to create Express account', 500);
+      }
       accountId = account.id;
-
-      await admin.from(stripeUserTable).upsert({
-        id: user.id,
-        stripe_account_id: accountId,
-        stripe_onboarded: false,
-      }, { onConflict: 'id' });
     }
 
-    // Create onboarding link — return to the page the user came from
-    const origin = req.headers.get('origin') || 'https://solace-seed-trunk.lovable.app';
+    const { error: saveError } = await admin.from(CONFIG_TABLE).upsert(
+      {
+        seller_id: user.id,
+        stripe_account_id: accountId,
+        stripe_onboarding_status: 'onboarding',
+        stripe_onboarded: false,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'seller_id' },
+    );
+    if (saveError) {
+      console.error('stripe-connect-onboard save error:', saveError);
+      return errorResponse(
+        'We could not save your Stripe account to your seller profile. Please try again.',
+        500,
+      );
+    }
+
+    const origin = req.headers.get('origin') || 'https://dkaimarketplace.com';
     const linkRes = await fetch('https://api.stripe.com/v1/account_links', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${stripeKey}`,
+        Authorization: `Bearer ${stripeKey}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        account: accountId,
+        account: accountId!,
         refresh_url: `${origin}${returnPath}?refresh=true`,
         return_url: `${origin}${returnPath}?onboarding=complete`,
         type: 'account_onboarding',
       }),
     });
     const link = await linkRes.json();
-    if (link.error) throw new Error(link.error.message);
+    if (!linkRes.ok || link.error) {
+      return errorResponse(link.error?.message || 'Stripe failed to create onboarding link', 500);
+    }
 
     return jsonResponse({ success: true, url: link.url });
   } catch (err) {
-    return errorResponse(err.message, 500);
+    console.error('stripe-connect-onboard error:', err);
+    return errorResponse('Could not start Stripe onboarding. Please try again.', 500);
   }
 });

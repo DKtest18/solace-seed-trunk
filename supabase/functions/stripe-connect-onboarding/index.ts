@@ -1,18 +1,17 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
-const LEGACY_TABLES = ['dkaim_user_id', 'dkai_user_id', 'dkai_seller_profiles', 'dkai_profiles'];
+// SINGLE SOURCE OF TRUTH: public.dkai_seller_payment_configs (unique: seller_id).
+// No legacy identity tables are probed any more — probing non-existent tables
+// like `dkai_user_id` was what broke the FIRST-TIME connect path.
+const CONFIG_TABLE = 'dkai_seller_payment_configs';
 
 function isSchemaError(error: any) {
   const message = String(error?.message || '').toLowerCase();
   return (
     error?.code === 'PGRST204' ||
-    error?.code === 'PGRST205' ||
     error?.code === '42703' ||
-    error?.code === '42P01' ||
-    message.includes('could not find the table') ||
     message.includes('schema cache') ||
-    message.includes('does not exist') ||
     message.includes('column')
   );
 }
@@ -26,22 +25,25 @@ function normalizeOrigin(req: Request, bodyOrigin?: string) {
   }
 }
 
+/** Returns the stored account id, or null when the seller has no row yet. */
 async function readAccountId(admin: any, userId: string): Promise<string | null> {
-  const cfg = await admin
-    .from('dkai_seller_payment_configs')
+  const { data, error } = await admin
+    .from(CONFIG_TABLE)
     .select('stripe_account_id')
     .eq('seller_id', userId)
     .maybeSingle();
-  if (!cfg.error && cfg.data?.stripe_account_id) return cfg.data.stripe_account_id;
-
-  for (const table of LEGACY_TABLES) {
-    const { data, error } = await admin.from(table).select('stripe_account_id').eq('id', userId).maybeSingle();
-    if (!error && data?.stripe_account_id) return data.stripe_account_id;
-    if (error && !isSchemaError(error)) throw error;
+  if (error) {
+    console.error('readAccountId error:', error);
+    return null; // never block account creation on a read problem
   }
-  return null;
+  return data?.stripe_account_id ?? null;
 }
 
+/**
+ * Upsert on seller_id: identical code path whether the row exists (reconnect)
+ * or not (first-time seller). Column sets are tried widest-first so an older
+ * schema still persists at least the account id.
+ */
 async function persistAccountId(admin: any, userId: string, accountId: string) {
   const now = new Date().toISOString();
   const payloads = [
@@ -53,50 +55,33 @@ async function persistAccountId(admin: any, userId: string, accountId: string) {
       stripe_onboarded: false,
       updated_at: now,
     },
-    { seller_id: userId, stripe_account_id: accountId, stripe_onboarding_status: 'onboarding', updated_at: now },
+    {
+      seller_id: userId,
+      stripe_account_id: accountId,
+      stripe_onboarding_status: 'onboarding',
+      updated_at: now,
+    },
     { seller_id: userId, stripe_account_id: accountId, stripe_onboarding_status: 'onboarding' },
     { seller_id: userId, stripe_account_id: accountId },
   ];
 
-  let saved = false;
   for (const payload of payloads) {
-    const { error } = await admin
-      .from('dkai_seller_payment_configs')
-      .upsert(payload, { onConflict: 'seller_id' });
-    if (!error) {
-      saved = true;
-      break;
-    }
+    const { error } = await admin.from(CONFIG_TABLE).upsert(payload, { onConflict: 'seller_id' });
+    if (!error) return true;
     if (!isSchemaError(error)) {
-      console.error('persistAccountId config error:', error);
-      break;
+      console.error('persistAccountId error:', error);
+      return false;
     }
   }
-
-  for (const table of LEGACY_TABLES) {
-    const attempts = [
-      { stripe_account_id: accountId, stripe_onboarded: false },
-      { stripe_account_id: accountId },
-    ];
-    for (const values of attempts) {
-      const { error } = await admin.from(table).update(values).eq('id', userId);
-      if (!error) {
-        saved = true;
-        break;
-      }
-      if (!isSchemaError(error)) break;
-    }
-  }
-
-  if (!saved) {
-    console.error('Could not persist stripe_account_id anywhere for user', userId);
-  }
+  console.error('Could not persist stripe_account_id for user', userId);
+  return false;
 }
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
 
+  // Seller identity ALWAYS comes from the verified JWT, never from the body.
   const { user, error } = await getAuthenticatedUser(req);
   if (error || !user) return errorResponse('Unauthorized', 401);
 
@@ -126,14 +111,24 @@ Deno.serve(async (req) => {
 
       const account = await createRes.json();
       if (!createRes.ok || account.error) {
-        return errorResponse(account.error?.message || 'Stripe failed to create Express account', createRes.status || 500);
+        return errorResponse(
+          account.error?.message || 'Stripe failed to create Express account',
+          createRes.status || 500,
+        );
       }
 
       accountId = account.id;
     }
 
-    // Always persist BEFORE redirecting, so a returning seller is recognised.
-    await persistAccountId(admin, user.id, accountId!);
+    // Persist BEFORE redirecting so the return trip recognises the seller.
+    const persisted = await persistAccountId(admin, user.id, accountId!);
+    if (!persisted) {
+      // Technical detail stays in the logs; the seller gets a clear message.
+      return errorResponse(
+        'We could not save your Stripe account to your seller profile. Please try again or contact support.',
+        500,
+      );
+    }
 
     const linkRes = await fetch('https://api.stripe.com/v1/account_links', {
       method: 'POST',
@@ -157,6 +152,6 @@ Deno.serve(async (req) => {
     return jsonResponse({ success: true, url: link.url, accountId });
   } catch (err) {
     console.error('stripe-connect-onboarding error:', err);
-    return errorResponse(err instanceof Error ? err.message : 'Failed to create onboarding link', 500);
+    return errorResponse('Could not start Stripe onboarding. Please try again.', 500);
   }
 });

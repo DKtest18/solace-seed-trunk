@@ -1,29 +1,8 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 
-const STRIPE_ACCOUNT_TABLES = ['dkaim_user_id', 'dkai_user_id', 'dkai_seller_profiles', 'dkai_profiles'];
-
-function isSchemaError(error: any) {
-  const message = String(error?.message || '').toLowerCase();
-  return error?.code === 'PGRST204' || error?.code === 'PGRST205' || message.includes('could not find the table') || message.includes('schema cache') || message.includes('does not exist') || message.includes('column');
-}
-
-async function findStripeUserRow(admin: any, userId: string) {
-  const cfg = await admin
-    .from('dkai_seller_payment_configs')
-    .select('stripe_account_id')
-    .eq('seller_id', userId)
-    .maybeSingle();
-  if (!cfg.error && cfg.data?.stripe_account_id) return cfg.data;
-
-  for (const table of STRIPE_ACCOUNT_TABLES) {
-    const { data, error } = await admin.from(table).select('stripe_account_id').eq('id', userId).maybeSingle();
-    if (!error && data?.stripe_account_id) return data;
-    if (!error) continue;
-    if (error && !isSchemaError(error)) throw error;
-  }
-  return null;
-}
+// SINGLE SOURCE OF TRUTH: public.dkai_seller_payment_configs (unique: seller_id).
+const CONFIG_TABLE = 'dkai_seller_payment_configs';
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -37,19 +16,31 @@ Deno.serve(async (req) => {
     if (!stripeKey) return errorResponse('Stripe not configured: DKAIM_STRIPE_SECRET_KEY missing', 500);
 
     const admin = getServiceClient();
-    const seller = await findStripeUserRow(admin, user.id);
+    const { data: cfg, error: readError } = await admin
+      .from(CONFIG_TABLE)
+      .select('stripe_account_id')
+      .eq('seller_id', user.id)
+      .maybeSingle();
 
-    if (!seller?.stripe_account_id) return errorResponse('No Stripe account found');
+    if (readError) {
+      console.error('stripe-connect-dashboard read error:', readError);
+      return errorResponse('Could not read your payment configuration. Please try again.', 500);
+    }
+    if (!cfg?.stripe_account_id) return errorResponse('No Stripe account found');
 
-    const res = await fetch('https://api.stripe.com/v1/accounts/' + seller.stripe_account_id + '/login_links', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${stripeKey}` },
-    });
+    const res = await fetch(
+      `https://api.stripe.com/v1/accounts/${cfg.stripe_account_id}/login_links`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${stripeKey}` },
+      },
+    );
     const link = await res.json();
-    if (link.error) throw new Error(link.error.message);
+    if (link.error) return errorResponse(link.error.message || 'Stripe dashboard link failed', 500);
 
     return jsonResponse({ success: true, url: link.url });
   } catch (err) {
-    return errorResponse(err.message, 500);
+    console.error('stripe-connect-dashboard error:', err);
+    return errorResponse('Could not open your Stripe dashboard. Please try again.', 500);
   }
 });

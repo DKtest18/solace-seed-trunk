@@ -66,14 +66,23 @@ BEGIN
 END $$;
 
 -- ---------- 3. NORMALISE LEGACY / NULL FLAGS ---------------------------------
--- Guests were losing rows where exclusive_locked was NULL instead of false.
-UPDATE public.dkai_products SET exclusive_locked = false WHERE exclusive_locked IS NULL;
+DO $$
+BEGIN
+  -- Guests were losing rows where exclusive_locked was NULL instead of false.
+  IF EXISTS (SELECT 1 FROM information_schema.columns
+              WHERE table_schema='public' AND table_name='dkai_products' AND column_name='exclusive_locked') THEN
+    UPDATE public.dkai_products SET exclusive_locked = false WHERE exclusive_locked IS NULL;
+  END IF;
 
--- Approved products must be live; otherwise checkout answers PRODUCT_NOT_AVAILABLE.
-UPDATE public.dkai_products
-   SET is_published = true
- WHERE review_status = 'approved'
-   AND COALESCE(is_published, false) = false;
+  -- Approved products must be live, otherwise checkout answers PRODUCT_NOT_AVAILABLE.
+  IF EXISTS (SELECT 1 FROM information_schema.columns
+              WHERE table_schema='public' AND table_name='dkai_products' AND column_name='is_published') THEN
+    UPDATE public.dkai_products
+       SET is_published = true
+     WHERE review_status = 'approved'
+       AND COALESCE(is_published, false) = false;
+  END IF;
+END $$;
 
 -- ---------- 4. PURCHASABILITY (static, no is_published dependency) -----------
 CREATE OR REPLACE FUNCTION public.dkai_product_purchasable(p_product_id uuid)

@@ -13,9 +13,10 @@ export function useProductsWithRatings() {
         .from('dkai_products')
         .select('*')
         .eq('review_status', REVIEW_STATUS.APPROVED)
-        .eq('exclusive_locked', false)
+        // exclusive_locked is NULL on older rows — `.eq(false)` silently hid
+        // them from guests. NULL must be treated as "not locked".
+        .or('exclusive_locked.is.null,exclusive_locked.eq.false')
         .order('created_at', { ascending: false });
-
 
       if (productsError) throw productsError;
 

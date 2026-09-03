@@ -62,7 +62,7 @@ export default function Marketplace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paramKey]);
 
-  const { data: productsWithRatings, isLoading } = useProductsWithRatings();
+  const { data: productsWithRatings, isLoading, error: productsError } = useProductsWithRatings();
   const products = productsWithRatings?.filter((product: any) => {
     if (searchQuery) {
       const searchLower = searchQuery.toLowerCase();
@@ -454,9 +454,13 @@ export default function Marketplace() {
             ) : (
               <div className="text-center py-20">
                 <PackageOpen className="mx-auto mb-4 text-muted-foreground" size={48} />
-                <h2 className="text-xl font-semibold text-foreground mb-2">No products match your filters</h2>
+                <h2 className="text-xl font-semibold text-foreground mb-2">
+                  {productsError ? 'Products could not be loaded' : 'No products match your filters'}
+                </h2>
                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  Try removing some filters or check back soon — we're pre-launch and adding new sellers daily.
+                  {productsError
+                    ? (productsError as any)?.message || 'Please try again in a moment.'
+                    : "Try removing some filters or check back soon — we're pre-launch and adding new sellers daily."}
                 </p>
                 <Button variant="outline" onClick={clearFilters}>
                   Reset filters

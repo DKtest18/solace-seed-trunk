@@ -168,7 +168,7 @@
   },
   "mfa": {
     "title": "Authentification à deux facteurs",
-    "description": "Protégez votre compte avec une application d'authentification (recommandé) ou des codes SMS.",
+    "description": "Protégez votre compte avec une application d'authentification (TOTP).",
     "status": {
       "active": "L'authentification à deux facteurs est active",
       "checking": "Vérification du statut…",

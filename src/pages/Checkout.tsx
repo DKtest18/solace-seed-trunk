@@ -180,15 +180,29 @@ export default function Checkout() {
 
       if (error || !data?.url) {
         const raw = serverError || (error as any)?.message || "Failed to create checkout session";
-        // Human-friendly translation for known cases
-        const friendly = /stripe|payout|connected|onboard/i.test(raw)
+        // Only translate the two explicit seller-readiness responses. Broadly
+        // matching words such as "Stripe" used to hide schema/API errors and
+        // made a healthy connected account look disconnected.
+        const sellerNotReady = /seller has not (connected|finished)|seller.*payment setup|seller.*payout account/i.test(raw);
+        const friendly = sellerNotReady
           ? "This seller has not finished payment setup yet."
           : raw;
         throw new Error(friendly);
       }
 
+      let checkoutUrl: URL;
+      try {
+        checkoutUrl = new URL(data.url);
+      } catch {
+        throw new Error("Stripe returned an invalid checkout URL. Please try again.");
+      }
+
+      if (checkoutUrl.protocol !== "https:") {
+        throw new Error("Stripe returned an invalid checkout URL. Please try again.");
+      }
+
       toast.success("Redirecting to secure payment page...");
-      window.location.href = data.url;
+      window.location.assign(checkoutUrl.toString());
     } catch (error: any) {
       console.error("Card checkout error:", error);
       toast.error(error.message || "Failed to initiate card payment");

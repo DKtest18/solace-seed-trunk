@@ -184,9 +184,12 @@ export default function Checkout() {
         // matching words such as "Stripe" used to hide schema/API errors and
         // made a healthy connected account look disconnected.
         const sellerNotReady = /seller has not (connected|finished)|seller.*payment setup|seller.*payout account/i.test(raw);
+        const productNotAvailable = /PRODUCT_NOT_AVAILABLE|product not (available|found)/i.test(raw);
         const friendly = sellerNotReady
           ? "This seller has not finished payment setup yet."
-          : raw;
+          : productNotAvailable
+            ? "This listing is not available for purchase right now. The seller still has to publish it."
+            : raw;
         throw new Error(friendly);
       }
 

@@ -116,16 +116,27 @@ export default function AdminProductReview() {
   const approve = async (p: any) => {
     setBusyId(p.id);
     try {
+      // Approving = live immediately. Purchasability is then decided only by the
+      // seller's connected payout provider (checked server-side at checkout).
+      const now = new Date().toISOString();
       const { error } = await db
         .from('dkai_products')
-        .update({ review_status: REVIEW_STATUS.APPROVED })
+        .update({
+          review_status: REVIEW_STATUS.APPROVED,
+          is_published: true,
+          approval_status: 'approved',
+          moderation_status: 'approved',
+          approved_at: now,
+          published_at: now,
+        })
         .eq('id', p.id);
       if (error) {
         toast.error(error.message);
         return;
       }
       dropFromList(p.id);
-      toast.success(`Approved “${p.title}”.`);
+      toast.success(`Approved “${p.title}” — it is live on the marketplace now.`);
+
     } finally {
       setBusyId(null);
       qc.invalidateQueries({ queryKey: ['admin-product-review'] });

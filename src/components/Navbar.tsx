@@ -244,7 +244,9 @@ export function Navbar() {
                         <Link to="/purchases" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors"><ShoppingBag className="w-4 h-4 mr-3" />Purchases</Link>
                         <Link to="/wishlist" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors"><Heart className="w-4 h-4 mr-3" />Wishlist</Link>
                         <Link to="/settings" onClick={() => setMobileOpen(false)} className="flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-accent transition-colors"><Settings className="w-4 h-4 mr-3" />Settings</Link>
+                        <div className="sm:hidden px-3 pt-2"><LanguageSwitcher /></div>
                       </div>
+
 
                       {isSeller && (
                         <>

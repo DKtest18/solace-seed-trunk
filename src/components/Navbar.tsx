@@ -94,22 +94,20 @@ export function Navbar() {
 
   return (
     <nav className="bg-white border-b border-border sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-6 h-16 md:h-20 flex items-center justify-between">
-        {/* Left: Logo (cropped/zoomed inside a fixed box so it stays inside the header) */}
-        <Link to="/" className="shrink-0 -ml-2 hover:opacity-90 transition-opacity">
-          <span className="block h-9 md:h-11 w-[250px] md:w-[330px] overflow-hidden">
-            <img
-              src="/logo.png"
-              alt="DK AI Marketplace"
-              className="h-full w-auto scale-[1.2] origin-left"
-            />
-          </span>
+      <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between gap-3">
+        {/* Left: Logo — full wordmark, original aspect ratio, never shrunk */}
+        <Link to="/" className="shrink-0 hover:opacity-90 transition-opacity" aria-label="DK AI Marketplace — home">
+          <img
+            src="/logo.png"
+            alt="DK AI Marketplace"
+            width={1198}
+            height={185}
+            className="block h-8 sm:h-10 md:h-11 w-auto max-w-[62vw]"
+          />
         </Link>
 
-
-
         {/* Center: main navigation (dropdowns) */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-3 lg:gap-4 min-w-0">
           <MainNav />
           {isSeller && (
             <NavLink

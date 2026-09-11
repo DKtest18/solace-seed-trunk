@@ -94,10 +94,16 @@ export function Navbar() {
 
   return (
     <nav className="bg-white border-b border-border sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-6 h-24 md:h-28 flex items-center justify-between">
-        {/* Left: Logo */}
-        <Link to="/" className="shrink-0 -ml-3 md:-ml-5 hover:opacity-90 transition-opacity">
-          <img src="/logo.png" alt="DK AI Marketplace" className="h-16 md:h-[5.5rem] w-auto scale-150 origin-left" />
+      <div className="max-w-7xl mx-auto px-6 h-16 md:h-20 flex items-center justify-between">
+        {/* Left: Logo (cropped/zoomed inside a fixed box so it stays inside the header) */}
+        <Link to="/" className="shrink-0 -ml-2 hover:opacity-90 transition-opacity">
+          <span className="block h-10 md:h-12 w-[190px] md:w-[230px] overflow-hidden">
+            <img
+              src="/logo.png"
+              alt="DK AI Marketplace"
+              className="h-full w-auto scale-[1.45] origin-left"
+            />
+          </span>
         </Link>
 
 

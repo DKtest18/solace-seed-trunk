@@ -122,7 +122,7 @@ export function Navbar() {
 
         {/* Right: actions */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          <LanguageSwitcher />
+          <span className="hidden sm:inline-flex"><LanguageSwitcher /></span>
           {user ? (
 
             <>
@@ -312,6 +312,7 @@ export function Navbar() {
                       <MobileMainNav onNavigate={() => setMobileOpen(false)} />
                     </div>
                     <div className="p-4 border-t space-y-2">
+                      <div className="sm:hidden pb-1"><LanguageSwitcher /></div>
                       <Button variant="outline" asChild className="w-full">
                         <Link to="/login" onClick={() => setMobileOpen(false)}>Sign in</Link>
                       </Button>

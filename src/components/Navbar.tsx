@@ -97,7 +97,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-6 h-28 md:h-32 flex items-center justify-between">
         {/* Left: Logo */}
         <Link to="/" className="shrink-0 hover:opacity-90 transition-opacity">
-          <img src="/logo.png" alt="DK AI Marketplace" className="h-20 md:h-24 w-auto" />
+          <img src="/logo.png" alt="DK AI Marketplace" className="h-16 md:h-20 w-auto" />
         </Link>
 
 

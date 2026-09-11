@@ -102,7 +102,7 @@ export function Navbar() {
             alt="DK AI Marketplace"
             width={1198}
             height={185}
-            className="block h-8 sm:h-10 md:h-11 w-auto max-w-[62vw]"
+            className="block h-7 xs:h-8 sm:h-10 md:h-11 w-auto max-w-[46vw] sm:max-w-[55vw] md:max-w-none"
           />
         </Link>
 
@@ -121,7 +121,7 @@ export function Navbar() {
         </div>
 
         {/* Right: actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <LanguageSwitcher />
           {user ? (
 

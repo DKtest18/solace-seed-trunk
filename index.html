@@ -98,11 +98,37 @@
   <body>
     <div id="root">
       <div id="boot-loader" role="status" aria-live="polite" aria-label="Loading"
-           style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#fff">
-         <img src="/dkaim-hourglass-loader.gif" alt="" width="500" height="200" style="width:500px;max-width:80vw;height:auto" />
+           style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#fff;transition:opacity .35s ease">
+        <img id="boot-loader-img" src="/dkaim-loader-hourglass.gif" alt=""
+             style="width:170px;max-width:60vw;height:auto;display:block" />
         <span style="font:400 14px/1.4 Inter,system-ui,sans-serif;color:#64748b">Loading…</span>
       </div>
     </div>
+    <script>
+      (function () {
+        var img = document.getElementById('boot-loader-img');
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var isHome = location.pathname === '/' || location.pathname === '';
+        var now = Date.now();
+        if (isHome && !reduce) {
+          // Homepage startup animation — one full cycle of the supplied intro GIF (6.52s).
+          img.src = '/dkaim-intro-hourglass.gif';
+          img.style.width = 'min(640px, 92vw)';
+          window.__DKAI_BOOT_MIN__ = now + 2600;
+          window.__DKAI_BOOT_MAX__ = now + 6520;
+        } else {
+          window.__DKAI_BOOT_MIN__ = 0;
+          window.__DKAI_BOOT_MAX__ = now + 4000;
+        }
+        window.__DKAI_BOOT_INTRO__ = isHome && !reduce;
+        img.addEventListener('error', function () {
+          window.__DKAI_BOOT_MIN__ = 0;
+          window.__DKAI_BOOT_MAX__ = Date.now();
+          var el = document.getElementById('boot-loader');
+          if (el) el.remove();
+        });
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

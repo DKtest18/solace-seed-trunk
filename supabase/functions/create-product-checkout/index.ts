@@ -1,8 +1,13 @@
+// create-product-checkout
+// Authenticated checkout entry point. The card path now uses SEPARATE CHARGES
+// AND TRANSFERS via the shared builder (platform charge, no application fee,
+// no transfer_data, no on_behalf_of). Manual payment orders are unchanged.
+
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 import { isProductPurchasable } from '../_shared/purchasable.ts';
 import { getPlatformFeePercent } from '../_shared/platform-fee.ts';
-
+import { createSeparateChargeCheckout } from '../_shared/separate-checkout.ts';
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -12,187 +17,120 @@ Deno.serve(async (req) => {
   if (error || !user) return errorResponse('Unauthorized', 401);
 
   try {
-    const { productId, paymentMethod, shippingAddress } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const productId = body.productId ?? body.product_id;
+    const paymentMethod = body.paymentMethod ?? 'card';
+    const shippingAddress = body.shippingAddress ?? null;
+
     const admin = getServiceClient();
 
-    // PROVIDER-AGNOSTIC GUARD — fails closed before any payment object exists.
     const guard = await isProductPurchasable(admin, productId);
     if (!guard.ok) return errorResponse(guard.reason!, 400);
 
-    // Get product details
     const { data: product, error: productError } = await admin
       .from('dkai_products')
-      .select('*, dkai_profiles:seller_id(email, display_name, username)')
+      .select('id, title, price, seller_id, dkai_profiles:seller_id(email, display_name, username)')
       .eq('id', productId)
-      .single();
-
+      .maybeSingle();
     if (productError || !product) return errorResponse('Product not found', 404);
 
-    // Fee comes from the shared rule (founding sellers: 0% on their own first
-    // 4 settled sales, then the normal per-seller fee). Never hardcoded.
-    const feePercent = await getPlatformFeePercent(admin, product.seller_id);
-    const platformFee = Math.round(Number(product.price) * feePercent) / 100;
-    const sellerEarnings = Math.round((Number(product.price) - platformFee) * 100) / 100;
-
-
-    // Seller's Stripe account — canonical table only (dkai_seller_payment_configs),
-    // with dkai_profiles as legacy fallback. The old `dkaim_user_id` table does not exist.
-    const { data: cfgRow } = await admin
-      .from('dkai_seller_payment_configs')
-      .select('stripe_account_id, charges_enabled, card_payments_enabled, stripe_onboarded, stripe_onboarding_status, onboarding_status')
-      .eq('seller_id', product.seller_id)
-      .maybeSingle();
-
-    let sellerProfile: { stripe_account_id?: string; stripe_onboarded?: boolean } | null = cfgRow
-      ? {
-          stripe_account_id: cfgRow.stripe_account_id ?? undefined,
-          stripe_onboarded:
-            !!cfgRow.charges_enabled ||
-            !!cfgRow.card_payments_enabled ||
-            !!cfgRow.stripe_onboarded ||
-            cfgRow.stripe_onboarding_status === 'connected' ||
-            cfgRow.onboarding_status === 'connected',
-        }
-      : null;
-
-    if (!sellerProfile?.stripe_account_id) {
-      const { data: prof } = await admin
-        .from('dkai_profiles')
-        .select('stripe_account_id, stripe_onboarded')
-        .eq('id', product.seller_id)
-        .maybeSingle();
-      if (prof?.stripe_account_id) {
-        sellerProfile = { stripe_account_id: prof.stripe_account_id, stripe_onboarded: !!prof.stripe_onboarded };
-      }
-    }
-
-
-    // Get buyer profile for notification
     const { data: buyerProfile } = await admin
       .from('dkai_profiles')
       .select('email, display_name, username')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     const buyerName = buyerProfile?.display_name || buyerProfile?.username || 'A buyer';
     const buyerEmail = buyerProfile?.email || user.email;
-    const sellerName = product.dkai_profiles?.display_name || product.dkai_profiles?.username || 'the seller';
-    const sellerEmail = product.dkai_profiles?.email;
+    const sellerName =
+      (product as any).dkai_profiles?.display_name ||
+      (product as any).dkai_profiles?.username ||
+      'the seller';
+    const sellerEmail = (product as any).dkai_profiles?.email ?? null;
 
     if (paymentMethod === 'stripe' || paymentMethod === 'card') {
-      const stripeKey = Deno.env.get('DKAIM_STRIPE_SECRET_KEY');
-      if (!stripeKey) return errorResponse('Stripe not configured: DKAIM_STRIPE_SECRET_KEY missing', 500);
-
-      if (!sellerProfile?.stripe_account_id || !sellerProfile?.stripe_onboarded) {
-        return errorResponse('Seller has not connected their Stripe account', 400);
+      let origin = req.headers.get('origin') ?? '';
+      if (!origin && typeof body.origin === 'string') origin = body.origin;
+      try {
+        origin = new URL(origin).origin;
+      } catch {
+        return errorResponse('Missing or invalid origin', 400);
       }
 
-      // Create the order first so its id can travel in Stripe metadata; the
-      // stripe-webhook function settles the order from that metadata.
-      const { data: order, error: orderError } = await admin.from('dkai_orders').insert({
+      const result = await createSeparateChargeCheckout(admin, {
+        productId,
+        buyer: { id: user.id, email: buyerEmail || undefined },
+        origin,
+        shippingAddress,
+      });
+      if (!result.ok) {
+        return new Response(
+          JSON.stringify({ error: result.message, code: result.code ?? 'CHECKOUT_FAILED' }),
+          {
+            status: result.status,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          },
+        );
+      }
+
+      sendNotificationEmails(admin, {
+        productTitle: product.title,
+        price: Number(product.price),
+        buyerName,
+        buyerEmail: buyerEmail ?? '',
+        sellerName,
+        sellerEmail,
+        orderId: result.orderId,
+        paymentMethod: 'Stripe (Card)',
+      });
+
+      return jsonResponse({ url: result.url, order_id: result.orderId });
+    }
+
+    // ---- Manual payment (no Stripe object involved) --------------------------
+    const feePercent = await getPlatformFeePercent(admin, product.seller_id);
+    const platformFee = Math.round(Number(product.price) * feePercent) / 100;
+    const sellerEarnings = Math.round((Number(product.price) - platformFee) * 100) / 100;
+
+    const { data: order, error: orderError } = await admin
+      .from('dkai_orders')
+      .insert({
         buyer_id: user.id,
         product_id: productId,
         seller_id: product.seller_id,
         price: product.price,
         platform_fee: platformFee,
         seller_earnings: sellerEarnings,
-        held_amount: product.price,
-        payment_method: 'stripe',
-        escrow_status: 'pending',
+        payment_method: paymentMethod || 'manual',
         status: 'pending_payment',
-      }).select('id').single();
-      if (orderError || !order) throw orderError ?? new Error('Failed to create order');
+        charge_mode: 'separate',
+        transfer_state: 'not_applicable',
+        shipping_address: shippingAddress,
+      })
+      .select('id')
+      .single();
+    if (orderError || !order) throw orderError ?? new Error('Failed to create order');
 
-      // Build Stripe checkout params with Connect split
-      const params: Record<string, string> = {
-        'mode': 'payment',
-        'success_url': `${req.headers.get('origin')}/purchase-history?success=true`,
-        'cancel_url': `${req.headers.get('origin')}/checkout?productId=${productId}&canceled=true`,
-        'line_items[0][price_data][currency]': 'usd',
-        'line_items[0][price_data][product_data][name]': product.title,
-        'line_items[0][price_data][unit_amount]': String(Math.round(product.price * 100)),
-        'line_items[0][quantity]': '1',
-        'metadata[order_id]': order.id,
-        'metadata[product_id]': productId,
-        'metadata[buyer_id]': user.id,
-        'metadata[seller_id]': product.seller_id,
-        // Stamp order_id on the PaymentIntent too, so webhook events of any
-        // type can be resolved back to this order.
-        'payment_intent_data[metadata][order_id]': order.id,
-        // 10% platform fee via Stripe Connect
-        'payment_intent_data[application_fee_amount]': String(Math.round(platformFee * 100)),
-        'payment_intent_data[transfer_data][destination]': sellerProfile.stripe_account_id,
-      };
-
-      const stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${stripeKey}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams(params),
-      });
-
-      const session = await stripeRes.json();
-      if (session.error) throw new Error(session.error.message);
-
-      await admin.from('dkai_orders')
-        .update({ stripe_session_id: session.id })
-        .eq('id', order.id);
-
-      // Send emails (fire-and-forget)
-      sendNotificationEmails(req, admin, {
-        productTitle: product.title,
-        price: product.price,
-        buyerName,
-        buyerEmail,
-        sellerName,
-        sellerEmail,
-        orderId: order.id,
-        paymentMethod: 'Stripe (Card)',
-      });
-
-      return jsonResponse({ url: session.url });
-    }
-
-    // Manual payment
-    const { data: order, error: orderError } = await admin.from('dkai_orders').insert({
-      buyer_id: user.id,
-      product_id: productId,
-      seller_id: product.seller_id,
-      price: product.price,
-      platform_fee: platformFee,
-      seller_earnings: sellerEarnings,
-      payment_method: paymentMethod || 'manual',
-      escrow_status: 'pending',
-      status: 'pending_payment',
-      shipping_address: shippingAddress,
-    }).select().single();
-
-    if (orderError) throw orderError;
-
-    // Send emails (fire-and-forget)
-    sendNotificationEmails(req, admin, {
+    sendNotificationEmails(admin, {
       productTitle: product.title,
-      price: product.price,
+      price: Number(product.price),
       buyerName,
-      buyerEmail,
+      buyerEmail: buyerEmail ?? '',
       sellerName,
       sellerEmail,
       orderId: order.id,
-      paymentMethod: paymentMethod === 'manual' ? 'Manual Payment' : paymentMethod || 'Manual Payment',
+      paymentMethod: 'Manual Payment',
     });
 
     return jsonResponse({ success: true, order_id: order.id });
   } catch (err) {
-    return errorResponse(err.message, 500);
+    console.error('create-product-checkout error:', err);
+    return errorResponse((err as Error).message ?? 'Checkout failed', 500);
   }
 });
 
-// Fire-and-forget notification emails for both buyer and seller
-async function sendNotificationEmails(
-  req: Request,
-  admin: any,
+function sendNotificationEmails(
+  _admin: any,
   data: {
     productTitle: string;
     price: number;
@@ -202,30 +140,21 @@ async function sendNotificationEmails(
     sellerEmail: string | null;
     orderId: string;
     paymentMethod: string;
-  }
+  },
 ) {
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   if (!supabaseUrl || !serviceKey) return;
 
-  const sendEmail = async (body: any) => {
-    try {
-      await fetch(`${supabaseUrl}/functions/v1/send-notification-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${serviceKey}`,
-        },
-        body: JSON.stringify(body),
-      });
-    } catch (e) {
-      console.error('Failed to send notification email:', e);
-    }
-  };
+  const send = (payload: unknown) =>
+    fetch(`${supabaseUrl}/functions/v1/send-notification-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${serviceKey}` },
+      body: JSON.stringify(payload),
+    }).catch((e) => console.error('notification email failed:', e));
 
-  // Buyer: purchase confirmation
   if (data.buyerEmail) {
-    sendEmail({
+    send({
       type: 'purchase_confirmation',
       recipientEmail: data.buyerEmail,
       data: {
@@ -237,10 +166,8 @@ async function sendNotificationEmails(
       },
     });
   }
-
-  // Seller: new sale notification
   if (data.sellerEmail) {
-    sendEmail({
+    send({
       type: 'new_sale',
       recipientEmail: data.sellerEmail,
       data: {

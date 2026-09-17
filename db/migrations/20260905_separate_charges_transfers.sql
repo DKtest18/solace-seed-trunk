@@ -8,6 +8,7 @@
 ALTER TABLE public.dkai_orders
   ADD COLUMN IF NOT EXISTS stripe_charge_id        text,
   ADD COLUMN IF NOT EXISTS stripe_transfer_group   text,
+  ADD COLUMN IF NOT EXISTS stripe_transfer_id      text,
   ADD COLUMN IF NOT EXISTS charge_mode             text NOT NULL DEFAULT 'destination',
   ADD COLUMN IF NOT EXISTS sale_completed_at       timestamptz,
   ADD COLUMN IF NOT EXISTS transfer_eligible_at    timestamptz,
@@ -25,12 +26,17 @@ ALTER TABLE public.dkai_orders
   ADD COLUMN IF NOT EXISTS stripe_refund_id        text,
   ADD COLUMN IF NOT EXISTS seller_debt_amount      numeric(12,2) NOT NULL DEFAULT 0;
 
--- charge_mode: 'destination' = legacy pre-migration charges (money already at seller)
+-- charge_mode: 'destination' = legacy pre-migration platform-created Connect destination-charge label.
+--              The original repo code used application_fee_amount + transfer_data.destination
+--              with NO Stripe-Account header; verify Stripe object context before treating any
+--              historic payment as a true connected-account direct charge.
+--              'direct'      = only for separately verified connected-account charges
 --              'separate'    = new platform charge, transfer happens later
+--              'manual'      = non-Stripe/manual path
 ALTER TABLE public.dkai_orders DROP CONSTRAINT IF EXISTS dkai_orders_charge_mode_chk;
 ALTER TABLE public.dkai_orders
   ADD CONSTRAINT dkai_orders_charge_mode_chk
-  CHECK (charge_mode IN ('destination', 'separate'));
+  CHECK (charge_mode IN ('destination', 'direct', 'separate', 'manual'));
 
 -- transfer_state lifecycle:
 --   not_applicable -> pending -> eligible -> in_progress -> completed
@@ -60,12 +66,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_dkai_orders_stripe_transfer_id
 CREATE TABLE IF NOT EXISTS public.dkai_transfer_config (
   id            boolean PRIMARY KEY DEFAULT true CHECK (id),
   hold_days     integer NOT NULL DEFAULT 7 CHECK (hold_days BETWEEN 0 AND 90),
-  transfers_enabled boolean NOT NULL DEFAULT true,
+  transfers_enabled boolean NOT NULL DEFAULT false,
   updated_at    timestamptz NOT NULL DEFAULT now()
 );
 
-INSERT INTO public.dkai_transfer_config (id, hold_days)
-VALUES (true, 7)
+INSERT INTO public.dkai_transfer_config (id, hold_days, transfers_enabled)
+VALUES (true, 7, false)
 ON CONFLICT (id) DO NOTHING;
 
 GRANT SELECT ON public.dkai_transfer_config TO authenticated;

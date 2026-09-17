@@ -8,7 +8,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { db } from '@/lib/dkaiDb';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { lovable } from '@/integrations/lovable/index';
-import dkLogo from '@/assets/dk-ai-logo.png';
 import { OAuthProviderButtons } from '@/components/auth/OAuthProviderButtons';
 import { MfaFactorChallenge } from '@/components/security/MfaFactorChallenge';
 import { collectVerifiedFactors, type MfaFactor } from '@/lib/mfaFactors';
@@ -260,8 +259,8 @@ export default function Login() {
       {/* Left brand panel */}
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-primary-soft to-background-soft items-center justify-center p-12">
         <div className="max-w-md text-center">
-          <div className="inline-flex bg-gray-900 rounded-lg p-1 px-2 mb-8">
-            <img src={dkLogo} alt="DK AI Marketplace" className="h-12 w-auto" />
+          <div className="mb-8 flex justify-center">
+            <img src="/logo.png" alt="DK AI Marketplace" className="w-[300px] max-w-full h-auto object-contain" />
           </div>
           <h2 className="text-3xl font-display font-semibold text-gray-900 mb-3">Welcome back.</h2>
           <p className="accent-serif text-gray-600">Made by AI, made for AI. — DK</p>

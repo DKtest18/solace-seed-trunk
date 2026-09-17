@@ -20,7 +20,7 @@ interface PaymentOptionsStepProps {
 export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsStepProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { feePct, sellerPct } = usePlatformFee();
+  const { feePct } = usePlatformFee();
 
   // SINGLE SOURCE OF TRUTH: query the same edge function the Payment Settings page uses.
   // It reads live status from Stripe and syncs dkai_seller_payment_configs.
@@ -69,7 +69,7 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
         <div className="space-y-2">
           <h3 className="text-lg font-semibold">Payment Method</h3>
           <p className="text-sm text-muted-foreground">
-            Connect Stripe or PayPal to receive payments.
+            Connect Stripe to receive eligible seller transfers.
           </p>
         </div>
 
@@ -78,7 +78,7 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
           <AlertDescription>
             No payment provider connected yet. You can still submit this product for review, and once
             approved it will be visible to everyone on the marketplace — but it cannot be purchased
-            until you connect Stripe or PayPal.
+            until you connect Stripe.
           </AlertDescription>
         </Alert>
 
@@ -90,7 +90,7 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
           className="w-full"
         >
           <ExternalLink className="h-4 w-4 mr-2" />
-          Connect Stripe or PayPal
+          Connect Stripe
         </Button>
 
         {errors?.payment_methodsError && (
@@ -122,7 +122,7 @@ export function PaymentOptionsStep({ data, onChange, errors }: PaymentOptionsSte
                 <Badge variant="default" className="text-xs">Active</Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                Visa, Mastercard, Amex, and more. Payments go directly to your Stripe account. Platform fee: 0% during launch promo, {feePct}% after. Stripe's standard processing fees apply and are borne by you.
+                Visa, Mastercard, Amex, and more. Eligible transfers are released after the required hold period. Platform fee: {feePct}% unless an existing founding-seller benefit applies. Stripe processing fees are based on Stripe's actual fee record and are borne by you.
               </p>
             </div>
             <CheckCircle className="h-5 w-5 text-green-500" />

@@ -8,3 +8,4 @@
 - [ ] Fix login and footer logo display using existing transparent logo assets only.
 - [ ] Validate build and critical test-mode scenarios that can run without real payments.
 - [ ] Deploy/apply only to the existing external Supabase project if authorized access is available; otherwise provide exact manual steps.
+- [ ] Before deployment, verify legacy Stripe charge routing from original checkout context, Swiss-platform country support, external project `dwqpkdatzdqhplgyhigg`, and keep production payout scheduling disabled until explicit approval.

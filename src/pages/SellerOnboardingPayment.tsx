@@ -18,10 +18,20 @@ import { createStripeConnectOnboardingLink, emptyStripeConnectStatus, fetchStrip
 import { buildSupabaseFunctionError, logSupabaseFunctionError } from '@/lib/supabaseFunctionErrors';
 import { PayPalConnectCard } from '@/components/seller/PayPalConnectCard';
 import { HourglassLoader } from '@/components/HourglassLoader';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const SELLER_COUNTRIES = [
+  { code: 'CH', label: 'Switzerland' },
+  { code: 'LI', label: 'Liechtenstein' },
+  { code: 'DE', label: 'Germany' },
+  { code: 'AT', label: 'Austria' },
+  { code: 'US', label: 'United States' },
+];
 
 export default function SellerOnboardingPayment() {
   const { user } = useAuth();
-  const { feePct, sellerPct } = usePlatformFee();
+  const { feePct } = usePlatformFee();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
@@ -38,6 +48,7 @@ export default function SellerOnboardingPayment() {
   const [refreshing, setRefreshing] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus>(emptyStripeConnectStatus);
+  const [sellerCountry, setSellerCountry] = useState('CH');
   const [stripeError, setStripeError] = useState<string | null>(null);
 
 
@@ -94,7 +105,9 @@ export default function SellerOnboardingPayment() {
       setStripeError('Stripe status could not be loaded. You can still start the Stripe connection below.');
     }, 30_000);
     try {
-      setStripeStatus(await fetchStripeConnectStatus());
+      const status = await fetchStripeConnectStatus();
+      setStripeStatus(status);
+      if (status.country) setSellerCountry(status.country);
       setStripeError(null);
       await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
     } catch (error) {
@@ -122,7 +135,7 @@ export default function SellerOnboardingPayment() {
     const origin = window.location.origin;
 
     try {
-      const url = await createStripeConnectOnboardingLink(origin);
+      const url = await createStripeConnectOnboardingLink(origin, sellerCountry);
       toast({ title: "Redirecting", description: "Opening Stripe onboarding..." });
       window.location.href = url;
     } catch (e: any) {
@@ -256,7 +269,7 @@ export default function SellerOnboardingPayment() {
               🎉 Stripe Successfully Connected!
             </h3>
             <p className="text-green-600 dark:text-green-400">
-              Your account is fully set up. Payments will now go directly to your Stripe account.
+              Your account is set up. Eligible seller transfers are released after the required hold period and account checks.
             </p>
           </div>
         )}
@@ -264,7 +277,7 @@ export default function SellerOnboardingPayment() {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">Stripe Payment Settings</h1>
           <p className="text-muted-foreground">
-            Connect Stripe or PayPal to receive payments. Payments are processed by Stripe or PayPal and go directly to your connected payment account. Platform fee: 0% during the launch promo (first 20 platform sales), otherwise {feePct}%. The provider's standard payment processing fees apply and are borne by you.
+            Connect Stripe to receive eligible seller transfers after the required hold period. Platform fee: {feePct}% unless an existing founding-seller benefit applies. Stripe processing fees are calculated from Stripe's actual fee record and are borne by you.
           </p>
         </div>
 
@@ -278,7 +291,7 @@ export default function SellerOnboardingPayment() {
                   Stripe Connect
                 </CardTitle>
                 <CardDescription>
-                  Create a new Stripe Express account or connect an existing one
+                  Create or continue a Stripe Express account for your seller country
                 </CardDescription>
               </div>
               {stripeStatus.onboardingStatus === "connected" && (
@@ -406,7 +419,7 @@ export default function SellerOnboardingPayment() {
                   </div>
                    <h3 className="text-lg font-semibold mb-2">Set Up Stripe Payments</h3>
                    <p className="text-muted-foreground max-w-md mx-auto">
-                     Create a new Stripe Express account or connect an existing one. You'll receive {sellerPct}% of each sale directly to your bank account.
+                     Create or continue a Stripe Express account for your seller country. Your seller entitlement is calculated from the sale amount minus platform commission, actual Stripe processing fees, and any approved refunds or disputes.
                    </p>
                 </div>
 
@@ -416,11 +429,29 @@ export default function SellerOnboardingPayment() {
                    <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
                      <li>Click the button below – a Stripe Express account will be created for you automatically.</li>
                      <li>Complete the short onboarding form (name, address, bank details).</li>
-                     <li>Once verified, you can start receiving payments immediately.</li>
+                     <li>Once verified, eligible transfers can be released after the required hold period.</li>
                    </ol>
                    <p className="text-xs text-muted-foreground mt-2">
-                     Already have a Stripe account? No problem – you can link it during the onboarding process.
+                     Existing Stripe accounts can be reused only when Stripe supports the selected country and account setup.
                    </p>
+                </div>
+
+
+                <div className="space-y-2">
+                  <Label htmlFor="seller-country">Seller country</Label>
+                  <Select value={sellerCountry} onValueChange={setSellerCountry}>
+                    <SelectTrigger id="seller-country">
+                      <SelectValue placeholder="Select seller country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SELLER_COUNTRIES.map((country) => (
+                        <SelectItem key={country.code} value={country.code}>
+                          {country.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Stripe verifies country support during onboarding. Unsupported account setups stay blocked.</p>
                 </div>
 
                 <div className="text-center">
@@ -438,7 +469,7 @@ export default function SellerOnboardingPayment() {
                     )}
                   </Button>
                    <p className="text-xs text-muted-foreground mt-2">
-                     You'll be redirected to Stripe to set up or connect your account
+                     You'll be redirected to Stripe to set up or continue verification
                    </p>
                 </div>
               </div>

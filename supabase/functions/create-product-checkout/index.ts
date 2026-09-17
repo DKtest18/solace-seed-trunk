@@ -21,11 +21,14 @@ Deno.serve(async (req) => {
     const productId = body.productId ?? body.product_id;
     const paymentMethod = body.paymentMethod ?? 'card';
     const shippingAddress = body.shippingAddress ?? null;
+    const licenseTier = body.license_tier ?? body.licenseTier;
+    const couponCode = body.couponCode ?? body.coupon_code;
+    const ipAssignmentAccepted = body.ip_assignment_accepted === true || body.ipAssignmentAccepted === true;
 
     const admin = getServiceClient();
 
     const guard = await isProductPurchasable(admin, productId);
-    if (!guard.ok) return errorResponse(guard.reason!, 400);
+    if (!guard.ok) return errorResponse(guard.reason ?? 'Product is not available for purchase', 400);
 
     const { data: product, error: productError } = await admin
       .from('dkai_products')
@@ -62,6 +65,9 @@ Deno.serve(async (req) => {
         buyer: { id: user.id, email: buyerEmail || undefined },
         origin,
         shippingAddress,
+        couponCode,
+        licenseTier,
+        ipAssignmentAccepted,
       });
       if (!result.ok) {
         return new Response(
@@ -103,7 +109,7 @@ Deno.serve(async (req) => {
         seller_earnings: sellerEarnings,
         payment_method: paymentMethod || 'manual',
         status: 'pending_payment',
-        charge_mode: 'separate',
+        charge_mode: 'manual',
         transfer_state: 'not_applicable',
         shipping_address: shippingAddress,
       })

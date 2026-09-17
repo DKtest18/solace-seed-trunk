@@ -19,6 +19,16 @@ import { PayPalConnectCard } from "@/components/seller/PayPalConnectCard";
 import { AcceptedPaymentMethods } from "@/components/seller/AcceptedPaymentMethods";
 import { emptyPayPalConnectStatus, isPayPalConnectedForOnboarding, type PayPalConnectStatus } from "@/lib/paypalConnectStatus";
 import { HourglassLoader } from '@/components/HourglassLoader';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const SELLER_COUNTRIES = [
+  { code: 'CH', label: 'Switzerland' },
+  { code: 'LI', label: 'Liechtenstein' },
+  { code: 'DE', label: 'Germany' },
+  { code: 'AT', label: 'Austria' },
+  { code: 'US', label: 'United States' },
+];
 
 export default function SellerPaymentSettings() {
   const { user } = useAuth();
@@ -26,7 +36,7 @@ export default function SellerPaymentSettings() {
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const { hasRole: isSeller, isLoading: roleLoading } = useHasRole("seller");
-  const { feePct, sellerPct } = usePlatformFee();
+  const { feePct } = usePlatformFee();
   
   // `loading` gates ONLY the Stripe card, never the whole page.
   const [loading, setLoading] = useState(true);
@@ -36,6 +46,7 @@ export default function SellerPaymentSettings() {
   const [disconnecting, setDisconnecting] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus>(emptyStripeConnectStatus);
+  const [sellerCountry, setSellerCountry] = useState('CH');
   const [paypalStatus, setPaypalStatus] = useState<PayPalConnectStatus>(emptyPayPalConnectStatus);
 
   useEffect(() => {
@@ -96,7 +107,9 @@ export default function SellerPaymentSettings() {
       setStripeError("Stripe status could not be loaded. You can still start the Stripe connection below.");
     }, 30_000);
     try {
-      setStripeStatus(await fetchStripeConnectStatus());
+      const status = await fetchStripeConnectStatus();
+      setStripeStatus(status);
+      if (status.country) setSellerCountry(status.country);
       setStripeError(null);
       await queryClient.invalidateQueries({ queryKey: ['seller-onboarding-progress'] });
     } catch (error) {
@@ -124,7 +137,7 @@ export default function SellerPaymentSettings() {
     const origin = window.location.origin;
 
     try {
-      const url = await createStripeConnectOnboardingLink(origin);
+      const url = await createStripeConnectOnboardingLink(origin, sellerCountry);
       toast.info("Redirecting to Stripe...");
       window.location.href = url;
     } catch (e: any) {
@@ -225,7 +238,7 @@ export default function SellerPaymentSettings() {
 
         <h1 className="text-3xl font-bold mb-2">Payment Settings</h1>
         <p className="text-muted-foreground mb-8">
-          Connect Stripe, PayPal, or both — payouts go directly to your own account
+          Connect Stripe to receive eligible seller transfers after the required hold period
         </p>
 
         {/* Success Animation */}
@@ -240,7 +253,7 @@ export default function SellerPaymentSettings() {
               🎉 Stripe Successfully Connected!
             </h3>
             <p className="text-green-600 dark:text-green-400">
-              Your account is fully set up. You can now receive payments — {sellerPct}% of each sale goes directly to your bank!
+              Your account is set up. Eligible seller transfers are released after the required hold period and account checks.
             </p>
           </div>
         )}
@@ -260,7 +273,7 @@ export default function SellerPaymentSettings() {
         <Alert className="mb-6">
           <Shield className="h-4 w-4" />
           <AlertDescription>
-            Payments are processed by Stripe or PayPal and go directly to your connected payment account. Platform fee: 0% during the launch promo (first 20 platform sales), otherwise {feePct}%. The provider's standard payment processing fees apply and are borne by you as the seller.
+            Card payments are processed by Stripe. Platform fee: {feePct}% unless an existing founding-seller benefit applies. Stripe processing fees are calculated from the actual Stripe balance transaction and are borne by you as the seller.
           </AlertDescription>
         </Alert>
 
@@ -274,7 +287,7 @@ export default function SellerPaymentSettings() {
                   Stripe Connect
                 </CardTitle>
                 <CardDescription>
-                  Connect your Stripe account to receive payments
+                  Connect Stripe to receive eligible transfers
                 </CardDescription>
               </div>
               {getStatusBadge()}
@@ -463,7 +476,7 @@ export default function SellerPaymentSettings() {
                   <div>
                     <p className="font-medium">Not Connected</p>
                     <p className="text-sm text-muted-foreground">
-                      Connect your Stripe account to start receiving card payments
+                      Connect Stripe to receive eligible card-payment transfers
                     </p>
                   </div>
                 </div>
@@ -475,6 +488,24 @@ export default function SellerPaymentSettings() {
                     <li>Bank account (IBAN) for payouts</li>
                     <li>Business or personal identification</li>
                   </ul>
+                </div>
+
+
+                <div className="space-y-2">
+                  <Label htmlFor="seller-country">Seller country</Label>
+                  <Select value={sellerCountry} onValueChange={setSellerCountry}>
+                    <SelectTrigger id="seller-country">
+                      <SelectValue placeholder="Select seller country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SELLER_COUNTRIES.map((country) => (
+                        <SelectItem key={country.code} value={country.code}>
+                          {country.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Stripe verifies country support during onboarding. Unsupported account setups stay blocked.</p>
                 </div>
 
                 <Button onClick={handleConnectStripe} disabled={connecting} className="w-full">
@@ -537,7 +568,7 @@ export default function SellerPaymentSettings() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">3</div>
                 <div>
                   <p className="font-medium">Receive payments automatically</p>
-                  <p className="text-sm text-muted-foreground">Payouts go directly to your Stripe account. Platform fee: 0% during launch promo, {feePct}% after. Stripe's standard processing fees apply and are borne by you.</p>
+                  <p className="text-sm text-muted-foreground">Eligible transfers are released after the required hold period. Platform fee: {feePct}% unless an existing founding-seller benefit applies. Stripe processing fees are based on Stripe's actual fee record and are borne by you.</p>
                 </div>
               </div>
             </div>

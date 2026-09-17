@@ -97,7 +97,8 @@ async function processClaim(admin: Admin, claim: Claim): Promise<string> {
     await retryLater(admin, claim, 'No settled charge on the order', 'blocked');
     return 'no_charge';
   }
-  if (!claim.amount_minor || claim.amount_minor <= 0) {
+  let amountMinor = Number(claim.amount_minor ?? 0);
+  if (!amountMinor || amountMinor <= 0) {
     await release(admin, claim.order_id, { transfer_state: 'blocked', transfer_last_error: 'Nothing to transfer' });
     return 'zero_amount';
   }
@@ -160,13 +161,41 @@ async function processClaim(admin: Admin, claim: Claim): Promise<string> {
     await retryLater(admin, claim, `Charge not settled (status ${charge.data.status})`, 'blocked');
     return 'charge_not_settled';
   }
-  if (charge.data.refunded || Number(charge.data.amount_refunded ?? 0) > 0) {
+
+  const balanceTransaction = typeof charge.data.balance_transaction === 'string'
+    ? (await stripeCall(`balance_transactions/${charge.data.balance_transaction}`, undefined, { method: 'GET' }))
+    : { ok: true, data: charge.data.balance_transaction };
+  const availableOn = Number(balanceTransaction.ok ? balanceTransaction.data?.available_on ?? 0 : 0);
+  if (availableOn && availableOn * 1000 > Date.now()) {
+    const next = new Date(availableOn * 1000 + 60_000).toISOString();
     await release(admin, claim.order_id, {
-      transfer_state: 'blocked',
-      transfer_last_error: 'Charge refunded — seller entitlement cancelled or reduced',
-      refunded_amount_minor: Number(charge.data.amount_refunded ?? 0),
+      transfer_state: 'pending',
+      transfer_next_attempt_at: next,
+      transfer_last_error: `Stripe funds are not available until ${next}`,
     });
-    return 'refunded';
+    return 'funds_not_available';
+  }
+  const refundedMinor = Number(charge.data.amount_refunded ?? 0);
+  if (refundedMinor > 0) {
+    await admin.rpc('dkai_recalculate_order_financials', {
+      _order_id: claim.order_id,
+      _processing_fee_minor: null,
+      _refunded_amount_minor: refundedMinor,
+    });
+    const { data: refreshedOrder } = await admin
+      .from('dkai_orders')
+      .select('seller_entitlement_minor, transfer_state')
+      .eq('id', claim.order_id)
+      .maybeSingle();
+    amountMinor = Number(refreshedOrder?.seller_entitlement_minor ?? 0);
+    if (charge.data.refunded || amountMinor <= 0) {
+      await release(admin, claim.order_id, {
+        transfer_state: 'blocked',
+        transfer_last_error: 'Charge fully refunded — seller entitlement cancelled',
+        refunded_amount_minor: refundedMinor,
+      });
+      return 'refunded';
+    }
   }
   if (charge.data.disputed) {
     await release(admin, claim.order_id, {
@@ -226,7 +255,7 @@ async function processClaim(admin: Admin, claim: Claim): Promise<string> {
   // --- Freeze request params and persist the operation BEFORE calling Stripe -
   const idempotencyKey = openOp?.idempotency_key ?? claim.transfer_idempotency_key;
   const params: Record<string, string> = {
-    amount: String(claim.amount_minor),
+    amount: String(amountMinor),
     currency,
     destination,
     transfer_group: claim.stripe_transfer_group ?? `order_${claim.order_id}`,
@@ -250,7 +279,7 @@ async function processClaim(admin: Admin, claim: Claim): Promise<string> {
         destination_account: destination,
         transfer_group: params.transfer_group,
         source_transaction: params.source_transaction ?? null,
-        amount_minor: claim.amount_minor,
+        amount_minor: amountMinor,
         currency,
         idempotency_key: idempotencyKey,
         request_params: params,
@@ -312,7 +341,7 @@ async function processClaim(admin: Admin, claim: Claim): Promise<string> {
       order_id: claim.order_id,
       seller_id: claim.seller_id,
       destination_account: destination,
-      amount: claim.amount_minor / 100,
+      amount: amountMinor / 100,
       currency,
       idempotency_key: `${idempotencyKey}_${Date.now()}`,
       stripe_transfer_id: transfer.id,
@@ -321,7 +350,7 @@ async function processClaim(admin: Admin, claim: Claim): Promise<string> {
     await release(admin, claim.order_id, {
       transfer_state: 'completed',
       stripe_transfer_id: transfer.id,
-      transfer_amount: claim.amount_minor / 100,
+      transfer_amount: amountMinor / 100,
       transfer_completed_at: new Date().toISOString(),
       transfer_last_error: null,
       status: 'completed',
@@ -346,7 +375,7 @@ async function processClaim(admin: Admin, claim: Claim): Promise<string> {
     order_id: claim.order_id,
     seller_id: claim.seller_id,
     destination_account: destination,
-    amount: claim.amount_minor / 100,
+    amount: amountMinor / 100,
     currency,
     idempotency_key: `${idempotencyKey}_${Date.now()}`,
     outcome: 'failure',

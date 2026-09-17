@@ -38,6 +38,20 @@ ALTER TABLE public.dkai_orders
   ADD CONSTRAINT dkai_orders_fee_bearer_chk
   CHECK (processing_fee_bearer IN ('seller', 'platform'));
 
+
+-- Keep the legacy label but make it explicit: older Stripe checkouts were
+-- platform-created Connect destination charges (application_fee_amount +
+-- transfer_data.destination, no Stripe-Account header). `direct` is reserved
+-- only for any separately verified historical object that was actually created
+-- on a connected account; the current repo history did not show that pattern.
+ALTER TABLE public.dkai_orders DROP CONSTRAINT IF EXISTS dkai_orders_charge_mode_chk;
+ALTER TABLE public.dkai_orders
+  ADD CONSTRAINT dkai_orders_charge_mode_chk
+  CHECK (charge_mode IN ('destination', 'direct', 'separate', 'manual'));
+
+COMMENT ON COLUMN public.dkai_orders.charge_mode IS
+  'destination = legacy platform-created Connect destination charge label; direct = connected-account charge only if verified from Stripe account context; separate = new platform charge with later transfer; manual = non-Stripe/manual path.';
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_dkai_orders_transfer_idem
   ON public.dkai_orders (transfer_idempotency_key)
   WHERE transfer_idempotency_key IS NOT NULL;
@@ -386,7 +400,7 @@ DECLARE
   _enabled boolean;
 BEGIN
   SELECT transfers_enabled INTO _enabled FROM public.dkai_transfer_config WHERE id = true;
-  IF NOT COALESCE(_enabled, true) THEN
+  IF NOT COALESCE(_enabled, false) THEN
     RETURN;
   END IF;
 
@@ -402,7 +416,7 @@ BEGIN
       AND o.transfer_eligible_at <= now()
       AND COALESCE(o.transfer_lease_until, to_timestamp(0)) < now()
       AND COALESCE(o.transfer_next_attempt_at, to_timestamp(0)) <= now()
-      AND COALESCE(o.refunded_amount_minor, 0) = 0
+      AND COALESCE(o.refunded_amount_minor, 0) < COALESCE(o.gross_amount_minor, ROUND(COALESCE(o.price, 0) * 100)::bigint)
       AND o.dispute_opened_at IS NULL
       AND COALESCE(o.seller_entitlement_minor, 0) > 0
       AND o.stripe_charge_id IS NOT NULL
@@ -429,6 +443,78 @@ $$;
 
 REVOKE ALL ON FUNCTION public.dkai_claim_transfer_batch(integer, integer) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.dkai_claim_transfer_batch(integer, integer) TO service_role;
+
+
+-- ---------------------------------------------------------------------------
+-- 10) Recalculate seller entitlement after actual Stripe fees/refunds/disputes
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.dkai_recalculate_order_financials(
+  _order_id uuid,
+  _processing_fee_minor bigint DEFAULT NULL,
+  _refunded_amount_minor bigint DEFAULT NULL
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  _gross bigint;
+  _commission bigint;
+  _fee bigint;
+  _refunded bigint;
+  _entitlement bigint;
+BEGIN
+  SELECT COALESCE(gross_amount_minor, ROUND(COALESCE(price, 0) * 100)::bigint),
+         COALESCE(commission_amount_minor, ROUND(COALESCE(platform_fee, 0) * 100)::bigint),
+         COALESCE(processing_fee_minor, 0),
+         COALESCE(refunded_amount_minor, 0)
+    INTO _gross, _commission, _fee, _refunded
+  FROM public.dkai_orders
+  WHERE id = _order_id
+  FOR UPDATE;
+
+  IF _gross IS NULL THEN
+    RAISE EXCEPTION 'Order % not found', _order_id;
+  END IF;
+
+  IF _processing_fee_minor IS NOT NULL THEN
+    _fee := GREATEST(0, _processing_fee_minor);
+  END IF;
+  IF _refunded_amount_minor IS NOT NULL THEN
+    _refunded := GREATEST(0, LEAST(_gross, _refunded_amount_minor));
+  END IF;
+
+  -- Seller-borne provider fees: entitlement is gross minus platform commission,
+  -- actual Stripe fee once known, and successful refunds/disputes. Stripe fees
+  -- are never guessed; NULL means not known yet and is stored as 0 until webhook
+  -- balance_transaction data arrives.
+  _entitlement := GREATEST(0, _gross - COALESCE(_commission, 0) - COALESCE(_fee, 0) - COALESCE(_refunded, 0));
+
+  UPDATE public.dkai_orders
+  SET processing_fee_minor     = _fee,
+      processing_fee_bearer    = 'seller',
+      refunded_amount_minor    = _refunded,
+      seller_entitlement_minor = _entitlement,
+      seller_earnings          = ROUND(_entitlement / 100.0, 2),
+      transfer_state           = CASE
+                                   WHEN charge_mode <> 'separate' THEN transfer_state
+                                   WHEN _entitlement <= 0 AND transfer_state <> 'completed' THEN 'blocked'
+                                   ELSE transfer_state
+                                 END,
+      updated_at               = now()
+  WHERE id = _order_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.dkai_recalculate_order_financials(uuid, bigint, bigint) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.dkai_recalculate_order_financials(uuid, bigint, bigint) TO service_role;
+
+-- Production payout release remains disabled until the owner explicitly enables it
+-- after successful test-mode validation. The worker can deploy safely; claims exit.
+UPDATE public.dkai_transfer_config
+SET transfers_enabled = false, updated_at = now()
+WHERE id = true;
 
 -- ---------------------------------------------------------------------------
 -- 10) Seller-facing payout view (read-only, own rows). Sellers can never

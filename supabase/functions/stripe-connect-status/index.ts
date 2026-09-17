@@ -37,6 +37,7 @@ async function persistState(
   chargesEnabled: boolean,
   payoutsEnabled: boolean,
   detailsSubmitted: boolean,
+  extra: Record<string, unknown> = {},
 ) {
   const now = new Date().toISOString();
   const payloads = [
@@ -51,6 +52,7 @@ async function persistState(
       card_payments_enabled: chargesEnabled,
       details_submitted: detailsSubmitted,
       onboarding_completed_at: detailsSubmitted ? now : null,
+      ...extra,
       updated_at: now,
     },
     {
@@ -59,6 +61,7 @@ async function persistState(
       stripe_onboarding_status: status,
       charges_enabled: chargesEnabled,
       payouts_enabled: payoutsEnabled,
+      ...extra,
       updated_at: now,
     },
     { seller_id: userId, stripe_account_id: accountId, stripe_onboarding_status: status },
@@ -114,15 +117,17 @@ Deno.serve(async (req) => {
     const chargesEnabled = account.charges_enabled || false;
     const payoutsEnabled = account.payouts_enabled || false;
     const detailsSubmitted = account.details_submitted || false;
+    const transfersCapabilityActive = account.capabilities?.transfers === 'active';
+    const accountRestricted = !!account.requirements?.disabled_reason;
 
     let onboardingStatus: string;
-    if (chargesEnabled && payoutsEnabled && detailsSubmitted) onboardingStatus = 'connected';
+    if (detailsSubmitted && payoutsEnabled && transfersCapabilityActive && !accountRestricted) onboardingStatus = 'connected';
     else if (
       account.requirements?.currently_due?.length > 0 ||
       account.requirements?.past_due?.length > 0
     )
       onboardingStatus = 'needs_info';
-    else if (detailsSubmitted) onboardingStatus = 'connected';
+    else if (detailsSubmitted) onboardingStatus = 'needs_info';
     else onboardingStatus = 'onboarding';
 
     // Persistence must never break the response.
@@ -135,6 +140,15 @@ Deno.serve(async (req) => {
         chargesEnabled,
         payoutsEnabled,
         detailsSubmitted,
+        {
+          transfers_capability_active: transfersCapabilityActive,
+          stripe_account_country: account.country ?? null,
+          stripe_default_currency: account.default_currency ?? null,
+          stripe_service_agreement: account.tos_acceptance?.service_agreement ?? null,
+          account_restricted: accountRestricted,
+          requirements_snapshot: account.requirements ?? null,
+          capabilities_synced_at: new Date().toISOString(),
+        },
       );
     } catch (persistErr) {
       console.error('stripe-connect-status persist failed:', persistErr);
@@ -148,6 +162,10 @@ Deno.serve(async (req) => {
       chargesEnabled,
       payoutsEnabled,
       detailsSubmitted,
+      transfersCapabilityActive,
+      accountRestricted,
+      country: account.country || undefined,
+      serviceAgreement: account.tos_acceptance?.service_agreement || undefined,
       email: account.email || undefined,
       requirements: account.requirements
         ? {

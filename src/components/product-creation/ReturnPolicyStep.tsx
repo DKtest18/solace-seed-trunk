@@ -66,7 +66,7 @@ export function ReturnPolicyStep({ data, onChange, errors }: ReturnPolicyStepPro
           <Clock className="h-4 w-4 text-green-500" />
           <AlertDescription className="text-xs space-y-1">
             <p className="font-semibold text-green-600">If approved</p>
-            <p>Full refund via Stripe or PayPal from your connected payment account balance, typically within <strong>24–72 hours</strong>. Requests must be filed within <strong>14 days</strong> of purchase.</p>
+            <p>Approved refunds are processed through Stripe and reduce or recover your seller entitlement. Requests must be filed within <strong>14 days</strong> of purchase.</p>
           </AlertDescription>
         </Alert>
       </div>
@@ -74,14 +74,14 @@ export function ReturnPolicyStep({ data, onChange, errors }: ReturnPolicyStepPro
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription className="text-xs">
-          Because payments are charged directly to your connected account (Stripe Connect or PayPal), a refund debits your connected payment account balance directly.
+          Because sellers bear approved refunds and chargebacks, refunds before transfer reduce the held seller entitlement; refunds after transfer may require transfer reversal or outstanding seller recovery.
         </AlertDescription>
       </Alert>
 
       {/* Dynamic acknowledgement checkboxes */}
       <div className="space-y-3">
         <AckRow id="ack-refund" checked={!!data.seller_ack_refund_policy} onChange={(v) => onChange('seller_ack_refund_policy', v)}
-          text="I understand and accept the DK AI Marketplace refund policy: support review only, 48h response window, refunds debited from my connected payment account balance (Stripe or PayPal)." />
+          text="I understand and accept the DK AI Marketplace refund policy: support review only, 48h response window, refunds reduce or recover my seller entitlement through Stripe." />
 
         {isSubscription && (
           <AckRow id="ack-sub" checked={!!data.seller_ack_subscription} onChange={(v) => onChange('seller_ack_subscription', v)}

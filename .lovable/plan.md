@@ -16,6 +16,15 @@ Finish the interrupted Stripe Connect migration for the existing external Supaba
 6. Validate locally where possible and report exactly what was tested.
 7. Apply/deploy to the external Supabase project only if authorized access exists; otherwise provide complete manual SQL and deploy commands.
 
+## Required conditions before deployment
+- Verify legacy charge types from the original checkout code and Stripe account context; do not assume the old `destination` label is financially accurate.
+- Preserve 5% commission, existing founding-seller benefits, seller-borne processing fees, and the seven-day transfer eligibility delay.
+- Verify seller-country support for a Swiss platform before enabling CH, LI, DE, AT, and US in live onboarding.
+- Confirm any deployment connection targets external Supabase project `dwqpkdatzdqhplgyhigg`; never use Lovable Cloud.
+- Test critical payment scenarios in Stripe test mode before deployment.
+- Keep the production payout scheduler disabled until explicit approval.
+- Generate no new logo assets; if the existing header logo is unsuitable, ask for a transparent original.
+
 ## Technical details
 - External Supabase project reference: `dwqpkdatzdqhplgyhigg` from `supabase/config.toml`.
 - Lovable Cloud will not be enabled or used.

@@ -769,6 +769,30 @@
     },
     "ctaTitle": "Verkaufen Sie Ihre KI-Produkte",
     "ctaText": "Werden Sie verifizierter Verkäufer, listen Sie geprüfte KI-Produkte und erhalten Sie berechtigte Stripe-Übertragungen nach der erforderlichen Haltefrist.",
+    "networkTools": {
+      "title": "Netzwerk & Tools",
+      "subtitle": "Kontakte aus unserem Netzwerk und Tools für deine KI-Projekte.",
+      "pause": "Pausieren",
+      "resume": "Fortsetzen",
+      "pauseLabel": "Bewegung der Logo-Leiste pausieren",
+      "resumeLabel": "Bewegung der Logo-Leiste fortsetzen",
+      "linkLabel": "{{company}}, {{relationship}} – öffnet in einem neuen Tab",
+      "disclosure": "Werbung / Affiliate-Hinweis: Die Links zu Make und ElevenLabs sind Affiliate-Links. Wenn du darüber einen qualifizierenden Kauf oder ein Abo abschliesst, kann DK AI Marketplace eine Provision erhalten.",
+      "items": {
+        "nordpixel": {
+          "relationship": "Netzwerk",
+          "description": "Webdesign und digitale Lösungen."
+        },
+        "make": {
+          "relationship": "Tool · Affiliate",
+          "description": "Workflows und Prozesse automatisieren."
+        },
+        "elevenlabs": {
+          "relationship": "Tool · Affiliate",
+          "description": "KI-Stimmen und Voice Agents erstellen."
+        }
+      }
+    },
     "logoWallTitle": "Unternehmen, die auf DK AI Marketplace verkaufen",
     "logoWallAlt": "Firmenlogo"
   },

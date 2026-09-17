@@ -11,34 +11,13 @@ import {
   BadgeCheck,
   Wallet,
   ArrowRight,
-  MessageSquareText,
-  LayoutTemplate,
-  Database,
-  Bot,
-  Zap,
-  Workflow,
 } from 'lucide-react';
 import { db } from '@/lib/dkaiDb';
 import { formatMoney } from '@/lib/money';
 import './index-home.css';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { CompanyLogoWall } from '@/components/home/CompanyLogoWall';
-
-// Decorative marquee categories — icon only, name kept as aria-label + tooltip.
-const CATEGORIES = [
-  { key: 'aiAgents', icon: Bot },
-  { key: 'automations', icon: Zap },
-  { key: 'workflows', icon: Workflow },
-  { key: 'prompts', icon: MessageSquareText },
-  { key: 'templates', icon: LayoutTemplate },
-  { key: 'datasets', icon: Database },
-] as const;
-
-// One marquee half repeats the set enough times to exceed the widest viewport
-// (6 icons x 4 = 24 chips ≈ 2400px), so no gap can ever appear mid-loop.
-const REPEATS_PER_HALF = 4;
-const HALF = Array.from({ length: REPEATS_PER_HALF }, () => CATEGORIES).flat();
+import { NetworkToolsSection } from '@/components/home/NetworkToolsSection';
 
 type HomeProduct = {
   id: string;
@@ -100,51 +79,6 @@ function ProductGlassCard({ product, className = '' }: { product?: HomeProduct; 
     </Link>
   );
 }
-
-/**
- * Marquee half. `decorative` copies are aria-hidden so screen readers only
- * announce the category set once.
- */
-function MarqueeHalf({ decorative, t }: { decorative: boolean; t: (k: string) => string }) {
-  return (
-    <div className="home-marquee-group" aria-hidden={decorative || undefined}>
-      {HALF.map((c, i) => {
-        const label = t(`landing.categories.${c.key}`);
-        return (
-          <Tooltip key={`${decorative ? 'b' : 'a'}-${i}`}>
-            <TooltipTrigger asChild>
-              <span role="img" aria-label={label} title={label} className="home-cat-chip">
-                <c.icon className="h-8 w-8" strokeWidth={1.75} aria-hidden />
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>{label}</TooltipContent>
-          </Tooltip>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ============================================================================
- * OPTION 2 (NOT APPLIED — preview variant): icon + text label under each chip.
- * To compare, swap <MarqueeHalf .../> for <MarqueeHalfWithLabels .../> below.
- *
- * function MarqueeHalfWithLabels({ decorative, t }: { decorative: boolean; t: (k: string) => string }) {
- *   return (
- *     <div className="home-marquee-group" aria-hidden={decorative || undefined}>
- *       {HALF.map((c, i) => {
- *         const label = t(`landing.categories.${c.key}`);
- *         return (
- *           <span key={i} className="flex flex-col items-center gap-2 w-24" aria-label={label} role="img">
- *             <span className="home-cat-chip"><c.icon className="h-8 w-8" strokeWidth={1.75} aria-hidden /></span>
- *             <span className="text-xs text-[var(--text-muted)] whitespace-nowrap">{label}</span>
- *           </span>
- *         );
- *       })}
- *     </div>
- *   );
- * }
- * ==========================================================================*/
 
 export default function Index() {
   const { t } = useTranslation();
@@ -215,18 +149,6 @@ export default function Index() {
         </div>
       </section>
 
-      {/* MARQUEE — icon chips (decorative, non-interactive, neutral greys) */}
-      <section className="relative py-12 border-y border-[var(--hair)]">
-        <TooltipProvider delayDuration={150}>
-          <div className="home-marquee">
-            <div className="home-marquee-track">
-              <MarqueeHalf decorative={false} t={t} />
-              <MarqueeHalf decorative t={t} />
-            </div>
-          </div>
-        </TooltipProvider>
-      </section>
-
       {/* COMPANY LOGO WALL — consented company logos only */}
       <CompanyLogoWall />
 
@@ -266,6 +188,8 @@ export default function Index() {
           ))}
         </div>
       </section>
+
+      <NetworkToolsSection />
 
       {/* SELLER CTA STRIP */}
       <section className="relative max-w-6xl mx-auto px-6 py-20">

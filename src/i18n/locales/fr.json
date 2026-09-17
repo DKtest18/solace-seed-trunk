@@ -141,6 +141,30 @@
     },
     "ctaTitle": "Vendez vos produits IA",
     "ctaText": "Devenez vendeur vérifié et atteignez une communauté prête à acheter — avec des versements Stripe directs (PayPal bientôt) et une structure de frais équitable.",
+    "networkTools": {
+      "title": "Réseau & outils",
+      "subtitle": "Des contacts de notre réseau et des outils pour vos projets d’IA.",
+      "pause": "Mettre en pause",
+      "resume": "Reprendre",
+      "pauseLabel": "Mettre en pause le défilement des logos",
+      "resumeLabel": "Reprendre le défilement des logos",
+      "linkLabel": "{{company}}, {{relationship}} – s’ouvre dans un nouvel onglet",
+      "disclosure": "Publicité / Avis d’affiliation : les liens vers Make et ElevenLabs sont des liens d’affiliation. Si vous effectuez un achat ou souscrivez un abonnement admissible par leur intermédiaire, DK AI Marketplace peut recevoir une commission.",
+      "items": {
+        "nordpixel": {
+          "relationship": "Réseau",
+          "description": "Conception web et solutions numériques."
+        },
+        "make": {
+          "relationship": "Outil · Affiliation",
+          "description": "Automatiser les workflows et les processus."
+        },
+        "elevenlabs": {
+          "relationship": "Outil · Affiliation",
+          "description": "Créer des voix IA et des agents vocaux."
+        }
+      }
+    },
     "logoWallTitle": "Entreprises qui vendent sur DK AI Marketplace",
     "logoWallAlt": "Logo de l'entreprise"
   },

@@ -144,10 +144,6 @@
     "networkTools": {
       "title": "Réseau & outils",
       "subtitle": "Des contacts de notre réseau et des outils pour vos projets d’IA.",
-      "pause": "Mettre en pause",
-      "resume": "Reprendre",
-      "pauseLabel": "Mettre en pause le défilement des logos",
-      "resumeLabel": "Reprendre le défilement des logos",
       "linkLabel": "{{company}}, {{relationship}} – s’ouvre dans un nouvel onglet",
       "disclosure": "Publicité / Avis d’affiliation : les liens vers Make et ElevenLabs sont des liens d’affiliation. Si vous effectuez un achat ou souscrivez un abonnement admissible par leur intermédiaire, DK AI Marketplace peut recevoir une commission.",
       "items": {

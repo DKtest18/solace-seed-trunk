@@ -769,10 +769,6 @@
     "networkTools": {
       "title": "Network & Tools",
       "subtitle": "Contacts from our network and tools for your AI projects.",
-      "pause": "Pause",
-      "resume": "Resume",
-      "pauseLabel": "Pause the logo strip movement",
-      "resumeLabel": "Resume the logo strip movement",
       "linkLabel": "{{company}}, {{relationship}} – opens in a new tab",
       "disclosure": "Advertising / Affiliate notice: The links to Make and ElevenLabs are affiliate links. If you make a qualifying purchase or subscription through them, DK AI Marketplace may receive a commission.",
       "items": {

@@ -36,7 +36,7 @@ export default function SellerPaymentSettings() {
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const { hasRole: isSeller, isLoading: roleLoading } = useHasRole("seller");
-  const { feePct, sellerPct } = usePlatformFee();
+  const { feePct } = usePlatformFee();
   
   // `loading` gates ONLY the Stripe card, never the whole page.
   const [loading, setLoading] = useState(true);

@@ -52,7 +52,7 @@ const DEFAULT_CANCEL_NOTE =
   'Cancel anytime via Stripe; access ends at the end of the paid period.';
 
 export function AdditionalDetailsStep({ data, onChange, errors }: AdditionalDetailsStepProps) {
-  const { feePct, sellerPct } = usePlatformFee();
+  const { feePct } = usePlatformFee();
   const { user } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -294,7 +294,7 @@ export function AdditionalDetailsStep({ data, onChange, errors }: AdditionalDeta
       <Alert className="border-primary/30 bg-primary/5">
         <Info className="h-4 w-4 text-primary" />
         <AlertDescription className="text-xs">
-          <strong>Reminder:</strong> Payments are processed by Stripe or PayPal. Platform fee: {feePct}% (0% during launch promo), {sellerPct}% is yours.
+          <strong>Reminder:</strong> Card payments are processed by Stripe. Platform fee: {feePct}% unless an existing founding-seller benefit applies; actual Stripe processing fees are borne by the seller.
           Refunds only via DK AI Marketplace support review. Support: <strong>support@dkaimarketplace.com</strong>
         </AlertDescription>
       </Alert>

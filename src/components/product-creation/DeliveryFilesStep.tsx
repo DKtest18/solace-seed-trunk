@@ -259,7 +259,7 @@ export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, on
           <ul className="list-disc list-inside space-y-1 text-xs">
             <li>You <strong>cannot refuse</strong> to deliver after purchase.</li>
             <li>The product must be <strong>exactly as described</strong>.</li>
-            <li>Payout split: <strong>{sellerPct}% to you</strong>, <strong>{feePct}% platform fee</strong>.</li>
+            <li>Seller entitlement: sale amount minus platform commission, actual Stripe processing fees, and any approved refunds or disputes.</li>
             <li>Non-delivery triggers a <strong>full refund</strong> and possible suspension.</li>
           </ul>
         </AlertDescription>

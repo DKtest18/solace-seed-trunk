@@ -31,7 +31,7 @@ const SELLER_COUNTRIES = [
 
 export default function SellerOnboardingPayment() {
   const { user } = useAuth();
-  const { feePct, sellerPct } = usePlatformFee();
+  const { feePct } = usePlatformFee();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();

@@ -15,7 +15,7 @@ interface TermsAcceptanceStepProps {
 }
 
 export function TermsAcceptanceStep({ data, onChange, errors }: TermsAcceptanceStepProps) {
-  const { feePct, sellerPct } = usePlatformFee();
+  const { feePct } = usePlatformFee();
   const { data: terms, isLoading } = useQuery({
     queryKey: ['seller-terms'],
     queryFn: async () => {
@@ -167,11 +167,11 @@ export function TermsAcceptanceStep({ data, onChange, errors }: TermsAcceptanceS
               You must accept the terms to publish your product. By checking this box, you agree to:
             </p>
             <ul className="text-xs text-muted-foreground list-disc list-inside space-y-1 ml-4">
-              <li>Payments are processed by Stripe or PayPal and go directly to your connected payment account</li>
-              <li>Platform fee: 0% during the launch promo (first 20 platform sales), {feePct}% after</li>
-              <li>The payment provider's standard processing fees (Stripe or PayPal) apply and are borne by you as the seller</li>
+              <li>Card payments are processed by Stripe; eligible seller transfers are released after the required hold period</li>
+              <li>Platform fee: {feePct}% unless an existing founding-seller benefit applies</li>
+              <li>Stripe processing fees are calculated from Stripe's actual fee record and are borne by you as the seller</li>
               <li>Refunds are only granted through DK AI Marketplace support review, for two reasons: product not delivered, or product materially not as described</li>
-              <li>Approved refunds are for the full purchase price, debited from your connected payment account balance (Stripe or PayPal), typically within 24–72 hours of approval</li>
+              <li>Approved refunds are for the full purchase price and reduce or recover your seller entitlement according to the payment state</li>
               <li>You must respond to support inquiries about refund requests within 48 hours; no response means the case is decided in the buyer's favor and your listings may be deactivated or your account suspended</li>
               <li>You cannot refuse to deliver a purchased product — the product must match the listing</li>
               <li>No malware, illegal, infringing, sexual, or otherwise prohibited content</li>

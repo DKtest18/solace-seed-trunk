@@ -16,7 +16,7 @@ const buildPolicies = () => [
   "Refund requests must be filed within 14 days of purchase, with a description and any evidence (screenshots, logs). Approved refunds are for the FULL purchase price and are issued via Stripe to your original payment method, typically within 24–72 hours of approval.",
   "Abuse of the refund system (false claims, chargeback fraud) may result in account suspension.",
   "Upon a refund, your license to use the product ends immediately. Any further use, copying, or distribution of the delivered files is a breach of contract and a copyright infringement.",
-  "Payments are processed by Stripe or PayPal and go directly to the seller's connected payment account. Any platform fee is deducted from the seller's payout and never added to your price. Stripe's standard payment processing fees apply and are borne by the seller.",
+  "Card payments are processed securely by Stripe. Any platform fee is deducted from the seller's entitlement and never added to your price. Stripe's processing fees are based on Stripe's actual fee record and are borne by the seller.",
   "You must treat sellers fairly within the platform.",
   "The seller may send you up to 3 reminder notifications (in-app and by email) asking you to confirm receipt and leave a review. By purchasing, you consent to receiving these order-related communications.",
   "For any questions or problems, contact support@dkaimarketplace.com",
@@ -73,7 +73,7 @@ export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAccept
             <div className="mt-6 pt-4 border-t">
               <h4 className="font-semibold mb-2">Payment</h4>
               <p className="text-sm text-muted-foreground">
-                Payments are processed by Stripe or PayPal and go directly to the seller's connected payment account.{' '}
+                Card payments are processed securely by Stripe.{' '}
                 Any platform fee is deducted from the seller's payout and is never added to your
                 price.{' '}
                 Stripe's standard payment processing fees apply and are borne by the seller.
@@ -156,7 +156,7 @@ export function BuyerPolicyAcceptance({ onAccept, isLoading }: BuyerPolicyAccept
             className={`text-sm cursor-pointer ${!hasScrolledToBottom ? 'text-muted-foreground' : ''}`}
           >
             I have read and agree to all buyer terms and conditions. I understand that payment is
-            processed by Stripe or PayPal and goes directly to the seller, and that refunds are only
+            processed securely by Stripe, and that refunds are only
             granted through DK AI Marketplace support review for products that were not
             delivered or are materially not as described. I consent to receiving up to 3
             order-related reminder emails from the seller.

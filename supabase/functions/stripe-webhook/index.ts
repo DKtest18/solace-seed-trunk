@@ -22,12 +22,13 @@ function json(payload: unknown, status = 200): Response {
 async function startEvent(admin: Admin, event: Stripe.Event): Promise<EventStart> {
   const { data: existing } = await admin
     .from('webhook_events')
-    .select('id, processed')
+    .select('id, processed, error_message')
     .eq('provider', 'stripe')
     .eq('provider_event_id', event.id)
     .maybeSingle();
 
   if (existing?.processed) return 'duplicate';
+  if (existing && !existing.error_message) return 'busy';
   if (existing) return 'process';
 
   const { error } = await admin.from('webhook_events').insert({
@@ -88,19 +89,23 @@ async function findOrder(admin: Admin, object: any): Promise<any | null> {
 }
 
 async function retrievePaymentIntent(paymentIntentId: string): Promise<any | null> {
-  const res = await stripeCall(`payment_intents/${paymentIntentId}`, { expand: 'latest_charge.balance_transaction' }, { method: 'GET' });
+  const res = await stripeCall(`payment_intents/${paymentIntentId}`, { 'expand[]': 'latest_charge.balance_transaction' }, { method: 'GET' });
   return res.ok ? res.data : null;
+}
+
+async function resolveProcessingFee(charge: any): Promise<number | null> {
+  const bt = charge?.balance_transaction;
+  if (typeof bt === 'object' && bt && Number.isFinite(Number(bt.fee))) return Number(bt.fee);
+  if (typeof bt === 'string' && bt) {
+    const res = await stripeCall(`balance_transactions/${bt}`, undefined, { method: 'GET' });
+    if (res.ok && Number.isFinite(Number(res.data?.fee))) return Number(res.data.fee);
+  }
+  return null;
 }
 
 function chargeFromPaymentIntent(pi: any): any | null {
   const latest = pi?.latest_charge;
   return typeof latest === 'object' && latest ? latest : null;
-}
-
-function feeFromCharge(charge: any): number | null {
-  const bt = charge?.balance_transaction;
-  if (typeof bt === 'object' && bt && Number.isFinite(Number(bt.fee))) return Number(bt.fee);
-  return null;
 }
 
 async function recalcOrder(admin: Admin, orderId: string, processingFeeMinor?: number | null, refundedMinor?: number | null) {
@@ -133,7 +138,7 @@ async function markPaid(admin: Admin, event: Stripe.Event, object: any) {
   const balanceTransactionId = typeof charge?.balance_transaction === 'string'
     ? charge.balance_transaction
     : charge?.balance_transaction?.id ?? null;
-  const processingFeeMinor = feeFromCharge(charge);
+  const processingFeeMinor = await resolveProcessingFee(charge);
   const paidAt = new Date((Number(source.created ?? object.created ?? Date.now() / 1000)) * 1000).toISOString();
   const grossMinor = Number(source.amount_received ?? object.amount_total ?? charge?.amount ?? order.gross_amount_minor ?? 0);
   const currency = String(source.currency ?? object.currency ?? charge?.currency ?? order.currency ?? 'chf').toLowerCase();
@@ -259,7 +264,7 @@ async function handleChargeRefunded(admin: Admin, object: any) {
   const order = await findOrder(admin, charge);
   if (!order) return;
   const totalRefunded = Number(charge.amount_refunded ?? 0);
-  await recalcOrder(admin, order.id, feeFromCharge(charge), totalRefunded);
+  await recalcOrder(admin, order.id, await resolveProcessingFee(charge), totalRefunded);
   await admin.from('dkai_orders').update({
     refunded_amount_minor: totalRefunded,
     refund_amount: totalRefunded / 100,

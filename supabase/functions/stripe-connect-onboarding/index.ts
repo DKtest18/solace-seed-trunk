@@ -118,7 +118,6 @@ Deno.serve(async (req) => {
           country,
           'capabilities[transfers][requested]': 'true',
           'tos_acceptance[service_agreement]': 'full',
-          business_type: 'individual',
           'metadata[user_id]': user.id,
           'metadata[declared_country]': country,
           ...(user.email ? { email: user.email } : {}),

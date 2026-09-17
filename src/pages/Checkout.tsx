@@ -345,7 +345,7 @@ export default function Checkout() {
                   <span className="font-medium text-sm">Secure Payment</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Payments are processed by Stripe or PayPal and go directly to the seller's connected payment account.
+                  Card payments are processed securely by Stripe.
 {' '}
                   Any platform fee is deducted from the seller's payout and is never added to your
                   price.{' '}
@@ -389,14 +389,14 @@ export default function Checkout() {
                 <Alert>
                   <CreditCard className="h-4 w-4" />
                   <AlertDescription>
-                    You will be redirected to {paypalAvailable ? "Stripe or PayPal" : "Stripe's"} secure payment page.
+                    You will be redirected to {paypalAvailable ? "a secure hosted payment page" : "Stripe's secure payment page"}.
                   </AlertDescription>
                 </Alert>
 
                 <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
                   <p>✓ Secure hosted checkout</p>
                   <p>✓ No card data stored on this website</p>
-                  <p>✓ Payment goes directly to the seller's payout account</p>
+                  <p>✓ Seller transfers are released after eligibility checks</p>
                   <p>✓ No platform fee is added to your price</p>
                   <p>✓ The provider's standard processing fees apply (paid by the seller)</p>
                 </div>

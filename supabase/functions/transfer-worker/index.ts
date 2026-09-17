@@ -161,6 +161,20 @@ async function processClaim(admin: Admin, claim: Claim): Promise<string> {
     await retryLater(admin, claim, `Charge not settled (status ${charge.data.status})`, 'blocked');
     return 'charge_not_settled';
   }
+
+  const balanceTransaction = typeof charge.data.balance_transaction === 'string'
+    ? (await stripeCall(`balance_transactions/${charge.data.balance_transaction}`, undefined, { method: 'GET' }))
+    : { ok: true, data: charge.data.balance_transaction };
+  const availableOn = Number(balanceTransaction.ok ? balanceTransaction.data?.available_on ?? 0 : 0);
+  if (availableOn && availableOn * 1000 > Date.now()) {
+    const next = new Date(availableOn * 1000 + 60_000).toISOString();
+    await release(admin, claim.order_id, {
+      transfer_state: 'pending',
+      transfer_next_attempt_at: next,
+      transfer_last_error: `Stripe funds are not available until ${next}`,
+    });
+    return 'funds_not_available';
+  }
   const refundedMinor = Number(charge.data.amount_refunded ?? 0);
   if (refundedMinor > 0) {
     await admin.rpc('dkai_recalculate_order_financials', {

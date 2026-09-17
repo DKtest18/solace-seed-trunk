@@ -510,6 +510,12 @@ $$;
 REVOKE ALL ON FUNCTION public.dkai_recalculate_order_financials(uuid, bigint, bigint) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.dkai_recalculate_order_financials(uuid, bigint, bigint) TO service_role;
 
+-- Production payout release remains disabled until the owner explicitly enables it
+-- after successful test-mode validation. The worker can deploy safely; claims exit.
+UPDATE public.dkai_transfer_config
+SET transfers_enabled = false, updated_at = now()
+WHERE id = true;
+
 -- ---------------------------------------------------------------------------
 -- 10) Seller-facing payout view (read-only, own rows). Sellers can never
 --     write financial state: no INSERT/UPDATE grants anywhere above.

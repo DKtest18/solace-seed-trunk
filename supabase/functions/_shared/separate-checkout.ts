@@ -140,6 +140,34 @@ export async function createSeparateChargeCheckout(
     };
   }
 
+
+  // Live Stripe verification: cached DB flags are not enough for new platform
+  // charges because seller transfers are only safe when the connected account
+  // can receive transfers/payouts and has no active restriction.
+  const account = await stripeCall(`accounts/${sellerAccount}`, undefined, { method: 'GET' });
+  if (!account.ok) {
+    return { ok: false, status: 400, message: stripeErrorMessage(account.data), code: 'SELLER_ACCOUNT_UNAVAILABLE' };
+  }
+  const transfersActive = account.data?.capabilities?.transfers === 'active';
+  const payoutsEnabled = account.data?.payouts_enabled === true;
+  const disabledReason = account.data?.requirements?.disabled_reason ?? null;
+  await admin
+    .from('dkai_seller_payment_configs')
+    .update({
+      transfers_capability_active: transfersActive,
+      payouts_enabled: payoutsEnabled,
+      charges_enabled: !!account.data?.charges_enabled,
+      account_restricted: !!disabledReason,
+      stripe_account_country: account.data?.country ?? null,
+      stripe_default_currency: account.data?.default_currency ?? null,
+      requirements_snapshot: account.data?.requirements ?? null,
+      capabilities_synced_at: new Date().toISOString(),
+    })
+    .eq('seller_id', product.seller_id);
+  if (!transfersActive || !payoutsEnabled || disabledReason) {
+    return { ok: false, status: 400, message: 'Seller payout account is not ready for transfers', code: 'SELLER_NOT_TRANSFER_READY' };
+  }
+
   const licenseTier = input.licenseTier && LICENSE_TIERS.has(input.licenseTier) ? input.licenseTier : 'personal';
   const isExclusiveSold = !!product.exclusive_sold_at || !!product.exclusive_owner_id || product.status === 'locked_exclusive';
   if (isExclusiveSold) {

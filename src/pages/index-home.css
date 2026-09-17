@@ -368,7 +368,7 @@
   .network-tools-track {
     animation: none !important;
   }
-  .network-tools-motion-control { visibility: hidden; }
+  
   .network-tools-marquee { display: none; }
   .network-tools-static {
     position: relative;

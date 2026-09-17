@@ -98,7 +98,7 @@ export async function createSeparateChargeCheckout(
 
   const guard = await isProductPurchasable(admin, productId);
   if (!guard.ok) {
-    return { ok: false, status: 400, message: guard.reason!, code: 'PRODUCT_NOT_PURCHASABLE' };
+    return { ok: false, status: 400, message: guard.reason ?? 'Product is not available for purchase', code: 'PRODUCT_NOT_PURCHASABLE' };
   }
 
   const { data: product, error: pErr } = await admin

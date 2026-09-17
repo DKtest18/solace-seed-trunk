@@ -400,7 +400,7 @@ DECLARE
   _enabled boolean;
 BEGIN
   SELECT transfers_enabled INTO _enabled FROM public.dkai_transfer_config WHERE id = true;
-  IF NOT COALESCE(_enabled, true) THEN
+  IF NOT COALESCE(_enabled, false) THEN
     RETURN;
   END IF;
 
@@ -416,7 +416,7 @@ BEGIN
       AND o.transfer_eligible_at <= now()
       AND COALESCE(o.transfer_lease_until, to_timestamp(0)) < now()
       AND COALESCE(o.transfer_next_attempt_at, to_timestamp(0)) <= now()
-      AND COALESCE(o.refunded_amount_minor, 0) = 0
+      AND COALESCE(o.refunded_amount_minor, 0) < COALESCE(o.gross_amount_minor, ROUND(COALESCE(o.price, 0) * 100)::bigint)
       AND o.dispute_opened_at IS NULL
       AND COALESCE(o.seller_entitlement_minor, 0) > 0
       AND o.stripe_charge_id IS NOT NULL

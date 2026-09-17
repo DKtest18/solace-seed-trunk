@@ -138,7 +138,7 @@ export function mapStripeConnectStatus(data: any): StripeConnectStatus {
   const onboardingStatus = data?.onboardingStatus || data?.onboarding_status || (
     !data?.connected ? 'not_connected' :
     requirements.currently_due.length > 0 || requirements.past_due.length > 0 ? 'needs_info' :
-    (data?.onboarded || data?.detailsSubmitted || data?.details_submitted || data?.charges_enabled || data?.chargesEnabled) ? 'connected' :
+    (data?.payouts_enabled || data?.payoutsEnabled) && (data?.transfers_capability_active || data?.transfersCapabilityActive) && !(data?.account_restricted || data?.accountRestricted) ? 'connected' :
     'onboarding'
   );
 

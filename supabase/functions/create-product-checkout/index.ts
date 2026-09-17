@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
     const admin = getServiceClient();
 
     const guard = await isProductPurchasable(admin, productId);
-    if (!guard.ok) return errorResponse(guard.reason!, 400);
+    if (!guard.ok) return errorResponse(guard.reason ?? 'Product is not available for purchase', 400);
 
     const { data: product, error: productError } = await admin
       .from('dkai_products')

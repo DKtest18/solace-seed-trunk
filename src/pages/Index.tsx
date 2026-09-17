@@ -152,6 +152,8 @@ export default function Index() {
       {/* COMPANY LOGO WALL — consented company logos only */}
       <CompanyLogoWall />
 
+      <NetworkToolsSection />
+
       {/* HOW IT WORKS */}
       <section className="relative max-w-6xl mx-auto px-6 py-24">
         <div className="text-center mb-14">
@@ -188,8 +190,6 @@ export default function Index() {
           ))}
         </div>
       </section>
-
-      <NetworkToolsSection />
 
       {/* SELLER CTA STRIP */}
       <section className="relative max-w-6xl mx-auto px-6 py-20">

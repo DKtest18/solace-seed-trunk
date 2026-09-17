@@ -3,6 +3,7 @@ import { ExternalLink, Pause, Play } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import nordpixelLogo from '@/assets/network-tools/nordpixel-logo.png';
+import makeLogo from '@/assets/network-tools/make-logo.png';
 import elevenLabsLogo from '@/assets/network-tools/elevenlabs-logo.svg';
 
 type NetworkTool = {
@@ -26,6 +27,7 @@ const NETWORK_TOOLS: readonly NetworkTool[] = [
     name: 'Make',
     href: 'https://www.make.com/en/register?pc=dkaimarketplace',
     rel: 'sponsored noopener',
+    logo: makeLogo,
   },
   {
     id: 'elevenlabs',

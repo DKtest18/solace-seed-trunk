@@ -9,6 +9,10 @@ export interface StripeConnectStatus {
   chargesEnabled: boolean;
   payoutsEnabled: boolean;
   detailsSubmitted: boolean;
+  transfersCapabilityActive?: boolean;
+  accountRestricted?: boolean;
+  country?: string;
+  serviceAgreement?: string;
   email?: string;
   requirements?: {
     currently_due?: string[];
@@ -148,6 +152,10 @@ export function mapStripeConnectStatus(data: any): StripeConnectStatus {
     detailsSubmitted: data?.detailsSubmitted ?? data?.details_submitted ?? false,
     email: data?.email,
     requirements,
+    transfersCapabilityActive: data?.transfersCapabilityActive ?? data?.transfers_capability_active ?? false,
+    accountRestricted: data?.accountRestricted ?? data?.account_restricted ?? false,
+    country: data?.country ?? data?.stripe_account_country,
+    serviceAgreement: data?.serviceAgreement ?? data?.stripe_service_agreement,
     isTestMode: data?.isTestMode ?? data?.is_test_mode,
   };
 }
@@ -168,8 +176,8 @@ export async function fetchStripeConnectStatus(): Promise<StripeConnectStatus> {
   return emptyStripeConnectStatus;
 }
 
-export async function createStripeConnectOnboardingLink(origin: string): Promise<string> {
-  const data = await invokeStripeFunction<{ url?: string }>('stripe-connect-onboarding', { origin });
+export async function createStripeConnectOnboardingLink(origin: string, country?: string): Promise<string> {
+  const data = await invokeStripeFunction<{ url?: string }>('stripe-connect-onboarding', { origin, country });
   if (!data?.url) throw new Error('stripe-connect-onboarding returned no url');
   return data.url;
 }
@@ -196,5 +204,5 @@ export async function pollStripeConnectStatus(options?: {
 }
 
 export function isStripeConnectedForOnboarding(status: StripeConnectStatus): boolean {
-  return status.connected && status.onboardingStatus === 'connected' && status.detailsSubmitted;
+  return status.connected && status.onboardingStatus === 'connected' && status.detailsSubmitted && status.payoutsEnabled && !status.accountRestricted;
 }

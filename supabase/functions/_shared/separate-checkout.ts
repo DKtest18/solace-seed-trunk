@@ -16,12 +16,72 @@ import { isProductPurchasable } from './purchasable.ts';
 import { REVIEW_STATUS } from './review-status.ts';
 import { stripeCall, stripeErrorMessage, toMinorUnits, PLATFORM_CURRENCY } from './stripe.ts';
 
+const LICENSE_TIERS = new Set(['personal', 'commercial', 'agency', 'exclusive']);
+
+function clampNonNegative(value: number) {
+  return value < 0 ? 0 : value;
+}
+
+function resolveTierPrice(product: any, tier: string): number | null {
+  const fallback = Number(product.price ?? 0);
+  if (tier === 'personal') {
+    if (product.license_personal_enabled === false) return null;
+    return Number(product.license_personal_price ?? fallback);
+  }
+  if (tier === 'commercial') {
+    if (product.license_commercial_enabled !== true) return null;
+    return Number(product.license_commercial_price ?? fallback);
+  }
+  if (tier === 'agency') {
+    if (product.license_agency_enabled !== true) return null;
+    return Number(product.license_agency_price ?? fallback);
+  }
+  if (tier === 'exclusive') {
+    if (product.license_exclusive_enabled !== true) return null;
+    return Number(product.license_exclusive_price ?? fallback);
+  }
+  return null;
+}
+
+async function applyCoupon(admin: any, product: any, couponCode: string | null | undefined, basePrice: number): Promise<number> {
+  let finalPrice = clampNonNegative(basePrice);
+  const code = couponCode?.trim();
+  if (!code) return Math.round(finalPrice * 100) / 100;
+
+  const { data: coupons, error } = await admin
+    .from('dkai_coupons')
+    .select('id,code,discount_type,discount_value,usage_limit,times_redeemed,expires_at,active,product_id,seller_id')
+    .eq('seller_id', product.seller_id)
+    .ilike('code', code)
+    .limit(1);
+
+  if (error || !coupons?.length) return Math.round(finalPrice * 100) / 100;
+  const coupon = coupons[0];
+  const expired = coupon.expires_at ? new Date(coupon.expires_at) < new Date() : false;
+  const usageExceeded = coupon.usage_limit != null && Number(coupon.times_redeemed ?? 0) >= Number(coupon.usage_limit);
+  const productMatch = !coupon.product_id || coupon.product_id === product.id;
+  if (!coupon.active || expired || usageExceeded || !productMatch) return Math.round(finalPrice * 100) / 100;
+
+  if (coupon.discount_type === 'percent') {
+    const pct = Number(coupon.discount_value);
+    if (Number.isFinite(pct) && pct > 0) finalPrice = clampNonNegative(finalPrice - (finalPrice * pct / 100));
+  } else if (coupon.discount_type === 'fixed') {
+    const fixed = Number(coupon.discount_value);
+    if (Number.isFinite(fixed) && fixed > 0) finalPrice = clampNonNegative(finalPrice - fixed);
+  }
+  return Math.round(finalPrice * 100) / 100;
+}
+
 export interface CheckoutInput {
   productId: string;
   buyer: { id: string; email?: string } | null;
   origin: string;
   shippingAddress?: unknown;
   successPath?: string;
+  guestEmail?: string | null;
+  couponCode?: string | null;
+  licenseTier?: 'personal' | 'commercial' | 'agency' | 'exclusive';
+  ipAssignmentAccepted?: boolean;
 }
 
 export type CheckoutResult =
@@ -43,7 +103,7 @@ export async function createSeparateChargeCheckout(
 
   const { data: product, error: pErr } = await admin
     .from('dkai_products')
-    .select('id, title, price, currency, seller_id, delivery_tier, review_status, is_published')
+    .select('id, title, price, currency, seller_id, delivery_tier, review_status, is_published, license_personal_enabled, license_personal_price, license_commercial_enabled, license_commercial_price, license_agency_enabled, license_agency_price, license_exclusive_enabled, license_exclusive_price, exclusive_sold_at, exclusive_owner_id, status')
     .eq('id', productId)
     .maybeSingle();
   if (pErr || !product) {
@@ -80,8 +140,21 @@ export async function createSeparateChargeCheckout(
     };
   }
 
+  const licenseTier = input.licenseTier && LICENSE_TIERS.has(input.licenseTier) ? input.licenseTier : 'personal';
+  const isExclusiveSold = !!product.exclusive_sold_at || !!product.exclusive_owner_id || product.status === 'locked_exclusive';
+  if (isExclusiveSold) {
+    return { ok: false, status: 400, message: 'Product is already exclusively sold', code: 'PRODUCT_NOT_AVAILABLE' };
+  }
+  if (licenseTier === 'exclusive' && input.ipAssignmentAccepted !== true) {
+    return { ok: false, status: 400, message: 'Exclusive buyout requires IP assignment acceptance', code: 'IP_ASSIGNMENT_REQUIRED' };
+  }
+  const basePrice = resolveTierPrice(product, licenseTier);
+  if (basePrice === null || !Number.isFinite(basePrice)) {
+    return { ok: false, status: 400, message: 'Selected license tier is not enabled', code: 'LICENSE_TIER_UNAVAILABLE' };
+  }
+  const finalPrice = await applyCoupon(admin, product, input.couponCode, basePrice);
   const currency = (product.currency || PLATFORM_CURRENCY).toLowerCase();
-  const grossMinor = toMinorUnits(Number(product.price), currency);
+  const grossMinor = toMinorUnits(finalPrice, currency);
   if (!Number.isFinite(grossMinor) || grossMinor <= 0) {
     return { ok: false, status: 400, message: 'Invalid product price', code: 'INVALID_PRICE' };
   }
@@ -93,20 +166,21 @@ export async function createSeparateChargeCheckout(
     .from('dkai_orders')
     .insert({
       buyer_id: buyer?.id ?? null,
-      guest_email: buyer ? null : null,
+      guest_email: buyer ? null : input.guestEmail ?? null,
       product_id: productId,
       seller_id: product.seller_id,
-      price: product.price,
+      price: finalPrice,
       currency,
       gross_amount_minor: grossMinor,
       payment_method: 'stripe',
       status: 'pending_payment',
       delivery_tier: tier,
       charge_mode: 'separate',
-      transfer_state: 'not_applicable',
+      transfer_state: 'pending',
       processing_fee_bearer: 'seller',
       transfer_destination_account: sellerAccount,
       shipping_address: (input.shippingAddress as any) ?? null,
+      license_tier: licenseTier,
     })
     .select('id')
     .single();
@@ -133,7 +207,7 @@ export async function createSeparateChargeCheckout(
   const params: Record<string, string> = {
     mode: 'payment',
     success_url: `${origin}${successPath}?success=true&order=${order.id}`,
-    cancel_url: `${origin}/checkout?productId=${productId}&canceled=true`,
+    cancel_url: `${origin}/checkout?productId=${productId}&tier=${licenseTier}&canceled=true`,
     'line_items[0][price_data][currency]': currency,
     'line_items[0][price_data][product_data][name]': product.title,
     'line_items[0][price_data][unit_amount]': String(grossMinor),
@@ -141,6 +215,7 @@ export async function createSeparateChargeCheckout(
     'metadata[order_id]': order.id,
     'metadata[product_id]': productId,
     'metadata[seller_id]': product.seller_id,
+    'metadata[license_tier]': licenseTier,
     'metadata[buyer_id]': buyer?.id ?? 'guest',
     'metadata[charge_mode]': 'separate',
     'metadata[seller_account]': sellerAccount,
@@ -155,6 +230,7 @@ export async function createSeparateChargeCheckout(
     params['customer_email'] = buyer.email;
   } else {
     // Guest checkout: Stripe collects the email for the receipt.
+    params['customer_creation'] = 'if_required';
     params['billing_address_collection'] = 'auto';
   }
 

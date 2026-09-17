@@ -748,7 +748,7 @@
       "findTitle": "Find it",
       "findText": "Browse reviewed AI agents, workflows and prompts from real builders.",
       "buyTitle": "Buy it (no account needed)",
-      "buyText": "Secure Stripe checkout — no sign-up required, no hidden fees. PayPal coming soon.",
+      "buyText": "Secure Stripe checkout — no sign-up required and no hidden platform fees.",
       "getTitle": "Get it instantly",
       "getText": "Downloads, access details and setup delivered right after payment."
     },
@@ -761,11 +761,11 @@
       "reviewedText": "Every product is manually reviewed before it goes live.",
       "verifiedSellersTitle": "Verified Sellers",
       "verifiedSellersText": "Identity verified for every seller. Products go live only after review.",
-      "payoutsTitle": "Direct Payouts",
-      "payoutsText": "Payments flow straight to the seller's connected Stripe account — no detours. PayPal payouts coming soon."
+      "payoutsTitle": "Stripe Payouts",
+      "payoutsText": "Sellers connect Stripe to receive eligible transfers after platform review and the required hold period."
     },
     "ctaTitle": "Sell your AI products",
-    "ctaText": "Become a verified seller and reach a buy-ready community — with direct Stripe payouts (PayPal coming soon) and a fair fee structure.",
+    "ctaText": "Become a verified seller, list reviewed AI products, and receive eligible Stripe transfers after the required hold period.",
     "logoWallTitle": "Companies selling on DK AI Marketplace",
     "logoWallAlt": "Company logo"
   },

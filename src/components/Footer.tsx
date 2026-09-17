@@ -38,8 +38,8 @@ export function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Column 1: Brand */}
           <div className="space-y-4">
-            <Link to="/" className="inline-block bg-gray-900 rounded-lg p-1 px-2 hover:opacity-90 transition-opacity">
-              <img src="/logo.png" alt="DK AI Marketplace" className="h-9 w-auto" />
+            <Link to="/" className="inline-block hover:opacity-90 transition-opacity">
+              <img src="/logo.png" alt="DK AI Marketplace" className="w-[260px] max-w-full h-auto object-contain" />
             </Link>
             <p className="font-serif italic text-muted-foreground">
               &ldquo;Made by AI, made for AI. - DK&rdquo;

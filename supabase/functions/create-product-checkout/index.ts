@@ -21,6 +21,9 @@ Deno.serve(async (req) => {
     const productId = body.productId ?? body.product_id;
     const paymentMethod = body.paymentMethod ?? 'card';
     const shippingAddress = body.shippingAddress ?? null;
+    const licenseTier = body.license_tier ?? body.licenseTier;
+    const couponCode = body.couponCode ?? body.coupon_code;
+    const ipAssignmentAccepted = body.ip_assignment_accepted === true || body.ipAssignmentAccepted === true;
 
     const admin = getServiceClient();
 
@@ -62,6 +65,9 @@ Deno.serve(async (req) => {
         buyer: { id: user.id, email: buyerEmail || undefined },
         origin,
         shippingAddress,
+        couponCode,
+        licenseTier,
+        ipAssignmentAccepted,
       });
       if (!result.ok) {
         return new Response(
@@ -103,7 +109,7 @@ Deno.serve(async (req) => {
         seller_earnings: sellerEarnings,
         payment_method: paymentMethod || 'manual',
         status: 'pending_payment',
-        charge_mode: 'separate',
+        charge_mode: 'manual',
         transfer_state: 'not_applicable',
         shipping_address: shippingAddress,
       })

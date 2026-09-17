@@ -39,6 +39,10 @@ Deno.serve(async (req) => {
       buyer,
       origin,
       shippingAddress: body.shippingAddress ?? body.shipping_address,
+      guestEmail: typeof body.guest_email === 'string' ? body.guest_email : null,
+      couponCode: typeof body.couponCode === 'string' ? body.couponCode : typeof body.coupon_code === 'string' ? body.coupon_code : null,
+      licenseTier: body.license_tier ?? body.licenseTier,
+      ipAssignmentAccepted: body.ip_assignment_accepted === true || body.ipAssignmentAccepted === true,
     });
 
     if (!result.ok) {

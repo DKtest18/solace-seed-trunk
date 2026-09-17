@@ -219,13 +219,13 @@
   object-fit: contain;
 }
 
-.network-tool-logo img[src*="nordpixel"] {
+.network-tool-logo img[src*="nordpixel-logo"] {
   width: 330%;
   height: 330%;
   max-width: none;
 }
 
-.network-tool-logo img[src*="elevenlabs"] {
+.network-tool-logo img[src*="elevenlabs-logo"] {
   width: 205%;
   height: 205%;
   max-width: none;
@@ -393,7 +393,7 @@
   .network-tools-track {
     animation: none !important;
   }
-  .network-tools-motion-control { display: none; }
+  .network-tools-motion-control { visibility: hidden; }
   .network-tools-marquee { display: none; }
   .network-tools-static {
     position: relative;

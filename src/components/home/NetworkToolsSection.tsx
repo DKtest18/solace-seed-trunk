@@ -2,15 +2,15 @@ import { useState } from 'react';
 import { ExternalLink, Pause, Play } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import nordpixelLogo from '@/assets/network-tools/nordpixel-logo.png.asset.json';
-import elevenLabsLogo from '@/assets/network-tools/elevenlabs-logo.svg.asset.json';
+import nordpixelLogo from '@/assets/network-tools/nordpixel-logo.png';
+import elevenLabsLogo from '@/assets/network-tools/elevenlabs-logo.svg';
 
 type NetworkTool = {
   id: 'nordpixel' | 'make' | 'elevenlabs';
   name: string;
   href: string;
   rel: 'nofollow noopener' | 'sponsored noopener';
-  logo?: { url: string };
+  logo?: string;
 };
 
 const NETWORK_TOOLS: readonly NetworkTool[] = [
@@ -57,7 +57,7 @@ function ToolCard({ tool, keyboardAccessible }: ToolCardProps) {
     >
       <span className="network-tool-logo" aria-hidden="true">
         {tool.logo ? (
-          <img src={tool.logo.url} alt="" width="240" height="86" loading="lazy" />
+          <img src={tool.logo} alt="" width="240" height="86" loading="lazy" />
         ) : (
           <span className="network-tool-wordmark">{tool.name}</span>
         )}

@@ -300,6 +300,11 @@ async function processClaim(admin: Admin, claim: Claim): Promise<string> {
       .eq('id', operationId);
   }
 
+  if (!operationId) {
+    await retryLater(admin, claim, 'Could not determine persisted transfer operation');
+    return 'op_persist_failed';
+  }
+
   await admin
     .from('dkai_orders')
     .update({
@@ -322,13 +327,17 @@ async function processClaim(admin: Admin, claim: Claim): Promise<string> {
         error_message: String((err as Error).message).slice(0, 500),
         updated_at: new Date().toISOString(),
       })
-      .eq('id', operationId!);
+      .eq('id', operationId);
     await retryLater(admin, claim, `Transfer call failed, outcome unknown: ${(err as Error).message}`);
     return 'ambiguous';
   }
 
   if (result.ok) {
-    const transfer = result.data;
+    const transfer = result.data as { id?: string };
+    if (!transfer.id) {
+      await retryLater(admin, claim, 'Stripe transfer response did not include a transfer id');
+      return 'ambiguous';
+    }
     await admin
       .from('dkai_transfer_operations')
       .update({
@@ -336,7 +345,7 @@ async function processClaim(admin: Admin, claim: Claim): Promise<string> {
         stripe_transfer_id: transfer.id,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', operationId!);
+      .eq('id', operationId);
     await admin.from('dkai_transfer_attempts').insert({
       order_id: claim.order_id,
       seller_id: claim.seller_id,
@@ -358,7 +367,8 @@ async function processClaim(admin: Admin, claim: Claim): Promise<string> {
     return 'transferred';
   }
 
-  const code = result.data?.error?.code ?? '';
+  const resultData = result.data as { error?: { code?: string } };
+  const code = resultData.error?.code ?? '';
   const message = stripeErrorMessage(result.data);
   const permanent = ['account_invalid', 'balance_insufficient'].includes(code) === false && result.status < 500 && result.status !== 429;
 
@@ -370,7 +380,7 @@ async function processClaim(admin: Admin, claim: Claim): Promise<string> {
       error_message: message.slice(0, 500),
       updated_at: new Date().toISOString(),
     })
-    .eq('id', operationId!);
+    .eq('id', operationId);
   await admin.from('dkai_transfer_attempts').insert({
     order_id: claim.order_id,
     seller_id: claim.seller_id,

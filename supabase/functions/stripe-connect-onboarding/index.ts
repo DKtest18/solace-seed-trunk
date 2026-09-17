@@ -155,6 +155,10 @@ Deno.serve(async (req) => {
       if (!persisted) return errorResponse('We could not save your Stripe account to your seller profile. Please try again or contact support.', 500);
     }
 
+    if (!accountId) {
+      return errorResponse('We could not prepare your Stripe account. Please try again or contact support.', 500);
+    }
+
     const linkRes = await fetch('https://api.stripe.com/v1/account_links', {
       method: 'POST',
       headers: { Authorization: `Bearer ${stripeKey}`, 'Content-Type': 'application/x-www-form-urlencoded' },

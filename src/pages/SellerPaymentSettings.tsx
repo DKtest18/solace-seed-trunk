@@ -46,7 +46,7 @@ export default function SellerPaymentSettings() {
   const [disconnecting, setDisconnecting] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus>(emptyStripeConnectStatus);
-  const [sellerCountry, setSellerCountry] = useState('CH');
+  const [sellerCountry, setSellerCountry] = useState('');
   const [paypalStatus, setPaypalStatus] = useState<PayPalConnectStatus>(emptyPayPalConnectStatus);
 
   useEffect(() => {
@@ -127,6 +127,10 @@ export default function SellerPaymentSettings() {
 
 
   const handleConnectStripe = async () => {
+    if (!sellerCountry) {
+      toast.error("Please select your seller country before starting Stripe onboarding.");
+      return;
+    }
     setConnecting(true);
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData?.session) {
@@ -493,7 +497,7 @@ export default function SellerPaymentSettings() {
 
                 <div className="space-y-2">
                   <Label htmlFor="seller-country">Seller country</Label>
-                  <Select value={sellerCountry} onValueChange={setSellerCountry}>
+                  <Select value={sellerCountry || undefined} onValueChange={setSellerCountry}>
                     <SelectTrigger id="seller-country">
                       <SelectValue placeholder="Select seller country" />
                     </SelectTrigger>
@@ -508,7 +512,7 @@ export default function SellerPaymentSettings() {
                   <p className="text-xs text-muted-foreground">Stripe verifies country support during onboarding. Unsupported account setups stay blocked.</p>
                 </div>
 
-                <Button onClick={handleConnectStripe} disabled={connecting} className="w-full">
+                <Button onClick={handleConnectStripe} disabled={connecting || !sellerCountry} className="w-full">
                   {connecting ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />

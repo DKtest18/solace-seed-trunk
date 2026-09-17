@@ -35,6 +35,18 @@ type PayoutRow = {
   status: string | null;
 };
 
+type Totals = {
+  gross: number;
+  commission: number;
+  fees: number;
+  entitlement: number;
+  transferred: number;
+  held: number;
+  debt: number;
+};
+
+const emptyTotals = (): Totals => ({ gross: 0, commission: 0, fees: 0, entitlement: 0, transferred: 0, held: 0, debt: 0 });
+
 function minorToMajor(value: number | null | undefined, currency: string | null | undefined) {
   const minor = Number(value ?? 0);
   const zeroDecimal = new Set(['bif', 'clp', 'djf', 'gnf', 'jpy', 'kmf', 'krw', 'mga', 'pyg', 'rwf', 'ugx', 'vnd', 'vuv', 'xaf', 'xof', 'xpf']);
@@ -98,16 +110,32 @@ export default function SellerEarnings() {
   const rows = data?.rows ?? [];
   const products = data?.products ?? [];
   const productTitle = (id: string | null) => products.find((p: any) => p.id === id)?.title || 'Unknown product';
-  const totals = rows.reduce((acc, row) => {
-    acc.gross += minorToMajor(row.gross_amount_minor, row.currency);
-    acc.commission += minorToMajor(row.commission_amount_minor, row.currency);
-    acc.fees += minorToMajor(row.processing_fee_minor, row.currency);
-    acc.entitlement += minorToMajor(row.seller_entitlement_minor, row.currency);
-    acc.debt += minorToMajor(row.seller_debt_minor, row.currency);
-    if (row.transfer_state === 'completed') acc.transferred += minorToMajor(row.seller_entitlement_minor, row.currency);
-    if (row.transfer_state !== 'completed') acc.held += minorToMajor(row.seller_entitlement_minor, row.currency);
+  const totalsByCurrency = rows.reduce<Record<string, Totals>>((acc, row) => {
+    const currency = String(row.currency || 'chf').toLowerCase();
+    const bucket = acc[currency] ?? emptyTotals();
+    bucket.gross += minorToMajor(row.gross_amount_minor, currency);
+    bucket.commission += minorToMajor(row.commission_amount_minor, currency);
+    bucket.fees += minorToMajor(row.processing_fee_minor, currency);
+    bucket.entitlement += minorToMajor(row.seller_entitlement_minor, currency);
+    bucket.debt += minorToMajor(row.seller_debt_minor, currency);
+    if (row.transfer_state === 'completed') bucket.transferred += minorToMajor(row.seller_entitlement_minor, currency);
+    if (row.transfer_state !== 'completed') bucket.held += minorToMajor(row.seller_entitlement_minor, currency);
+    acc[currency] = bucket;
     return acc;
-  }, { gross: 0, commission: 0, fees: 0, entitlement: 0, transferred: 0, held: 0, debt: 0 });
+  }, {});
+  const currencies = Object.keys(totalsByCurrency).sort();
+  const displayTotals = (field: keyof Totals) => {
+    if (currencies.length === 0) return <div className="text-2xl font-bold">{formatMoney(0, 'chf')}</div>;
+    return (
+      <div className="space-y-1">
+        {currencies.map((currency) => (
+          <div key={currency} className="text-2xl font-bold">
+            {formatMoney(totalsByCurrency[currency][field], currency)}
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -123,11 +151,11 @@ export default function SellerEarnings() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Seller Entitlement</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-primary">{formatMoney(totals.entitlement, 'chf')}</div><p className="text-xs text-muted-foreground mt-1">After commission, actual Stripe fees and refunds</p></CardContent></Card>
-          <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Held / Pending</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{formatMoney(totals.held, 'chf')}</div><p className="text-xs text-muted-foreground mt-1">Eligible only after the hold and checks</p></CardContent></Card>
-          <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Transferred</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{formatMoney(totals.transferred, 'chf')}</div><p className="text-xs text-muted-foreground mt-1">Released to Stripe account</p></CardContent></Card>
-          <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Platform Commission</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{formatMoney(totals.commission, 'chf')}</div><p className="text-xs text-muted-foreground mt-1">5% unless founding benefit applied</p></CardContent></Card>
-          <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Seller Recovery</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{formatMoney(totals.debt, 'chf')}</div><p className="text-xs text-muted-foreground mt-1">Outstanding reversals or dispute recovery</p></CardContent></Card>
+          <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Seller Entitlement</CardTitle></CardHeader><CardContent>{displayTotals('entitlement')}<p className="text-xs text-muted-foreground mt-1">After commission, actual Stripe fees and refunds</p></CardContent></Card>
+          <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Held / Pending</CardTitle></CardHeader><CardContent>{displayTotals('held')}<p className="text-xs text-muted-foreground mt-1">Eligible only after the hold and checks</p></CardContent></Card>
+          <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Transferred</CardTitle></CardHeader><CardContent>{displayTotals('transferred')}<p className="text-xs text-muted-foreground mt-1">Released to Stripe account</p></CardContent></Card>
+          <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Platform Commission</CardTitle></CardHeader><CardContent>{displayTotals('commission')}<p className="text-xs text-muted-foreground mt-1">5% unless founding benefit applied</p></CardContent></Card>
+          <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Seller Recovery</CardTitle></CardHeader><CardContent>{displayTotals('debt')}<p className="text-xs text-muted-foreground mt-1">Outstanding reversals or dispute recovery</p></CardContent></Card>
         </div>
 
         <Card>

@@ -112,19 +112,6 @@
   margin-bottom: 2rem;
 }
 
-.network-tools-motion-control {
-  flex: 0 0 auto;
-  min-height: 44px;
-  border-color: var(--hair-strong);
-  background: var(--brand-base);
-  color: var(--brand-primary);
-}
-
-.network-tools-motion-control:hover {
-  background: var(--n-surface-strong);
-}
-
-.network-tools-motion-control:focus-visible,
 .network-tool-card:focus-visible {
   outline: 3px solid var(--brand-accent-on-base);
   outline-offset: 3px;
@@ -167,8 +154,7 @@
   padding: 0;
 }
 
-.network-tools-experience:hover .network-tools-track,
-.network-tools-experience.is-paused .network-tools-track {
+.network-tools-experience:hover .network-tools-track {
   animation-play-state: paused;
 }
 
@@ -382,7 +368,7 @@
   .network-tools-track {
     animation: none !important;
   }
-  .network-tools-motion-control { visibility: hidden; }
+  
   .network-tools-marquee { display: none; }
   .network-tools-static {
     position: relative;

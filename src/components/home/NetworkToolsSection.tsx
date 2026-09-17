@@ -1,7 +1,5 @@
-import { useState } from 'react';
-import { ExternalLink, Pause, Play } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
 import nordpixelLogo from '@/assets/network-tools/nordpixel-logo.png';
 import makeLogo from '@/assets/network-tools/make-logo.png';
 import elevenLabsLogo from '@/assets/network-tools/elevenlabs-logo.svg';
@@ -92,7 +90,6 @@ function ToolList({ keyboardAccessible, className }: { keyboardAccessible: boole
 
 export function NetworkToolsSection() {
   const { t } = useTranslation();
-  const [manuallyPaused, setManuallyPaused] = useState(false);
 
   return (
     <section className="network-tools-section relative py-20" aria-labelledby="network-tools-title">
@@ -104,21 +101,9 @@ export function NetworkToolsSection() {
             </h2>
             <p className="text-[var(--text-muted)]">{t('landing.networkTools.subtitle')}</p>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="network-tools-motion-control"
-            aria-pressed={manuallyPaused}
-            aria-label={manuallyPaused ? t('landing.networkTools.resumeLabel') : t('landing.networkTools.pauseLabel')}
-            onClick={() => setManuallyPaused((paused) => !paused)}
-          >
-            {manuallyPaused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
-            <span>{manuallyPaused ? t('landing.networkTools.resume') : t('landing.networkTools.pause')}</span>
-          </Button>
         </div>
 
-        <div className={`network-tools-experience${manuallyPaused ? ' is-paused' : ''}`}>
+        <div className="network-tools-experience">
           <div className="network-tools-static">
             <ToolList keyboardAccessible className="network-tools-static-list" />
           </div>

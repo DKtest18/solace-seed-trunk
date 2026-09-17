@@ -9,3 +9,4 @@
 - [ ] Validate build and critical test-mode scenarios that can run without real payments.
 - [ ] Deploy/apply only to the existing external Supabase project if authorized access is available; otherwise provide exact manual steps.
 - [ ] Before deployment, verify legacy Stripe charge routing from original checkout context, Swiss-platform country support, external project `dwqpkdatzdqhplgyhigg`, and keep production payout scheduling disabled until explicit approval.
+- [ ] Add the approved homepage “Network & Tools” section for Nordpixel, Make, and ElevenLabs only; keep the full affiliate disclosure visible, add no tracking, and remove the old decorative icon strip.

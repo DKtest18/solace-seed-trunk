@@ -29,11 +29,11 @@ import {
 } from '@/lib/paypalConnectStatus';
 
 /**
- * PayPal onboarding is not live yet (partner review pending). While this flag is
- * true the card shows a "Coming soon" state instead of a connect action that
- * would only fail. Flip to false to re-enable the real onboarding flow.
+ * PayPal onboarding is unavailable. Keep the historical status/read paths for
+ * already stored rows, but do not advertise a launch date or show a dead
+ * connect action.
  */
-const PAYPAL_COMING_SOON = true;
+const PAYPAL_UNAVAILABLE = true;
 
 interface PayPalConnectCardProps {
   /** Route to strip the PayPal return params from, e.g. "/seller/payment-settings" */
@@ -152,8 +152,8 @@ export function PayPalConnectCard({ returnPath, onStatusChange }: PayPalConnectC
 
   const badge = () => {
     const modeLabel = status.isSandbox ? ' (Sandbox)' : '';
-    if (PAYPAL_COMING_SOON && !status.connected) {
-      return <Badge variant="secondary">Soon available</Badge>;
+    if (PAYPAL_UNAVAILABLE && !status.connected) {
+      return <Badge variant="secondary">Unavailable</Badge>;
     }
     if (status.onboardingStatus === 'unsupported_country') {
 
@@ -189,7 +189,7 @@ export function PayPalConnectCard({ returnPath, onStatusChange }: PayPalConnectC
               PayPal
             </CardTitle>
             <CardDescription>
-              Connect your PayPal business account to accept PayPal payments
+              PayPal payouts are not enabled on DK AI Marketplace
             </CardDescription>
           </div>
           {badge()}
@@ -321,30 +321,21 @@ export function PayPalConnectCard({ returnPath, onStatusChange }: PayPalConnectC
         ) : (
           <>
             <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
-              {PAYPAL_COMING_SOON ? (
+              {PAYPAL_UNAVAILABLE ? (
                 <Clock className="h-5 w-5 text-muted-foreground" />
               ) : (
                 <XCircle className="h-5 w-5 text-destructive" />
               )}
               <div>
                 <p className="font-medium">
-                  {PAYPAL_COMING_SOON ? 'Soon available' : 'Not Connected'}
+                  {PAYPAL_UNAVAILABLE ? 'Unavailable' : 'Not Connected'}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {PAYPAL_COMING_SOON
-                    ? 'PayPal payouts are coming soon. Use Stripe to receive payments in the meantime.'
+                  {PAYPAL_UNAVAILABLE
+                    ? 'Use Stripe to receive eligible seller transfers.'
                     : 'Link your PayPal business account to accept PayPal payments'}
                 </p>
               </div>
-            </div>
-
-            <div className="bg-muted/50 p-4 rounded-lg space-y-2 text-sm">
-              <p className="font-medium">What you&apos;ll need:</p>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>A PayPal business account (or create one during setup)</li>
-                <li>A confirmed primary email address</li>
-                <li>To grant the marketplace permission to process payments for you</li>
-              </ul>
             </div>
 
             {connectError && (
@@ -359,10 +350,10 @@ export function PayPalConnectCard({ returnPath, onStatusChange }: PayPalConnectC
               </Alert>
             )}
 
-            {PAYPAL_COMING_SOON ? (
+            {PAYPAL_UNAVAILABLE ? (
               <Button disabled className="w-full">
                 <Clock className="w-4 h-4 mr-2" />
-                Connect with PayPal — soon available
+                PayPal unavailable
               </Button>
             ) : (
               <Button onClick={handleConnect} disabled={connecting} className="w-full">

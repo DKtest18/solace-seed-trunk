@@ -94,20 +94,20 @@ export function AcceptedPaymentMethods({ stripeReady, paypalReady }: AcceptedPay
                 size="md"
               />
             </div>
-            <div className="flex items-center justify-between gap-4 p-3 border rounded-lg">
-              <div>
-                <p className="font-medium">PayPal</p>
-                <p className="text-xs text-muted-foreground">
-                  {paypalReady ? 'PayPal is connected' : 'Connect PayPal to enable'}
-                </p>
+            {paypalReady && (
+              <div className="flex items-center justify-between gap-4 p-3 border rounded-lg">
+                <div>
+                  <p className="font-medium">PayPal</p>
+                  <p className="text-xs text-muted-foreground">PayPal is connected</p>
+                </div>
+                <IOSToggle
+                  checked={acceptsPaypal}
+                  onCheckedChange={(v) => save('accepts_paypal', v)}
+                  disabled={saving === 'accepts_paypal'}
+                  size="md"
+                />
               </div>
-              <IOSToggle
-                checked={paypalReady && acceptsPaypal}
-                onCheckedChange={(v) => save('accepts_paypal', v)}
-                disabled={!paypalReady || saving === 'accepts_paypal'}
-                size="md"
-              />
-            </div>
+            )}
           </>
         )}
       </CardContent>

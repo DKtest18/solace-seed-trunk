@@ -173,3 +173,6 @@ verify_jwt = false
 
 [functions.mfa-redeem-recovery-code]
 verify_jwt = false
+
+[functions.transfer-worker]
+verify_jwt = false

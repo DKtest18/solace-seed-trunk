@@ -62,12 +62,10 @@ export default function SellerGuidelines() {
             <h2 className="text-2xl font-semibold mb-4">1. Selling on DK AI Marketplace</h2>
             <p>
               DK AI Marketplace is operated from Switzerland. We connect AI builders, companies and
-              individuals, with buyers worldwide. As a launch promo, sellers{' '}
-              <strong>keep 100% of every sale: zero platform fees for the first 20 sales on the
-              platform</strong> (platform-wide, first come first served). After that, a small
-              platform fee (default 5%) applies only when you actually make a sale. Listing is
-              always free. We do not guarantee any sales, revenue, or visibility; your results
-              depend on your product, pricing, and presentation.
+              individuals, with buyers worldwide. The normal platform commission is 5%. Existing
+              founding sellers keep their assigned benefit: 0% platform commission on their first
+              four qualifying sales. Listing is always free. We do not guarantee any sales, revenue,
+              or visibility; your results depend on your product, pricing, and presentation.
             </p>
           </section>
 
@@ -77,12 +75,11 @@ export default function SellerGuidelines() {
               2. Payment providers and selling without one
             </h2>
             <p>
-              Payouts run through Stripe or PayPal. You connect your own account with at least one
-              supported provider. You can create a seller account and submit products for review
-              before connecting a provider: once approved, your product is visible to everyone on
-              the marketplace, including visitors without an account, but it cannot be purchased
-              until you connect Stripe or PayPal. Until then the listing shows that it is not yet
-              available for purchase.
+              Seller transfers run through Stripe Connect. You can create a seller account and
+              submit products for review before connecting Stripe: once approved, your product is
+              visible to everyone on the marketplace, including visitors without an account, but it
+              cannot be purchased until Stripe is connected and eligible. Until then the listing
+              shows that it is not yet available for purchase.
             </p>
           </section>
 
@@ -120,7 +117,7 @@ export default function SellerGuidelines() {
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       Your file is stored encrypted on our infrastructure and only unlocked for the
-                      buyer after payment is confirmed. Adds a layer of protection for mid-value
+                      buyer after payment is confirmed. Adds controlled delivery for mid-value
                       products.
                     </p>
                   </div>
@@ -136,9 +133,9 @@ export default function SellerGuidelines() {
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       Your file is <strong>never</strong> uploaded to our servers. You keep it. When
-                      a buyer pays, the funds are held by the payment provider (Stripe or PayPal).
-                      You then deliver the product directly to the buyer. Once the buyer confirms
-                      receipt, you are paid. Best for high-value, rare, or very large products,
+                      a buyer pays, Stripe confirms the payment and the platform tracks when a
+                      seller transfer becomes eligible. You then deliver the product directly to the
+                      buyer. Best for high-value, rare, or very large products,
                       because what we never store, we can never lose or leak.
                     </p>
                   </div>
@@ -192,8 +189,8 @@ export default function SellerGuidelines() {
                 EU data centers, encrypted at rest and in transit.
               </li>
               <li>
-                Payments are processed by Stripe or PayPal; we never see or store your full bank or
-                card details.
+                Payments are processed by Stripe; we never see or store your full bank or card
+                details.
               </li>
               <li>
                 If a product requires the buyer to hand over setup information such as an API key,

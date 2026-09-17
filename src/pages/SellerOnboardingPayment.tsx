@@ -48,7 +48,7 @@ export default function SellerOnboardingPayment() {
   const [refreshing, setRefreshing] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus>(emptyStripeConnectStatus);
-  const [sellerCountry, setSellerCountry] = useState('CH');
+  const [sellerCountry, setSellerCountry] = useState('');
   const [stripeError, setStripeError] = useState<string | null>(null);
 
 
@@ -125,6 +125,10 @@ export default function SellerOnboardingPayment() {
 
 
   const handleConnectStripe = async () => {
+    if (!sellerCountry) {
+      toast({ title: "Seller country required", description: "Please select your seller country before starting Stripe onboarding.", variant: "destructive" });
+      return;
+    }
     setConnecting(true);
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData?.session) {
@@ -439,7 +443,7 @@ export default function SellerOnboardingPayment() {
 
                 <div className="space-y-2">
                   <Label htmlFor="seller-country">Seller country</Label>
-                  <Select value={sellerCountry} onValueChange={setSellerCountry}>
+                  <Select value={sellerCountry || undefined} onValueChange={setSellerCountry}>
                     <SelectTrigger id="seller-country">
                       <SelectValue placeholder="Select seller country" />
                     </SelectTrigger>
@@ -455,7 +459,7 @@ export default function SellerOnboardingPayment() {
                 </div>
 
                 <div className="text-center">
-                  <Button size="lg" onClick={handleConnectStripe} disabled={connecting} className="min-w-[200px]">
+                  <Button size="lg" onClick={handleConnectStripe} disabled={connecting || !sellerCountry} className="min-w-[200px]">
                     {connecting ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />

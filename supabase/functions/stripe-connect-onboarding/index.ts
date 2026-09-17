@@ -3,7 +3,6 @@ import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 import { allowedSellerCountries, normalizeCountry } from '../_shared/seller-countries.ts';
 
 const CONFIG_TABLE = 'dkai_seller_payment_configs';
-const DEFAULT_COUNTRY = 'CH';
 const FULL_SERVICE_AGREEMENT_COUNTRIES = new Set(['CH', 'LI', 'DE', 'AT', 'US']);
 
 function isSchemaError(error: any) {
@@ -91,7 +90,21 @@ Deno.serve(async (req) => {
     const allowlist = await allowedSellerCountries(admin);
     const requestedCountry = normalizeCountry(body?.country ?? body?.seller_country ?? body?.declared_country);
     const existing = await readConfig(admin, user.id);
-    const country = requestedCountry ?? normalizeCountry(existing?.declared_country) ?? normalizeCountry(existing?.stripe_account_country) ?? DEFAULT_COUNTRY;
+    let existingCountry = normalizeCountry(existing?.declared_country) ?? normalizeCountry(existing?.stripe_account_country);
+    let accountId: string | null = existing?.stripe_account_id ?? null;
+    let existingAccount: any | null = null;
+
+    if (accountId && !requestedCountry && !existingCountry) {
+      existingAccount = await stripeAccount(admin, accountId, stripeKey, user.id);
+      if (!existingAccount) accountId = null;
+      existingCountry = normalizeCountry(existingAccount?.country);
+    }
+
+    const country = requestedCountry ?? existingCountry;
+
+    if (!country) {
+      return errorResponse('Please select your seller country before starting Stripe onboarding.', 400);
+    }
 
     if (!allowlist.includes(country)) {
       return errorResponse('This seller country is not enabled for DK AI Marketplace payouts.', 400);
@@ -100,9 +113,8 @@ Deno.serve(async (req) => {
       return errorResponse('This seller country is not enabled for the required Stripe service agreement.', 400);
     }
 
-    let accountId: string | null = existing?.stripe_account_id ?? null;
     if (accountId) {
-      const account = await stripeAccount(admin, accountId, stripeKey, user.id);
+      const account = existingAccount ?? await stripeAccount(admin, accountId, stripeKey, user.id);
       if (!account) accountId = null;
       if (account && account.country && account.country !== country) {
         return errorResponse('Your existing Stripe account country cannot be changed automatically. Open Stripe onboarding for the same country or contact support.', 400);
@@ -141,6 +153,10 @@ Deno.serve(async (req) => {
         charges_enabled: false,
       });
       if (!persisted) return errorResponse('We could not save your Stripe account to your seller profile. Please try again or contact support.', 500);
+    }
+
+    if (!accountId) {
+      return errorResponse('We could not prepare your Stripe account. Please try again or contact support.', 500);
     }
 
     const linkRes = await fetch('https://api.stripe.com/v1/account_links', {

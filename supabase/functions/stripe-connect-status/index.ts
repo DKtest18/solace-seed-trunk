@@ -62,7 +62,6 @@ async function persistState(
       charges_enabled: chargesEnabled,
       payouts_enabled: payoutsEnabled,
       ...extra,
-      ...extra,
       updated_at: now,
     },
     { seller_id: userId, stripe_account_id: accountId, stripe_onboarding_status: status },
@@ -128,7 +127,7 @@ Deno.serve(async (req) => {
       account.requirements?.past_due?.length > 0
     )
       onboardingStatus = 'needs_info';
-    else if (detailsSubmitted) onboardingStatus = 'connected';
+    else if (detailsSubmitted) onboardingStatus = 'needs_info';
     else onboardingStatus = 'onboarding';
 
     // Persistence must never break the response.

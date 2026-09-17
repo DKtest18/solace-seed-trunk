@@ -102,7 +102,7 @@ async function createStripeRefund(admin: Admin, dispute: any, order: any, notes?
   }, { onConflict: 'stripe_refund_id' });
 
   await admin.from('dkai_orders').update({
-    status: refund.data.status === 'succeeded' && amountMinor >= grossMinor - alreadyRefunded ? 'refunded' : 'refund_pending',
+    status: refund.data.status === 'succeeded' && amountMinor >= grossMinor - alreadyRefunded ? 'refunded' : order.status,
     stripe_refund_id: refund.data.id,
     refund_amount: amountMinor / 100,
     refunded_amount_minor: alreadyRefunded + (refund.data.status === 'succeeded' ? amountMinor : 0),

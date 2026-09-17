@@ -60,10 +60,7 @@ export default function TermsOfService() {
             <div className="bg-primary/10 border border-primary/30 p-6 mb-8 rounded-lg">
               <p className="text-base leading-relaxed text-foreground">
                 <strong>Quick summary:</strong> These are the rules for using DK AI Marketplace. By
-                signing up you agree to them. Launch promo: 0% platform fee for the first 20 sales
-                on the platform. After that, a small platform fee (default 5%) applies. Payments are
-                processed by Stripe or PayPal and go directly to the seller's connected payment
-                account; the provider's standard processing fees apply and are borne by the seller.
+                signing up you agree to them. Platform fee is normally 5%; existing founding-seller benefits remain limited to the qualifying sellers and sales already assigned. Card payments are processed by Stripe, with eligible seller transfers released after the required hold period and account checks; Stripe processing fees are based on Stripe's actual fee record and are borne by the seller.
                 Swiss law applies, and we are a marketplace (not a party to your transactions). Full
                 details below.
               </p>
@@ -138,7 +135,7 @@ export default function TermsOfService() {
               <p className="text-base leading-relaxed text-foreground mb-2 font-semibold">We provide:</p>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
                 <li>The platform itself</li>
-                <li>Payment processing via our providers: Stripe Connect (direct charges to the seller's account) and PayPal</li>
+                <li>Payment processing via Stripe Connect, including platform charges with later eligible seller transfers</li>
                 <li>A dispute-handling system</li>
                 <li>Content moderation and pre-publication product review</li>
               </ul>
@@ -155,10 +152,7 @@ export default function TermsOfService() {
               <h2 className="font-display text-2xl font-semibold mt-10 mb-4">6. Seller Obligations</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
                 <li>
-                  Connect your own payment account with at least one supported provider (Stripe or
-                  PayPal) to receive payouts. You may submit products for review before connecting a
-                  provider; approved products are then publicly visible but cannot be purchased until
-                  a provider is connected
+                  Connect your Stripe account to receive eligible seller transfers. You may submit products for review before connecting Stripe; approved products are then publicly visible but cannot be purchased until a supported payment setup is connected
                 </li>
                 <li>Describe products truthfully and include the required demo video with every product</li>
                 <li>Deliver within the promised timeframe</li>
@@ -187,10 +181,10 @@ export default function TermsOfService() {
             <section id="payments">
               <h2 className="font-display text-2xl font-semibold mt-10 mb-4">8. Payments</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>All payments run through our payment providers, Stripe or PayPal</li>
+                <li>Card payments run through Stripe</li>
                 <li>We do not store card details or full bank details</li>
                 <li>Payments are captured at checkout (custom orders: upon acceptance)</li>
-                <li>Payments go directly to the seller's connected payment account (Stripe direct charges, or PayPal); we do not hold seller funds</li>
+                <li>New Stripe card payments are created on the platform account and seller transfers become eligible only after the required hold period and account checks</li>
                 <li>The provider's standard processing fees apply and are borne by the seller</li>
               </ul>
             </section>
@@ -198,8 +192,8 @@ export default function TermsOfService() {
             <section id="platform-fee">
               <h2 className="font-display text-2xl font-semibold mt-10 mb-4">9. Platform Fee</h2>
               <ul className="list-disc list-inside ml-4 space-y-2 mb-4">
-                <li>Launch promo: 0% platform fee for the first 20 sales on the platform, platform-wide, first come first served; sellers keep 100% (minus payment processing fees)</li>
-                <li>Afterwards: platform fee (default 5%) per transaction, announced at least 30 days before it takes effect</li>
+                <li>Normal platform fee: 5%; existing founding-seller benefits remain limited to the first five assigned founding sellers and their first four qualifying settled sales</li>
+                <li>The platform commission is calculated and stored per transaction</li>
                 <li>Payment processing fees always apply separately and are borne by the seller</li>
               </ul>
             </section>
@@ -231,9 +225,7 @@ export default function TermsOfService() {
               <p className="text-base leading-relaxed text-foreground mb-4">
                 Refund requests must be filed within 14 days of purchase. The seller must respond
                 within 48 hours; otherwise the case is decided in the buyer&apos;s favour. Approved
-                refunds are for the full purchase price, funded from the seller&apos;s provider
-                balance, and issued via the original payment method (Stripe or PayPal), typically
-                within 24-72 hours of approval. Refunds under this section are the sole remedy
+                refunds are for the full purchase price, funded from the seller&apos;s entitlement or recovered from a seller transfer where needed, and issued via the original Stripe payment method according to Stripe processing timelines. Refunds under this section are the sole remedy
                 available through the platform; section 16 applies otherwise. Mandatory consumer
                 rights remain unaffected.
               </p>

@@ -42,7 +42,7 @@ const SUGGESTED_BY_TYPE: Record<string, string[]> = {
 };
 
 export function DeliveryFilesStep({ data, onChange, deliveryFiles, onAddFile, onRemoveFile, uploading, errors }: DeliveryFilesStepProps) {
-  const { feePct, sellerPct } = usePlatformFee();
+  const { feePct } = usePlatformFee();
   const [dragActive, setDragActive] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [oversizeError, setOversizeError] = useState<{ limit: number; actual: number } | null>(null);

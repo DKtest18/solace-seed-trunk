@@ -34,11 +34,7 @@ export default function About() {
             How the money works
           </h2>
           <p>
-            All payments are processed by our payment providers, Stripe and PayPal, and go directly
-            to the seller's own connected payment account. The payment provider's standard
-            processing fees apply and are borne by the seller. As a launch promotion, the first 20
-            sales on the whole platform are 100% platform-fee-free for sellers. DK AI Marketplace is
-            an intermediary: we are not the seller of the products and we do not hold seller funds.
+            Card payments are processed by Stripe. New payments use platform charges, and eligible seller transfers are released after the required hold period and account checks. Stripe processing fees are based on Stripe's actual fee record and are borne by the seller. The normal platform fee is 5%; existing founding-seller benefits remain limited to their assigned qualifying sales. DK AI Marketplace is an intermediary: we are not the seller of the products.
           </p>
           <p>
             DK AI Marketplace does not guarantee any sales, revenue, traffic, or results for

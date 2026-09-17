@@ -14,8 +14,7 @@ const sections = [
       <p>
         DK AI Marketplace (Dari Kastrati, Einzelunternehmen, Adligenswil, Lucerne, Switzerland)
         operates a marketplace connecting independent third-party sellers with buyers. Payments are
-        processed by Stripe and PayPal and go directly to the seller&apos;s connected payment
-        account. We act as an intermediary and support layer, not as the seller of the products.
+        processed by Stripe. New card payments use platform charges with eligible seller transfers after the required hold period and account checks. We act as an intermediary and support layer, not as the seller of the products.
         Each purchase contract is between the buyer and the seller.
       </p>
     ),
@@ -70,8 +69,7 @@ const sections = [
     title: "5. How refunds are funded",
     body: (
       <p>
-        Where a refund is approved, it is debited from the seller&apos;s payment balance (Stripe or
-        PayPal). The seller bears the cost of approved refunds and chargebacks on their sales. DK AI
+        Where a refund is approved, it reduces the seller&apos;s entitlement before transfer or is recovered from seller transfers where needed. The seller bears the cost of approved refunds and chargebacks on their sales. DK AI
         Marketplace facilitates and processes the refund but does not itself sell the product and
         does not fund refunds from its own means.
       </p>
@@ -90,7 +88,7 @@ const sections = [
     title: "7. Chargebacks",
     body: (
       <p>
-        If a buyer opens a chargeback with their card issuer or PayPal instead of using this
+        If a buyer opens a chargeback with their card issuer instead of using this
         process, the disputed amount and any fees are recovered from the seller&apos;s balance.
         Sellers agree to indemnify DK AI Marketplace and Dari Kastrati for chargebacks, refunds, and
         losses arising from their sales, to the extent permitted by law.

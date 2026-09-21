@@ -170,7 +170,32 @@ export function ProductReviewStatusCard({
               />
             </div>
           )}
-          <Button onClick={handleSubmit} disabled={submitting}>
+          <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+            <p className="text-sm font-medium">{t('preview.consentTitle')}</p>
+            <p className="text-sm">{t('preview.consentExplain')}</p>
+            <p className="text-xs text-muted-foreground">{t('preview.consentPublicFields')}</p>
+            <label className="flex items-start gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-0.5 accent-primary"
+                checked={previewAck}
+                onChange={(e) => setPreviewAck(e.target.checked)}
+              />
+              <span>{t('preview.consentAck')}</span>
+            </label>
+            <label className="flex items-start gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-0.5 accent-primary"
+                checked={demoVideoPublic}
+                onChange={(e) => setDemoVideoPublic(e.target.checked)}
+              />
+              <span>{t('preview.consentVideo')}</span>
+            </label>
+            <p className="text-xs text-muted-foreground">{t('preview.mediaCacheNote')}</p>
+          </div>
+
+          <Button onClick={handleSubmit} disabled={submitting || !previewAck}>
             {submitting ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (

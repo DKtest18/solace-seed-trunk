@@ -10,3 +10,4 @@
 - [ ] Deploy/apply only to the existing external Supabase project if authorized access is available; otherwise provide exact manual steps.
 - [ ] Before deployment, verify legacy Stripe charge routing from original checkout context, Swiss-platform country support, external project `dwqpkdatzdqhplgyhigg`, and keep production payout scheduling disabled until explicit approval.
 - [x] Add the approved homepage “Network & Tools” section for Nordpixel, Make, and ElevenLabs only; keep the full affiliate disclosure visible, add no tracking, and remove the old decorative icon strip.
+- [ ] Public previews for products awaiting review: seller-agnostic consent at publish, instant preview visibility, "Under review" labels, "Available to buy" filter, restricted public-field access, server-side purchase blocking, EN/DE/FR text, additive SQL + function handover for external Supabase `dwqpkdatzdqhplgyhigg`.

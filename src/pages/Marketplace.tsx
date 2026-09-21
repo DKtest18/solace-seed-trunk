@@ -173,6 +173,7 @@ export default function Marketplace() {
     setPriceRange({ min: '', max: '' });
     setMinRating(0);
     setSortBy('newest');
+    setOnlyPurchasable(false);
   };
 
   const hasActiveFilters =
@@ -182,6 +183,7 @@ export default function Marketplace() {
     pricingModel !== 'all' ||
     priceRange.min !== '' ||
     priceRange.max !== '' ||
+    onlyPurchasable ||
     minRating > 0;
 
   const FilterPill = ({ label, onRemove }: { label: string; onRemove: () => void }) => (

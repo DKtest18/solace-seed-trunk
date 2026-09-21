@@ -1,21 +1,12 @@
 -- =============================================================================
--- PUBLIC PREVIEWS FOR PRODUCTS AWAITING REVIEW
+-- PUBLIC PREVIEWS FOR PRODUCTS AWAITING REVIEW  (schema-tolerant v2)
+--
+-- Fix for: ERROR 42703 column p.is_active does not exist
+-- All optional columns are now read through to_jsonb(row), so the script works
+-- no matter which optional columns your tables actually have.
 --
 -- Additive and repeat-safe. Run the whole file in the Supabase SQL Editor of
--- project dwqpkdatzdqhplgyhigg. It does NOT touch existing rows' data except
--- adding new columns with safe defaults (preview OFF for everyone).
---
--- Design:
---   * Consent lives on NEW columns, completely separate from review_status.
---     Enabling a preview never approves a product and never marks payouts ready.
---   * Visitors never read dkai_products directly for previews. They call
---     SECURITY DEFINER functions that return an explicit ALLOWLIST of public
---     fields only. Private columns can never reach the browser.
---   * No storage bucket is made public. Only media rows explicitly flagged
---     `is_public_preview` are returned for previews.
---   * Purchasability is untouched: public.dkai_product_purchasable still
---     requires approval + a connected, ready payout account, so previews can
---     never be bought — including guest checkout and direct API calls.
+-- project dwqpkdatzdqhplgyhigg.
 -- =============================================================================
 
 BEGIN;
@@ -36,7 +27,7 @@ COMMENT ON COLUMN public.dkai_products.public_preview_demo_video_allowed IS
 ALTER TABLE public.dkai_product_media
   ADD COLUMN IF NOT EXISTS is_public_preview boolean NOT NULL DEFAULT false;
 
--- 3) Eligibility: genuinely submitted / in review, consented, alive ----------
+-- 3) Eligibility (schema-tolerant) -------------------------------------------
 CREATE OR REPLACE FUNCTION public.dkai_preview_eligible(p_product_id uuid)
 RETURNS boolean
 LANGUAGE sql
@@ -47,11 +38,12 @@ AS $body$
   SELECT EXISTS (
     SELECT 1
     FROM public.dkai_products p
+    CROSS JOIN LATERAL (SELECT to_jsonb(p) AS j) x
     WHERE p.id = p_product_id
       AND p.public_preview_enabled = true
-      AND COALESCE(p.review_status, '') IN ('submitted', 'in_review')
-      AND COALESCE(p.is_active, true) = true
-      AND p.deleted_at IS NULL
+      AND COALESCE(x.j->>'review_status', '') IN ('submitted', 'in_review')
+      AND COALESCE((x.j->>'is_active')::boolean, true) = true
+      AND (x.j->>'deleted_at') IS NULL
   );
 $body$;
 
@@ -87,32 +79,37 @@ SET search_path = public
 AS $body$
   SELECT
     p.id,
-    p.title,
-    p.description,
-    p.image_url,
-    p.price,
-    COALESCE(p.currency, 'USD')::text,
-    p.pricing_model::text,
-    p.product_type::text,
-    p.category_id,
-    p.tags,
-    p.delivery_mode::text,
-    to_jsonb(p.setup_requirements),
-    p.seller_id,
-    pr.full_name::text,
-    pr.username::text,
-    pr.avatar_url::text,
-    COALESCE(pr.is_linkedin_verified, false),
+    (x.j->>'title')::text,
+    (x.j->>'description')::text,
+    (x.j->>'image_url')::text,
+    NULLIF(x.j->>'price', '')::numeric,
+    COALESCE(x.j->>'currency', 'USD')::text,
+    (x.j->>'pricing_model')::text,
+    (x.j->>'product_type')::text,
+    NULLIF(x.j->>'category_id', '')::uuid,
+    CASE WHEN jsonb_typeof(x.j->'tags') = 'array'
+         THEN ARRAY(SELECT jsonb_array_elements_text(x.j->'tags'))
+         ELSE NULL END,
+    (x.j->>'delivery_mode')::text,
+    CASE WHEN x.j ? 'setup_requirements' THEN x.j->'setup_requirements' ELSE NULL END,
+    NULLIF(x.j->>'seller_id', '')::uuid,
+    (y.pj->>'full_name')::text,
+    (y.pj->>'username')::text,
+    (y.pj->>'avatar_url')::text,
+    COALESCE((y.pj->>'is_linkedin_verified')::boolean, false),
     COALESCE(p.public_preview_demo_video_allowed, false),
-    p.submitted_at,
-    p.created_at
+    NULLIF(x.j->>'submitted_at', '')::timestamptz,
+    NULLIF(x.j->>'created_at', '')::timestamptz
   FROM public.dkai_products p
-  LEFT JOIN public.dkai_profiles pr ON pr.id = p.seller_id
+  CROSS JOIN LATERAL (SELECT to_jsonb(p) AS j) x
+  LEFT JOIN public.dkai_profiles pr ON pr.id = NULLIF(x.j->>'seller_id', '')::uuid
+  LEFT JOIN LATERAL (SELECT to_jsonb(pr) AS pj) y ON true
   WHERE p.public_preview_enabled = true
-    AND COALESCE(p.review_status, '') IN ('submitted', 'in_review')
-    AND COALESCE(p.is_active, true) = true
-    AND p.deleted_at IS NULL
-  ORDER BY COALESCE(p.submitted_at, p.created_at) DESC;
+    AND COALESCE(x.j->>'review_status', '') IN ('submitted', 'in_review')
+    AND COALESCE((x.j->>'is_active')::boolean, true) = true
+    AND (x.j->>'deleted_at') IS NULL
+  ORDER BY COALESCE(NULLIF(x.j->>'submitted_at','')::timestamptz,
+                    NULLIF(x.j->>'created_at','')::timestamptz) DESC NULLS LAST;
 $body$;
 
 -- 5) Allowlisted single preview ----------------------------------------------
@@ -164,16 +161,23 @@ STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $body$
-  SELECT m.id, m.storage_path::text, m.media_type::text, m.mime_type::text,
-         m.sort_order, COALESCE(m.is_cover, false)
+  SELECT
+    m.id,
+    COALESCE(mj.j->>'storage_path', mj.j->>'path', mj.j->>'file_path')::text,
+    (mj.j->>'media_type')::text,
+    (mj.j->>'mime_type')::text,
+    COALESCE(NULLIF(mj.j->>'sort_order','')::integer, 0),
+    COALESCE((mj.j->>'is_cover')::boolean, false)
   FROM public.dkai_product_media m
+  CROSS JOIN LATERAL (SELECT to_jsonb(m) AS j) mj
   JOIN public.dkai_products p ON p.id = m.product_id
   WHERE m.product_id = p_product_id
     AND m.is_public_preview = true
     AND public.dkai_preview_eligible(p_product_id)
     -- videos need the separate explicit demo-video consent
-    AND (m.media_type <> 'video' OR COALESCE(p.public_preview_demo_video_allowed, false) = true)
-  ORDER BY m.sort_order ASC;
+    AND (COALESCE(mj.j->>'media_type','') <> 'video'
+         OR COALESCE(p.public_preview_demo_video_allowed, false) = true)
+  ORDER BY COALESCE(NULLIF(mj.j->>'sort_order','')::integer, 0) ASC;
 $body$;
 
 -- 7) Seller-side consent RPC (own products only, never changes review state) --
@@ -191,19 +195,27 @@ SET search_path = public
 AS $fn$
 DECLARE
   v_owner uuid;
+  v_is_admin boolean := false;
 BEGIN
-  SELECT seller_id INTO v_owner FROM public.dkai_products WHERE id = p_product_id;
+  SELECT NULLIF(to_jsonb(p)->>'seller_id','')::uuid INTO v_owner
+  FROM public.dkai_products p WHERE p.id = p_product_id;
+
   IF v_owner IS NULL THEN
-    RAISE EXCEPTION 'product not found';
+    RAISE EXCEPTION 'product not found or has no seller';
   END IF;
-  IF v_owner <> auth.uid() AND NOT public.dkai_has_role(auth.uid(), 'admin') THEN
+
+  SELECT EXISTS (
+    SELECT 1 FROM public.dkai_user_roles ur
+    WHERE ur.user_id = auth.uid() AND ur.role::text IN ('admin','super_admin')
+  ) INTO v_is_admin;
+
+  IF v_owner <> auth.uid() AND NOT v_is_admin THEN
     RAISE EXCEPTION 'not allowed';
   END IF;
 
   UPDATE public.dkai_products
   SET public_preview_enabled = COALESCE(p_enabled, false),
       public_preview_demo_video_allowed = COALESCE(p_enabled, false) AND COALESCE(p_demo_video, false),
-      -- real entry timestamp; cleared on withdrawal
       public_preview_consented_at = CASE WHEN COALESCE(p_enabled, false) THEN now() ELSE NULL END,
       public_preview_consent_source = CASE WHEN COALESCE(p_enabled, false) THEN p_source ELSE NULL END
   WHERE id = p_product_id;
@@ -213,7 +225,7 @@ BEGIN
   UPDATE public.dkai_product_media m
   SET is_public_preview = CASE
         WHEN COALESCE(p_enabled, false) = false THEN false
-        WHEN m.media_type = 'video' THEN COALESCE(p_demo_video, false)
+        WHEN COALESCE(to_jsonb(m)->>'media_type','') = 'video' THEN COALESCE(p_demo_video, false)
         ELSE true
       END
   WHERE m.product_id = p_product_id;
@@ -229,10 +241,12 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $fn$
+DECLARE
+  j jsonb := to_jsonb(NEW);
 BEGIN
-  IF COALESCE(NEW.review_status, '') NOT IN ('submitted', 'in_review')
-     OR COALESCE(NEW.is_active, true) = false
-     OR NEW.deleted_at IS NOT NULL THEN
+  IF COALESCE(j->>'review_status', '') NOT IN ('submitted', 'in_review')
+     OR COALESCE((j->>'is_active')::boolean, true) = false
+     OR (j->>'deleted_at') IS NOT NULL THEN
     NEW.public_preview_enabled := false;
     NEW.public_preview_demo_video_allowed := false;
   END IF;
@@ -265,22 +279,11 @@ NOTIFY pgrst, 'reload schema';
 -- =============================================================================
 -- VERIFICATION QUERIES (run separately, read-only)
 -- =============================================================================
--- a) No consent was invented — must return 0 before any seller confirms:
--- SELECT count(*) FROM public.dkai_products WHERE public_preview_enabled;
---
--- b) How many existing submissions are eligible vs. still need confirmation:
--- SELECT
---   count(*) FILTER (WHERE public_preview_enabled)        AS preview_live,
---   count(*) FILTER (WHERE NOT public_preview_enabled)    AS needs_confirmation
--- FROM public.dkai_products
--- WHERE COALESCE(review_status,'') IN ('submitted','in_review')
---   AND COALESCE(is_active,true) AND deleted_at IS NULL;
---
--- c) Public API returns only allowlisted fields and only eligible rows:
--- SELECT * FROM public.dkai_public_previews();
---
--- d) A preview can never be purchased (must be false for every preview id):
--- SELECT id, public.dkai_product_purchasable(id) FROM public.dkai_public_previews();
---
--- e) No private media leaks (must return 0 rows for a product without consent):
--- SELECT * FROM public.dkai_public_preview_media('<product-uuid>');
+-- a) SELECT count(*) FROM public.dkai_products WHERE public_preview_enabled;
+-- b) SELECT count(*) FILTER (WHERE public_preview_enabled) AS preview_live,
+--           count(*) FILTER (WHERE NOT public_preview_enabled) AS needs_confirmation
+--    FROM public.dkai_products
+--    WHERE COALESCE(to_jsonb(dkai_products)->>'review_status','') IN ('submitted','in_review');
+-- c) SELECT * FROM public.dkai_public_previews();
+-- d) SELECT id, public.dkai_product_purchasable(id) FROM public.dkai_public_previews();
+-- e) SELECT * FROM public.dkai_public_preview_media('<product-uuid>');

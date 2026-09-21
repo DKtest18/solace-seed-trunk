@@ -18,6 +18,7 @@ import './index-home.css';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
 import { CompanyLogoWall } from '@/components/home/CompanyLogoWall';
 import { NetworkToolsSection } from '@/components/home/NetworkToolsSection';
+import { usePublicPreviews } from '@/hooks/usePublicPreviews';
 
 type HomeProduct = {
   id: string;
@@ -26,6 +27,7 @@ type HomeProduct = {
   currency?: string;
   image_url?: string;
   seller_verified?: boolean;
+  is_preview?: boolean;
 };
 
 function useHomeProducts() {

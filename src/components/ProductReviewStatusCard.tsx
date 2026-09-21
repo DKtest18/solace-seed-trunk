@@ -44,8 +44,12 @@ export function ProductReviewStatusCard({
   deliveryTier,
   onSubmitted,
 }: Props) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
   const [sampleFile, setSampleFile] = useState<File | null>(null);
+  const [previewAck, setPreviewAck] = useState(false);
+  const [demoVideoPublic, setDemoVideoPublic] = useState(false);
 
   const needsSample = deliveryTier === 'tier3';
   const status = normalizeReviewStatus(reviewStatus);

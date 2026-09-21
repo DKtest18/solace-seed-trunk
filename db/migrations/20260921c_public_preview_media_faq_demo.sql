@@ -143,7 +143,31 @@ AS $body$
 $body$;
 
 CREATE FUNCTION public.dkai_public_preview(p_product_id uuid)
-RETURNS SETOF public.dkai_public_previews
+RETURNS TABLE (
+  id uuid,
+  title text,
+  description text,
+  image_url text,
+  price numeric,
+  currency text,
+  pricing_model text,
+  product_type text,
+  category_id uuid,
+  tags text[],
+  delivery_mode text,
+  setup_requirements jsonb,
+  faqs jsonb,
+  demo_video_url text,
+  demo_video_paths jsonb,
+  seller_id uuid,
+  seller_name text,
+  seller_username text,
+  seller_avatar_url text,
+  seller_linkedin_verified boolean,
+  demo_video_allowed boolean,
+  submitted_at timestamptz,
+  created_at timestamptz
+)
 LANGUAGE sql
 STABLE
 SECURITY DEFINER

@@ -20,6 +20,8 @@ import { LicenseSelector, type LicenseTier } from '@/components/LicenseSelector'
 import { formatMoney, subscriptionLabel } from '@/lib/money';
 import { DELIVERY_MODE, REVIEW_STATUS, normalizeDeliveryMode } from '@/lib/reviewStatus';
 import { HourglassLoader } from '@/components/HourglassLoader';
+import { usePublicPreview } from '@/hooks/usePublicPreviews';
+import { ProductPreviewDetail } from '@/components/ProductPreviewDetail';
 
 // Track product analytics
 const trackProductEvent = async (productId: string, eventType: 'view' | 'click', userId?: string, metadata?: any) => {

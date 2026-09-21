@@ -176,3 +176,9 @@ verify_jwt = false
 
 [functions.transfer-worker]
 verify_jwt = false
+
+[functions.admin-download-product-file]
+verify_jwt = false
+
+[functions.product-delivery-files]
+verify_jwt = false

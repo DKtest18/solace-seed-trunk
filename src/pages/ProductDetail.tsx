@@ -457,12 +457,18 @@ export default function ProductDetail() {
                 return (
                   <>
                     <LicenseSelector product={product} value={licenseTier} onChange={setLicenseTier} />
+                    {/* Approved but payouts not ready: accurate status, never "under review". */}
+                    {!purchasableLoading && purchasable === false && (
+                      <p className="text-sm text-muted-foreground border rounded-md bg-muted/40 px-3 py-2">
+                        {t('preview.approvedNotPurchasable')}
+                      </p>
+                    )}
                     <div className="pt-4 flex flex-wrap gap-3">
                       <Button
                         size="lg"
                         className="flex-1 sm:flex-initial"
                         onClick={handlePurchase}
-                        disabled={soldOut}
+                        disabled={soldOut || purchasable === false}
                       >
                         {soldOut ? 'Sold out' : 'Buy Now'}
                       </Button>

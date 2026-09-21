@@ -1,5 +1,6 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
+import { safeContentType } from '../_shared/delivery-path.ts';
 
 const BUCKET = 'product-deliveries';
 const MAX_SIZE = 2 * 1024 * 1024 * 1024; // 2 GB
@@ -56,15 +57,20 @@ Deno.serve(async (req) => {
     const safe = sanitizeName(file_name);
     const filePath = `${user.id}/${safe}`;
 
+    // HTML/SVG/JS are stored as opaque binaries so they can never be rendered
+    // in our own origin if a link is ever opened directly.
+    const storedType = safeContentType(String(mime_type), safe);
+
     const { error: upErr } = await admin.storage.from(BUCKET).upload(filePath, bytes, {
-      contentType: mime_type,
+      contentType: storedType,
       upsert: false,
     });
     if (upErr) return errorResponse(`Upload failed: ${upErr.message}`, 500);
 
-    // All security checks already passed pre-upload (mime allowlist, extension
-    // denylist, size cap, declared-size match, ownership). Mark clean inline —
-    // no separate scan function call needed.
+    // Checks performed before storing: authenticated owner of the product,
+    // size cap, declared-size match, path confined to the uploader's folder,
+    // no overwrite (upsert: false), active content neutralised. No third-party
+    // scanning service ever receives the file.
     const { data: row, error: insErr } = await admin
       .from('dkai_product_files')
       .insert({
@@ -74,7 +80,7 @@ Deno.serve(async (req) => {
         storage_path: filePath,
         original_filename: file_name,
         file_size,
-        mime_type,
+        mime_type: storedType,
         scan_status: 'clean',
       })
       .select()

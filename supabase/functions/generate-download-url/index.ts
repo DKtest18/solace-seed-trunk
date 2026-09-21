@@ -1,5 +1,9 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
+import { isOwnedDeliveryPath } from '../_shared/delivery-path.ts';
+import { REVIEW_STATUS_GROUPS } from '../_shared/review-status.ts';
+
+const LIVE_STATUSES: string[] = [...REVIEW_STATUS_GROUPS.LIVE];
 
 const BUCKET = 'product-deliveries';
 const RATE_LIMIT = 20; // per hour per user
@@ -18,6 +22,17 @@ Deno.serve(async (req) => {
       if (!product_id) return errorResponse('product_id required', 400);
 
       const admin = getServiceClient();
+
+      // Products still in review never expose delivery files to buyers.
+      const { data: listProduct } = await admin
+        .from('dkai_products')
+        .select('review_status')
+        .eq('id', product_id)
+        .maybeSingle();
+      if (!listProduct || !LIVE_STATUSES.includes(String(listProduct.review_status))) {
+        return errorResponse('This product is not available for download.', 403);
+      }
+
       const { data: order } = await admin
         .from('dkai_orders')
         .select('id')
@@ -65,7 +80,13 @@ Deno.serve(async (req) => {
       return errorResponse('File is not available (scan pending or failed)', 403);
     }
 
-    // Authorize: seller, admin, or buyer with paid order
+    // A stored path must live inside its own seller's folder. This blocks a
+    // forged file row that points at another seller's objects.
+    if (!isOwnedDeliveryPath(file.storage_path, file.seller_id)) {
+      return errorResponse('This file is not available.', 403);
+    }
+
+    // Authorize: seller, admin, or buyer with paid order on a live product
     let allowed = file.seller_id === user.id;
     if (!allowed) {
       const { data: roleRow } = await admin
@@ -74,12 +95,20 @@ Deno.serve(async (req) => {
       if (roleRow) allowed = true;
     }
     if (!allowed) {
+      const { data: product } = await admin
+        .from('dkai_products')
+        .select('review_status')
+        .eq('id', file.product_id)
+        .maybeSingle();
+      if (!product || !LIVE_STATUSES.includes(String(product.review_status))) {
+        return errorResponse('This product is not available for download.', 403);
+      }
       const { data: order } = await admin
         .from('dkai_orders')
         .select('id')
         .eq('buyer_id', user.id)
         .eq('product_id', file.product_id)
-        .in('status', ['paid', 'completed'])
+        .in('status', ['paid', 'completed', 'delivered'])
         .limit(1)
         .maybeSingle();
       if (order) allowed = true;

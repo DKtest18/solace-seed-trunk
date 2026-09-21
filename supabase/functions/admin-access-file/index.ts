@@ -1,5 +1,6 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
+import { isOwnedDeliveryPath } from '../_shared/delivery-path.ts';
 
 const BUCKET = 'product-deliveries';
 const ADMIN_TTL = 900; // 15 minutes
@@ -34,6 +35,9 @@ Deno.serve(async (req) => {
       .eq('id', product_file_id)
       .single();
     if (fErr || !file) return errorResponse('File not found', 404);
+    if (!isOwnedDeliveryPath(file.storage_path, file.seller_id)) {
+      return errorResponse('This file is not available.', 403);
+    }
 
     const { data: signed, error: sErr } = await admin.storage
       .from(file.storage_bucket ?? BUCKET)

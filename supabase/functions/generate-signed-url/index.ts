@@ -1,49 +1,16 @@
-import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
-import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
+// DEPRECATED AND DISABLED.
+//
+// This function used to sign every delivery file of a product with no scan-status
+// check, no rate limit, no audit log and no verification that the stored path
+// belongs to the product's seller. All buyer downloads now go through
+// `generate-download-url`, admin access through `admin-download-product-file`.
+//
+// It is kept only so that redeploying replaces the old, permissive version.
+// Delete the deployed copy in the Supabase dashboard (Edge Functions) as well.
+import { handleCors, errorResponse } from '../_shared/cors.ts';
 
-Deno.serve(async (req) => {
+Deno.serve((req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-
-  const { user, error } = await getAuthenticatedUser(req);
-  if (error || !user) return errorResponse('Unauthorized', 401);
-
-  try {
-    const { productId, orderId } = await req.json();
-    const admin = getServiceClient();
-
-    // Verify buyer purchased the product
-    const { data: order } = await admin
-      .from('dkai_orders')
-      .select('*')
-      .eq('id', orderId)
-      .eq('buyer_id', user.id)
-      .eq('product_id', productId)
-      .in('status', ['completed', 'delivered'])
-      .single();
-
-    if (!order) return errorResponse('Purchase not found or not eligible for download', 403);
-
-    // Get delivery files
-    const { data: files } = await admin
-      .from('dkai_product_files')
-      .select('storage_path, original_filename')
-      .eq('product_id', productId);
-
-    if (!files || files.length === 0) return errorResponse('No files available', 404);
-
-    // Generate signed URLs for all files
-    const signedUrls = await Promise.all(
-      files.map(async (file) => {
-        const { data } = await admin.storage
-          .from('product-deliveries')
-          .createSignedUrl(file.storage_path, 3600); // 1 hour
-        return { fileName: file.original_filename, url: data?.signedUrl };
-      })
-    );
-
-    return jsonResponse({ success: true, files: signedUrls });
-  } catch (err) {
-    return errorResponse(err.message, 500);
-  }
+  return errorResponse('This endpoint has been retired. Use generate-download-url.', 410);
 });

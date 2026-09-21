@@ -28,8 +28,25 @@ export function ProductPreviewDetail({ preview }: { preview: PublicPreview }) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [broken, setBroken] = useState<string[]>([]);
 
-  const usable = media.filter((m) => !broken.includes(m.id));
+  // Demo videos the seller uploaded (stored as "bucket/path" strings) are shown
+  // alongside the gallery media whenever the demo-video consent is given.
+  const demoVideos = (preview.demo_video_paths ?? []).filter(Boolean);
+  const galleryItems = [
+    ...media.map((m) => ({
+      id: m.id,
+      type: m.media_type,
+      url: publicUrl(m.storage_path),
+    })),
+    ...demoVideos.map((p, i) => ({
+      id: `demo-${i}`,
+      type: 'video' as const,
+      url: publicUrl(p),
+    })),
+  ];
+
+  const usable = galleryItems.filter((m) => !broken.includes(m.id));
   const active = usable[Math.min(activeIdx, Math.max(usable.length - 1, 0))];
+  const faqs = (preview.faqs ?? []).filter((f) => f?.question || f?.answer);
   const specs: any[] = Array.isArray(preview.setup_requirements) ? (preview.setup_requirements as any[]) : [];
 
   return (

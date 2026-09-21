@@ -153,6 +153,38 @@ export function ProductPreviewDetail({ preview }: { preview: PublicPreview }) {
               </Card>
             )}
 
+            {preview.demo_video_url && (
+              <a
+                href={preview.demo_video_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary underline underline-offset-4"
+              >
+                Watch demo video
+              </a>
+            )}
+
+            {faqs.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Questions &amp; answers</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Accordion type="single" collapsible className="w-full">
+                    {faqs.map((f, i) => (
+                      <AccordionItem key={i} value={`faq-${i}`}>
+                        <AccordionTrigger className="text-left text-sm">{f.question}</AccordionTrigger>
+                        <AccordionContent className="text-sm text-muted-foreground whitespace-pre-line">
+                          {f.answer}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </CardContent>
+              </Card>
+            )}
+
+
             {(preview.seller_name || preview.seller_username) && (
               <Card>
                 <CardContent className="p-4 space-y-2">

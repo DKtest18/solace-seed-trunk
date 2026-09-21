@@ -83,7 +83,17 @@ function ProductGlassCard({ product, className = '' }: { product?: HomeProduct; 
 export default function Index() {
   const { t } = useTranslation();
   const { data: products } = useHomeProducts();
-  const list = products ?? [];
+  const { data: previews } = usePublicPreviews();
+  // Products awaiting review appear after the purchasable ones, clearly marked.
+  const previewCards: HomeProduct[] = (previews ?? []).map((p) => ({
+    id: p.id,
+    title: p.title,
+    price: Number(p.price ?? 0),
+    currency: p.currency || undefined,
+    image_url: p.image_url || undefined,
+    is_preview: true,
+  }));
+  const list = [...(products ?? []), ...previewCards];
   const slots: (HomeProduct | undefined)[] = Array.from({ length: 5 }, (_, i) => list[i]);
   const floatClasses = ['home-float', 'home-float home-float-2', 'home-float home-float-3', 'home-float home-float-4', 'home-float home-float-5'];
 

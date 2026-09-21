@@ -1,5 +1,6 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
+import { safeContentType } from '../_shared/delivery-path.ts';
 
 const BUCKET = 'product-deliveries';
 const MAX_SIZE = 2 * 1024 * 1024 * 1024; // 2 GB

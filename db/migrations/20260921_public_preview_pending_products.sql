@@ -118,15 +118,6 @@ $body$;
 -- 5) Allowlisted single preview ----------------------------------------------
 DROP FUNCTION IF EXISTS public.dkai_public_preview(uuid);
 CREATE FUNCTION public.dkai_public_preview(p_product_id uuid)
-RETURNS SETOF public.dkai_products
-LANGUAGE sql
-STABLE
-AS $body$
-  SELECT * FROM public.dkai_products WHERE false;
-$body$;
-DROP FUNCTION IF EXISTS public.dkai_public_preview(uuid);
-
-CREATE FUNCTION public.dkai_public_preview(p_product_id uuid)
 RETURNS TABLE (
   id uuid,
   title text,

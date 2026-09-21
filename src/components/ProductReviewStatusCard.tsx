@@ -84,6 +84,23 @@ export function ProductReviewStatusCard({
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
+
+      // Submission succeeded → record the acknowledged public-preview consent
+      // and refresh the public queries so the preview appears immediately.
+      const { error: consentError } = await db.rpc('dkai_set_public_preview_consent', {
+        p_product_id: productId,
+        p_enabled: true,
+        p_demo_video: demoVideoPublic,
+        p_source: 'seller_submission_acknowledgement',
+      });
+      if (consentError) {
+        toast.error(consentError.message || 'Submitted, but the public preview could not be enabled.');
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['public-previews'] });
+        queryClient.invalidateQueries({ queryKey: ['public-preview', productId] });
+        queryClient.invalidateQueries({ queryKey: ['products-with-ratings'] });
+      }
+
       toast.success('Submitted for review. We\'ll email you when there\'s a decision.');
       onSubmitted();
     } catch (e: any) {

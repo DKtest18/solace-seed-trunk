@@ -19,6 +19,9 @@ import { AppLayout } from '@/components/AppLayout';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
 import { HourglassLoader } from '@/components/HourglassLoader';
+import { useTranslation } from 'react-i18next';
+import { usePublicPreviews } from '@/hooks/usePublicPreviews';
+import { UnderReviewBadge, PreviewUnavailableLine } from '@/components/PreviewNotice';
 
 type LicenseKey = 'personal' | 'commercial' | 'agency' | 'exclusive';
 
@@ -39,7 +42,9 @@ function productHasLicense(product: any, key: LicenseKey): boolean {
 
 export default function Marketplace() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user } = useAuth();
+  const [onlyPurchasable, setOnlyPurchasable] = useState(false);
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [productType, setProductType] = useState<string>(searchParams.get('type') || 'all');

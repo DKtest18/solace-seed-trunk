@@ -56,6 +56,10 @@ export function ProductReviewStatusCard({
   const canSubmit = canSubmitStatuses.includes(status);
 
   const handleSubmit = async () => {
+    if (!previewAck) {
+      toast.error(t('preview.consentRequired'));
+      return;
+    }
     setSubmitting(true);
     try {
       let samplePath: string | null = null;

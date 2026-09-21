@@ -90,6 +90,12 @@ export default function ProductDetail() {
     enabled: !!id,
   });
 
+  // Public preview fallback: a submitted / in-review product whose seller
+  // consented to a public preview. Non-purchasable by design.
+  const { data: preview, isLoading: previewLoading } = usePublicPreview(
+    !isLoading && !product ? id : undefined,
+  );
+
   // Fetch seller profile
   const { data: sellerProfile } = useQuery({
     queryKey: ['seller-profile', product?.seller_id],

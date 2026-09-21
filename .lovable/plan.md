@@ -1,33 +1,59 @@
-# Netzwerk & Tools auf der Startseite
+# Public previews for products awaiting review
 
-## Ziel
-Die rein dekorative Symbol-Leiste zwischen Produktkarten und „So funktioniert’s“ entfernen und einen hochwertigen, barrierefreien Bereich „Netzwerk & Tools“ direkt unter „Warum DK AI Marketplace“ sowie vor dem Verkäufer-Aufruf ergänzen.
+## What exists today (inspection summary)
 
-## Umsetzung
-1. Eine eigenständige `NetworkToolsSection` mit zentraler, typisierter Konfiguration für Nordpixel, Make und ElevenLabs erstellen.
-2. Die drei vorgegebenen Ziele und Linkattribute unverändert einsetzen:
-   - Nordpixel: `nofollow noopener`
-   - Make und ElevenLabs: `sponsored noopener`
-3. Eine langsame, nahtlose CSS-Transform-Animation mit genügend visuellen Kopien umsetzen. Nur die drei Originaleinträge werden wiederholt.
-4. Die drei eigentlichen Links als semantische Liste und einzige Tastaturstopps bereitstellen. Animationskopien bleiben für Maus/Touch anklickbar, sind aber aus Tab-Reihenfolge und Screenreader-Baum entfernt. Bei Tastaturfokus wechselt der Bereich in eine sichtbare statische Ansicht.
-5. Pause/Fortsetzen mit zugänglichem Zustand ergänzen. Hover und Fokus pausieren temporär; eine bewusst gewählte Pause bleibt bestehen. `prefers-reduced-motion` zeigt standardmässig die statische responsive Ansicht.
-6. Karten, Logo-Flächen, Fokusmarkierungen, Abstände und Kontrast an die bestehende helle Startseite und ihre semantischen Variablen anpassen. Seitenweiter horizontaler Overflow wird verhindert.
-7. Überschrift, Untertitel, Beschreibungen, Kennzeichnungen, Linkbeschriftungen, Steuerung und Affiliate-Hinweis in Deutsch, Englisch und Französisch ergänzen.
-8. Die vorhandene dekorative Icon-Leiste samt nicht mehr benötigtem Code entfernen. Produktkarten, „So funktioniert’s“, bestehende Firmenlogo-Wand, Vertrauensbereich und Verkäufer-Aufruf bleiben erhalten.
+- Product lifecycle lives in one place (`draft → submitted → in_review → approved / changes_requested / rejected / delisted`), shared by the app and the backend functions.
+- Marketplace, homepage, top products and the product page all load **only** `approved + published` products. Nothing else is visible to visitors.
+- Buying is already blocked on the server: every checkout entry point (signed-in and guest) first calls the existing purchasability check, which requires approval, publication and a genuinely connected payout account. A preview therefore cannot be bought even by sending a request directly — this stays the single source of truth.
+- Product images/videos come from a media table; product deliverables, review samples and credentials live in separate private storage that visitors never touch.
+- Three languages (EN/DE/FR) are already wired through the existing translation files.
 
-## Logo-Dateien
-- Die Uploads sind inhaltlich eindeutig Nordpixel, Make und ElevenLabs zugeordnet.
-- Technische Prüfung: Alle drei Dateien sind undurchsichtige RGB-Bilder. Nordpixel hat einen echten weissen Hintergrund; Make und ElevenLabs haben ein eingebranntes Schachbrett und sind daher keine transparenten Originaldateien.
-- Vor der Umsetzung werden geeignete offizielle Originalvarianten von den ausdrücklich genannten Markenressourcen geprüft. Nur eine klar offizielle, kontrastreiche Datei wird lokal als Projektdatei gespeichert.
-- Falls für Make oder ElevenLabs keine eindeutig geeignete Originaldatei abrufbar ist, erscheint zunächst der Unternehmensname als sauberer Text-Fallback. Es wird kein Logo nachgebaut, generiert, umgefärbt oder mit Filtern kaschiert.
+Conclusion: previews are a **new, consent-gated visibility layer**. Purchase protection needs no weakening and no new bypass.
 
-## Prüfung
-- Desktop und Mobil: Reihenfolge, Lesbarkeit, Endlosschleife, Hover-/Fokus-Pause, manuelle Pause, Touch-Ziele und kein Seiten-Overflow.
-- Reduzierte Bewegung: statische responsive Liste ohne automatische Bewegung.
-- Tastatur und Screenreader: genau drei primäre Linkstopps, sichtbare Fokusmarkierungen, verständliche Beschriftungen und zugänglicher Pausenstatus.
-- Links: exakte URLs, Parameter, `target="_blank"` und korrekte `rel`-Werte.
-- Bilddarstellung: feste Logo-Flächen, `object-fit: contain`, keine Verzerrung oder Beschneidung.
-- Build-/TypeScript-Prüfung und sichtbare Kontrolle in der Vorschau.
+## What will be added
 
-## Grenzen
-Keine Änderung an Supabase, Authentifizierung, Datenbank, Storage oder Stripe. Kein Lovable Cloud. Keine neuen oder generierten Logos.
+### 1. Seller consent (new, off by default)
+- A new optional, unchecked control in the seller submission/edit flow: "Show a public preview of this listing while it is under review".
+- A separate, also unchecked control for the demo video: internal review videos stay private unless the seller ticks the public-demo box.
+- Plain-language list of exactly what becomes public: title, description, approved preview images, planned price, public seller name, and the public features/requirements/setup text.
+- Sellers can withdraw consent at any time; withdrawal removes the preview instantly, including direct links and preview-only media.
+
+### 2. Public preview visibility
+- Previews appear only for products that are genuinely submitted or in review and have consent. Drafts, rejected, withdrawn, suspended, delisted and deleted products never appear.
+- Marketplace, search and category results include previews after all purchasable products.
+- Preview cards carry a text badge — EN "Under review", DE "In Prüfung", FR "En cours d'examen" — plus the availability line "Preview only — not yet available for purchase." (translated). Readable without colour, keyboard accessible.
+- New "Available to buy" filter lets visitors hide previews.
+
+### 3. Preview detail page
+- Reuses the existing product page layout, but shows only allowlisted public fields, no purchase/cart/download actions, and a prominent notice that the product is awaiting review and not approved or available for purchase.
+- Planned price is labelled "Planned price — subject to change"; no release date.
+- Seller identity badges are visually and textually separated from product approval.
+
+### 4. Data protection
+- A restricted database view/function returns only the allowlisted public preview fields — private columns never reach the browser.
+- No private storage bucket is made public. Public preview media is limited to assets the seller explicitly marked public.
+- Row-level rules ensure that knowing a product ID or guessing a file path exposes nothing.
+
+### 5. Lifecycle correctness
+- Consent is stored separately from review status; turning a preview on never approves anything or marks payouts ready.
+- After approval: if payouts are still missing, the listing shows an accurate "not yet available" state instead of "under review".
+- Rejection, suspension, withdrawal or consent removal drops the preview immediately.
+- Founding-seller benefits, commissions and review priority are untouched.
+
+## Backend handover (your external Supabase project `dwqpkdatzdqhplgyhigg`)
+
+I have no credentials for your Supabase project in this environment, so I cannot run SQL or deploy functions. I will prepare everything in the repository and hand you:
+
+1. One additive, repeat-safe SQL script (new consent columns, public-preview media flag, restricted public view, row-level policies, grants) with execution order and verification queries.
+2. The complete source of any changed function plus exact deployment steps and a copy-paste Supabase AI prompt.
+3. Verification queries to confirm nothing existing changed.
+
+Nothing will be claimed as deployed.
+
+## One thing I need from you
+
+I cannot read your live database, so I cannot identify Andrian Vladyka's seller account or his submitted products and demo video. I will include a short lookup query in the handover; please send me his account ID, the product IDs and which video file is the public demo, and I will record his LinkedIn-sourced authorisation with the real timestamp of entry. Until then his listings stay private and his permission is applied to nobody else.
+
+## Validation planned
+
+Build and TypeScript checks, browser checks of marketplace/preview page/filters on desktop and mobile, confirmation that non-consented and non-eligible products stay invisible, that direct checkout requests for previews fail server-side, and that existing purchasable products still work.

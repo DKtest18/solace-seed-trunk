@@ -940,5 +940,30 @@
       "tooLarge": "Datei ist grösser als 2 MB",
       "consent": "Ich bin damit einverstanden, dass dieses Logo und der Firmenname öffentlich auf der Startseite von DK AI Marketplace angezeigt werden."
     }
+  },
+  "preview": {
+    "badge": "In Prüfung",
+    "notAvailable": "Nur Vorschau – noch nicht zum Kauf verfügbar.",
+    "filterAvailable": "Zum Kauf verfügbar",
+    "filterAvailableHint": "Einträge ausblenden, die noch in Prüfung sind.",
+    "detailNotice": "Dieses Produkt befindet sich in Prüfung und ist noch nicht freigegeben oder käuflich. Die Freigabe zum Verkauf hängt von der Prüfung und der Auszahlungsbereitschaft des Verkäufers ab.",
+    "plannedPrice": "Geplanter Preis – Änderungen möglich.",
+    "viewPreview": "Vorschau ansehen",
+    "sellerIdentityNote": "Die Identitätsprüfung des Verkäufers ist unabhängig von der Produktprüfung und sagt nichts über die Freigabe dieses Produkts aus.",
+    "approvedNotPurchasable": "Freigegeben – noch nicht käuflich, da der Verkäufer die Zahlungseinrichtung noch abschliesst.",
+    "consentTitle": "Öffentliche Vorschau während der Prüfung",
+    "consentExplain": "Mit dem Einreichen dieses Produkts wird der Eintrag sofort als öffentliche Vorschau veröffentlicht, während er geprüft wird. Kundinnen und Kunden können ihn erst kaufen, wenn er freigegeben und die erforderliche Zahlungseinrichtung bereit ist.",
+    "consentPublicFields": "Öffentlich sichtbar: Titel, Beschreibung, deine freigegebenen Vorschaubilder, der geplante Preis (als änderbar gekennzeichnet), dein öffentlicher Verkäufername sowie die öffentlichen Funktions-, Voraussetzungs- und Einrichtungsangaben. Download-Dateien, Quell- und Workflow-Pakete, interne Prüfunterlagen, Zugangsdaten, privates Feedback und Kundendaten bleiben privat.",
+    "consentAck": "Ich verstehe und stimme zu, dass dieser Eintrag direkt nach dem Einreichen zur öffentlichen Vorschau wird.",
+    "consentVideo": "Mein Demo-Video darf ebenfalls öffentlich gezeigt werden (interne Prüfvideos bleiben privat).",
+    "consentRequired": "Bitte bestätige den Hinweis zur öffentlichen Vorschau vor dem Einreichen.",
+    "mediaCacheNote": "Vorschau-Medien werden über URLs ausgeliefert, die Browser und Netzwerke zwischenspeichern können. Bereits heruntergeladene Dateien lassen sich nicht zurückrufen.",
+    "previewLive": "Öffentliche Vorschau ist aktiv",
+    "previewOff": "Keine öffentliche Vorschau",
+    "enablePreview": "Öffentliche Vorschau zeigen",
+    "withdrawPreview": "Öffentliche Vorschau zurückziehen",
+    "previewEnabled": "Öffentliche Vorschau aktiviert.",
+    "previewWithdrawn": "Öffentliche Vorschau zurückgezogen.",
+    "previewHint": "Dein Eintrag ist als klar gekennzeichnete Vorschau sichtbar. Ein Kauf ist erst nach Freigabe und abgeschlossener Zahlungseinrichtung möglich."
   }
 }

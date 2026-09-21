@@ -76,7 +76,7 @@ export default function ProductDetail() {
         .eq('id', id)
         .eq('review_status', REVIEW_STATUS.APPROVED)
         .eq('is_published', true)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

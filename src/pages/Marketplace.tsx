@@ -106,6 +106,35 @@ export default function Marketplace() {
     }
   });
 
+  // PREVIEWS: submitted / in-review listings whose seller consented to a public
+  // preview. They are never purchasable and are always listed AFTER the
+  // purchasable products.
+  const { data: previews } = usePublicPreviews();
+  const previewItems = (previews ?? [])
+    .filter((p: any) => {
+      if (searchQuery) {
+        const s = searchQuery.toLowerCase();
+        if (!p.title?.toLowerCase().includes(s) && !p.description?.toLowerCase().includes(s)) return false;
+      }
+      if (productType !== 'all' && p.product_type !== productType) return false;
+      if (pricingModel !== 'all' && p.pricing_model !== pricingModel) return false;
+      if (selectedTags.length > 0 && !selectedTags.some((tag) => p.tags?.includes(tag))) return false;
+      if (priceRange.min || priceRange.max) {
+        const price = Number(p.price);
+        const min = priceRange.min ? parseFloat(priceRange.min) : 0;
+        const max = priceRange.max ? parseFloat(priceRange.max) : Infinity;
+        if (price < min || price > max) return false;
+      }
+      if (minRating > 0) return false; // previews have no ratings yet
+      return true;
+    })
+    .map((p: any) => ({ ...p, isPreview: true, rating: { average: 0, count: 0 } }));
+
+  const items = [
+    ...((products ?? []).map((p: any) => ({ ...p, isPreview: false }))),
+    ...(onlyPurchasable ? [] : previewItems),
+  ];
+
   const { data: allTags } = useQuery({
     queryKey: ['all-tags'],
     queryFn: async () => {

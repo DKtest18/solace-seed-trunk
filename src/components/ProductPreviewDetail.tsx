@@ -67,10 +67,10 @@ export function ProductPreviewDetail({ preview }: { preview: PublicPreview }) {
           <div className="space-y-3">
             <div className="aspect-video bg-muted overflow-hidden rounded-lg flex items-center justify-center">
               {active ? (
-                active.media_type === 'video' ? (
+                active.type === 'video' ? (
                   <video
                     key={active.id}
-                    src={publicUrl(active.storage_path)}
+                    src={active.url}
                     controls
                     playsInline
                     preload="metadata"
@@ -80,7 +80,7 @@ export function ProductPreviewDetail({ preview }: { preview: PublicPreview }) {
                 ) : (
                   <img
                     key={active.id}
-                    src={publicUrl(active.storage_path)}
+                    src={active.url}
                     alt={preview.title}
                     className="w-full h-full object-cover"
                     onError={() => setBroken((p) => [...p, active.id])}
@@ -103,10 +103,10 @@ export function ProductPreviewDetail({ preview }: { preview: PublicPreview }) {
                       i === activeIdx ? 'border-primary' : 'border-border'
                     }`}
                   >
-                    {m.media_type === 'video' ? (
+                    {m.type === 'video' ? (
                       <span className="flex h-full w-full items-center justify-center text-xs">Video</span>
                     ) : (
-                      <img src={publicUrl(m.storage_path)} alt="" className="h-full w-full object-cover" />
+                      <img src={m.url} alt="" className="h-full w-full object-cover" />
                     )}
                   </button>
                 ))}

@@ -250,12 +250,20 @@ export default function ProductDetail() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  if (isLoading) {
+  if (isLoading || (!product && previewLoading)) {
     return (
       <AppLayout>
         <div className="min-h-screen flex items-center justify-center">
           <HourglassLoader size="lg" label />
         </div>
+      </AppLayout>
+    );
+  }
+
+  if (!product && preview) {
+    return (
+      <AppLayout>
+        <ProductPreviewDetail preview={preview} />
       </AppLayout>
     );
   }

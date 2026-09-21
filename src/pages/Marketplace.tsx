@@ -448,14 +448,14 @@ export default function Marketplace() {
               <div className="flex items-center justify-center py-24">
                 <HourglassLoader size={128} label />
               </div>
-            ) : products && products.length > 0 ? (
+            ) : items && items.length > 0 ? (
 
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {products.map((product: any) => (
+                {items.map((product: any) => (
                   <Card
                     key={product.id}
                     onClick={() => {
-                      trackProductClick(product.id, user?.id);
+                      if (!product.isPreview) trackProductClick(product.id, user?.id);
                       navigate(`/product/${product.id}`);
                     }}
                     className="cursor-pointer overflow-hidden hover:-translate-y-0.5 hover:shadow-lg hover:border-primary/40 transition-all duration-200 flex flex-col"
@@ -466,11 +466,11 @@ export default function Marketplace() {
                       ) : null}
                     </div>
                     <div className="p-5 flex flex-col flex-1">
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
                         <Badge variant="secondary" className="text-xs font-medium">
                           {product.product_type}
                         </Badge>
-                        <LicenseChips product={product} />
+                        {product.isPreview ? <UnderReviewBadge /> : <LicenseChips product={product} />}
                       </div>
                       <h3 className="text-lg font-semibold mb-2 line-clamp-2 text-foreground">
                         {product.title}
@@ -479,23 +479,29 @@ export default function Marketplace() {
                         {product.description || 'No description available'}
                       </p>
 
-                      {product.rating.count > 0 && (
+                      {!product.isPreview && product.rating.count > 0 && (
                         <div className="mb-4">
                           <RatingDisplay rating={product.rating.average} count={product.rating.count} size="sm" />
                         </div>
                       )}
 
+                      {product.isPreview && <PreviewUnavailableLine className="mb-4" />}
+
                       <div className="mt-auto flex items-center justify-between pt-4 border-t border-border">
                         <div className="text-xl font-semibold text-foreground">
                           {formatMoney(product.price, (product as any).currency)}
                           <span className="text-xs font-normal text-muted-foreground ml-1">
-                            {subscriptionLabel(product as any) || 'once'}
+                            {product.isPreview
+                              ? t('preview.plannedPrice')
+                              : subscriptionLabel(product as any) || 'once'}
                           </span>
                         </div>
                         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                          <WishlistButton productId={product.id} />
-                          <Button size="sm" asChild>
-                            <Link to={`/product/${product.id}`}>View</Link>
+                          {!product.isPreview && <WishlistButton productId={product.id} />}
+                          <Button size="sm" variant={product.isPreview ? 'outline' : 'default'} asChild>
+                            <Link to={`/product/${product.id}`}>
+                              {product.isPreview ? t('preview.viewPreview') : 'View'}
+                            </Link>
                           </Button>
                         </div>
                       </div>

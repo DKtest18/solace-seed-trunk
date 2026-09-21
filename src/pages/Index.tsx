@@ -11,6 +11,7 @@ import {
   BadgeCheck,
   Wallet,
   ArrowRight,
+  Clock,
 } from 'lucide-react';
 import { db } from '@/lib/dkaiDb';
 import { formatMoney } from '@/lib/money';

@@ -1,5 +1,9 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
+import { isOwnedDeliveryPath } from '../_shared/delivery-path.ts';
+import { REVIEW_STATUS_GROUPS } from '../_shared/review-status.ts';
+
+const LIVE_STATUSES: string[] = [...REVIEW_STATUS_GROUPS.LIVE];
 
 const BUCKET = 'product-deliveries';
 const RATE_LIMIT = 20; // per hour per user

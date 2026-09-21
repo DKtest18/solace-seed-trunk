@@ -198,6 +198,21 @@ export default function Marketplace() {
   const FilterPanel = () => (
     <div>
       <div className="mb-8">
+        <h3 className="text-sm font-semibold mb-3 uppercase tracking-wide text-foreground">
+          {t('preview.filterAvailable')}
+        </h3>
+        <label className="flex items-start gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            className="mt-0.5 accent-primary"
+            checked={onlyPurchasable}
+            onChange={(e) => setOnlyPurchasable(e.target.checked)}
+          />
+          <span className="text-xs text-muted-foreground">{t('preview.filterAvailableHint')}</span>
+        </label>
+      </div>
+
+      <div className="mb-8">
         <h3 className="text-sm font-semibold mb-3 uppercase tracking-wide text-foreground">Product Type</h3>
         <Select value={productType} onValueChange={setProductType}>
           <SelectTrigger className="text-sm"><SelectValue placeholder="All Types" /></SelectTrigger>

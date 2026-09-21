@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { LinkedInVerifiedBadge } from '@/components/LinkedInVerifiedBadge';
@@ -28,8 +29,25 @@ export function ProductPreviewDetail({ preview }: { preview: PublicPreview }) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [broken, setBroken] = useState<string[]>([]);
 
-  const usable = media.filter((m) => !broken.includes(m.id));
+  // Demo videos the seller uploaded (stored as "bucket/path" strings) are shown
+  // alongside the gallery media whenever the demo-video consent is given.
+  const demoVideos = (preview.demo_video_paths ?? []).filter(Boolean);
+  const galleryItems = [
+    ...media.map((m) => ({
+      id: m.id,
+      type: m.media_type,
+      url: publicUrl(m.storage_path),
+    })),
+    ...demoVideos.map((p, i) => ({
+      id: `demo-${i}`,
+      type: 'video' as const,
+      url: publicUrl(p),
+    })),
+  ];
+
+  const usable = galleryItems.filter((m) => !broken.includes(m.id));
   const active = usable[Math.min(activeIdx, Math.max(usable.length - 1, 0))];
+  const faqs = (preview.faqs ?? []).filter((f) => f?.question || f?.answer);
   const specs: any[] = Array.isArray(preview.setup_requirements) ? (preview.setup_requirements as any[]) : [];
 
   return (
@@ -50,10 +68,10 @@ export function ProductPreviewDetail({ preview }: { preview: PublicPreview }) {
           <div className="space-y-3">
             <div className="aspect-video bg-muted overflow-hidden rounded-lg flex items-center justify-center">
               {active ? (
-                active.media_type === 'video' ? (
+                active.type === 'video' ? (
                   <video
                     key={active.id}
-                    src={publicUrl(active.storage_path)}
+                    src={active.url}
                     controls
                     playsInline
                     preload="metadata"
@@ -63,7 +81,7 @@ export function ProductPreviewDetail({ preview }: { preview: PublicPreview }) {
                 ) : (
                   <img
                     key={active.id}
-                    src={publicUrl(active.storage_path)}
+                    src={active.url}
                     alt={preview.title}
                     className="w-full h-full object-cover"
                     onError={() => setBroken((p) => [...p, active.id])}
@@ -86,10 +104,10 @@ export function ProductPreviewDetail({ preview }: { preview: PublicPreview }) {
                       i === activeIdx ? 'border-primary' : 'border-border'
                     }`}
                   >
-                    {m.media_type === 'video' ? (
+                    {m.type === 'video' ? (
                       <span className="flex h-full w-full items-center justify-center text-xs">Video</span>
                     ) : (
-                      <img src={publicUrl(m.storage_path)} alt="" className="h-full w-full object-cover" />
+                      <img src={m.url} alt="" className="h-full w-full object-cover" />
                     )}
                   </button>
                 ))}
@@ -135,6 +153,38 @@ export function ProductPreviewDetail({ preview }: { preview: PublicPreview }) {
                 </CardContent>
               </Card>
             )}
+
+            {preview.demo_video_url && (
+              <a
+                href={preview.demo_video_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary underline underline-offset-4"
+              >
+                Watch demo video
+              </a>
+            )}
+
+            {faqs.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Questions &amp; answers</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Accordion type="single" collapsible className="w-full">
+                    {faqs.map((f, i) => (
+                      <AccordionItem key={i} value={`faq-${i}`}>
+                        <AccordionTrigger className="text-left text-sm">{f.question}</AccordionTrigger>
+                        <AccordionContent className="text-sm text-muted-foreground whitespace-pre-line">
+                          {f.answer}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </CardContent>
+              </Card>
+            )}
+
 
             {(preview.seller_name || preview.seller_username) && (
               <Card>

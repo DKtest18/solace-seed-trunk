@@ -11,6 +11,7 @@ import {
   BadgeCheck,
   Wallet,
   ArrowRight,
+  Clock,
 } from 'lucide-react';
 import { db } from '@/lib/dkaiDb';
 import { formatMoney } from '@/lib/money';
@@ -18,6 +19,7 @@ import './index-home.css';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
 import { CompanyLogoWall } from '@/components/home/CompanyLogoWall';
 import { NetworkToolsSection } from '@/components/home/NetworkToolsSection';
+import { usePublicPreviews } from '@/hooks/usePublicPreviews';
 
 type HomeProduct = {
   id: string;
@@ -26,6 +28,7 @@ type HomeProduct = {
   currency?: string;
   image_url?: string;
   seller_verified?: boolean;
+  is_preview?: boolean;
 };
 
 function useHomeProducts() {
@@ -73,9 +76,16 @@ function ProductGlassCard({ product, className = '' }: { product?: HomeProduct; 
       </div>
       <div className="flex items-center gap-1.5 mb-1">
         <span className="text-sm font-medium text-[var(--brand-primary)] line-clamp-1">{product.title}</span>
-        <BadgeCheck className="h-4 w-4 text-[var(--brand-accent)] shrink-0" aria-label={t('landing.verified')} />
+        {product.is_preview ? (
+          <Clock className="h-4 w-4 text-[var(--text-dim)] shrink-0" aria-label={t('preview.badge')} />
+        ) : (
+          <BadgeCheck className="h-4 w-4 text-[var(--brand-accent)] shrink-0" aria-label={t('landing.verified')} />
+        )}
       </div>
       <div className="text-sm text-[var(--text-muted)]">{formatMoney(product.price, product.currency)}</div>
+      {product.is_preview && (
+        <div className="mt-1 text-[11px] text-[var(--text-dim)]">{t('preview.badge')}</div>
+      )}
     </Link>
   );
 }
@@ -83,7 +93,17 @@ function ProductGlassCard({ product, className = '' }: { product?: HomeProduct; 
 export default function Index() {
   const { t } = useTranslation();
   const { data: products } = useHomeProducts();
-  const list = products ?? [];
+  const { data: previews } = usePublicPreviews();
+  // Products awaiting review appear after the purchasable ones, clearly marked.
+  const previewCards: HomeProduct[] = (previews ?? []).map((p) => ({
+    id: p.id,
+    title: p.title,
+    price: Number(p.price ?? 0),
+    currency: p.currency || undefined,
+    image_url: p.image_url || undefined,
+    is_preview: true,
+  }));
+  const list = [...(products ?? []), ...previewCards];
   const slots: (HomeProduct | undefined)[] = Array.from({ length: 5 }, (_, i) => list[i]);
   const floatClasses = ['home-float', 'home-float home-float-2', 'home-float home-float-3', 'home-float home-float-4', 'home-float home-float-5'];
 

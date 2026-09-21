@@ -26,6 +26,9 @@ export interface PublicPreview {
   tags: string[] | null;
   delivery_mode: string | null;
   setup_requirements: unknown;
+  faqs?: Array<{ question?: string; answer?: string }> | null;
+  demo_video_url?: string | null;
+  demo_video_paths?: string[] | null;
   seller_id: string;
   seller_name: string | null;
   seller_username: string | null;

@@ -22,6 +22,8 @@ import { DELIVERY_MODE, REVIEW_STATUS, normalizeDeliveryMode } from '@/lib/revie
 import { HourglassLoader } from '@/components/HourglassLoader';
 import { usePublicPreview } from '@/hooks/usePublicPreviews';
 import { ProductPreviewDetail } from '@/components/ProductPreviewDetail';
+import { useProductPurchasable } from '@/hooks/useProductPurchasable';
+import { useTranslation } from 'react-i18next';
 
 // Track product analytics
 const trackProductEvent = async (productId: string, eventType: 'view' | 'click', userId?: string, metadata?: any) => {

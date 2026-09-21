@@ -45,6 +45,7 @@ const trackProductEvent = async (productId: string, eventType: 'view' | 'click',
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();

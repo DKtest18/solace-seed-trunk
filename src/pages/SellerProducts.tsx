@@ -36,6 +36,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { db } from '@/lib/dkaiDb';
+import { PublicPreviewToggle } from '@/components/PublicPreviewToggle';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
 import { toast } from 'sonner';
 import { useProductPurchasable } from '@/hooks/useProductPurchasable';
@@ -286,6 +287,14 @@ export default function SellerProducts() {
               <p className="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
                 In inspection — will be published within 0–24h if approved.
               </p>
+            )}
+            {bucket === 'in_review' && (
+              <PublicPreviewToggle
+                productId={p.id}
+                enabled={p.public_preview_enabled === true}
+                demoVideoAllowed={p.public_preview_demo_video_allowed === true}
+                onChanged={refetch}
+              />
             )}
             {bucket === 'approved_pending_publish' && <ApprovedPurchasabilityHint productId={p.id} />}
             {p.admin_review_note && (REVIEW_STATUS_GROUPS.NEEDS_SELLER_ACTION as readonly string[]).includes(reviewStatusOf(p)) && (

@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
+import { db } from '@/lib/dkaiDb';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -41,14 +44,22 @@ export function ProductReviewStatusCard({
   deliveryTier,
   onSubmitted,
 }: Props) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
   const [sampleFile, setSampleFile] = useState<File | null>(null);
+  const [previewAck, setPreviewAck] = useState(false);
+  const [demoVideoPublic, setDemoVideoPublic] = useState(false);
 
   const needsSample = deliveryTier === 'tier3';
   const status = normalizeReviewStatus(reviewStatus);
   const canSubmit = canSubmitStatuses.includes(status);
 
   const handleSubmit = async () => {
+    if (!previewAck) {
+      toast.error(t('preview.consentRequired'));
+      return;
+    }
     setSubmitting(true);
     try {
       let samplePath: string | null = null;
@@ -73,6 +84,23 @@ export function ProductReviewStatusCard({
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
+
+      // Submission succeeded → record the acknowledged public-preview consent
+      // and refresh the public queries so the preview appears immediately.
+      const { error: consentError } = await db.rpc('dkai_set_public_preview_consent', {
+        p_product_id: productId,
+        p_enabled: true,
+        p_demo_video: demoVideoPublic,
+        p_source: 'seller_submission_acknowledgement',
+      });
+      if (consentError) {
+        toast.error(consentError.message || 'Submitted, but the public preview could not be enabled.');
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['public-previews'] });
+        queryClient.invalidateQueries({ queryKey: ['public-preview', productId] });
+        queryClient.invalidateQueries({ queryKey: ['products-with-ratings'] });
+      }
+
       toast.success('Submitted for review. We\'ll email you when there\'s a decision.');
       onSubmitted();
     } catch (e: any) {
@@ -142,7 +170,32 @@ export function ProductReviewStatusCard({
               />
             </div>
           )}
-          <Button onClick={handleSubmit} disabled={submitting}>
+          <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+            <p className="text-sm font-medium">{t('preview.consentTitle')}</p>
+            <p className="text-sm">{t('preview.consentExplain')}</p>
+            <p className="text-xs text-muted-foreground">{t('preview.consentPublicFields')}</p>
+            <label className="flex items-start gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-0.5 accent-primary"
+                checked={previewAck}
+                onChange={(e) => setPreviewAck(e.target.checked)}
+              />
+              <span>{t('preview.consentAck')}</span>
+            </label>
+            <label className="flex items-start gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-0.5 accent-primary"
+                checked={demoVideoPublic}
+                onChange={(e) => setDemoVideoPublic(e.target.checked)}
+              />
+              <span>{t('preview.consentVideo')}</span>
+            </label>
+            <p className="text-xs text-muted-foreground">{t('preview.mediaCacheNote')}</p>
+          </div>
+
+          <Button onClick={handleSubmit} disabled={submitting || !previewAck}>
             {submitting ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (

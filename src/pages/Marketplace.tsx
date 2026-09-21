@@ -19,6 +19,9 @@ import { AppLayout } from '@/components/AppLayout';
 import { formatMoney, subscriptionLabel } from '@/lib/money';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
 import { HourglassLoader } from '@/components/HourglassLoader';
+import { useTranslation } from 'react-i18next';
+import { usePublicPreviews } from '@/hooks/usePublicPreviews';
+import { UnderReviewBadge, PreviewUnavailableLine } from '@/components/PreviewNotice';
 
 type LicenseKey = 'personal' | 'commercial' | 'agency' | 'exclusive';
 
@@ -39,7 +42,9 @@ function productHasLicense(product: any, key: LicenseKey): boolean {
 
 export default function Marketplace() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user } = useAuth();
+  const [onlyPurchasable, setOnlyPurchasable] = useState(false);
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [productType, setProductType] = useState<string>(searchParams.get('type') || 'all');
@@ -101,6 +106,35 @@ export default function Marketplace() {
     }
   });
 
+  // PREVIEWS: submitted / in-review listings whose seller consented to a public
+  // preview. They are never purchasable and are always listed AFTER the
+  // purchasable products.
+  const { data: previews } = usePublicPreviews();
+  const previewItems = (previews ?? [])
+    .filter((p: any) => {
+      if (searchQuery) {
+        const s = searchQuery.toLowerCase();
+        if (!p.title?.toLowerCase().includes(s) && !p.description?.toLowerCase().includes(s)) return false;
+      }
+      if (productType !== 'all' && p.product_type !== productType) return false;
+      if (pricingModel !== 'all' && p.pricing_model !== pricingModel) return false;
+      if (selectedTags.length > 0 && !selectedTags.some((tag) => p.tags?.includes(tag))) return false;
+      if (priceRange.min || priceRange.max) {
+        const price = Number(p.price);
+        const min = priceRange.min ? parseFloat(priceRange.min) : 0;
+        const max = priceRange.max ? parseFloat(priceRange.max) : Infinity;
+        if (price < min || price > max) return false;
+      }
+      if (minRating > 0) return false; // previews have no ratings yet
+      return true;
+    })
+    .map((p: any) => ({ ...p, isPreview: true, rating: { average: 0, count: 0 } }));
+
+  const items = [
+    ...((products ?? []).map((p: any) => ({ ...p, isPreview: false }))),
+    ...(onlyPurchasable ? [] : previewItems),
+  ];
+
   const { data: allTags } = useQuery({
     queryKey: ['all-tags'],
     queryFn: async () => {
@@ -139,6 +173,7 @@ export default function Marketplace() {
     setPriceRange({ min: '', max: '' });
     setMinRating(0);
     setSortBy('newest');
+    setOnlyPurchasable(false);
   };
 
   const hasActiveFilters =
@@ -148,6 +183,7 @@ export default function Marketplace() {
     pricingModel !== 'all' ||
     priceRange.min !== '' ||
     priceRange.max !== '' ||
+    onlyPurchasable ||
     minRating > 0;
 
   const FilterPill = ({ label, onRemove }: { label: string; onRemove: () => void }) => (
@@ -161,6 +197,21 @@ export default function Marketplace() {
 
   const FilterPanel = () => (
     <div>
+      <div className="mb-8">
+        <h3 className="text-sm font-semibold mb-3 uppercase tracking-wide text-foreground">
+          {t('preview.filterAvailable')}
+        </h3>
+        <label className="flex items-start gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            className="mt-0.5 accent-primary"
+            checked={onlyPurchasable}
+            onChange={(e) => setOnlyPurchasable(e.target.checked)}
+          />
+          <span className="text-xs text-muted-foreground">{t('preview.filterAvailableHint')}</span>
+        </label>
+      </div>
+
       <div className="mb-8">
         <h3 className="text-sm font-semibold mb-3 uppercase tracking-wide text-foreground">Product Type</h3>
         <Select value={productType} onValueChange={setProductType}>
@@ -397,14 +448,14 @@ export default function Marketplace() {
               <div className="flex items-center justify-center py-24">
                 <HourglassLoader size={128} label />
               </div>
-            ) : products && products.length > 0 ? (
+            ) : items && items.length > 0 ? (
 
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {products.map((product: any) => (
+                {items.map((product: any) => (
                   <Card
                     key={product.id}
                     onClick={() => {
-                      trackProductClick(product.id, user?.id);
+                      if (!product.isPreview) trackProductClick(product.id, user?.id);
                       navigate(`/product/${product.id}`);
                     }}
                     className="cursor-pointer overflow-hidden hover:-translate-y-0.5 hover:shadow-lg hover:border-primary/40 transition-all duration-200 flex flex-col"
@@ -415,11 +466,11 @@ export default function Marketplace() {
                       ) : null}
                     </div>
                     <div className="p-5 flex flex-col flex-1">
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
                         <Badge variant="secondary" className="text-xs font-medium">
                           {product.product_type}
                         </Badge>
-                        <LicenseChips product={product} />
+                        {product.isPreview ? <UnderReviewBadge /> : <LicenseChips product={product} />}
                       </div>
                       <h3 className="text-lg font-semibold mb-2 line-clamp-2 text-foreground">
                         {product.title}
@@ -428,23 +479,29 @@ export default function Marketplace() {
                         {product.description || 'No description available'}
                       </p>
 
-                      {product.rating.count > 0 && (
+                      {!product.isPreview && product.rating.count > 0 && (
                         <div className="mb-4">
                           <RatingDisplay rating={product.rating.average} count={product.rating.count} size="sm" />
                         </div>
                       )}
 
+                      {product.isPreview && <PreviewUnavailableLine className="mb-4" />}
+
                       <div className="mt-auto flex items-center justify-between pt-4 border-t border-border">
                         <div className="text-xl font-semibold text-foreground">
                           {formatMoney(product.price, (product as any).currency)}
                           <span className="text-xs font-normal text-muted-foreground ml-1">
-                            {subscriptionLabel(product as any) || 'once'}
+                            {product.isPreview
+                              ? t('preview.plannedPrice')
+                              : subscriptionLabel(product as any) || 'once'}
                           </span>
                         </div>
                         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                          <WishlistButton productId={product.id} />
-                          <Button size="sm" asChild>
-                            <Link to={`/product/${product.id}`}>View</Link>
+                          {!product.isPreview && <WishlistButton productId={product.id} />}
+                          <Button size="sm" variant={product.isPreview ? 'outline' : 'default'} asChild>
+                            <Link to={`/product/${product.id}`}>
+                              {product.isPreview ? t('preview.viewPreview') : 'View'}
+                            </Link>
                           </Button>
                         </div>
                       </div>

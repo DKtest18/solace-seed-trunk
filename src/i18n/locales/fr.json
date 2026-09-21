@@ -318,5 +318,30 @@
       "tooLarge": "Le fichier dépasse 2 Mo",
       "consent": "J'accepte que ce logo et le nom de l'entreprise soient affichés publiquement sur la page d'accueil de DK AI Marketplace."
     }
+  },
+  "preview": {
+    "badge": "En cours d'examen",
+    "notAvailable": "Aperçu uniquement — pas encore disponible à l'achat.",
+    "filterAvailable": "Disponible à l'achat",
+    "filterAvailableHint": "Masquer les annonces encore en cours d'examen.",
+    "detailNotice": "Ce produit est en cours d'examen et n'est pas encore approuvé ni disponible à l'achat. Sa mise en vente dépend de l'approbation de l'examen et de la configuration des paiements du vendeur.",
+    "plannedPrice": "Prix prévu — susceptible de changer.",
+    "viewPreview": "Voir l'aperçu",
+    "sellerIdentityNote": "La vérification de l'identité du vendeur est distincte de l'examen du produit et ne dit rien de son approbation.",
+    "approvedNotPurchasable": "Approuvé — pas encore disponible à l'achat, le vendeur finalise sa configuration de paiement.",
+    "consentTitle": "Aperçu public pendant l'examen",
+    "consentExplain": "En soumettant ce produit, son annonce sera immédiatement publiée comme aperçu public pendant son examen. Les clients ne pourront pas l'acheter avant son approbation et la mise en place des paiements requis.",
+    "consentPublicFields": "Visible publiquement : titre, description, vos images d'aperçu autorisées, le prix prévu (indiqué comme susceptible de changer), votre nom public de vendeur ainsi que les informations publiques de fonctionnalités, prérequis et installation. Les fichiers téléchargeables, le code source, les paquets de workflow, les éléments internes d'examen, les identifiants, les retours privés et les données clients restent privés.",
+    "consentAck": "Je comprends et j'accepte que cette annonce devienne un aperçu public dès la soumission.",
+    "consentVideo": "Autoriser aussi l'affichage public de ma vidéo de démonstration (les vidéos internes d'examen restent privées).",
+    "consentRequired": "Veuillez confirmer l'avis d'aperçu public avant de soumettre.",
+    "mediaCacheNote": "Les médias d'aperçu sont servis par des URL que les navigateurs et les réseaux peuvent mettre en cache un certain temps. Les fichiers déjà téléchargés ne peuvent pas être rappelés.",
+    "previewLive": "Aperçu public actif",
+    "previewOff": "Aucun aperçu public",
+    "enablePreview": "Afficher l'aperçu public",
+    "withdrawPreview": "Retirer l'aperçu public",
+    "previewEnabled": "Aperçu public activé.",
+    "previewWithdrawn": "Aperçu public retiré.",
+    "previewHint": "Votre annonce est visible comme aperçu clairement identifié. L'achat ne sera possible qu'après approbation et configuration des paiements."
   }
 }

@@ -937,5 +937,30 @@
       "tooLarge": "File is larger than 2 MB",
       "consent": "I agree that this logo and company name may be displayed publicly on the DK AI Marketplace homepage."
     }
+  },
+  "preview": {
+    "badge": "Under review",
+    "notAvailable": "Preview only — not yet available for purchase.",
+    "filterAvailable": "Available to buy",
+    "filterAvailableHint": "Hide listings that are still under review.",
+    "detailNotice": "This product is awaiting review and is not yet approved or available for purchase. Publication for sale depends on review approval and seller payout readiness.",
+    "plannedPrice": "Planned price — subject to change.",
+    "viewPreview": "View preview",
+    "sellerIdentityNote": "Seller identity verification is separate from product review. It says nothing about this product's approval.",
+    "approvedNotPurchasable": "Approved — not yet available for purchase while the seller completes payment setup.",
+    "consentTitle": "Public preview while under review",
+    "consentExplain": "Submitting this product will immediately publish its listing as a public preview while it awaits review. Customers cannot purchase it until it is approved and the required payment setup is ready.",
+    "consentPublicFields": "Publicly visible: title, description, your approved preview images, the planned price (labelled as subject to change), your public seller name and the public features, requirements and setup information. Download files, source and workflow packages, internal review materials, credentials, private feedback and customer data stay private.",
+    "consentAck": "I understand and agree that this listing becomes a public preview immediately after submission.",
+    "consentVideo": "Also allow my demo video to be shown publicly (internal review videos stay private).",
+    "consentRequired": "Please confirm the public preview notice before submitting.",
+    "mediaCacheNote": "Public preview media is served from URLs that browsers and networks may cache for a while. Files a visitor already downloaded cannot be recalled.",
+    "previewLive": "Public preview is live",
+    "previewOff": "No public preview",
+    "enablePreview": "Show public preview",
+    "withdrawPreview": "Withdraw public preview",
+    "previewEnabled": "Public preview enabled.",
+    "previewWithdrawn": "Public preview withdrawn.",
+    "previewHint": "Your listing is visible as a clearly labelled preview. It cannot be bought until review approval and payment setup are complete."
   }
 }

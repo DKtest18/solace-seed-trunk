@@ -20,6 +20,10 @@ import { LicenseSelector, type LicenseTier } from '@/components/LicenseSelector'
 import { formatMoney, subscriptionLabel } from '@/lib/money';
 import { DELIVERY_MODE, REVIEW_STATUS, normalizeDeliveryMode } from '@/lib/reviewStatus';
 import { HourglassLoader } from '@/components/HourglassLoader';
+import { usePublicPreview } from '@/hooks/usePublicPreviews';
+import { ProductPreviewDetail } from '@/components/ProductPreviewDetail';
+import { useProductPurchasable } from '@/hooks/useProductPurchasable';
+import { useTranslation } from 'react-i18next';
 
 // Track product analytics
 const trackProductEvent = async (productId: string, eventType: 'view' | 'click', userId?: string, metadata?: any) => {
@@ -41,6 +45,7 @@ const trackProductEvent = async (productId: string, eventType: 'view' | 'click',
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
@@ -74,7 +79,7 @@ export default function ProductDetail() {
         .eq('id', id)
         .eq('review_status', REVIEW_STATUS.APPROVED)
         .eq('is_published', true)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -87,6 +92,17 @@ export default function ProductDetail() {
     },
     enabled: !!id,
   });
+
+  // Real payout-readiness check (same rule the checkout functions enforce).
+  const { data: purchasable, isLoading: purchasableLoading } = useProductPurchasable(
+    product ? id : undefined,
+  );
+
+  // Public preview fallback: a submitted / in-review product whose seller
+  // consented to a public preview. Non-purchasable by design.
+  const { data: preview, isLoading: previewLoading } = usePublicPreview(
+    !isLoading && !product ? id : undefined,
+  );
 
   // Fetch seller profile
   const { data: sellerProfile } = useQuery({
@@ -242,12 +258,20 @@ export default function ProductDetail() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  if (isLoading) {
+  if (isLoading || (!product && previewLoading)) {
     return (
       <AppLayout>
         <div className="min-h-screen flex items-center justify-center">
           <HourglassLoader size="lg" label />
         </div>
+      </AppLayout>
+    );
+  }
+
+  if (!product && preview) {
+    return (
+      <AppLayout>
+        <ProductPreviewDetail preview={preview} />
       </AppLayout>
     );
   }
@@ -441,12 +465,18 @@ export default function ProductDetail() {
                 return (
                   <>
                     <LicenseSelector product={product} value={licenseTier} onChange={setLicenseTier} />
+                    {/* Approved but payouts not ready: accurate status, never "under review". */}
+                    {!purchasableLoading && purchasable === false && (
+                      <p className="text-sm text-muted-foreground border rounded-md bg-muted/40 px-3 py-2">
+                        {t('preview.approvedNotPurchasable')}
+                      </p>
+                    )}
                     <div className="pt-4 flex flex-wrap gap-3">
                       <Button
                         size="lg"
                         className="flex-1 sm:flex-initial"
                         onClick={handlePurchase}
-                        disabled={soldOut}
+                        disabled={soldOut || purchasable === false}
                       >
                         {soldOut ? 'Sold out' : 'Buy Now'}
                       </Button>

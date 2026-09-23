@@ -942,7 +942,7 @@
     }
   },
   "preview": {
-    "badge": "In Prüfung",
+    "badge": "In Prüfung – noch nicht kaufbar",
     "notAvailable": "Nur Vorschau – noch nicht zum Kauf verfügbar.",
     "filterAvailable": "Zum Kauf verfügbar",
     "filterAvailableHint": "Einträge ausblenden, die noch in Prüfung sind.",
@@ -964,6 +964,10 @@
     "withdrawPreview": "Öffentliche Vorschau zurückziehen",
     "previewEnabled": "Öffentliche Vorschau aktiviert.",
     "previewWithdrawn": "Öffentliche Vorschau zurückgezogen.",
-    "previewHint": "Dein Eintrag ist als klar gekennzeichnete Vorschau sichtbar. Ein Kauf ist erst nach Freigabe und abgeschlossener Zahlungseinrichtung möglich."
+    "previewHint": "Dein Eintrag ist als klar gekennzeichnete Vorschau sichtbar. Ein Kauf ist erst nach Freigabe und abgeschlossener Zahlungseinrichtung möglich.",
+    "salesPausedTitle": "Käufe sind derzeit deaktiviert",
+    "salesPausedBody": "DK AI Marketplace läuft im Vorschau-Modus. Einträge sind sichtbar, ein Kauf ist noch nicht möglich. Es wird nichts belastet.",
+    "salesPausedShort": "Noch nicht kaufbar",
+    "salesPausedBack": "Zurück zum Eintrag"
   }
 }

@@ -939,7 +939,7 @@
     }
   },
   "preview": {
-    "badge": "Under review",
+    "badge": "Under review — not yet available for purchase",
     "notAvailable": "Preview only — not yet available for purchase.",
     "filterAvailable": "Available to buy",
     "filterAvailableHint": "Hide listings that are still under review.",
@@ -961,6 +961,10 @@
     "withdrawPreview": "Withdraw public preview",
     "previewEnabled": "Public preview enabled.",
     "previewWithdrawn": "Public preview withdrawn.",
-    "previewHint": "Your listing is visible as a clearly labelled preview. It cannot be bought until review approval and payment setup are complete."
+    "previewHint": "Your listing is visible as a clearly labelled preview. It cannot be bought until review approval and payment setup are complete.",
+    "salesPausedTitle": "Purchases are currently disabled",
+    "salesPausedBody": "DK AI Marketplace is running in preview mode. Listings can be viewed, but no purchase is possible yet. Nothing is charged.",
+    "salesPausedShort": "Not yet available for purchase",
+    "salesPausedBack": "Back to the listing"
   }
 }

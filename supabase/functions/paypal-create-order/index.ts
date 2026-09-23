@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.56.0";
 import { getPlatformFeePercent } from "../_shared/platform-fee.ts";
+import { salesDisabledResponse } from "../_shared/sales-mode.ts";
 
 
 export const config = {
@@ -137,6 +138,11 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { status: 200, headers: corsHeaders });
   }
+
+  // PREVIEW MODE: no PayPal order may be created while sales are disabled.
+  const paused = salesDisabledResponse(corsHeaders);
+  if (paused) return paused;
+
 
   if (req.method !== "POST") {
     return jsonResponse({ error: "Method not allowed" }, 405);

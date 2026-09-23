@@ -9,10 +9,16 @@
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 import { createSeparateChargeCheckout } from '../_shared/separate-checkout.ts';
+import { salesDisabledResponse } from '../_shared/sales-mode.ts';
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
+
+  // PREVIEW MODE: hard server-side stop before anything is read or created.
+  const paused = salesDisabledResponse();
+  if (paused) return paused;
+
 
   try {
     const authHeader = req.headers.get('Authorization');

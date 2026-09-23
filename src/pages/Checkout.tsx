@@ -19,6 +19,8 @@ import { HourglassLoader } from '@/components/HourglassLoader';
 import { getCheckoutOrigin } from '@/lib/checkoutOrigin';
 import { REVIEW_STATUS } from '@/lib/reviewStatus';
 import { invokePublicFunction } from '@/lib/publicFunctionInvoke';
+import { SALES_ENABLED } from '@/lib/salesMode';
+import { useTranslation } from 'react-i18next';
 
 function checkoutErrorMessage(value: unknown): string | undefined {
   if (typeof value === 'string' && value.trim()) return value;
@@ -34,6 +36,7 @@ function checkoutErrorMessage(value: unknown): string | undefined {
 export default function Checkout() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -113,6 +116,11 @@ export default function Checkout() {
   }, [product?.seller_id]);
 
   const handlePayPalCheckout = async () => {
+    // Preview mode: never start a payment (the edge function also refuses).
+    if (!SALES_ENABLED) {
+      toast.error(t('preview.salesPausedBody'));
+      return;
+    }
     setPaypalProcessing(true);
     try {
       const referralSource = sessionStorage.getItem(`ref_${product.id}`) || undefined;
@@ -165,6 +173,10 @@ export default function Checkout() {
   };
 
   const handleCheckout = async () => {
+    if (!SALES_ENABLED) {
+      toast.error(t('preview.salesPausedBody'));
+      return;
+    }
     setProcessing(true);
     try {
       const referralSource = sessionStorage.getItem(`ref_${product.id}`) || undefined;
@@ -379,7 +391,18 @@ export default function Checkout() {
             </div>
           </Card>
 
-          {needsPolicyAcceptance ? (
+          {!SALES_ENABLED ? (
+            <Card className="p-6 space-y-4">
+              <h2 className="text-xl font-semibold">{t('preview.salesPausedTitle')}</h2>
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{t('preview.salesPausedBody')}</AlertDescription>
+              </Alert>
+              <Button variant="outline" className="w-full" onClick={() => navigate(`/product/${product.id}`)}>
+                {t('preview.salesPausedBack')}
+              </Button>
+            </Card>
+          ) : needsPolicyAcceptance ? (
             <BuyerPolicyAcceptance onAccept={handleAcceptPolicy} isLoading={isAccepting} />
           ) : (
             <Card className="p-6">

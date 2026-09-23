@@ -320,7 +320,7 @@
     }
   },
   "preview": {
-    "badge": "En cours d'examen",
+    "badge": "En cours d'examen — pas encore disponible à l'achat",
     "notAvailable": "Aperçu uniquement — pas encore disponible à l'achat.",
     "filterAvailable": "Disponible à l'achat",
     "filterAvailableHint": "Masquer les annonces encore en cours d'examen.",
@@ -342,6 +342,10 @@
     "withdrawPreview": "Retirer l'aperçu public",
     "previewEnabled": "Aperçu public activé.",
     "previewWithdrawn": "Aperçu public retiré.",
-    "previewHint": "Votre annonce est visible comme aperçu clairement identifié. L'achat ne sera possible qu'après approbation et configuration des paiements."
+    "previewHint": "Votre annonce est visible comme aperçu clairement identifié. L'achat ne sera possible qu'après approbation et configuration des paiements.",
+    "salesPausedTitle": "Les achats sont actuellement désactivés",
+    "salesPausedBody": "DK AI Marketplace fonctionne en mode aperçu. Les annonces sont visibles, mais aucun achat n'est encore possible. Aucun montant n'est prélevé.",
+    "salesPausedShort": "Pas encore disponible à l'achat",
+    "salesPausedBack": "Retour à l'annonce"
   }
 }

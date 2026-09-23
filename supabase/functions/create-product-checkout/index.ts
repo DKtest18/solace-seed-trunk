@@ -8,10 +8,15 @@ import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 import { isProductPurchasable } from '../_shared/purchasable.ts';
 import { getPlatformFeePercent } from '../_shared/platform-fee.ts';
 import { createSeparateChargeCheckout } from '../_shared/separate-checkout.ts';
+import { salesDisabledResponse } from '../_shared/sales-mode.ts';
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
+
+  // PREVIEW MODE: hard server-side stop (guests and signed-in buyers alike).
+  const paused = salesDisabledResponse();
+  if (paused) return paused;
 
   const { user, error } = await getAuthenticatedUser(req);
   if (error || !user) return errorResponse('Unauthorized', 401);

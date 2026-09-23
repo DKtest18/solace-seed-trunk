@@ -24,6 +24,7 @@ import { usePublicPreview } from '@/hooks/usePublicPreviews';
 import { ProductPreviewDetail } from '@/components/ProductPreviewDetail';
 import { useProductPurchasable } from '@/hooks/useProductPurchasable';
 import { useTranslation } from 'react-i18next';
+import { SALES_ENABLED } from '@/lib/salesMode';
 
 // Track product analytics
 const trackProductEvent = async (productId: string, eventType: 'view' | 'click', userId?: string, metadata?: any) => {
@@ -243,6 +244,7 @@ export default function ProductDetail() {
 
 
   const handlePurchase = () => {
+    if (!SALES_ENABLED) return;
     // Guests are allowed to buy — go straight to checkout.
     if (id && user) {
       trackProductEvent(id, 'click', user.id, { action: 'purchase_intent', tier: licenseTier });
@@ -471,14 +473,20 @@ export default function ProductDetail() {
                         {t('preview.approvedNotPurchasable')}
                       </p>
                     )}
+                    {/* Preview mode: purchases are globally paused (server-enforced). */}
+                    {!SALES_ENABLED && (
+                      <p className="text-sm border rounded-md bg-muted/40 px-3 py-2">
+                        {t('preview.salesPausedBody')}
+                      </p>
+                    )}
                     <div className="pt-4 flex flex-wrap gap-3">
                       <Button
                         size="lg"
                         className="flex-1 sm:flex-initial"
                         onClick={handlePurchase}
-                        disabled={soldOut || purchasable === false}
+                        disabled={!SALES_ENABLED || soldOut || purchasable === false}
                       >
-                        {soldOut ? 'Sold out' : 'Buy Now'}
+                        {!SALES_ENABLED ? t('preview.salesPausedShort') : soldOut ? 'Sold out' : 'Buy Now'}
                       </Button>
                       <Button size="lg" variant="outline" onClick={() => user ? setReportOpen(true) : navigate('/login')} className="gap-2">
                         <Flag className="h-4 w-4" /> Report

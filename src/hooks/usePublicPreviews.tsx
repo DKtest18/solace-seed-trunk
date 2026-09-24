@@ -1,5 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
+import { supabase } from '@/integrations/supabase/client';
+
+// The RPC returns the cover as "bucket/path" of a public preview image.
+function toUrl<T extends { image_url: string | null }>(r: T): T {
+  const v = r.image_url;
+  if (!v || /^https?:/.test(v)) return r;
+  const [bucket, ...rest] = v.split('/');
+  return { ...r, image_url: supabase.storage.from(bucket).getPublicUrl(rest.join('/')).data.publicUrl };
+}
 
 /**
  * PUBLIC PREVIEWS — products that are genuinely submitted / in review AND whose
@@ -35,7 +44,7 @@ export function usePublicPreviews() {
     queryFn: async (): Promise<PublicPreview[]> => {
       const { data, error } = await db.rpc('dkai_public_previews');
       if (error) return [];
-      return (data as PublicPreview[]) ?? [];
+      return ((data as PublicPreview[]) ?? []).map(toUrl);
     },
   });
 }
@@ -49,7 +58,7 @@ export function usePublicPreview(productId?: string) {
       const { data, error } = await db.rpc('dkai_public_preview', { p_product_id: productId });
       if (error) return null;
       const rows = (data as PublicPreview[]) ?? [];
-      return rows[0] ?? null;
+      return rows[0] ? toUrl(rows[0]) : null;
     },
   });
 }

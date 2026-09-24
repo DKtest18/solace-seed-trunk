@@ -467,9 +467,11 @@ export default function Marketplace() {
                     </div>
                     <div className="p-5 flex flex-col flex-1">
                       <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+                        {!product.isPreview && (
                         <Badge variant="secondary" className="text-xs font-medium">
                           {product.product_type}
                         </Badge>
+                        )}
                         {product.isPreview ? <UnderReviewBadge /> : <LicenseChips product={product} />}
                       </div>
                       <h3 className="text-lg font-semibold mb-2 line-clamp-2 text-foreground">
@@ -488,14 +490,14 @@ export default function Marketplace() {
                       {product.isPreview && <PreviewUnavailableLine className="mb-4" />}
 
                       <div className="mt-auto flex items-center justify-between pt-4 border-t border-border">
+                        {product.isPreview ? <div /> : (
                         <div className="text-xl font-semibold text-foreground">
                           {formatMoney(product.price, (product as any).currency)}
                           <span className="text-xs font-normal text-muted-foreground ml-1">
-                            {product.isPreview
-                              ? t('preview.plannedPrice')
-                              : subscriptionLabel(product as any) || 'once'}
+                            {subscriptionLabel(product as any) || 'once'}
                           </span>
                         </div>
+                        )}
                         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                           {!product.isPreview && <WishlistButton productId={product.id} />}
                           <Button size="sm" variant={product.isPreview ? 'outline' : 'default'} asChild>

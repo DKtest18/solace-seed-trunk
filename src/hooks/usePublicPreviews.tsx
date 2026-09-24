@@ -18,15 +18,15 @@ export interface PublicPreview {
   title: string;
   description: string | null;
   image_url: string | null;
-  price: number | null;
-  currency: string | null;
-  pricing_model: string | null;
-  product_type: string | null;
-  category_id: string | null;
-  tags: string[] | null;
-  delivery_mode: string | null;
-  setup_requirements: unknown;
-  faqs?: Array<{ question?: string; answer?: string }> | null;
+  review_status: 'submitted' | 'in_review';
+  // Legacy fields: no longer returned by the minimal preview RPC.
+  price?: number | null;
+  currency?: string | null;
+  product_type?: string | null;
+  pricing_model?: string | null;
+  tags?: string[] | null;
+  created_at?: string | null;
+}> | null;
   demo_video_url?: string | null;
   demo_video_paths?: string[] | null;
   seller_id: string;
@@ -68,10 +68,8 @@ export function usePublicPreview(productId?: string) {
 export interface PreviewMediaRow {
   id: string;
   storage_path: string;
-  media_type: 'image' | 'video';
-  mime_type: string;
+  media_type: 'image';
   sort_order: number;
-  is_cover: boolean;
 }
 
 export function usePublicPreviewMedia(productId?: string) {

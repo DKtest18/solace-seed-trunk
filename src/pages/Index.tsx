@@ -82,7 +82,9 @@ function ProductGlassCard({ product, className = '' }: { product?: HomeProduct; 
           <BadgeCheck className="h-4 w-4 text-[var(--brand-accent)] shrink-0" aria-label={t('landing.verified')} />
         )}
       </div>
-      <div className="text-sm text-[var(--text-muted)]">{formatMoney(product.price, product.currency)}</div>
+      {!product.is_preview && (
+        <div className="text-sm text-[var(--text-muted)]">{formatMoney(product.price, product.currency)}</div>
+      )}
       {product.is_preview && (
         <div className="mt-1 text-[11px] text-[var(--text-dim)]">{t('preview.badge')}</div>
       )}

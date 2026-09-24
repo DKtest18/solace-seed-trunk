@@ -26,17 +26,6 @@ export interface PublicPreview {
   pricing_model?: string | null;
   tags?: string[] | null;
   created_at?: string | null;
-}> | null;
-  demo_video_url?: string | null;
-  demo_video_paths?: string[] | null;
-  seller_id: string;
-  seller_name: string | null;
-  seller_username: string | null;
-  seller_avatar_url: string | null;
-  seller_linkedin_verified: boolean;
-  demo_video_allowed: boolean;
-  submitted_at: string | null;
-  created_at: string | null;
 }
 
 export function usePublicPreviews() {

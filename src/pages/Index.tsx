@@ -82,7 +82,9 @@ function ProductGlassCard({ product, className = '' }: { product?: HomeProduct; 
           <BadgeCheck className="h-4 w-4 text-[var(--brand-accent)] shrink-0" aria-label={t('landing.verified')} />
         )}
       </div>
-      <div className="text-sm text-[var(--text-muted)]">{formatMoney(product.price, product.currency)}</div>
+      {!product.is_preview && (
+        <div className="text-sm text-[var(--text-muted)]">{formatMoney(product.price, product.currency)}</div>
+      )}
       {product.is_preview && (
         <div className="mt-1 text-[11px] text-[var(--text-dim)]">{t('preview.badge')}</div>
       )}
@@ -98,8 +100,7 @@ export default function Index() {
   const previewCards: HomeProduct[] = (previews ?? []).map((p) => ({
     id: p.id,
     title: p.title,
-    price: Number(p.price ?? 0),
-    currency: p.currency || undefined,
+    price: 0,
     image_url: p.image_url || undefined,
     is_preview: true,
   }));

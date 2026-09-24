@@ -2,12 +2,13 @@ import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getAuthenticatedUser, getServiceClient } from '../_shared/auth.ts';
 import { isOwnedDeliveryPath } from '../_shared/delivery-path.ts';
 import { REVIEW_STATUS_GROUPS } from '../_shared/review-status.ts';
+import { SALES_ENABLED } from '../_shared/sales-mode.ts';
 
 const LIVE_STATUSES: string[] = [...REVIEW_STATUS_GROUPS.LIVE];
 
 const BUCKET = 'product-deliveries';
 const RATE_LIMIT = 20; // per hour per user
-const URL_TTL = 3600;  // 1 hour
+const URL_TTL = 60;    // 60 s: minimal shareable window
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -20,6 +21,8 @@ Deno.serve(async (req) => {
     const { product_file_id, product_id, action } = await req.json();
     if (action === 'list') {
       if (!product_id) return errorResponse('product_id required', 400);
+      // PREVIEW MODE: buyers have no download access at all.
+      if (!SALES_ENABLED) return errorResponse('Downloads are disabled in preview mode.', 403);
 
       const admin = getServiceClient();
 
@@ -94,7 +97,7 @@ Deno.serve(async (req) => {
         .select('role').eq('user_id', user.id).eq('role', 'admin').maybeSingle();
       if (roleRow) allowed = true;
     }
-    if (!allowed) {
+    if (!allowed && SALES_ENABLED) {
       const { data: product } = await admin
         .from('dkai_products')
         .select('review_status')

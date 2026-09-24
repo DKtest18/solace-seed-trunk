@@ -1,5 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/lib/dkaiDb';
+import { supabase } from '@/integrations/supabase/client';
+
+// The RPC returns the cover as "bucket/path" of a public preview image.
+function toUrl<T extends { image_url: string | null }>(r: T): T {
+  const v = r.image_url;
+  if (!v || /^https?:/.test(v)) return r;
+  const [bucket, ...rest] = v.split('/');
+  return { ...r, image_url: supabase.storage.from(bucket).getPublicUrl(rest.join('/')).data.publicUrl };
+}
 
 /**
  * PUBLIC PREVIEWS — products that are genuinely submitted / in review AND whose
@@ -18,25 +27,14 @@ export interface PublicPreview {
   title: string;
   description: string | null;
   image_url: string | null;
-  price: number | null;
-  currency: string | null;
-  pricing_model: string | null;
-  product_type: string | null;
-  category_id: string | null;
-  tags: string[] | null;
-  delivery_mode: string | null;
-  setup_requirements: unknown;
-  faqs?: Array<{ question?: string; answer?: string }> | null;
-  demo_video_url?: string | null;
-  demo_video_paths?: string[] | null;
-  seller_id: string;
-  seller_name: string | null;
-  seller_username: string | null;
-  seller_avatar_url: string | null;
-  seller_linkedin_verified: boolean;
-  demo_video_allowed: boolean;
-  submitted_at: string | null;
-  created_at: string | null;
+  review_status: 'submitted' | 'in_review';
+  // Legacy fields: no longer returned by the minimal preview RPC.
+  price?: number | null;
+  currency?: string | null;
+  product_type?: string | null;
+  pricing_model?: string | null;
+  tags?: string[] | null;
+  created_at?: string | null;
 }
 
 export function usePublicPreviews() {
@@ -46,7 +44,7 @@ export function usePublicPreviews() {
     queryFn: async (): Promise<PublicPreview[]> => {
       const { data, error } = await db.rpc('dkai_public_previews');
       if (error) return [];
-      return (data as PublicPreview[]) ?? [];
+      return ((data as PublicPreview[]) ?? []).map(toUrl);
     },
   });
 }
@@ -60,7 +58,7 @@ export function usePublicPreview(productId?: string) {
       const { data, error } = await db.rpc('dkai_public_preview', { p_product_id: productId });
       if (error) return null;
       const rows = (data as PublicPreview[]) ?? [];
-      return rows[0] ?? null;
+      return rows[0] ? toUrl(rows[0]) : null;
     },
   });
 }
@@ -68,10 +66,8 @@ export function usePublicPreview(productId?: string) {
 export interface PreviewMediaRow {
   id: string;
   storage_path: string;
-  media_type: 'image' | 'video';
-  mime_type: string;
+  media_type: 'image';
   sort_order: number;
-  is_cover: boolean;
 }
 
 export function usePublicPreviewMedia(productId?: string) {
